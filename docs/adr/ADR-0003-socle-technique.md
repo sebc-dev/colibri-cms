@@ -14,7 +14,7 @@ depends-on: [ADR-0002]
 
 **Statut :** accepted — 2026-07-10 · *(immuable : seul le statut évolue, cf. ADR-0001)*
 
-> **Place dans la famille.** ADR-0003 fixe le *matériau*. ADR-0004 (architecture) s'y contraint ; ADR-0005 (test) vise ses runtimes ; ADR-0006 (génération IA) s'appuie sur les deux. La recherche sourcée détaillée qui a produit cette décision est conservée en note compagnon (« Socle de versions stables gelées », 9 juillet 2026) ; le présent ADR en est la forme décisionnelle condensée.
+> **Place dans la famille.** ADR-0003 fixe le *matériau*. ADR-0004 (architecture) s'y contraint ; ADR-0005 (test) vise ses runtimes ; ADR-0006 (génération IA) s'appuie sur les deux. Le présent ADR est la forme décisionnelle condensée d'une recherche sourcée détaillée (« Socle de versions stables gelées », 9 juillet 2026), non publiée dans ce dépôt.
 
 ---
 
@@ -136,4 +136,4 @@ Fixer explicitement dans `apps/admin/wrangler.jsonc` : `compatibility_flags: ["n
 - Cadre : PRD ColibriCMS (§4 contraintes, §9 stack).
 - Gouvernance : ADR-0001 (pratique ADR), ADR-0002 (injection agent).
 - Consommé par : ADR-0004 (architecture), ADR-0005 (test).
-- Recherche sourcée détaillée : note compagnon « Socle de versions stables gelées » (9 juillet 2026).
+- Recherche sourcée détaillée : « Socle de versions stables gelées » (9 juillet 2026), non publiée dans ce dépôt.

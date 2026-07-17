@@ -32,7 +32,7 @@ Principe : **un ADR ne dépend que de ceux qui le précèdent.** La gouvernance 
 
 ## Documents amont (hors ADR)
 
-Les ADR tracent vers la chaîne de documents produit : [brief](../brief.md) → [PRD](../prd.md) → [stack](../stack.md) → ADR → [CLAUDE.md](../../CLAUDE.md). La recherche sourcée détaillée (note « Socle de versions stables gelées », 9 juillet 2026) est conservée en archive sous [`docs/research/`](../research/), pointée par ADR-0003.
+Les ADR tracent vers la chaîne de documents produit : [brief](../brief.md) → [PRD](../prd.md) → [stack](../stack.md) → ADR → [CLAUDE.md](../../CLAUDE.md). La recherche sourcée qui a nourri le socle technique a été condensée dans sa forme décisionnelle, [ADR-0003](./ADR-0003-socle-technique.md).
 
 ## Conventions
 
