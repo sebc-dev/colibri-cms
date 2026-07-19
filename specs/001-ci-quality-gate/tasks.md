@@ -19,14 +19,14 @@ _Livre : FR-014, FR-015, FR-016, FR-019, FR-027_ · _~350 lignes est._ · _6 con
 Fichiers : `package.json` (racine), `pnpm-workspace.yaml`, `turbo.json`, `tsconfig.base.json`, `tooling/quality-gate/package.json`, `tooling/quality-gate/src/types.ts`, `tooling/quality-gate/src/scope.ts`, `tooling/quality-gate/src/runner.ts`, `tooling/quality-gate/src/checks/index.ts`, `tooling/quality-gate/bin/gate.ts`, `tooling/quality-gate/**/*.test.ts`
 Capability : `pnpm gate` tourne sur un registre de contrôles tagués par régime (contrôles d'exemple/fixtures), n'exécute que ceux du régime demandé, agrège un verdict fail-closed, sort avec un code. Le walking skeleton vérifiable de bout en bout.
 
-- [ ] T1 — Écrire le test : `runGate(ctx, régime)` exécute chaque contrôle du **registre unique appartenant au régime** sans court-circuit (un contrôle échoue, les suivants s'exécutent et sont rapportés ; un contrôle d'un autre régime n'est pas exécuté) _Requirements: FR-014, FR-019_ ; dépend de : —
-- [ ] T2 — Implémenter le registre ordonné (`checks/index.ts`, source unique, chaque entrée tagée `regimes`) + `runGate(ctx, régime)` qui filtre par régime et itère sans arrêt au premier échec, jusqu'à T1 vert _Requirements: FR-014, FR-019_ ; bloqué par : T1
-- [ ] T3 — Écrire le test : verdict = `TOUT VERT` ssi aucun contrôle `échoué`, sinon `BLOQUÉ` (avec `nbEchecs`) _Requirements: FR-015_ ; bloqué par : T2
-- [ ] T4 — Implémenter l'agrégation du verdict (`GateResult`) jusqu'à T3 vert _Requirements: FR-015_ ; bloqué par : T3
-- [ ] T5 — Écrire le test : fail-closed — un contrôle qui lève (ou outil absent) est rapporté `échoué` (jamais `passé`/`ignoré`) et contribue à `BLOQUÉ` _Requirements: FR-027_ ; _SC-003_ ; bloqué par : T2
-- [ ] T6 — Implémenter l'enveloppe `try/catch` fail-closed par contrôle jusqu'à T5 vert _Requirements: FR-027_ ; bloqué par : T5
-- [ ] T7 — Écrire le test : `bin/gate` sort avec un code **non-zéro** quand le verdict est `BLOQUÉ`, `0` sinon _Requirements: FR-016_ ; bloqué par : T4
-- [ ] T8 — Implémenter `types.ts` (`Regime`/`Check` avec `regimes`/`CheckResult`/`GateResult`), `scope.ts` (périmètre déterministe par commit) et `bin/gate.ts` (lecture du régime via `--regime`, défaut `par-changement` → `runGate(ctx, régime)` → `process.exit`) jusqu'à T7 vert _Requirements: FR-016_ ; bloqué par : T7
+- [x] T1 — Écrire le test : `runGate(ctx, régime)` exécute chaque contrôle du **registre unique appartenant au régime** sans court-circuit (un contrôle échoue, les suivants s'exécutent et sont rapportés ; un contrôle d'un autre régime n'est pas exécuté) _Requirements: FR-014, FR-019_ ; dépend de : —
+- [x] T2 — Implémenter le registre ordonné (`checks/index.ts`, source unique, chaque entrée tagée `regimes`) + `runGate(ctx, régime)` qui filtre par régime et itère sans arrêt au premier échec, jusqu'à T1 vert _Requirements: FR-014, FR-019_ ; bloqué par : T1
+- [x] T3 — Écrire le test : verdict = `TOUT VERT` ssi aucun contrôle `échoué`, sinon `BLOQUÉ` (avec `nbEchecs`) _Requirements: FR-015_ ; bloqué par : T2
+- [x] T4 — Implémenter l'agrégation du verdict (`GateResult`) jusqu'à T3 vert _Requirements: FR-015_ ; bloqué par : T3
+- [x] T5 — Écrire le test : fail-closed — un contrôle qui lève (ou outil absent) est rapporté `échoué` (jamais `passé`/`ignoré`) et contribue à `BLOQUÉ` _Requirements: FR-027_ ; _SC-003_ ; bloqué par : T2
+- [x] T6 — Implémenter l'enveloppe `try/catch` fail-closed par contrôle jusqu'à T5 vert _Requirements: FR-027_ ; bloqué par : T5
+- [x] T7 — Écrire le test : `bin/gate` sort avec un code **non-zéro** quand le verdict est `BLOQUÉ`, `0` sinon _Requirements: FR-016_ ; bloqué par : T4
+- [x] T8 — Implémenter `types.ts` (`Regime`/`Check` avec `regimes`/`CheckResult`/`GateResult`), `scope.ts` (périmètre déterministe par commit) et `bin/gate.ts` (lecture du régime via `--regime`, défaut `par-changement` → `runGate(ctx, régime)` → `process.exit`) jusqu'à T7 vert _Requirements: FR-016_ ; bloqué par : T7
 
 ## R2 [P] — Double rapport lisible et machine, cohérents
 _Livre : FR-017, FR-018, FR-028_ · _~200 lignes est._ · _4 concepts_ · dépend de : R1

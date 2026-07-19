@@ -1,0 +1,22 @@
+{
+  "name": "@colibri/quality-gate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "gate": "./bin/gate.ts"
+  },
+  "scripts": {
+    "gate": "tsx ./bin/gate.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "tsx": "^4.19.2"
+  }
+}
