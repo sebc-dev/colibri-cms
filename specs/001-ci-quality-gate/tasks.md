@@ -33,12 +33,12 @@ _Livre : FR-017, FR-018, FR-028_ · _~200 lignes est._ · _4 concepts_ · dépen
 Fichiers : `tooling/quality-gate/src/report.ts`, `tooling/quality-gate/src/types.ts` (schéma Zod machine), tests
 Capability : le portail émet un rapport humain complet et une sortie machine Zod, tous deux dérivés du **même** `GateResult` (aucune divergence possible).
 
-- [ ] T9 — Écrire le test : `renderHuman` liste **chaque** contrôle avec son statut, et pour tout `échoué` un résumé de la cause (aucun contrôle muet) _Requirements: FR-017_ ; _SC-004_ ; dépend de : —
-- [ ] T10 — Implémenter `renderHuman(result)` jusqu'à T9 vert _Requirements: FR-017_ ; bloqué par : T9
-- [ ] T11 [P] — Écrire le test : `renderMachine` produit un JSON validé Zod `{ verdict, nbEchecs, checks:[{ contrôle, statut, cause? }] }` _Requirements: FR-018_ ; dépend de : —
-- [ ] T12 — Implémenter le schéma Zod (`types.ts`) + `renderMachine` dérivé du même `GateResult`, jusqu'à T11 vert _Requirements: FR-018_ ; bloqué par : T11
-- [ ] T13 — Écrire le test : statuts humain/machine **identiques** pour chaque contrôle d'un même résultat (divergence = défaut) _Requirements: FR-028_ ; bloqué par : T10, T12
-- [ ] T14 — Garantir la dérivation depuis un `GateResult` unique jusqu'à T13 vert _Requirements: FR-028_ ; bloqué par : T13
+- [x] T9 — Écrire le test : `renderHuman` liste **chaque** contrôle avec son statut, et pour tout `échoué` un résumé de la cause (aucun contrôle muet) _Requirements: FR-017_ ; _SC-004_ ; dépend de : —
+- [x] T10 — Implémenter `renderHuman(result)` jusqu'à T9 vert _Requirements: FR-017_ ; bloqué par : T9
+- [x] T11 [P] — Écrire le test : `renderMachine` produit un JSON validé Zod `{ verdict, nbEchecs, checks:[{ contrôle, statut, cause? }] }` _Requirements: FR-018_ ; dépend de : —
+- [x] T12 — Implémenter le schéma Zod (`types.ts`) + `renderMachine` dérivé du même `GateResult`, jusqu'à T11 vert _Requirements: FR-018_ ; bloqué par : T11
+- [x] T13 — Écrire le test : statuts humain/machine **identiques** pour chaque contrôle d'un même résultat (divergence = défaut) _Requirements: FR-028_ ; bloqué par : T10, T12
+- [x] T14 — Garantir la dérivation depuis un `GateResult` unique jusqu'à T13 vert _Requirements: FR-028_ ; bloqué par : T13
 
 ## R3 — Contrôles de frontières d'architecture (ADR-0004)
 _Livre : FR-004, FR-005, FR-006_ · _~320 lignes est._ · _4 concepts_ · dépend de : R1

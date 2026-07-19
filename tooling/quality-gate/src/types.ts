@@ -3,6 +3,8 @@
  * contrôles, le runner et les entrées CLI (local + CI).
  */
 
+import { z } from "zod";
+
 /** Régime d'exécution : `par-changement` = gate de merge (défaut), `planifie` = nightly (mutation). */
 export type Regime = "par-changement" | "planifie";
 
@@ -39,3 +41,27 @@ export interface GateResult {
   regime: Regime;
   checks: CheckResult[];
 }
+
+/**
+ * Schéma Zod de la représentation structurée (machine) d'un contrôle,
+ * dérivée de `CheckResult` (FR-018).
+ */
+export const machineCheckSchema = z.object({
+  contrôle: z.string(),
+  statut: z.enum(["passé", "échoué", "ignoré"]),
+  cause: z.string().optional(),
+});
+
+/**
+ * Schéma Zod de la représentation structurée (machine) du résultat agrégé
+ * du portail, produite par `renderMachine` à partir d'un `GateResult`
+ * unique (FR-018), en parité de statuts avec `renderHuman` (FR-028).
+ */
+export const machineReportSchema = z.object({
+  verdict: z.enum(["TOUT VERT", "BLOQUÉ"]),
+  nbEchecs: z.number(),
+  checks: z.array(machineCheckSchema),
+});
+
+/** Représentation structurée (machine) inférée du schéma Zod ci-dessus. */
+export type MachineReport = z.infer<typeof machineReportSchema>;
