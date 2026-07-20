@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node tooling/quality-gate/node_modules/tsx/dist/cli.mjs .claude/hooks/protect-paths.mjs"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node tooling/quality-gate/node_modules/tsx/dist/cli.mjs .claude/hooks/golden-lock.mjs"
+          }
+        ]
+      }
+    ]
+  }
+}
