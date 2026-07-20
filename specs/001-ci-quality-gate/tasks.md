@@ -45,12 +45,12 @@ _Livre : FR-004, FR-005, FR-006_ · _~320 lignes est._ · _4 concepts_ · dépen
 Fichiers : `src/checks/boundaries.ts`, `src/checks/read-sql-in-apps.ts`, `src/checks/write-handler.ts`, `.dependency-cruiser.cjs`, `eslint.config.mjs`, `src/checks/index.ts` (enregistrement), tests + fixtures
 Capability : un diff qui viole une frontière de code ADR-0004 (import interdit, SQL de lecture dans `apps/*`, écriture hors `writeHandler`) est rapporté `échoué`.
 
-- [ ] T15 — Écrire le test (fixture) : un import `cloudflare*` hors types dans `@colibri/core`, ou un import d'`apps/*` dans `@colibri/db`/`@colibri/core`, → `échoué` _Requirements: FR-004_ ; dépend de : —
-- [ ] T16 — Implémenter le contrôle `boundaries` (dependency-cruiser) + `.dependency-cruiser.cjs` jusqu'à T15 vert _Requirements: FR-004_ ; bloqué par : T15
-- [ ] T17 [P] — Écrire le test (fixture) : du SQL de lecture présent dans `apps/*` → `échoué` _Requirements: FR-005_ ; dépend de : —
-- [ ] T18 — Implémenter `read-sql-in-apps` (analyse statique) + `eslint.config.mjs` (`no-restricted-paths`) jusqu'à T17 vert _Requirements: FR-005_ ; bloqué par : T17
-- [ ] T19 [P] — Écrire le test (fixture) : un endpoint d'écriture ne passant pas par `writeHandler` → `échoué` _Requirements: FR-006_ ; dépend de : —
-- [ ] T20 — Implémenter `write-handler` (analyse statique) jusqu'à T19 vert _Requirements: FR-006_ ; bloqué par : T19
+- [x] T15 — Écrire le test (fixture) : un import `cloudflare*` hors types dans `@colibri/core`, ou un import d'`apps/*` dans `@colibri/db`/`@colibri/core`, → `échoué` _Requirements: FR-004_ ; dépend de : —
+- [x] T16 — Implémenter le contrôle `boundaries` (dependency-cruiser) + `.dependency-cruiser.cjs` jusqu'à T15 vert _Requirements: FR-004_ ; bloqué par : T15
+- [x] T17 [P] — Écrire le test (fixture) : du SQL de lecture présent dans `apps/*` → `échoué` _Requirements: FR-005_ ; dépend de : —
+- [x] T18 — Implémenter `read-sql-in-apps` (analyse statique) + `eslint.config.mjs` (`no-restricted-paths`) jusqu'à T17 vert _Requirements: FR-005_ ; bloqué par : T17
+- [x] T19 [P] — Écrire le test (fixture) : un endpoint d'écriture ne passant pas par `writeHandler` → `échoué` _Requirements: FR-006_ ; dépend de : —
+- [x] T20 — Implémenter `write-handler` (analyse statique) jusqu'à T19 vert _Requirements: FR-006_ ; bloqué par : T19
 
 ## R4 — Contrôles statiques d'hygiène du dépôt
 _Livre : FR-010, FR-011, FR-012, FR-013_ · _~340 lignes est._ · _5 concepts_ · dépend de : R3 _(partage `eslint.config.mjs`)_
