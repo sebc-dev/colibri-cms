@@ -1,0 +1,27 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+  - "tooling/*"
+
+allowBuilds:
+  esbuild: true
+
+catalog:
+  astro: 7.0.7
+  "@astrojs/cloudflare": 14.1.2
+  "@astrojs/react": 6.0.1
+  react: 19.2.7
+  react-dom: 19.2.7
+  "@types/react": 19.2.0
+  "@types/react-dom": 19.2.0
+  wrangler: 4.107.1
+  tailwindcss: 4.3.2
+  "@tailwindcss/vite": 4.3.2
+  "@tiptap/core": 3.27.3
+  "@tiptap/pm": 3.27.3
+  "@tiptap/react": 3.27.3
+  "@tiptap/starter-kit": 3.27.3
+  zod: 4.4.3
+  sharp: 0.35.3
+  typescript: 6.0.3
+  vitest: 3.2.4
