@@ -1,8 +1,11 @@
 import type { Check } from "../types";
+import { authzCoverageCheck } from "./authz-coverage";
 import { boundariesCheck } from "./boundaries";
+import { integrationCheck } from "./integration";
 import { lintFormatCheck } from "./lint-format";
 import { migrationCommentCheck } from "./migration-comment";
 import { readSqlInAppsCheck } from "./read-sql-in-apps";
+import { turnstileTestCheck } from "./turnstile-test";
 import { typecheckCheck } from "./typecheck";
 import { versionsCatalogCheck } from "./versions-catalog";
 import { writeHandlerCheck } from "./write-handler";
@@ -14,9 +17,12 @@ import { writeHandlerCheck } from "./write-handler";
  * ajouté ici au fil des lots, tagué par son ou ses `regimes`.
  */
 export const checks: Check[] = [
+  integrationCheck,
   boundariesCheck,
   readSqlInAppsCheck,
   writeHandlerCheck,
+  authzCoverageCheck,
+  turnstileTestCheck,
   typecheckCheck,
   lintFormatCheck,
   migrationCommentCheck,
