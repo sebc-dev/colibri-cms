@@ -1,0 +1,7 @@
+{
+  "name": "site-fixture",
+  "private": true,
+  "dependencies": {
+    "astro": "7.0.7"
+  }
+}

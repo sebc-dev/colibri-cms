@@ -8,14 +8,18 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 /** Répertoires jamais parcourus (bruit, pas de code source pertinent). */
-const DOSSIERS_IGNORES = new Set(["node_modules", ".git", "dist", "build"]);
+const DOSSIERS_IGNORES = new Set(["node_modules", ".git", "dist", "build", "test-fixtures"]);
 
 /**
- * Retourne la liste des fichiers `.ts`/`.tsx` sous `dir`, récursivement.
- * Tolère un dossier absent (retourne un tableau vide) : un contrôle peut
- * s'exécuter sur une arborescence qui ne contient pas le sous-dossier visé.
+ * Retourne la liste des fichiers sous `dir`, récursivement, dont le nom
+ * satisfait `predicat`. Tolère un dossier absent (retourne un tableau vide) :
+ * un contrôle peut s'exécuter sur une arborescence qui ne contient pas le
+ * sous-dossier visé.
  */
-export function listerFichiersSource(dir: string): string[] {
+export function listerFichiersAvecPredicat(
+  dir: string,
+  predicat: (nomFichier: string) => boolean,
+): string[] {
   if (!existsSync(dir)) {
     return [];
   }
@@ -36,13 +40,21 @@ export function listerFichiersSource(dir: string): string[] {
 
       if (entree.isDirectory()) {
         pile.push(chemin);
-      } else if (entree.isFile() && /\.tsx?$/.test(entree.name)) {
+      } else if (entree.isFile() && predicat(entree.name)) {
         resultats.push(chemin);
       }
     }
   }
 
   return resultats;
+}
+
+/**
+ * Retourne la liste des fichiers `.ts`/`.tsx` sous `dir`, récursivement.
+ * Voir `listerFichiersAvecPredicat` pour la tolérance dossier absent.
+ */
+export function listerFichiersSource(dir: string): string[] {
+  return listerFichiersAvecPredicat(dir, (nom) => /\.tsx?$/.test(nom));
 }
 
 /** Lit le contenu d'un fichier, ou une chaîne vide s'il n'existe pas (garde-fou). */
