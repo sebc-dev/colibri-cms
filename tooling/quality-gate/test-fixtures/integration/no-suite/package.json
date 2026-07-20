@@ -1,0 +1,5 @@
+{
+  "name": "no-suite-fixture",
+  "private": true,
+  "comment": "Fixture : arborescence sans dossier tests/integration (dépôt greenfield, FR-001) — le contrôle ne s'applique pas."
+}
