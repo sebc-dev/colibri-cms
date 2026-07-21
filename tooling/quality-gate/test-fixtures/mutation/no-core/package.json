@@ -1,0 +1,5 @@
+{
+  "name": "no-core-fixture",
+  "private": true,
+  "comment": "Fixture : arborescence sans packages/core (dépôt greenfield, FR-003) — le contrôle mutation rapporte ignoré, jamais échoué."
+}

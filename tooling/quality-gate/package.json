@@ -20,6 +20,8 @@
     "tsx": "^4.19.2",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "@types/node": "catalog:"
+    "@types/node": "catalog:",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/api": "catalog:"
   }
 }

@@ -4,10 +4,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "bin/**/*.test.ts"],
-    // Les contrôles invoquent de vrais outils (ESLint, Prettier, tsc) dont le
-    // démarrage à froid dépasse le défaut de 5 s ; on laisse de la marge pour
-    // éviter des timeouts flaky en local et en CI. Les tests plus longs
-    // (mutation/Stryker) gardent leur timeout inline propre.
-    testTimeout: 30_000,
+    // Les contrôles invoquent de vrais outils en sous-processus dont le
+    // démarrage à froid dépasse le défaut de 5 s : ESLint/Prettier/tsc
+    // (lint-format, typecheck) et surtout un run Stryker complet par scénario
+    // (mutation, R6). On relève le timeout global en conséquence.
+    testTimeout: 120_000,
   },
 });
