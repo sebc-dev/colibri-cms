@@ -20,7 +20,6 @@
  */
 
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -30,6 +29,7 @@ import {
   survivantsNonCouverts,
   type MutantSurvivant,
 } from "../mutation-baseline";
+import { spawnAsync } from "./process-utils";
 
 const require = createRequire(import.meta.url);
 
@@ -123,9 +123,8 @@ async function run(ctx: GateContext): Promise<CheckResult> {
   try {
     writeFileSync(cheminConfig, JSON.stringify(construireConfiguration(dossierTemp)), "utf-8");
 
-    const resultat = spawnSync(process.execPath, [cheminStrykerCli(), "run", cheminConfig], {
+    const resultat = await spawnAsync(process.execPath, [cheminStrykerCli(), "run", cheminConfig], {
       cwd: base,
-      encoding: "utf-8",
     });
 
     if (resultat.error) {

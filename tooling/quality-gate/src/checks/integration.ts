@@ -9,10 +9,10 @@
  */
 
 import { existsSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 import type { Check, CheckResult, GateContext } from "../types";
+import { spawnAsync } from "./process-utils";
 
 const require = createRequire(import.meta.url);
 
@@ -38,10 +38,7 @@ async function run(ctx: GateContext): Promise<CheckResult> {
     return { id: "integration", statut: "ignoré" };
   }
 
-  const resultat = spawnSync(process.execPath, [cheminVitestCli(), "run"], {
-    cwd,
-    encoding: "utf-8",
-  });
+  const resultat = await spawnAsync(process.execPath, [cheminVitestCli(), "run"], { cwd });
 
   if (resultat.error) {
     return { id: "integration", statut: "échoué", cause: resultat.error.message };
