@@ -12,6 +12,9 @@
   },
   "devDependencies": {
     "turbo": "2.10.5",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "eslint": "catalog:",
+    "typescript-eslint": "catalog:",
+    "prettier": "catalog:"
   }
 }

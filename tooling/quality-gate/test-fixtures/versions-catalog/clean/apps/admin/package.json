@@ -1,0 +1,8 @@
+{
+  "name": "admin-fixture",
+  "private": true,
+  "dependencies": {
+    "astro": "catalog:",
+    "@astrojs/cloudflare": "catalog:"
+  }
+}
