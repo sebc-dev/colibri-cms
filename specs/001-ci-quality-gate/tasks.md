@@ -107,12 +107,12 @@ _Livre : FR-021, FR-022, FR-023_ · _~220 lignes est._ · _4 concepts_ · dépen
 Fichiers : `.claude/settings.json`, `.claude/hooks/protect-paths.mjs`, `.claude/hooks/golden-lock.mjs`, `tooling/quality-gate/src/protected-paths.ts`, tests
 Capability : pendant la génération, un hook local refuse **avant écriture** toute édition IA sous un chemin possédé par l'humain et toute mise à jour de golden, avec la raison renvoyée au modèle.
 
-- [ ] T47 — Écrire le test : une écriture IA sous un chemin protégé (`tests/`, `migrations/`, `**/schema/`, config de frontières, seam d'auth) est refusée **avant** écriture, avec la raison renvoyée _Requirements: FR-021_ ; dépend de : —
-- [ ] T48 — Implémenter `protect-paths.mjs` (PreToolUse `exit 2` + raison) + `protected-paths.ts` (liste unique) + `settings.json` (matcher `Edit|Write|MultiEdit`) jusqu'à T47 vert _Requirements: FR-021_ ; bloqué par : T47
-- [ ] T49 [P] — Écrire le test : une tentative de mise à jour de golden (`--update`/`-u`) est refusée avec la raison _Requirements: FR-022_ ; dépend de : —
-- [ ] T50 — Implémenter `golden-lock.mjs` (matcher `Bash`, `exit 2`) jusqu'à T49 vert _Requirements: FR-022_ ; bloqué par : T49
-- [ ] T51 — Écrire le test : les chemins protégés du hook proviennent de la **même définition unique** (`protected-paths.ts`) que celle consommée par le portail _Requirements: FR-023_ ; bloqué par : T48
-- [ ] T52 — Garantir la source unique `protected-paths.ts` (aucune duplication de liste) jusqu'à T51 vert _Requirements: FR-023_ ; bloqué par : T51
+- [x] T47 — Écrire le test : une écriture IA sous un chemin protégé (`tests/`, `migrations/`, `**/schema/`, config de frontières, seam d'auth) est refusée **avant** écriture, avec la raison renvoyée _Requirements: FR-021_ ; dépend de : —
+- [x] T48 — Implémenter `protect-paths.mjs` (PreToolUse `exit 2` + raison) + `protected-paths.ts` (liste unique) + `settings.json` (matcher `Edit|Write|MultiEdit`) jusqu'à T47 vert _Requirements: FR-021_ ; bloqué par : T47
+- [x] T49 [P] — Écrire le test : une tentative de mise à jour de golden (`--update`/`-u`) est refusée avec la raison _Requirements: FR-022_ ; dépend de : —
+- [x] T50 — Implémenter `golden-lock.mjs` (matcher `Bash`, `exit 2`) jusqu'à T49 vert _Requirements: FR-022_ ; bloqué par : T49
+- [x] T51 — Écrire le test : les chemins protégés du hook proviennent de la **même définition unique** (`protected-paths.ts`) que celle consommée par le portail _Requirements: FR-023_ ; bloqué par : T48
+- [x] T52 — Garantir la source unique `protected-paths.ts` (aucune duplication de liste) jusqu'à T51 vert _Requirements: FR-023_ ; bloqué par : T51
 
 ## R9 — Rejeu du régime par-changement en CI et blocage du merge
 _Livre : FR-020_ · _~80 lignes est._ · _2 concepts_ · dépend de : R1, R2
