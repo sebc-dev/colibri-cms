@@ -95,12 +95,12 @@ _Livre : FR-024, FR-026, FR-029_ · _~240 lignes est._ · _4 concepts_ · dépen
 Fichiers : `src/mutation-baseline.ts` (gouvernance), `mutation-survivors.baseline.json`, tests
 Capability : la baseline est la seule source des survivants tolérés (jamais de seuil codé en dur), fail-closed si absente/illisible, et gouvernée par cliquet.
 
-- [ ] T41 — Écrire le test : les survivants tolérés sont dérivés d'une base **versionnée explicite**, jamais d'une valeur implicite ni d'un seuil codé en dur _Requirements: FR-024_ ; dépend de : —
-- [ ] T42 — Implémenter la dérivation explicite (aucun défaut implicite) jusqu'à T41 vert _Requirements: FR-024_ ; bloqué par : T41
-- [ ] T43 [P] — Écrire le test : base absente ou illisible → mutation `échoué` ; base **explicitement vide** (fichier présent, zéro survivant) → valide _Requirements: FR-029_ ; dépend de : —
-- [ ] T44 — Implémenter le fail-closed absente/illisible + vide-explicite-valide jusqu'à T43 vert _Requirements: FR-029_ ; bloqué par : T43
-- [ ] T45 — Écrire le test : cliquet — un mutant tué doit être retiré de la base, et la base ne peut jamais être élargie pour faire passer le portail _Requirements: FR-026_ ; bloqué par : T42
-- [ ] T46 — Implémenter la règle de cliquet jusqu'à T45 vert _Requirements: FR-026_ ; bloqué par : T45
+- [x] T41 — Écrire le test : les survivants tolérés sont dérivés d'une base **versionnée explicite**, jamais d'une valeur implicite ni d'un seuil codé en dur _Requirements: FR-024_ ; dépend de : —
+- [x] T42 — Implémenter la dérivation explicite (aucun défaut implicite) jusqu'à T41 vert _Requirements: FR-024_ ; bloqué par : T41
+- [x] T43 [P] — Écrire le test : base absente ou illisible → mutation `échoué` ; base **explicitement vide** (fichier présent, zéro survivant) → valide _Requirements: FR-029_ ; dépend de : —
+- [x] T44 — Implémenter le fail-closed absente/illisible + vide-explicite-valide jusqu'à T43 vert _Requirements: FR-029_ ; bloqué par : T43
+- [x] T45 — Écrire le test : cliquet — un mutant tué doit être retiré de la base, et la base ne peut jamais être élargie pour faire passer le portail _Requirements: FR-026_ ; bloqué par : T42
+- [x] T46 — Implémenter la règle de cliquet jusqu'à T45 vert _Requirements: FR-026_ ; bloqué par : T45
 
 ## R8 [P] — Hooks de prévention des éditions interdites à l'IA
 _Livre : FR-021, FR-022, FR-023_ · _~220 lignes est._ · _4 concepts_ · dépend de : R1
