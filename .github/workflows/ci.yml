@@ -1,0 +1,35 @@
+name: CI
+
+# Étape unique du portail qualité (ADR-0006, ADR-0002) : rejoue le même point
+# d'entrée (`pnpm gate` → `runGate` + registre unique de
+# `tooling/quality-gate/src/checks/index.ts`) qu'une exécution locale, dans le
+# régime par défaut « par-changement » (le contrôle de mutation, réservé au
+# régime planifié, n'y figure pas). La sortie machine du portail sert à
+# l'annotation ; le build échoue si le code de sortie est non nul (FR-020,
+# SC-002 — parité par régime local/CI).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Installer pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Portail qualité (régime par-changement)
+        run: pnpm gate
