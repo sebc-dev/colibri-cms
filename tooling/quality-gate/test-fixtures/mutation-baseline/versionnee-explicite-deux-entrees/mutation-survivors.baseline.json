@@ -1,0 +1,14 @@
+[
+  {
+    "fichier": "packages/core/src/a.ts",
+    "mutateur": "EqualityOperator",
+    "ligne": 1,
+    "commentaire": "Fixture FR-024 : première entrée versionnée explicite."
+  },
+  {
+    "fichier": "packages/core/src/b.ts",
+    "mutateur": "StringLiteral",
+    "ligne": 2,
+    "commentaire": "Fixture FR-024 : seconde entrée versionnée explicite."
+  }
+]

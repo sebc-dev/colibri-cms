@@ -1,0 +1,8 @@
+[
+  {
+    "fichier": "packages/core/src/c.ts",
+    "mutateur": "BlockStatement",
+    "ligne": 7,
+    "commentaire": "Fixture FR-024 : base versionnée distincte — le contenu diffère de `versionnee-explicite-deux-entrees`, preuve que la dérivation suit le fichier, jamais un défaut implicite."
+  }
+]

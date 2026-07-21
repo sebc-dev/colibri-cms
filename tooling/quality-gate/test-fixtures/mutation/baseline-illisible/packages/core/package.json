@@ -1,0 +1,5 @@
+{
+  "name": "@colibri/core-fixture",
+  "private": true,
+  "comment": "Fixture FR-029 : core minimal sans aucun mutant exploitable (pas d'opérateur à muter), pour isoler l'assertion sur l'état de la base de référence — `mutation-survivors.baseline.json` existe mais contient un JSON syntaxiquement invalide (illisible)."
+}

@@ -147,8 +147,17 @@ async function run(ctx: GateContext): Promise<CheckResult> {
 
     const rapport = JSON.parse(readFileSync(cheminRapport, "utf-8")) as RapportStryker;
     const survivants = collecterSurvivants(rapport);
-    const baseline = chargerBaseline(base);
-    const nonCouverts = survivantsNonCouverts(survivants, baseline);
+    const etatBaseline = chargerBaseline(base);
+
+    if (etatBaseline.etat === "absente" || etatBaseline.etat === "illisible") {
+      return {
+        id: "mutation",
+        statut: "échoué",
+        cause: `Base de référence des survivants tolérés ${etatBaseline.etat} (mutation-survivors.baseline.json) — FR-029 : ne peut jamais tolérer un survivant par défaut.`,
+      };
+    }
+
+    const nonCouverts = survivantsNonCouverts(survivants, etatBaseline.entries);
 
     if (nonCouverts.length > 0) {
       const cause = nonCouverts
