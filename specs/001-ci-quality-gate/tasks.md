@@ -134,5 +134,5 @@ _Livre : FR-030, SC-006_ · _~90 lignes est._ · _3 concepts_ · dépend de : R1
 Fichiers : `.github/workflows/nightly.yml`, test de vérification (régime planifié → `BLOQUÉ` sur régression)
 Capability : la mutation tourne dans un job **récurrent sur `main`** (hors PR) ; un mutant survivant hors baseline fait échouer le build planifié — enforcement **mécanique**, non discipline (ADR-0002 §3 ; ADR-0006 §Seuils). `[P]` : ne touche ni `src/checks/index.ts` ni un fichier d'un autre lot restant.
 
-- [ ] T57 — Écrire le test/vérif : `pnpm gate --regime=planifie` sur un `core` portant un mutant survivant absent de la baseline → verdict **`BLOQUÉ`**, code **non-zéro** ; baseline exhaustive → `TOUT VERT` _Requirements: FR-030_ ; _SC-006_ ; dépend de : —
-- [ ] T58 — Implémenter `.github/workflows/nightly.yml` (cron sur `main`, étape `pnpm gate --regime=planifie`, échoue le build planifié si code non-zéro, consomme la sortie machine pour l'annotation) jusqu'à T57 vert _Requirements: FR-030_ ; _SC-006_ ; bloqué par : T57
+- [x] T57 — Écrire le test/vérif : `pnpm gate --regime=planifie` sur un `core` portant un mutant survivant absent de la baseline → verdict **`BLOQUÉ`**, code **non-zéro** ; baseline exhaustive → `TOUT VERT` _Requirements: FR-030_ ; _SC-006_ ; dépend de : —
+- [x] T58 — Implémenter `.github/workflows/nightly.yml` (cron sur `main`, étape `pnpm gate --regime=planifie`, échoue le build planifié si code non-zéro, consomme la sortie machine pour l'annotation) jusqu'à T57 vert _Requirements: FR-030_ ; _SC-006_ ; bloqué par : T57
