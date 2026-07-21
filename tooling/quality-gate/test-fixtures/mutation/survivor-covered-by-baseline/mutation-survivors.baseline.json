@@ -1,0 +1,8 @@
+[
+  {
+    "fichier": "packages/core/src/seuil.ts",
+    "mutateur": "EqualityOperator",
+    "ligne": 4,
+    "commentaire": "Fixture FR-025 : survivant explicitement toléré, ensemble exhaustif — aucun autre survivant n'existe dans ce core."
+  }
+]

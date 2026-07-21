@@ -1,0 +1,5 @@
+{
+  "name": "@colibri/core-fixture",
+  "private": true,
+  "comment": "Fixture : mini core pur pour FR-002/FR-025 — le mutant sur l'opérateur de comparaison de estMajeur survit faute de test au bord exact (18)."
+}
