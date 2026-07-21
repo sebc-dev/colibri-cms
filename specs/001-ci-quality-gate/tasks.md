@@ -119,8 +119,8 @@ _Livre : FR-020_ · _~80 lignes est._ · _2 concepts_ · dépend de : R1, R2
 Fichiers : `.github/workflows/ci.yml`, test de vérification de parité
 Capability : la CI par PR rejoue le **même binaire** dans le **régime par-changement** (mutation exclue) ; pour un même commit et ce régime elle produit le même verdict qu'en local et échoue le build si `BLOQUÉ`.
 
-- [ ] T53 — Écrire le test/vérif : pour un même commit et le **régime par-changement**, le verdict agrégé local `==` verdict CI (même `runGate`, même registre filtré) ; le contrôle de mutation n'y figure pas _Requirements: FR-020_ ; _SC-002_ ; dépend de : —
-- [ ] T54 — Implémenter `.github/workflows/ci.yml` (étape unique `pnpm gate` = régime par-changement, consomme la sortie machine pour l'annotation, échoue le build si code non-zéro) jusqu'à T53 vert _Requirements: FR-020_ ; _SC-002_ ; bloqué par : T53
+- [x] T53 — Écrire le test/vérif : pour un même commit et le **régime par-changement**, le verdict agrégé local `==` verdict CI (même `runGate`, même registre filtré) ; le contrôle de mutation n'y figure pas _Requirements: FR-020_ ; _SC-002_ ; dépend de : —
+- [x] T54 — Implémenter `.github/workflows/ci.yml` (étape unique `pnpm gate` = régime par-changement, consomme la sortie machine pour l'annotation, échoue le build si code non-zéro) jusqu'à T53 vert _Requirements: FR-020_ ; _SC-002_ ; bloqué par : T53
 
 ## R10 — Vérification bout-en-bout du portail (régime par-changement)
 _Livre : SC-001, SC-004_ · _~60 lignes est._ · dépend de : R1, R2, R3, R4, R5, R8, R9
