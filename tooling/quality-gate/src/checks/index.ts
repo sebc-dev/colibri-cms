@@ -4,6 +4,7 @@ import { boundariesCheck } from "./boundaries";
 import { integrationCheck } from "./integration";
 import { lintFormatCheck } from "./lint-format";
 import { migrationCommentCheck } from "./migration-comment";
+import { mutationCheck } from "./mutation";
 import { readSqlInAppsCheck } from "./read-sql-in-apps";
 import { turnstileTestCheck } from "./turnstile-test";
 import { typecheckCheck } from "./typecheck";
@@ -27,4 +28,5 @@ export const checks: Check[] = [
   lintFormatCheck,
   migrationCommentCheck,
   versionsCatalogCheck,
+  mutationCheck,
 ];

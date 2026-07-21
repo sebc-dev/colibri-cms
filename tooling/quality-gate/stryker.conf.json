@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "Configuration de référence pour le contrôle `mutation` (FR-002, FR-025 ; ADR-0006 §3, §7, §Seuils). Exécutée uniquement en régime planifié (nightly), jamais sur le chemin PR — la mutation est coûteuse. Le contrôle `mutation.ts` génère au runtime une variante de cette configuration (chemins absolus du CLI vitest, rapport dans un répertoire temporaire) ; ce fichier documente les réglages stables et sert de base à toute exécution manuelle (`pnpm --filter @colibri/quality-gate exec stryker run`, cwd fixé par pnpm au paquet `tooling/quality-gate`).",
+  "packageManager": "npm",
+  "mutate": ["../../packages/core/src/**/*.ts", "!../../packages/core/src/**/*.test.ts"],
+  "mutator": {
+    "excludedMutations": ["ConditionalExpression", "BooleanLiteral"]
+  },
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "node node_modules/vitest/vitest.mjs run --root ../../packages/core"
+  },
+  "checkers": [],
+  "reporters": ["json", "html"],
+  "concurrency": 1,
+  "tempDirName": ".stryker-tmp",
+  "timeoutMS": 60000
+}

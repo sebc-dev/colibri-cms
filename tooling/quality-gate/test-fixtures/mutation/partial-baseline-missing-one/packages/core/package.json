@@ -1,0 +1,5 @@
+{
+  "name": "@colibri/core-fixture",
+  "private": true,
+  "comment": "Fixture FR-025 (borne) : deux mutants survivants ; la base de référence n'en couvre qu'un — non exhaustive, donc échoué malgré la couverture partielle."
+}

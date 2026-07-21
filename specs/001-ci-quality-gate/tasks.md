@@ -85,10 +85,10 @@ _Livre : FR-002, FR-003, FR-025_ · _~280 lignes est._ · _4 concepts_ · dépen
 Fichiers : `src/checks/mutation.ts` (tagé `regimes: ['planifie']`), `src/mutation-baseline.ts` (chargement + comparaison), `stryker.conf.json`, `mutation-survivors.baseline.json`, `src/checks/index.ts`, tests
 Capability : dans le **régime planifié** (hors chemin PR, ADR-0006 §Seuils), un mutant survivant du `core` non présent dans la base de référence fait `échouer` le contrôle ; aucun `core` encore existant ⇒ `ignoré`.
 
-- [ ] T37 — Écrire le test : un mutant survivant absent de la base de référence → `échoué` (la base = ensemble **exhaustif** des survivants tolérés) _Requirements: FR-002, FR-025_ ; dépend de : —
-- [ ] T38 — Implémenter `mutation` (Stryker sur le `core`, contrôle tagé `regimes: ['planifie']`) + chargement/comparaison de la baseline + `stryker.conf.json` jusqu'à T37 vert _Requirements: FR-002, FR-025_ ; bloqué par : T37
-- [ ] T39 — Écrire le test : aucun `core` encore existant (greenfield, périmètre vide) → contrôle mutation `ignoré` (jamais `échoué`) _Requirements: FR-003_ ; bloqué par : T38
-- [ ] T40 — Implémenter la sémantique `ignoré` à périmètre `core` vide jusqu'à T39 vert _Requirements: FR-003_ ; bloqué par : T39
+- [x] T37 — Écrire le test : un mutant survivant absent de la base de référence → `échoué` (la base = ensemble **exhaustif** des survivants tolérés) _Requirements: FR-002, FR-025_ ; dépend de : —
+- [x] T38 — Implémenter `mutation` (Stryker sur le `core`, contrôle tagé `regimes: ['planifie']`) + chargement/comparaison de la baseline + `stryker.conf.json` jusqu'à T37 vert _Requirements: FR-002, FR-025_ ; bloqué par : T37
+- [x] T39 — Écrire le test : aucun `core` encore existant (greenfield, périmètre vide) → contrôle mutation `ignoré` (jamais `échoué`) _Requirements: FR-003_ ; bloqué par : T38
+- [x] T40 — Implémenter la sémantique `ignoré` à périmètre `core` vide jusqu'à T39 vert _Requirements: FR-003_ ; bloqué par : T39
 
 ## R7 — Gouvernance de la base de référence des survivants
 _Livre : FR-024, FR-026, FR-029_ · _~240 lignes est._ · _4 concepts_ · dépend de : R6 _(durcit `mutation-baseline.ts`)_
