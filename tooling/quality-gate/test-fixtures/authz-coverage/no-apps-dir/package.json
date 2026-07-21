@@ -1,0 +1,5 @@
+{
+  "name": "no-apps-dir-fixture",
+  "private": true,
+  "comment": "Fixture : arborescence sans dossier apps/ (dépôt greenfield, FR-007) — le contrôle ne s'applique pas."
+}
