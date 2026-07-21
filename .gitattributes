@@ -1,0 +1,22 @@
+# Fins de ligne normalisées en LF sur toutes les plateformes.
+#
+# Déterminisme du portail de qualité (ADR-0003) : le contrôle `lint-format`
+# (FR-011) compare la sortie de Prettier — `endOfLine: "lf"` — au contenu du
+# working tree. Sur un checkout Windows avec `core.autocrlf=true`, les fichiers
+# sont matérialisés en CRLF alors que le blob git est en LF ; le contrôle
+# rapporte alors `échoué` à tort, alors qu'il passe en CI (Linux, LF). Forcer
+# `eol=lf` rend le verdict identique en local et en CI (cf. FR-020 / SC-002).
+* text=auto eol=lf
+
+# Binaires : jamais de conversion de fins de ligne.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
