@@ -1,0 +1,40 @@
+# Build planifié (nightly) — régime « planifié » du portail qualité.
+#
+# Contrairement au job par-changement (déclenché sur PR), ce workflow ne
+# dépend jamais de la discipline d'un dev à ouvrir/mettre à jour une PR :
+# il s'exécute de façon récurrente sur `main` via une planification cron,
+# et fait échouer le build dès qu'un mutant survivant du core est absent
+# de la base de référence (FR-030, SC-006).
+name: Nightly quality gate
+
+on:
+  schedule:
+    # Chaque nuit à 02h00 UTC, indépendamment de toute activité de PR.
+    - cron: "0 2 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  nightly-gate:
+    name: Portail qualité (régime planifié)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Exécuter le portail qualité en régime planifié
+        # Sortie machine consommée telle quelle pour l'annotation du run ;
+        # aucune option ne doit masquer un code de sortie non-zéro ici :
+        # un survivant hors base de référence doit faire échouer ce build.
+        run: pnpm gate --regime=planifie
