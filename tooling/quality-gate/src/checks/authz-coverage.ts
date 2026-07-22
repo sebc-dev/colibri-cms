@@ -13,7 +13,8 @@ import type { Check, CheckResult, GateContext } from "../types";
 import { listerFichiersSource, lireFichier } from "./fs-utils";
 
 /** Méthodes HTTP d'écriture concernées (mêmes que FR-006/`write-handler.ts`). */
-const REGEX_ENDPOINT_ECRITURE = /export\s+const\s+(POST|PUT|PATCH|DELETE)\b[^=]*=\s*writeHandler\b/g;
+const REGEX_ENDPOINT_ECRITURE =
+  /export\s+const\s+(POST|PUT|PATCH|DELETE)\b[^=]*=\s*writeHandler\b/g;
 
 function racine(ctx: GateContext): string {
   return ctx.cwd ?? process.cwd();

@@ -47,10 +47,7 @@ function racine(ctx: GateContext): string {
   return ctx.cwd ?? process.cwd();
 }
 
-function analyserDossier(
-  dossier: string,
-  interdireCloudflareRuntime: boolean,
-): string[] {
+function analyserDossier(dossier: string, interdireCloudflareRuntime: boolean): string[] {
   const causes: string[] = [];
 
   for (const fichier of listerFichiersSource(dossier)) {
