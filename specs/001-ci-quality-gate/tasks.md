@@ -126,8 +126,8 @@ Capability : la CI par PR rejoue le **même binaire** dans le **régime par-chan
 _Livre : SC-001, SC-004_ · _~60 lignes est._ · dépend de : R1, R2, R3, R4, R5, R8, R9
 Capability : le scénario intégré du plan — une violation connue bloque le régime par-changement, un arbre propre passe.
 
-- [ ] T55 — Sur une branche jetable portant **une violation déterministe connue** (import `cloudflare` sous le futur `packages/core`, ou une migration finissant par un commentaire) : lancer `pnpm gate` (**régime par-changement**) et exiger — code de sortie **non-zéro**, verdict **`BLOQUÉ`**, le contrôle fautif `échoué` avec sa cause dans le rapport lisible **et** dans la sortie machine (mêmes statuts), tous les autres contrôles rapportés avec un statut (aucun muet), **la mutation absente de ce régime** _Requirements: SC-001, SC-004, FR-028_ ; dépend de : —
-- [ ] T56 — Arbre propre ⇒ **`TOUT VERT`, exit 0** (le verdict bascule) _Requirements: FR-015, FR-016_ ; bloqué par : T55
+- [x] T55 — Sur une branche jetable portant **une violation déterministe connue** (import `cloudflare` sous le futur `packages/core`, ou une migration finissant par un commentaire) : lancer `pnpm gate` (**régime par-changement**) et exiger — code de sortie **non-zéro**, verdict **`BLOQUÉ`**, le contrôle fautif `échoué` avec sa cause dans le rapport lisible **et** dans la sortie machine (mêmes statuts), tous les autres contrôles rapportés avec un statut (aucun muet), **la mutation absente de ce régime** _Requirements: SC-001, SC-004, FR-028_ ; dépend de : —
+- [x] T56 — Arbre propre ⇒ **`TOUT VERT`, exit 0** (le verdict bascule) _Requirements: FR-015, FR-016_ ; bloqué par : T55
 
 ## R11 [P] — Régime planifié en CI (nightly) : mutation hors chemin PR
 _Livre : FR-030, SC-006_ · _~90 lignes est._ · _3 concepts_ · dépend de : R1, R2, R6, R7
