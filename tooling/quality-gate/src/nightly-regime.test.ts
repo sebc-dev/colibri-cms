@@ -32,29 +32,21 @@ function ctxFor(scenario: string): GateContext {
 }
 
 describe("Régime planifié bout-en-bout (bin/gate.ts::main + mutationCheck) — FR-030, SC-006", () => {
-  it(
-    "produit un verdict BLOQUÉ et un code de sortie non-zéro quand un mutant survivant du core est absent de la base de référence",
-    async () => {
-      const exitCode = await main(["--regime=planifie"], {
-        ctx: ctxFor("survivor-not-in-baseline"),
-        checks: [mutationCheck],
-      });
+  it("produit un verdict BLOQUÉ et un code de sortie non-zéro quand un mutant survivant du core est absent de la base de référence", async () => {
+    const exitCode = await main(["--regime=planifie"], {
+      ctx: ctxFor("survivor-not-in-baseline"),
+      checks: [mutationCheck],
+    });
 
-      expect(exitCode).not.toBe(0);
-    },
-    120_000,
-  );
+    expect(exitCode).not.toBe(0);
+  }, 120_000);
 
-  it(
-    "produit un verdict TOUT VERT et le code de sortie 0 quand l'unique mutant survivant du core est couvert par une base de référence exhaustive",
-    async () => {
-      const exitCode = await main(["--regime=planifie"], {
-        ctx: ctxFor("survivor-covered-by-baseline"),
-        checks: [mutationCheck],
-      });
+  it("produit un verdict TOUT VERT et le code de sortie 0 quand l'unique mutant survivant du core est couvert par une base de référence exhaustive", async () => {
+    const exitCode = await main(["--regime=planifie"], {
+      ctx: ctxFor("survivor-covered-by-baseline"),
+      checks: [mutationCheck],
+    });
 
-      expect(exitCode).toBe(0);
-    },
-    120_000,
-  );
+    expect(exitCode).toBe(0);
+  }, 120_000);
 });

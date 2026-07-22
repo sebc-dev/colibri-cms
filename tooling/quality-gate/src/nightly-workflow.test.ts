@@ -13,12 +13,7 @@ import { describe, expect, it } from "vitest";
  * manquante de ce lot (la sémantique CLI/régime elle-même est déjà
  * couverte par `nightly-regime.test.ts`).
  */
-const racineDepot = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "..",
-);
+const racineDepot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const cheminWorkflow = path.join(racineDepot, ".github", "workflows", "nightly.yml");
 
 function lireWorkflow(): string {

@@ -1,7 +1,12 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { chargerBaseline, verifierCliquet, type MutantSurvivant, type SurvivorBaselineEntry } from "./mutation-baseline";
+import {
+  chargerBaseline,
+  verifierCliquet,
+  type MutantSurvivant,
+  type SurvivorBaselineEntry,
+} from "./mutation-baseline";
 
 /**
  * Gouvernance de la base de référence des survivants tolérés (R7 —
@@ -80,7 +85,8 @@ describe("chargerBaseline — FR-029 : fail-closed absente/illisible, vide-expli
   });
 
   it("rapporte l'état `illisible` (jamais une exception propagée) quand le JSON est syntaxiquement valide mais ne respecte pas le schéma (entrée sans `mutateur` ni `ligne`)", () => {
-    const appelSansException = () => chargerBaseline(cheminFixture("illisible-schema-non-conforme"));
+    const appelSansException = () =>
+      chargerBaseline(cheminFixture("illisible-schema-non-conforme"));
 
     expect(appelSansException).not.toThrow();
     expect(appelSansException().etat).toBe("illisible");
