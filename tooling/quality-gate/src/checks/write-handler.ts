@@ -11,8 +11,7 @@ import { existsSync } from "node:fs";
 import { listerFichiersSource, lireFichier } from "./fs-utils";
 
 /** Méthodes HTTP d'écriture concernées par FR-006 (GET est hors périmètre). */
-const REGEX_ENDPOINT_ECRITURE =
-  /export\s+const\s+(POST|PUT|PATCH|DELETE)\b[^=]*=\s*(\w+)/g;
+const REGEX_ENDPOINT_ECRITURE = /export\s+const\s+(POST|PUT|PATCH|DELETE)\b[^=]*=\s*(\w+)/g;
 
 /** Déclaration de fonction (idiomatique Astro), qui ne peut jamais être writeHandler(...). */
 const REGEX_ENDPOINT_ECRITURE_FONCTION =
@@ -32,17 +31,13 @@ async function run(ctx: GateContext): Promise<CheckResult> {
     for (const match of contenu.matchAll(REGEX_ENDPOINT_ECRITURE)) {
       const [, methode, valeur] = match;
       if (valeur !== "writeHandler") {
-        causes.push(
-          `endpoint ${methode} de ${fichier} ne passe pas par writeHandler`,
-        );
+        causes.push(`endpoint ${methode} de ${fichier} ne passe pas par writeHandler`);
       }
     }
 
     for (const match of contenu.matchAll(REGEX_ENDPOINT_ECRITURE_FONCTION)) {
       const [, methode] = match;
-      causes.push(
-        `endpoint ${methode} de ${fichier} ne passe pas par writeHandler`,
-      );
+      causes.push(`endpoint ${methode} de ${fichier} ne passe pas par writeHandler`);
     }
   }
 

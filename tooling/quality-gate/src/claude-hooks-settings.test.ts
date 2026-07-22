@@ -12,7 +12,9 @@ import { describe, expect, it } from "vitest";
 const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const settingsPath = path.join(repoRoot, ".claude", "settings.json");
 
-function lireSettings(): { hooks?: { PreToolUse?: Array<{ matcher?: string; hooks?: Array<{ command?: string }> }> } } {
+function lireSettings(): {
+  hooks?: { PreToolUse?: Array<{ matcher?: string; hooks?: Array<{ command?: string }> }> };
+} {
   if (!existsSync(settingsPath)) {
     throw new Error(`.claude/settings.json introuvable à ${settingsPath}`);
   }

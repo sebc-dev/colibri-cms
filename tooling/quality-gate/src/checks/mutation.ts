@@ -24,11 +24,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { Check, CheckResult, GateContext } from "../types";
-import {
-  chargerBaseline,
-  survivantsNonCouverts,
-  type MutantSurvivant,
-} from "../mutation-baseline";
+import { chargerBaseline, survivantsNonCouverts, type MutantSurvivant } from "../mutation-baseline";
 import { spawnAsync } from "./process-utils";
 
 const require = createRequire(import.meta.url);

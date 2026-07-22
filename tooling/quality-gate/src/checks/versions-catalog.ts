@@ -116,9 +116,7 @@ function causesDependancesHorsCatalogue(base: string, catalogue: Map<string, str
 
       for (const [nom, version] of Object.entries(dependances)) {
         if (catalogue.has(nom) && version !== "catalog:") {
-          causes.push(
-            `${nom} dans ${fichier} doit référencer "catalog:" (trouvé "${version}")`,
-          );
+          causes.push(`${nom} dans ${fichier} doit référencer "catalog:" (trouvé "${version}")`);
         }
       }
     }
