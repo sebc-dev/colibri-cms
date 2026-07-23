@@ -1,4 +1,18 @@
 {
+  "extraKnownMarketplaces": {
+    "sebc-dev-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "sebc-dev/marketplace",
+        "ref": "master"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "scd-project-docs@sebc-dev-marketplace": true,
+    "scd-feature-specs@sebc-dev-marketplace": true,
+    "scd-implement@sebc-dev-marketplace": true
+  },
   "hooks": {
     "PreToolUse": [
       {
