@@ -44,73 +44,57 @@ function ctxFor(scenario: string): GateContext {
 }
 
 describe("Bout-en-bout (bin/gate.ts::main + registre réel, régime par-changement) — SC-001, FR-028, FR-015, FR-016", () => {
-  it(
-    "SC-001 : un import runtime cloudflare* dans @colibri/core produit un verdict BLOQUÉ, un code de sortie non-zéro, et le contrôle `boundaries` échoué",
-    async () => {
-      const ctx = ctxFor("cloudflare-runtime-import-in-core");
-      const result = await runGate(ctx, "par-changement", registry);
-      const exitCode = await main(["--regime=par-changement"], { ctx, checks: registry });
+  it("SC-001 : un import runtime cloudflare* dans @colibri/core produit un verdict BLOQUÉ, un code de sortie non-zéro, et le contrôle `boundaries` échoué", async () => {
+    const ctx = ctxFor("cloudflare-runtime-import-in-core");
+    const result = await runGate(ctx, "par-changement", registry);
+    const exitCode = await main(["--regime=par-changement"], { ctx, checks: registry });
 
-      expect(exitCode).not.toBe(0);
-      expect(result.verdict).toBe("BLOQUÉ");
+    expect(exitCode).not.toBe(0);
+    expect(result.verdict).toBe("BLOQUÉ");
 
-      const boundariesResult = result.checks.find((check) => check.id === "boundaries");
-      expect(boundariesResult?.statut).toBe("échoué");
-      expect(boundariesResult?.cause).toMatch(/cloudflare/i);
-    },
-    120_000,
-  );
+    const boundariesResult = result.checks.find((check) => check.id === "boundaries");
+    expect(boundariesResult?.statut).toBe("échoué");
+    expect(boundariesResult?.cause).toMatch(/cloudflare/i);
+  }, 120_000);
 
-  it(
-    "FR-028 : le statut du contrôle fautif `boundaries` est identique dans le rapport lisible et dans la sortie machine (dérivés du même résultat, jamais divergents)",
-    async () => {
-      const ctx = ctxFor("cloudflare-runtime-import-in-core");
-      const result = await runGate(ctx, "par-changement", registry);
+  it("FR-028 : le statut du contrôle fautif `boundaries` est identique dans le rapport lisible et dans la sortie machine (dérivés du même résultat, jamais divergents)", async () => {
+    const ctx = ctxFor("cloudflare-runtime-import-in-core");
+    const result = await runGate(ctx, "par-changement", registry);
 
-      const humain = renderHuman(result);
-      const machine = renderMachine(result);
+    const humain = renderHuman(result);
+    const machine = renderMachine(result);
 
-      const statutMachineBoundaries = machine.checks.find(
-        (check) => check.contrôle === "boundaries",
-      )?.statut;
+    const statutMachineBoundaries = machine.checks.find(
+      (check) => check.contrôle === "boundaries",
+    )?.statut;
 
-      expect(statutMachineBoundaries).toBe("échoué");
-      expect(humain).toMatch(/boundaries\s*:\s*échoué/);
-    },
-    120_000,
-  );
+    expect(statutMachineBoundaries).toBe("échoué");
+    expect(humain).toMatch(/boundaries\s*:\s*échoué/);
+  }, 120_000);
 
-  it(
-    "SC-004 : le résultat agrégé rapporte un statut pour chacun des contrôles du registre actifs en régime par-changement (aucun contrôle muet) et exclut le contrôle de mutation (réservé au régime planifié)",
-    async () => {
-      const ctx = ctxFor("cloudflare-runtime-import-in-core");
-      const result = await runGate(ctx, "par-changement", registry);
+  it("SC-004 : le résultat agrégé rapporte un statut pour chacun des contrôles du registre actifs en régime par-changement (aucun contrôle muet) et exclut le contrôle de mutation (réservé au régime planifié)", async () => {
+    const ctx = ctxFor("cloudflare-runtime-import-in-core");
+    const result = await runGate(ctx, "par-changement", registry);
 
-      const idsAttendus = registry
-        .filter((check) => check.regimes.includes("par-changement"))
-        .map((check) => check.id)
-        .sort();
-      const idsObtenus = result.checks.map((check) => check.id).sort();
+    const idsAttendus = registry
+      .filter((check) => check.regimes.includes("par-changement"))
+      .map((check) => check.id)
+      .sort();
+    const idsObtenus = result.checks.map((check) => check.id).sort();
 
-      expect(idsObtenus).toEqual(idsAttendus);
-      expect(idsObtenus).not.toContain(mutationCheck.id);
-      for (const check of result.checks) {
-        expect(["passé", "échoué", "ignoré"]).toContain(check.statut);
-      }
-    },
-    120_000,
-  );
+    expect(idsObtenus).toEqual(idsAttendus);
+    expect(idsObtenus).not.toContain(mutationCheck.id);
+    for (const check of result.checks) {
+      expect(["passé", "échoué", "ignoré"]).toContain(check.statut);
+    }
+  }, 120_000);
 
-  it(
-    "FR-015/FR-016 : sur un arbre propre (sans la violation de frontière), le verdict agrégé bascule à TOUT VERT et le code de sortie process à 0",
-    async () => {
-      const exitCode = await main(["--regime=par-changement"], {
-        ctx: ctxFor("clean"),
-        checks: registry,
-      });
+  it("FR-015/FR-016 : sur un arbre propre (sans la violation de frontière), le verdict agrégé bascule à TOUT VERT et le code de sortie process à 0", async () => {
+    const exitCode = await main(["--regime=par-changement"], {
+      ctx: ctxFor("clean"),
+      checks: registry,
+    });
 
-      expect(exitCode).toBe(0);
-    },
-    120_000,
-  );
+    expect(exitCode).toBe(0);
+  }, 120_000);
 });
