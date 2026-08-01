@@ -22,7 +22,7 @@ Un [audit de sécurité du socle documentaire](docs/audit-securite-2026-08-01.md
 
 - **Le plan** — [docs/suites-audit-securite.md](docs/suites-audit-securite.md) : 11 lots, un par document cible, avec la matrice de traçabilité des 54 constats et les règles de forme des amendements. **Le lire avant de toucher un ADR.** Document temporaire, supprimé par le lot L9.
 - **Le suivi par constat** — le tableau de la section `## Suivi` de l'audit. Un constat ne passe `Traité` que si sa règle vit dans un `## Constraints` **et** que le hook ou le check CI existe ; sinon `En cours`.
-- **Où en est-on** — tableau d'avancement en tête du plan. **L1 et L2 sont faits** (PRD `FR-100` → `FR-110` ; [ADR-0011](docs/adr/ADR-0011-frontieres-de-contenu-hostile.md) « Frontières de contenu hostile », la racine que les lots suivants citent) ; le lot suivant est **L3**, l'amendement (c) d'ADR-0004.
+- **Où en est-on** — tableau d'avancement en tête du plan. **L1, L2 et L3 sont faits** (PRD `FR-100` → `FR-110` ; [ADR-0011](docs/adr/ADR-0011-frontieres-de-contenu-hostile.md) « Frontières de contenu hostile », la racine que les lots suivants citent ; [ADR-0004](docs/adr/ADR-0004-architecture-du-code.md) amendement (c), ses suites dans le cœur) ; le lot suivant est **L4**, l'amendement (c) d'ADR-0010.
 
 Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt est écarté** (il précède la réécriture documentaire du 2026-08-01 et son candidat « ADR-0010 » entre en collision avec l'ADR-0010 accepté) — c'est ce qui a permis au lot L2 de **prendre `ADR-0011`** ; et `0009` reste réservé par `docs/adr/_candidates/`, si bien que le prochain numéro libre est `0012`.
 
@@ -44,6 +44,13 @@ Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt es
 - Verrou optimiste via `createRepository` uniquement.
 - Seams **JWKS, mailer, Turnstile** injectables dès le code de prod.
 - `ContentTypeDescriptor` reste **dormant** (non consommé en V1).
+- *(amdt (c))* `toBlocks()` retourne un **arbre de blocs typés** rendu nœud par nœud ; jamais une chaîne de balisage, jamais `set:html` exigé par le contrat de gabarit.
+- *(amdt (c))* Toute requête D1 **paramétrée** (`.bind()`, ou `params` de l'API REST au build) ; jamais d'interpolation, y compris pour un nom de colonne ou une clause `IN` de longueur variable.
+- *(amdt (c))* Aperçu `/preview/*` **et** médias bruts sur un **hôte distinct** (sous-domaine du même apex) sous la même politique Access, avec sa propre CSP (`frame-ancestors 'none'`, aucun script inline) ; `checkOrigin` n'y protège de rien.
+- *(amdt (c))* Média servi hors build : `Content-Type` du type **détecté à l'entrée**, `nosniff`, `Content-Disposition` normalisé ; bucket des originaux jamais public.
+- *(amdt (c))* `verifyAccessJwt` vérifie signature (JWKS du *team domain*), `aud`, `iss`, `exp` ; tout échec, JWKS injoignable compris, **refuse** (fail-closed). Access est l'unique source d'autorisation ; `users` n'est jamais une liste d'accès.
+- *(amdt (c))* Soumission publique : `writeHandler({auth:'public', against:'live-form-definition'})` — relecture de la définition `live` et **recalcul du total** dans la tête du pipeline, jamais dans `run`.
+- *(amdt (c))* `LinkTarget` externe : schémas `http`/`https` **énumérés** (jamais `z.string().url()`, qui accepte `javascript:`) ; `rel="noopener noreferrer"` sur tout lien externe rendu.
 
 **Contenu hostile (ADR-0011)**
 - Le schéma d'entrée d'un texte riche est une **allowlist fermée** : nœuds, marques et attributs énumérés ; tout élément non listé **rejette** la valeur — jamais ignoré ni nettoyé.

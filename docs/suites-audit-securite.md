@@ -20,7 +20,7 @@
 |---|---|---|---|
 | **L1** | PRD — section « Exigences transverses », `FR-100` → `FR-110` | 8 | ✅ fait le 2026-08-01 |
 | **L2** | ADR-0011 « Frontières de contenu hostile » (création) | 5 | ✅ fait le 2026-08-01 |
-| L3 | ADR-0004 amendement (c) — le cœur | 10 | à faire |
+| **L3** | ADR-0004 amendement (c) — le cœur | 10 | ✅ fait le 2026-08-01 |
 | L4 | ADR-0010 amendement (c) — clés naturelles, assets, cache | 4 | à faire |
 | L5 | ADR-0007 amendement (e) — chemin de soumission | 11 | à faire |
 | L6 | ADR-0003 amendement (d) — plateforme et exposition | 8 | à faire |
@@ -134,7 +134,7 @@ Mettre à jour l'index, le graphe de dépendance et la ligne « (0009 est réser
 
 **En premier** : c'est la racine que les lots suivants citent.
 
-### L3 — ADR-0004 amendement (c) : le cœur
+### L3 — ADR-0004 amendement (c) : le cœur ✅ *fait le 2026-08-01*
 
 `docs/adr/ADR-0004-architecture-du-code.md` · `docs/stack.md`
 **Ferme : A-03ᵖ, B-02, B-05, B-07, B-10ᵖ, C-01, C-15, C-17b, D-02, D-04.**
@@ -169,6 +169,17 @@ d'un commentaire de code vers une contrainte, `rel="noopener noreferrer"` (C-17b
 *Au passage* : les signatures `getBySlug(…, { includeDrafts:true })` du § « Les flux » sont
 antérieures à ADR-0010 et contredisent son interdiction d'une fonction générique paramétrée
 par l'état — à raturer.
+
+**Tranché à l'exécution** (points 3 et 4, arbitrage humain) : un **seul nom d'hôte distinct
+« surface non fiable »**, sous-domaine du même apex, sous la **même politique Access**, portant
+`/preview/*` **et** le service des médias bruts, avec sa politique de contenu propre. C'est le
+seul point où B-07 (« origine distincte de l'admin ») et B-10 (« jamais public, derrière
+Access ») se rejoignent ; l'option « CSP seule » aurait laissé B-07 à moitié ouvert, l'option
+« deux hôtes » coûte une troisième application Access par instance sans rien acheter tant que
+l'aperçu et les médias bruts ont le même niveau de confiance. **`Email Routing` n'existait pas
+dans `stack.md`** — ses occurrences disaient déjà « Email Service » ; la correction D-04 n'a
+porté que sur ADR-0004. Résiduel connu, laissé à son lot : `ADR-0005` § amendement 2026-07-17
+dit encore « Email Routing » (lot **L9**).
 
 ### L4 — ADR-0010 amendement (c) : clés naturelles, assets, cache
 
@@ -375,7 +386,7 @@ sont assignés à L9 et L5.
 ```
 L1 (PRD FR-100→110)  ✅ fait
  └─ L2 (ADR-0011)  ✅ fait          ← racine citée par L3, L4, L5
-     ├─ L3 (0004 c)  ─┐
+     ├─ L3 (0004 c)  ─┐  ✅ fait
      ├─ L4 (0010 c)   │
      ├─ L5 (0007 e)   ├─ commutables : un fichier ADR distinct chacun
      ├─ L6 (0003 d)   │
