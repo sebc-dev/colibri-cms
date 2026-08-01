@@ -2,9 +2,10 @@
 
 | | |
 |---|---|
-| **Statut** | Draft |
+| **Statut** | accepted |
 | **Créé** | 2026-07-17 |
 | **Révisé** | 2026-08-01 — suites de la revue du PRD ([ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md), vérifications factuelles) |
+| **Accepté** | 2026-08-01 — plus rien de spéculatif : chaque choix est adossé à un ADR accepté. Une confrontation au code produira des **amendements datés**, pas un retour en `Draft`. |
 | **Trace vers** | [docs/prd.md](./prd.md) |
 | **Détaille** | [docs/adr/](./adr/README.md) |
 
@@ -315,6 +316,6 @@ Les ADR 0001–0008 sont **acceptés**. La revue du PRD du 1<sup>er</sup> août 
 ## Questions ouvertes (techniques)
 
 - **`compatibility_date` / `nodejs_compat`** : à fixer selon la version de miniflare installée — voir ADR-0003.
-- **Signal de quota de build épuisé** : non documenté par la plateforme. Rendu **non bloquant** par conception (boucle de réconciliation), mais si un motif exploitable existe, FR-057 gagnerait à le traduire plutôt qu'à se replier sur un message générique.
+- **Signal de quota de build épuisé** : non documenté par la plateforme. Rendu **non bloquant** par conception (boucle de réconciliation), mais si un motif exploitable existe, FR-057 gagnerait à le traduire plutôt qu'à se replier sur un message générique. **Ne se constate qu'en production** — c'est ici son lieu durable (décision du 2026-08-01 : l'item a quitté les suites de la revue du PRD, qui ne pouvaient pas le fermer par un geste documentaire).
 
 *Résolues par la revue du 2026-08-01* : l'envoi sortant depuis un Worker (→ **Cloudflare Email Service** vers adresse vérifiée, après un aller-retour par Resend ; `FR-095` retirée de la v1), **le domaine d'envoi et la flotte** (→ question éteinte avec Resend, sans avoir eu à être tranchée), l'accès D1 au build (→ API REST), l'issue réelle d'un build (→ `build_uuid` + API Workers Builds + Cron), le HEIC (→ ne jamais déclarer `image/heic` dans `accept`), vidéo hébergée vs intégrée (→ intégrée), **durée de session et révocation d'accès** (→ 7 jours au niveau application ; retrait de politique *puis* révocation ; jeton Builds non nominatif ; `workers_dev` et `preview_urls` fermés).

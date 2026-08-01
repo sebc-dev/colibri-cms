@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Statut** | à traiter |
+| **Statut** | traité |
 | **Créé** | 2026-08-01 |
 | **Origine** | revue contradictoire de [docs/prd.md](./prd.md) |
 | **Porte sur** | [docs/stack.md](./stack.md), [docs/adr/](./adr/README.md) |
@@ -17,11 +17,9 @@
 
 ## Prochaine action
 
-**Le chantier documentaire est clos, et toutes les décisions sont prises.** Les § 1 à § 4 sont à 100 %. Le prochain geste n'est plus documentaire : **ouvrir le socle P1** (édition, médias, publication) par `/scd-sdd:kickoff-feature`, le constructeur de formulaires (P2) venant après, conformément au rappel de séquencement du PRD.
+**Les 41 items sont traités. Ce document est éteint** — il ne reste qu'à le supprimer, conformément à sa clôture. Ses décisions vivent désormais dans les ADR, `docs/prd.md`, `docs/stack.md` et `CLAUDE.md` ; la partie II a fait son travail, qui était d'éviter qu'un débat tranché ne se rouvre entre deux sessions.
 
-**Trois points restent en suspens**, tous au § 6, et **aucun n'est sur le chemin du socle P1** : deux sont de simples confirmations (statut de `stack.md`, minimum de `FR-045`), le troisième — le signal de quota de build — ne se constate qu'en production. Aucun n'appelle plus de décision d'architecture : le dernier a été absorbé le 2026-08-01 par le retour à Cloudflare, qui a éteint la question du domaine d'envoi au lieu de la trancher.
-
-Les deux confirmations peuvent être expédiées à la table. Le troisième ne se coche pas avant une mise en production : c'est lui, et lui seul, qui empêchera ce document de s'éteindre — à décider s'il reste un reste-à-faire ou s'il migre définitivement dans les questions ouvertes de `stack.md`, où il figure déjà.
+Le prochain geste n'est plus documentaire : **ouvrir le socle P1** (édition, médias, publication) par `/scd-sdd:kickoff-feature`, le constructeur de formulaires (P2) venant après, conformément au rappel de séquencement du PRD.
 
 ## Tableau de bord
 
@@ -33,8 +31,8 @@ Les deux confirmations peuvent être expédiées à la table. Le troisième ne s
 | **2c** | `stack.md` — surfaces nouvelles | 11 | 11 | **fait** | — |
 | **3** | Vérifications factuelles | 5 | 5 | **fait** | — |
 | **4** | Décisions restant à prendre | 6 | 6 | **fait** | — |
-| **6** | En suspens | 1 | 4 | en cours | — *(aucun n'est sur le chemin du socle P1)* |
-| | **Total** | **38** | **41** | | |
+| **6** | En suspens | 4 | 4 | **fait** | — *(dont un `sans objet` : migré dans `stack.md`)* |
+| | **Total** | **41** | **41** | | |
 
 *(Total passé de 33 à 41 : le § 2b gagne un item — déplacement du texte alternatif —, le § 4 en gagne trois, et le § 6 en ouvre quatre. La durée de session ne se coche qu'au § 4 ; le § 6 la rappelle sans case, pour qu'un item n'existe jamais à deux endroits. Aucun item d'origine n'a été supprimé.)*
 
@@ -66,11 +64,27 @@ Ce suivi porte l'**état**. Les **événements** du cycle (verdicts de gate, lot
 | 2026-08-01 | **§ 4 clos, 6/6.** Durée de session **7 jours** (niveau application), révocation en **deux gestes** (retrait de politique *puis* révocation), jeton Builds sur un **membre de compte non nominatif**. Une **brèche non vue par la revue** est apparue : Access protège un nom d'hôte, donc `*.workers.dev` et les *preview URLs* contournaient `FR-001` — `workers_dev: false` et `preview_urls: false` deviennent obligatoires. ADR-0003 amendé (b), `stack.md` et `CLAUDE.md` alignés. **Ne restent que les 4 items du § 6.** |
 | 2026-08-01 | **Renversement du renversement — l'acheminement revient à Cloudflare Email Service.** Décision humaine : aucune dépendance hors écosystème. **`FR-095` retirée de la v1** (conséquence forcée : le visiteur n'est pas un destinataire vérifiable) et **`Reply-To` de `FR-061` abandonné** (choix distinct, non contraint). ADR-0007 amendement (b), PRD, `stack.md`, ADR-0005 et `CLAUDE.md` alignés. Effet secondaire : la question du domaine d'envoi **s'éteint**, ce qui débloque ADR-0008. |
 | 2026-08-01 | **Le filet de D18 est reconstitué du côté de l'éditrice** — trois exigences nouvelles hors périmètre de la revue : `FR-097` (consulter une demande non acheminée), `FR-098` (la relancer), `FR-099` (l'effacer), plus `FR-094` amendée (motif) et `FR-064` amendée (rétention ouverte, expiration inconditionnelle). La table est renommée `undelivered_submissions` et gagne `failure_reason` ; `expires_at` passe à un défaut de 30 jours. **Ce n'est pas une base de prospects** : seuls les échecs y entrent, on n'en sort que pour disparaître, et aucune recherche n'est offerte — invariant porté en cible de test nommée (ADR-0005). Prix écrit : conservation de données personnelles allongée, à annoncer dans la mention d'information. ADR-0007 amendement (c). |
+| 2026-08-01 | **§ 6 clos, 4/4 — les 41 items sont traités, le document s'éteint.** `stack.md` passe à **`accepted`** (plus rien de spéculatif ; une confrontation au code produira des amendements datés, pas un retour en `Draft`). Le **minimum de `FR-045` est confirmé à 0** sans modification — aucun cas légitime de quantité négative sur un devis. Le **signal de quota de build** est déclaré **sans objet ici et migré** dans les questions ouvertes de `stack.md`, son lieu durable : il ne se constate qu'en production, et aucun geste documentaire ne pouvait le fermer. Statut du document → `traité`. |
 | 2026-08-01 | **§ 6 : 1/4.** **ADR-0008 amendé** — entrée et sortie d'une instance : jeu de pages provisionné (jamais migré) et sans incidence SemVer, liste de provisionnement explicitée, sortie d'une personne en deux gestes, jeton Builds non nominatif, question du domaine d'envoi consignée comme éteinte. Cinq contraintes ajoutées. **Ne restent que trois items, tous des confirmations ou des constats.** |
 
 ## Clôture
 
-Ce document **s'éteint** quand les 41 items sont traités — il en reste **trois**, tous au § 6, dont un qui ne se constate qu'en production. À ce moment : passer son statut à `traité`, vérifier que `stack.md` et les ADR portent bien les décisions de la partie II, et le supprimer — la partie II aura alors migré dans les ADR, qui sont le lieu durable des décisions d'architecture (ADR-0001).
+Ce document **s'est éteint le 2026-08-01** : les 41 items sont traités, son statut est passé à `traité`, et la vérification prescrite est faite — `stack.md` et les ADR portent les décisions de la partie II *(voir la table de correspondance ci-dessous)*. **Il ne reste qu'à le supprimer** : la partie II a migré dans les ADR, qui sont le lieu durable des décisions d'architecture (ADR-0001), et un document de suivi qui survit à son objet redevient une source de vérité concurrente.
+
+### Vérification de clôture — où vit chaque décision de la partie II
+
+| Décisions | Lieu durable |
+|---|---|
+| D1, D2, D3 *(état)*, D7 *(les deux instantanés)* | [ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md) + `FR-078`→`FR-081`, `FR-019` |
+| D4, D5, D14, D16 | [ADR-0004](./adr/ADR-0004-architecture-du-code.md) §h/§i + `docs/stack.md` (index de références, zone formulaire, dérivés R2) |
+| D10, D15, D18 | [ADR-0007](./adr/ADR-0007-constructeur-de-formulaires.md) amendements (a), (b), (c) |
+| D6, D8, D9, D11 | [ADR-0003](./adr/ADR-0003-socle-technique.md) amendements (a) et (b) + `docs/stack.md` |
+| D13 *(verrou)*, cibles de test de D1/D10 | [ADR-0005](./adr/ADR-0005-strategie-de-test.md) `Constraints` |
+| Entrée et sortie d'une instance, provisionnement | [ADR-0008](./adr/ADR-0008-mise-a-jour-de-la-flotte.md) amendement 2026-08-01 |
+| D12, D17, déplacements de périmètre | [docs/prd.md](./prd.md) (NON inclus, Pistes post-V1) |
+| Le sous-ensemble impératif de tout ce qui précède | [CLAUDE.md](../CLAUDE.md) « Contraintes actives » |
+
+*Ce qui ne migre pas, et qui disparaît avec ce fichier : les **motifs d'écarter** les options non retenues, quand l'ADR ne les a pas repris. Le coût est assumé — c'est précisément la fonction des sections « Alternatives » des ADR de retenir ce qui méritait de survivre.*
 
 ---
 
@@ -93,7 +107,7 @@ Trois décisions structurantes portent l'essentiel de l'aval :
 - **Aucun code produit n'existe.** Ni `apps/`, ni `packages/`. Le dépôt contient `tooling/quality-gate/` (le portail de vérification, seule feature implémentée) et `specs/001-ci-quality-gate/`. Tout ce qui suit est donc à **construire**, jamais à migrer — aucune donnée en production, aucune contrainte de rétrocompatibilité.
 - **Tout est commité** sur la branche `work/reprise-zero` *(état au 2026-08-01, après la fermeture du § 4 et l'amendement d'ADR-0008)*. `docs/prd.md`, `docs/stack.md`, `CLAUDE.md` et les ADR 0003, 0005, 0007, 0008, 0010 portent les décisions de la partie II ; il n'y a **pas de travail en cours non enregistré**.
   *(Énoncé d'origine, conservé pour la lecture de l'historique : « Modifié, non commité : `docs/prd.md` (réécrit), `docs/suites-revue-prd.md` (ce fichier) » ; « Délibérément non touchés : `docs/stack.md` et `docs/adr/` — les mélanger à la réécriture du PRD aurait produit une PR illisible ». Les deux sont désormais faux : la partie III les a traités.)*
-- **Le PRD est `accepted`, `stack.md` reste `Draft`** — cet écart est délibéré et fait l'objet d'un item au § 6.
+- **Le PRD et `stack.md` sont tous deux `accepted`** — l'écart, un temps délibéré, a été refermé le 2026-08-01 (§ 6). *(Énoncé d'origine : « Le PRD est `accepted`, `stack.md` reste `Draft` ».)*
 - **La numérotation des exigences va jusqu'à `FR-099`.** Le PRD en compte 96 issues de la revue (`FR-078` → `FR-096`) plus trois postérieures (`FR-097` → `FR-099`, la corbeille de courrier non distribué). `FR-095` existe mais est **retirée de la v1** : son numéro n'est pas réattribué.
 
 ## Faits établis sur le dépôt (vérifiés, pour éviter de les re-chercher)
@@ -348,11 +362,11 @@ Sources : [CNIL — programme d'évaluation](https://www.cnil.fr/fr/solutions-de
 - [x] **ADR-0008 — amendé** le 2026-08-01 (bloc « Amendement 2026-08-01 — l'entrée et la sortie d'une instance »). L'ADR ne décrivait que la **montée de version** d'une flotte existante : ni comment une instance y **entre**, ni comment un accès en **sort**. Quatre sections écrites. **(a)** Le **jeu de pages** (`FR-082`) est une déclaration du projet client + une étape outillée, ni migration ni graine — une migration est livrée avec le cœur et serait la même pour tous, alors que le jeu de pages est précisément ce qui distingue les clients ; corollaire SemVer : **ajouter une page chez un client n'incrémente aucune version du cœur**. **(b)** La **liste de provisionnement d'une instance**, jusqu'ici implicite et éparpillée entre ADR — bindings, application Access, `workers_dev`/`preview_urls`, adresse de destination vérifiée, secrets, jeu de pages ; rien de tout cela n'est du code, ce sont des **valeurs**, et c'est ce qui permet à « aucun code spécifique client dans le cœur » de tenir. **(c)** La **sortie d'une personne** : retrait de politique **puis** révocation, et jeton Builds sur un membre de compte non nominatif. **(d)** La question du **domaine d'envoi** est consignée comme **éteinte** (et non tranchée) par le retour à Cloudflare — sans quoi elle se rouvrirait d'elle-même à la prochaine relecture. Cinq contraintes ajoutées.
       *Une seule des étapes de (b) demande la participation de la cliente : la confirmation de son adresse de destination. C'est donc la seule qui puisse rester en attente sans que personne ne s'en aperçoive — d'où sa contrainte dédiée.*
 
-- [ ] **Statut de `docs/stack.md`** — reste `Draft`. Question jamais posée par la revue, mais le document vient d'être largement réécrit et le PRD, lui, est passé à `accepted`. À trancher, ou à laisser `Draft` délibérément tant que le socle P1 n'a pas confronté la stack au code réel — ce qui serait défendable.
+- [x] **Statut de `docs/stack.md`** — **passé à `accepted`** le 2026-08-01. Énoncé d'origine : le document reste `Draft` ; question jamais posée par la revue, mais il vient d'être largement réécrit et le PRD, lui, est passé à `accepted`. Motif de la décision : la stack ne porte plus rien de spéculatif — chaque choix est adossé à un ADR accepté (0003, 0004, 0007, 0008, 0010), et les quatre questions que la revue avait rouvertes sont refermées. Laisser `Draft` aurait signalé « ça bouge encore » alors que ça ne bouge plus. **Écarté** : attendre que le socle P1 confronte la stack au code réel — défendable, mais cette confrontation produira des **amendements datés**, pas un retour en `Draft` ; la mention est portée dans l'en-tête du document.
 
-- [ ] **`FR-045` — le minimum borné à 0, à confirmer.** La décision demandée portait sur le **maximum** (rendu obligatoire). Le **minimum** a été complété dans la foulée : facultatif, mais valant **0** par défaut, pour fermer l'autre moitié du défaut relevé en D15 — un `-5` qui fait *baisser* le total. Si un cas légitime de valeur négative existe, c'est une ligne à changer dans `FR-045` et dans ADR-0007.
+- [x] **`FR-045` — le minimum borné à 0, confirmé** le 2026-08-01. La décision demandée portait sur le **maximum** (rendu obligatoire) ; le **minimum** avait été complété dans la foulée — facultatif, mais valant **0** par défaut, pour fermer l'autre moitié du défaut relevé en D15 (un `-5` qui fait *baisser* le total). **Confirmé tel quel** : aucun cas légitime de quantité négative sur un devis de pâtisserie, le prix unitaire étant un montant positif et la valeur saisie une quantité. Aucune modification : `FR-045`, ADR-0007 (§ 3 et `Constraints`) et `stack.md` (`form_fields.min_value`) portaient déjà la règle. **Écarté** : autoriser un minimum négatif pour offrir une remise saisie par le visiteur — ce serait rouvrir à moitié le défaut de D15, et une remise n'a pas à être saisie par celui qui en bénéficie.
 
-- [ ] **Signal de quota de build épuisé** — non documenté par la plateforme, et **rendu non bloquant par conception** (boucle de réconciliation). Reste que si un motif exploitable existe, `FR-057` gagnerait à le traduire sans jargon plutôt qu'à se replier sur un message générique. À constater à la première mise en production.
+- [x] **Signal de quota de build épuisé** — **sans objet ici : migré dans `docs/stack.md`** le 2026-08-01, où il figurait déjà en question ouverte technique et où il est désormais marqué comme son lieu durable. Motif : non documenté par la plateforme, **rendu non bloquant par conception** (boucle de réconciliation), et **ne se constatant qu'en production** — aucun geste documentaire ne pouvait le fermer, et le garder ici aurait maintenu ce document ouvert à 40/41 pendant des semaines pour lui seul. Le fond reste vrai : si un motif exploitable existe, `FR-057` gagnerait à le traduire sans jargon plutôt qu'à se replier sur un message générique.
 
 ## Hors de ce document
 
