@@ -1,0 +1,41 @@
+# Journal — ColibriCMS
+
+> Trace chronologique des phases jouées. Les fichiers restent la source de vérité de
+> l'état courant ; ce journal enregistre les événements et les faits non dérivables
+> (verdict analyze, premortem appliqué, issue d'un lot). Une ligne = un événement.
+> Les lignes marquées (reconstitué) ont été datées depuis l'historique git.
+
+## Socle
+
+| Date | Phase | Résultat |
+|---|---|---|
+| 2026-07-17 | brief | 3 personas · 8 SC · 12 exclusions · (reconstitué) |
+| 2026-07-17 | prd | 77 FR · 8 SC · (reconstitué) |
+| 2026-07-17 | stack | Astro SSG + admin SSR Cloudflare · D1/R2/KV · 23 choix · 4 décisions → ADR · (reconstitué) |
+| 2026-07-17 | adr | 0001..0008 · (reconstitué) |
+| 2026-07-17 | contract | CLAUDE.md · 6 blocs de contraintes ADR · 4 règles de travail · (reconstitué) |
+| 2026-07-31 | migrate | 3 anciens plugins à désinstaller · journal reconstitué · format-lint renseigné |
+| 2026-08-01 | prd | réécrit après revue contradictoire · passé à `accepted` · 99 FR · (reconstitué) |
+| 2026-08-01 | adr | ADR-0010 « modèle brouillon/publié à deux contenus » `accepted` · (reconstitué) |
+| 2026-08-01 | adr | amendements 0003, 0004, 0005, 0007 selon ADR-0010 et la revue · (reconstitué) |
+| 2026-08-01 | stack | réaligné sur ADR-0010 · passé à `accepted` · (reconstitué) |
+| 2026-08-01 | contract | contraintes d'ADR-0010 et de la revue portées dans CLAUDE.md · (reconstitué) |
+| 2026-08-01 | adr | suites de la revue du PRD réparties en 4 amendements (0003 c, 0004 b, 0007 d, 0010 b) · document de suivi éteint · (reconstitué) |
+
+## Sécurité — remédiation de l'audit
+
+| Date | Phase | Résultat |
+|---|---|---|
+| 2026-08-01 | audit | audit de sécurité du socle documentaire · 4 angles indépendants en contexte frais · 62 constats bruts → **54** fusionnés (4 critiques, 14 élevés, 26 moyens, 10 faibles) · verdict : corpus remarquable sur les risques nommés, muet sur l'injection |
+| 2026-08-01 | plan | découpage en 11 lots, un par document cible · matrice de traçabilité des 54 constats · `docs/suites-audit-securite.md` |
+| 2026-08-01 | remédiation | **L1** — PRD, section « Exigences transverses » `FR-100` → `FR-110` · mentions légales et information de confidentialité **rapatriées en V1** · ferme C-17d, avance A-01, B-08, B-09, B-12, C-11, C-12, D-01 |
+
+## 001-ci-quality-gate
+
+| Date | Phase | Résultat |
+|---|---|---|
+| 2026-07-19 | kickoff-feature | dossier `001-ci-quality-gate` · greenfield · (reconstitué) |
+| 2026-07-19 | specify | 30 FR · 0 [NEEDS CLARIFICATION] · (reconstitué) |
+| 2026-07-19 | plan | 22 fichiers touchés · 1 candidat ADR (0009) · (reconstitué) |
+| 2026-07-19 | tasks | 11 lots R1..R11 · 58 tâches · (reconstitué) |
+| 2026-07-26 | run | R1..R11 livrés · 58/58 tâches cochées · portail à 11 checks, 2 hooks, CI + nightly · (reconstitué) |

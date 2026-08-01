@@ -16,6 +16,16 @@ Modèle **centré page** : une page est une instance de **gabarit**, faite de **
 
 Chaîne documentaire : [brief](docs/brief.md) → [PRD](docs/prd.md) → [stack](docs/stack.md) → [ADR](docs/adr/README.md) → ce fichier.
 
+## Chantier en cours — remédiation de l'audit de sécurité
+
+Un [audit de sécurité du socle documentaire](docs/audit-securite-2026-08-01.md) (2026-08-01) a ouvert **54 constats** de conception. Aucun ne porte sur du code : il n'en existe pas encore hors `tooling/`. Tous se corrigent par **amendement documentaire**, et leur remédiation est le chantier ouvert du dépôt.
+
+- **Le plan** — [docs/suites-audit-securite.md](docs/suites-audit-securite.md) : 11 lots, un par document cible, avec la matrice de traçabilité des 54 constats et les règles de forme des amendements. **Le lire avant de toucher un ADR.** Document temporaire, supprimé par le lot L9.
+- **Le suivi par constat** — le tableau de la section `## Suivi` de l'audit. Un constat ne passe `Traité` que si sa règle vit dans un `## Constraints` **et** que le hook ou le check CI existe ; sinon `En cours`.
+- **Où en est-on** — tableau d'avancement en tête du plan. **L1 est fait** (PRD, `FR-100` → `FR-110`) ; le lot suivant est **L2**, la création d'ADR-0011 « Frontières de contenu hostile ».
+
+Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt est écarté** (il précède la réécriture documentaire du 2026-08-01 et son candidat « ADR-0010 » entre en collision avec l'ADR-0010 accepté) — **`ADR-0011` est donc libre** ; et `0009` reste réservé par `docs/adr/_candidates/`.
+
 ## Comment travailler ici
 
 - **Avant d'implémenter** : en Plan Mode, lire les ADR du `scope` concerné (`docs/adr/`). Signaler tout conflit avec un ADR **accepté** au lieu de le contourner.
