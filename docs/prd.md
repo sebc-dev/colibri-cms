@@ -264,6 +264,33 @@ Sur le site public, le visiteur remplit un formulaire publié ; si le formulaire
 - **FR-099** : L'éditrice DOIT pouvoir effacer elle-même une demande non acheminée, une fois qu'elle l'a relevée.
 - **FR-065** : Le système NE DOIT PAS collecter **ni conserver** de donnée personnelle du visiteur au-delà de celles que le formulaire demande explicitement. Les données techniques strictement nécessaires à la lutte contre les envois automatisés et à l'acheminement du message ne sont pas conservées par le produit.
 
+### Exigences transverses
+
+*Ajoutées le 2026-08-01 à la suite de l'[audit de sécurité](./audit-securite-2026-08-01.md). Elles ne servent aucun écran en particulier : elles valent pour toutes les surfaces à la fois, ce qui est précisément la raison pour laquelle elles manquaient. Le **quoi** vit ici, le **comment** dans [stack.md](./stack.md) et les [ADR](./adr/README.md) — dont l'ADR de frontières de contenu hostile qu'elles fondent.*
+
+**Contenu hostile et bornes des entrées**
+
+- **FR-100** : Le système NE DOIT JAMAIS interpréter comme une instruction un contenu saisi par une éditrice ou par un visiteur. Tout contenu saisi DOIT être restitué comme du texte, sur toutes les surfaces où il réapparaît — site public, espace d'édition, aperçu, message acheminé. *(Exigence transverse : elle vaut pour le texte riche, les libellés de formulaire, les réponses d'un visiteur et les motifs d'échec. Le corollaire est qu'aucune surface n'est dispensée au motif qu'elle est privée : l'espace d'édition est la plus sensible, pas la moins.)*
+- **FR-101** : Le système DOIT borner la longueur de chaque valeur qu'un visiteur soumet, ainsi que la taille totale d'une soumission, et DOIT refuser toute soumission qui dépasse ces bornes. *(Distinct de FR-045, qui borne la **valeur** d'un champ nombre pour la justesse du total : ici, il s'agit de la **taille** de ce qui entre, quel que soit le type de champ.)*
+- **FR-102** : Le système DOIT borner le volume de soumissions qu'un formulaire accepte sur une période donnée, et refuser au-delà. *(Distinct de FR-063 : résister à l'automatisation et borner le volume sont deux propriétés différentes. Un dispositif anti-robot élève le coût unitaire d'une soumission sans le porter à l'infini ; il ne protège ni la boîte de réception de l'éditrice, ni le quota d'hébergement de SC-001.)*
+- **FR-103** : Le système DOIT borner le volume total de médias qu'une instance peut accumuler, et informer l'éditrice avant que la limite ne soit atteinte. *(Le produit n'offre aucun geste de suppression de média — voir « Fichiers non référencés » en Cas limites : sans borne, l'accumulation est irréversible.)*
+
+**Journalisation**
+
+- **FR-104** : Le système NE DOIT PAS faire figurer le contenu d'une soumission, ni aucune donnée personnelle d'un visiteur, dans ses journaux techniques. *(FR-065 dit ce que le **produit** ne conserve pas ; cette exigence ferme la voie par laquelle la même donnée ressortirait ailleurs, avec une durée de rétention que le produit ne maîtrise pas.)*
+
+**Information du visiteur** *(rapatriée en V1 le 2026-08-01)*
+
+- **FR-105** : Tout site portant un formulaire DOIT exposer une information de confidentialité, accessible depuis chaque page qui porte un formulaire, énonçant la finalité de la collecte, le destinataire des demandes, la durée de rétention d'une demande non acheminée (FR-064), le recours à un sous-traitant d'hébergement et d'acheminement, les droits du visiteur et la base légale de l'acheminement.
+- **FR-106** : L'éditrice DOIT pouvoir modifier le contenu de l'information de confidentialité depuis l'espace d'édition.
+- **FR-107** : Tout site DOIT exposer des mentions légales, accessibles depuis chaque page. *(Obligation propre, indépendante de la protection des données : elle vaut même pour un site sans formulaire.)*
+- **FR-108** : L'éditrice DOIT pouvoir modifier le contenu des mentions légales depuis l'espace d'édition.
+- **FR-109** : Le système DOIT refuser la publication d'un formulaire tant que l'information de confidentialité n'est pas renseignée, et l'indiquer à l'éditrice. *(Même forme que FR-046 pour l'adresse de destination : la condition est vérifiée **avant** la mise en ligne, pas découverte après la première demande reçue.)*
+
+**Accès**
+
+- **FR-110** : L'éditrice DOIT disposer d'un geste explicite de déconnexion, qui met fin à sa session sans attendre son expiration. *(Une session dure 7 jours ; sur un poste partagé ou emprunté, son expiration naturelle n'est pas un recours.)*
+
 ---
 
 ## Cas limites
@@ -327,7 +354,7 @@ Distinct de « NON inclus » (frontière ferme) : ces idées sont **jugées bonn
 - Note en étoiles comme sous-champ d'avis (non retenu pour ce carrousel-ci).
 
 **Éléments transverses éditables**
-- Pied de page enrichi : mentions légales, liens éditables (v1 : réseaux sociaux + coordonnées seulement, cf. FR-071/FR-072).
+- ~~Pied de page enrichi : mentions légales, liens éditables (v1 : réseaux sociaux + coordonnées seulement, cf. FR-071/FR-072).~~ **→ Scindé le 2026-08-01.** Les **mentions légales sont rapatriées en V1** (FR-107, FR-108), avec l'information de confidentialité (FR-105, FR-106) : les reporter laissait ADR-0007 amendement (c) exiger que la durée de rétention « figure dans la mention d'information », alors que le périmètre ne garantissait l'existence d'aucune mention d'information (audit de sécurité, constat B-12). Le reste — **liens de pied de page éditables** — demeure post-V1 (v1 : réseaux sociaux + coordonnées seulement, cf. FR-071/FR-072).
 - Bandeau temporaire (promotion, fermeture exceptionnelle).
 
 **Médias**
@@ -360,13 +387,13 @@ Distinct de « NON inclus » (frontière ferme) : ces idées sont **jugées bonn
 
 Repris du [brief](./brief.md#critères-de-succès-mesurables), inchangés — le PRD ne les redéfinit pas, il les sert.
 
-- **SC-001** — 0 €/mois par site en conditions nominales. *Servi par* : FR-017, FR-026, FR-037, FR-039, FR-088, FR-093.
+- **SC-001** — 0 €/mois par site en conditions nominales. *Servi par* : FR-017, FR-026, FR-037, FR-039, FR-088, FR-093, FR-102, FR-103.
 - **SC-002** — Le site de la pâtisserie est en production sur ColibriCMS. *Servi par* : FR-082.
 - **SC-003** — L'éditrice modifie une page et remplace une image, seule, sans aide, du premier coup. *Servi par* : FR-006 à FR-020, FR-024, FR-030, FR-079, FR-080, FR-087, FR-088.
 - **SC-004** — Une publication est visible en ligne en moins de 5 minutes. *Servi par* : FR-034, FR-036, FR-093. **Mesuré en conditions nominales, sur un site à volume de contenu réaliste** (galeries remplies), et non sur un site fraîchement provisionné ; la première mise en ligne est exclue de la mesure.
 - **SC-005** — Lighthouse Performance ≥ 95 en mobile sur le HTML bâti des pages de contenu — **y compris celles qui portent un formulaire** : aucune page n'en est exemptée. *Servi par* : FR-026, FR-039, FR-089.
 - **SC-006** — Zéro compte créé par l'éditrice hors son adresse e-mail. *Servi par* : FR-002.
-- **SC-007** — La cliente construit un formulaire de devis elle-même, et une demande composée par un visiteur lui parvient par e-mail, avec réponses, total et coordonnées. *Servi par* : FR-040 à FR-046, FR-061, FR-086, FR-091, FR-094, FR-096 à FR-099.
+- **SC-007** — La cliente construit un formulaire de devis elle-même, et une demande composée par un visiteur lui parvient par e-mail, avec réponses, total et coordonnées. *Servi par* : FR-040 à FR-046, FR-061, FR-086, FR-091, FR-094, FR-096 à FR-099, FR-101, FR-102, FR-105, FR-109.
 - **SC-008** — Une nouvelle version de ColibriCMS se déploie sur une instance cliente existante sans code spécifique au client, et sans perte de son contenu. *Servi par* : l'architecture, non un FR de surface — voir [stack.md](./stack.md) et l'ADR de stratégie de mise à jour de la flotte.
 
 ---
@@ -374,7 +401,7 @@ Repris du [brief](./brief.md#critères-de-succès-mesurables), inchangés — le
 ## Questions ouvertes
 
 - **Anti-spam des soumissions (FR-063).** Le *quoi* est fixé (résister aux envois automatisés, sans charger de code tiers avant une action du visiteur — FR-089) ; le *comment* relève de [stack.md](./stack.md) / d'un ADR. La contrainte FR-089 restreint désormais l'espace des solutions : à vérifier au moment du choix.
-- **Conformité RGPD.** FR-060, FR-065 et FR-090 posent le consentement — désormais vérifié côté serveur —, la minimisation et la non-conservation. Restent à cadrer avec la cliente avant mise en production : la mention d'information (politique de confidentialité) et la base légale de l'acheminement par e-mail. **S'y ajoute depuis le 2026-08-01** : la corbeille de FR-064 retient des données personnelles pendant un **délai borné** qui n'est plus de l'ordre de la minute, et qui doit être **annoncé dans la mention d'information**. Le délai lui-même est un paramètre technique ([stack.md](./stack.md)) ; ce qui relève du produit, c'est qu'il soit court, inconditionnel, et écrit. Non bloquant pour l'implémentation du chemin nominal.
+- **Conformité RGPD.** FR-060, FR-065 et FR-090 posent le consentement — désormais vérifié côté serveur —, la minimisation et la non-conservation. Restent à cadrer avec la cliente avant mise en production : la mention d'information (politique de confidentialité) et la base légale de l'acheminement par e-mail. **S'y ajoute depuis le 2026-08-01** : la corbeille de FR-064 retient des données personnelles pendant un **délai borné** qui n'est plus de l'ordre de la minute, et qui doit être **annoncé dans la mention d'information**. Le délai lui-même est un paramètre technique ([stack.md](./stack.md)) ; ce qui relève du produit, c'est qu'il soit court, inconditionnel, et écrit. Non bloquant pour l'implémentation du chemin nominal. **Amendé le 2026-08-01** : ce point n'est plus entièrement ouvert. L'**existence** d'une mention d'information et de mentions légales, leur **contenu obligatoire** et leur **surface d'édition** sont désormais des exigences (FR-105 à FR-109) — l'audit de sécurité ayant relevé que rien ne les portait, alors qu'ADR-0007 les supposait. Ce qui reste à cadrer avec la cliente est leur **rédaction** — la qualification des rôles (responsable de traitement, sous-traitants) et la formulation des finalités —, non plus leur existence.
 - **Comportement HEIC sur l'appareil de la cliente** `[À VÉRIFIER]`. Selon le sélecteur utilisé, iOS transcode les photos en JPEG ou transmet le HEIC brut. À constater une fois sur son iPhone réel : si le transcodage a lieu dans son parcours, FR-024 n'aura jamais à jouer sur ce motif.
 
 *Résolue le 2026-08-01* : **durée de session et révocation d'accès** (FR-001). Session de **7 jours**, et couper l'accès à une personne se fait en **deux gestes** — retirer son adresse de la politique d'accès, *puis* révoquer sa session. Décision d'exploitation, portée par [stack.md](./stack.md) et l'amendement (b) d'ADR-0003 ; elle n'appelle aucun amendement d'exigence.

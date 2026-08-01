@@ -500,7 +500,7 @@ Renseigner la colonne **Preuve** avec ce qui permet de vérifier sans relire : l
 
 | ID | Constat | Doc cible | État | Preuve |
 |---|---|---|---|---|
-| A-01 | Aucune racine sécurité dans la chaîne documentaire | ADR-0011 (à créer) + PRD | À traiter | |
+| A-01 | Aucune racine sécurité dans la chaîne documentaire | ADR-0011 (à créer) + PRD | En cours | Volet PRD fait : section « Exigences transverses », `FR-100` → `FR-110` (2026-08-01). Reste ADR-0011, qui porte les `## Constraints` (lot L2). |
 | A-02 | Sanitisation / échappement du contenu éditrice non spécifiés | ADR-0004 §a, stack.md | À traiter | |
 | A-03 | Rendu délégué au projet client sans contrainte | ADR-0004, ADR-0008 (b) | À traiter | |
 | A-04 | Publication npm du cœur non sécurisée | ADR-0008 | À traiter | |
@@ -516,11 +516,11 @@ Renseigner la colonne **Preuve** avec ce qui permet de vérifier sans relire : l
 | B-05 | Aucune contrainte de requête paramétrée D1 | ADR-0004 + portail | À traiter | |
 | B-06 | `field_key` / `option_key` non spécifiées | ADR-0010 §2 | À traiter | |
 | B-07 | Média original non réencodé servi depuis l'origine admin | ADR-0004 §b | À traiter | |
-| B-08 | Aucune borne de taille sur les valeurs de soumission | PRD + ADR-0007 | À traiter | |
-| B-09 | Aucune limite de débit ; Turnstile seule défense | PRD + ADR-0007 | À traiter | |
+| B-08 | Aucune borne de taille sur les valeurs de soumission | PRD + ADR-0007 | En cours | PRD `FR-101` (2026-08-01). Reste le volet ADR-0007 (lot L6) et le check. |
+| B-09 | Aucune limite de débit ; Turnstile seule défense | PRD + ADR-0007 | En cours | PRD `FR-102` (2026-08-01), distincte de FR-063. Reste `hostname`/fail-closed en ADR-0007 (lot L6). |
 | B-10 | Exposition R2 non spécifiée : fuite de brouillon par les images | ADR-0004, ADR-0010 §8 | À traiter | |
 | B-11 | `recipient_email` embarqué dans le site statique | ADR-0007 ou stack.md | À traiter | |
-| B-12 | Information visiteur / base légale / mentions légales | PRD + ADR-0008 (b) | À traiter | |
+| B-12 | Information visiteur / base légale / mentions légales | PRD + ADR-0008 (b) | En cours | PRD `FR-105` → `FR-109` (2026-08-01) : existence, contenu obligatoire, surface d'édition, blocage de publication. Mentions légales rapatriées en V1. Reste l'étape de provisionnement en ADR-0008 (lot L9). |
 | B-13 | Jeton D1 de build : périmètre non spécifié | ADR-0003 ou ADR-0008 (b) | À traiter | |
 | B-14 | Portail IA aveugle au code malveillant | ADR-0006 | À traiter | |
 
@@ -538,8 +538,8 @@ Renseigner la colonne **Preuve** avec ce qui permet de vérifier sans relire : l
 | C-08 | Vidéo : `ref` non validée, iframe et oEmbed non contraints | stack.md, ADR-0007 | À traiter | |
 | C-09 | Corbeille : délai non normatif, purge sans exécuteur | stack.md, ADR-0003 | À traiter | |
 | C-10 | Sauvegardes D1 : lieu, accès, rétention absents | ADR-0008 §4–5 | À traiter | |
-| C-11 | Logs du Worker : aucune exigence, PII possibles | PRD ou ADR-0004 | À traiter | |
-| C-12 | Aucun en-tête de sécurité, aucune CSP | ADR-0011 | À traiter | |
+| C-11 | Logs du Worker : aucune exigence, PII possibles | PRD ou ADR-0004 | En cours | PRD `FR-104` (2026-08-01). Reste le bornage de `failure_reason` (lot L6). |
+| C-12 | Aucun en-tête de sécurité, aucune CSP | ADR-0011 | À traiter | Attendu en ADR-0011 (lot L2). |
 | C-13 | Cache CDN et dérivés après dépublication | PRD ou ADR-0010 | À traiter | |
 | C-14 | Définition de formulaire non bornée ; `price_delta` sans signe | PRD FR-048, stack.md | À traiter | |
 | C-15 | FR-090 / FR-091 hors du pipeline `writeHandler` | ADR-0004 §e | À traiter | |
@@ -547,7 +547,7 @@ Renseigner la colonne **Preuve** avec ce qui permet de vérifier sans relire : l
 | C-17a | Contextes d'échappement hétérogènes | ADR-0004 | À traiter | |
 | C-17b | Restriction http(s) hors de tout `## Constraints` | ADR-0004 | À traiter | |
 | C-17c | Service tokens E2E sans gouvernance | ADR-0005 | À traiter | |
-| C-17d | Accumulation de médias non bornée | PRD | À traiter | |
+| C-17d | Accumulation de médias non bornée | PRD | Traité | PRD `FR-103` (2026-08-01) : volume borné, éditrice informée avant la limite. Exigence produit, non mécanisable par hook. |
 | C-17e | Ajout de dépendances par l'IA non gouverné | ADR-0006 | À traiter | |
 | C-17f | Hooks / CI / portail hors des zones protégées | ADR-0006 + promo 0009 | À traiter | |
 | C-17g | Jeton D1 de build sous un mécanisme inopérant | stack.md | À traiter | |
@@ -559,7 +559,7 @@ Renseigner la colonne **Preuve** avec ce qui permet de vérifier sans relire : l
 
 | ID | Constat | Doc cible | État | Preuve |
 |---|---|---|---|---|
-| D-01 | Pas de déconnexion volontaire ; facteur unique non nommé | PRD, ADR-0003 (b) | À traiter | |
+| D-01 | Pas de déconnexion volontaire ; facteur unique non nommé | PRD, ADR-0003 (b) | En cours | PRD `FR-110` (2026-08-01) : geste de déconnexion explicite. Reste le facteur unique à nommer comme risque accepté en ADR-0003 (lot L7). |
 | D-02 | Provision des comptes `users` ambiguë | ADR-0004 | À traiter | |
 | D-03 | Jeton de verrou optimiste à la seconde | stack.md, ADR-0004 §d | À traiter | |
 | D-04 | « Email Routing » vs « Email Service » | ADR-0004 (amdt daté) | À traiter | |
@@ -584,6 +584,7 @@ Une ligne par session de remédiation, la plus récente en haut. Reporter aussi 
 
 | Date | Constats traités | Documents amendés | Note |
 |---|---|---|---|
+| 2026-08-01 | C-17d **Traité** ; A-01, B-08, B-09, B-12, C-11, D-01 **En cours** | `docs/prd.md` | **Lot L1** — section « Exigences transverses », `FR-100` → `FR-110`. Bornes de taille des entrées visiteur, plafond de volume de soumissions distinct de l'anti-robot, bornage des médias, PII hors journaux, information de confidentialité et mentions légales **rapatriées en V1** avec surface d'édition et blocage de publication, déconnexion volontaire. La ligne « Pied de page enrichi » des Pistes post-V1 est scindée par rature. `SC-001` et `SC-007` gagnent leurs nouveaux *Servi par* ; la question ouverte RGPD est amendée. Découpage des dix lots suivants dans [`suites-audit-securite.md`](./suites-audit-securite.md). |
 | 2026-08-01 | — | — | Audit initial : 54 constats ouverts (4 critiques, 14 élevés, 26 moyens, 10 faibles/info). Aucune remédiation encore appliquée. |
 
 ## Re-passe d'audit
