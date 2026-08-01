@@ -91,8 +91,10 @@ Trois décisions structurantes portent l'essentiel de l'aval :
 ## État exact du dépôt
 
 - **Aucun code produit n'existe.** Ni `apps/`, ni `packages/`. Le dépôt contient `tooling/quality-gate/` (le portail de vérification, seule feature implémentée) et `specs/001-ci-quality-gate/`. Tout ce qui suit est donc à **construire**, jamais à migrer — aucune donnée en production, aucune contrainte de rétrocompatibilité.
-- **Modifié, non commité** : `docs/prd.md` (réécrit), `docs/suites-revue-prd.md` (ce fichier). `CLAUDE.md` et `docs/agents/` portent par ailleurs des modifications **étrangères à cette revue**.
-- **Délibérément non touchés** : `docs/stack.md` et `docs/adr/`. Les mélanger à la réécriture du PRD aurait produit une PR illisible ; ils font l'objet de la partie III.
+- **Tout est commité** sur la branche `work/reprise-zero` *(état au 2026-08-01, après la fermeture du § 4 et l'amendement d'ADR-0008)*. `docs/prd.md`, `docs/stack.md`, `CLAUDE.md` et les ADR 0003, 0005, 0007, 0008, 0010 portent les décisions de la partie II ; il n'y a **pas de travail en cours non enregistré**.
+  *(Énoncé d'origine, conservé pour la lecture de l'historique : « Modifié, non commité : `docs/prd.md` (réécrit), `docs/suites-revue-prd.md` (ce fichier) » ; « Délibérément non touchés : `docs/stack.md` et `docs/adr/` — les mélanger à la réécriture du PRD aurait produit une PR illisible ». Les deux sont désormais faux : la partie III les a traités.)*
+- **Le PRD est `accepted`, `stack.md` reste `Draft`** — cet écart est délibéré et fait l'objet d'un item au § 6.
+- **La numérotation des exigences va jusqu'à `FR-099`.** Le PRD en compte 96 issues de la revue (`FR-078` → `FR-096`) plus trois postérieures (`FR-097` → `FR-099`, la corbeille de courrier non distribué). `FR-095` existe mais est **retirée de la v1** : son numéro n'est pas réattribué.
 
 ## Faits établis sur le dépôt (vérifiés, pour éviter de les re-chercher)
 
