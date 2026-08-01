@@ -14,7 +14,7 @@ depends-on: [ADR-0004]
 
 **Statut :** accepted — 2026-08-01
 
-> **Place dans la famille.** ADR-0010 fixe *où vit le contenu et quand il devient public*. C'est la décision mère de la revue du PRD du 1<sup>er</sup> août 2026 (cf. [docs/suites-revue-prd.md](../suites-revue-prd.md), décisions D1 à D3) : elle commande le modèle de données d'ADR-0004, la sémantique de publication d'ADR-0007, les cibles de test d'ADR-0005, et une rupture éventuelle est une **majeure** SemVer au sens d'ADR-0008.
+> **Place dans la famille.** ADR-0010 fixe *où vit le contenu et quand il devient public*. C'est la décision mère de la revue du PRD du 1<sup>er</sup> août 2026 (décisions D1 à D3 de cette revue, reprises à l'amendement (b)) : elle commande le modèle de données d'ADR-0004, la sémantique de publication d'ADR-0007, les cibles de test d'ADR-0005, et une rupture éventuelle est une **majeure** SemVer au sens d'ADR-0008.
 
 ---
 
@@ -186,6 +186,80 @@ Cet invariant a une conséquence immédiate et non évidente : **le texte altern
 
 Une page provisionnée par l'intégrateur naît avec **zéro ligne** dans les deux états, `en_ligne = 0`, `first_published_at IS NULL`. Elle apparaît donc « jamais publiée », zones vides, et `FR-053` bloque sa publication tant que ses zones obligatoires sont vides — ce qui guide l'éditrice vers ce qu'il faut remplir. Le *mécanisme* de provisionnement (migration, graine, contrat de gabarit) relève d'ADR-0004 et d'ADR-0008, pas d'ici.
 
+
+---
+
+## Amendement 2026-08-01 (b) — ce que la revue avait écarté, et ce qu'elle a piégé
+
+Cet ADR a été écrit pendant les suites de la revue contradictoire du PRD, en s'appuyant sur un
+document de suivi qui a depuis été clos et supprimé. Quatre éléments qui n'y vivaient que là sont
+repris ici, parce que chacun refermerait un débat déjà tranché ou éviterait une faute réelle.
+
+### (1) Ce que le modèle à deux contenus a rendu nécessaire côté surface
+
+`FR-078` seul laissait trois gestes manquants, et c'est leur absence — pas le modèle — qui aurait
+été découverte à l'usage :
+
+- **Rien ne disait quelles pages portaient des modifications non publiées.** L'éditrice ne pouvait
+  pas répondre à « qu'est-ce qu'il me reste à mettre en ligne ? ». → `FR-079`, servi par les
+  empreintes du § 3, qui existent pour cela et non par raffinement.
+- **Aucun retour arrière n'existait.** L'historique des versions étant hors périmètre, un texte
+  massacré puis enregistré était perdu — alors que le contenu publié est physiquement là, à côté,
+  dans la même table. → `FR-080`, qui est la recopie `live → draft`, exactement l'inverse de la
+  publication.
+- **Les réglages transverses n'avaient aucun moyen d'arriver en ligne.** « Publier » n'était offert
+  qu'à une page ; des liens de réseaux sociaux modifiés restaient bloqués en base. → `FR-081`.
+
+**Objection considérée et écartée** : `FR-080` rouvre-t-il l'historique par la bande ? Non — **un
+seul pas en arrière**, sans liste, sans dates, sans restauration sélective. C'est la même frontière
+que celle qui fait rejeter la table de révisions dans les alternatives ci-dessous.
+
+### (2) Un lien mort ne fait PAS échouer la mise en ligne — et c'est délibéré
+
+Le § 7 pose qu'une référence dont la cible n'est pas en ligne n'est pas rendue. La symétrie avec
+`FR-055` (image introuvable ⇒ la mise en ligne échoue) était tentante et a été **explicitement
+refusée** :
+
+> Une image manquante est une **anomalie** ; une page retirée du site est un **choix légitime** de
+> l'éditrice. Faire échouer le build sur le second la mettrait en échec pour avoir fait exactement
+> ce qu'on lui a offert de faire — et pourrait **geler toute publication** du site tant qu'elle n'a
+> pas traqué chaque lien pointant vers la page retirée.
+
+Écartée aussi, en amont : **reporter la dépublication en post-V1** pour éviter toute la cascade de
+liens. Défendable et honnête, mais laisse la cliente dépendante de l'agence pour un jugement
+qu'elle sait parfaitement porter seule (retirer une offre saisonnière terminée).
+
+### (3) Piège à ne pas désamorcer trop tard : toute récupération de stockage doit lire les DEUX états
+
+Le produit n'offre en v1 aucun geste capable de libérer un octet en R2 (ni médiathèque, ni
+suppression de fichier) : l'accumulation est **assumée**, et une récupération automatique est
+reportée en post-V1. Le jour où elle sera écrite, elle heurtera ce modèle de plein fouet :
+
+> **Un média absent du contenu `draft` peut être servi par le contenu `live`.** Une récupération qui
+> ne regarderait que le contenu en cours effacerait une image **actuellement en ligne**, et ferait
+> échouer la mise à jour suivante par `FR-055`.
+
+C'est le premier mécanisme du produit qui détruirait du contenu irrécupérable ; il n'a pas été
+construit en v1 pour cette raison, et il ne devra jamais l'être sans balayer les deux états.
+
+### (4) Le scénario qui motive le verrou du § 5, point 1
+
+`FR-092` (refus de l'écrasement silencieux) n'a **rien à voir avec le multi-éditeurs** — il n'y a
+qu'une éditrice. Le scénario réel est : admin ouvert sur l'ordinateur le matin, repris sur le
+téléphone le soir, onglet du matin réveillé le lendemain qui écrase tout d'un clic. Depuis
+`FR-080` elle peut revenir au contenu **en ligne**, mais son brouillon du soir, lui, serait perdu
+sans trace. Le PRD disait initialement « la dernière écriture gagne, sans avertissement », ce qui
+contredisait frontalement la contrainte de verrou optimiste d'ADR-0004 : le code aurait porté le
+verrou, le portail qualité l'aurait vérifié, et personne ne s'en serait servi.
+
+### (5) Les deux amendements de PRD que cet ADR appelait sont faits
+
+- Le **quatrième état** de `FR-019` (« retirée du site »), signalé au § 4 comme « à trancher », est
+  **amendé au PRD** le 2026-08-01. La note du § 4 et la ligne correspondante des *Risques et
+  vigilance* sont donc caduques.
+- Le **déplacement du texte alternatif** vers la valeur de zone (§ 8) est porté par `stack.md`
+  (`{ media_id, alt }`) et par les contraintes de `CLAUDE.md`.
+
 ---
 
 ## Alternatives considérées (et pourquoi rejetées)
@@ -251,4 +325,4 @@ Une page provisionnée par l'intégrateur naît avec **zéro ligne** dans les de
 - Sert : `SC-003` (enregistrer sans conséquence publique), `SC-004` (publication granulaire), `SC-007` (définition publiée stable).
 - Amende, par ricochet : ADR-0004 (modèle de données, contrat de gabarit, index de références), ADR-0007 (définition publiée, bornes de champ nombre), ADR-0005 (nouvelles cibles de test).
 - Exploité par : ADR-0008 — une rupture de ce modèle est une **majeure** SemVer.
-- Origine : [docs/suites-revue-prd.md](../suites-revue-prd.md), décisions D1, D2, D3, D5, D13 ; [docs/prd.md](../prd.md).
+- Origine : revue contradictoire du PRD du 2026-08-01 (décisions D1, D2, D3, D5, D13, reprises à l'amendement (b)) ; [docs/prd.md](../prd.md).

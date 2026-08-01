@@ -131,6 +131,46 @@ Corollaire de flotte, hors socle : le **jeton d'API Workers Builds** est nécess
 
 ---
 
+## Amendement 2026-08-01 (c) — recherches faites, à ne pas refaire
+
+Trois constats de plateforme établis pendant les suites de la revue du PRD. Ils ne changent aucune
+version figée ; ils sont consignés parce que **les refaire coûterait une demi-journée** et que deux
+d'entre eux ont déjà renversé une décision.
+
+**1. Mesure d'audience — la question juridique est éteinte en amont, et l'était déjà.** La **liste
+publique CNIL** des solutions de mesure d'audience exemptées de consentement **a disparu au
+1ᵉʳ janvier 2026**, remplacée par une auto-évaluation face aux critères publiés : il n'existe plus
+de label à obtenir, c'est à l'éditeur du site de démontrer sa conformité. Un outil *cookieless*
+(type Cloudflare Web Analytics) n'écrit ni ne lit rien sur le terminal, donc **échappe au
+consentement ePrivacy** ; le RGPD continue de s'appliquer au traitement transitoire de l'IP, ce qui
+impose une **mention d'information**, pas un bandeau. **Mais tout ceci est sans objet ici** :
+`FR-089` (aucun code tiers avant action explicite du visiteur) exclut le beacon en amont, quelle que
+soit la réponse juridique. La mesure d'audience embarquée est **NON incluse** au PRD ; seul un
+chiffre de fréquentation issu des statistiques serveur de la plateforme est reporté en post-V1.
+*Sources : [CNIL — programme d'évaluation](https://www.cnil.fr/fr/solutions-de-mesure-daudience-exemptees-de-consentement-la-cnil-lance-un-programme-devaluation), [Cloudflare Web Analytics & ePrivacy](https://ethicaldatahub.com/cloudflare-analytics-cookie-banner/).*
+
+**2. Vidéo — conséquence non évidente de `FR-089` sur la vignette.** L'hébergement de fichiers vidéo
+était déjà interdit sans que ce soit écrit (`FR-020`→`FR-023` ne parlent que d'images, plafond
+8 Mo ; trente secondes de vidéo pèsent 50 à 200 Mo). L'intégration retenue est donc la seule voie,
+bornée à une **liste fermée — YouTube et Vimeo** — pour que le système puisse valider l'adresse et
+fabriquer la vignette. Le piège est ailleurs : **récupérer la vignette chez le fournisseur au moment
+de la visite serait déjà une requête tierce**, donc une violation de `FR-089` alors même que le
+lecteur, lui, n'est chargé qu'au clic. La vignette est donc récupérée **au build** et servie depuis
+le site.
+
+**3. Quotas et limites de plateforme constatés le 2026-08-01** (offre gratuite) :
+
+| Ressource | Limite constatée | Conséquence |
+|---|---|---|
+| Builds Workers | **3 000 minutes/mois**, **1 build concurrent** | Ce n'est **pas** un nombre de builds : la métrique héritée des Pages (500 builds/mois) ne s'applique pas. Le signal d'épuisement n'est **pas documenté** → ne pas en dépendre (boucle de réconciliation, amendement (a) point 1). |
+| Cron Triggers | 5 déclencheurs, intervalle min. 1 min, **aucun réessai** | Boucle idempotente obligatoire. |
+| Envoi sortant | Destination **vérifiée du compte** : gratuit et **hors quota**. Destinataire quelconque : Workers Paid uniquement | C'est ce constat qui a renversé, puis fait re-trancher, le choix de fournisseur (ADR-0007 (a) puis (b)). Annexes : 50 destinataires/message, 5 Mio (25 Mio vers destination vérifiée). |
+| D1 au build | **Aucun binding** dans un build Workers Builds (conteneur CI, pas workerd) | Lecture par API REST `POST /accounts/{id}/d1/database/{id}/query` ; l'adaptateur de build est **HTTP** (ADR-0004, amendement 2026-08-01 point 3). |
+
+*Sources : [Deploy Hooks pour Workers Builds](https://developers.cloudflare.com/changelog/2026-04-01-deploy-hooks), [Workers Builds — API](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/), [Email Service — tarifs](https://developers.cloudflare.com/email-service/platform/pricing/), [Email Service — limites](https://developers.cloudflare.com/email-service/platform/limits/), [D1 — API REST `query`](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/), [Workers — tarifs et limites](https://developers.cloudflare.com/workers/platform/pricing/).*
+
+---
+
 ## Caveats
 - **Patchs mouvants** : trancher `astro` et `wrangler` par `npm view <pkg> version` **le jour de l'installation**. Les plages (Astro 7.0.x, Wrangler ≥4.83.0) sont, elles, certaines.
 - **`compatibility_date`** : marquée [À VÉRIFIER].

@@ -80,6 +80,13 @@ Chaîne documentaire : [brief](docs/brief.md) → [PRD](docs/prd.md) → [stack]
 - Ne pas lancer `--update`/`-u` sur les goldens.
 - Ne pas viser un pourcentage de couverture-ligne.
 
+## Pièges d'outillage constatés
+
+- **Deux jeux de `FR-xxx` cohabitent.** `specs/001-ci-quality-gate/` utilise sa propre numérotation `FR-001…FR-030`, **locale à la feature et sans aucun rapport** avec les `FR-xxx` du PRD, qui vont jusqu'à `FR-099`. Les deux se recouvrent sur la plage 001–030 : toujours qualifier de quel jeu on parle.
+- **Le contrôle `lint-format` du portail qualité ne couvre que `.ts` / `.tsx`.** Le Markdown est hors périmètre : `brief.md`, `prd.md` et `stack.md` ne sont pas conformes à Prettier et **n'ont pas à l'être** — ne pas les reformater.
+- **Le hook `golden-lock` refuse toute commande shell contenant `-u` ou `--update`**, y compris un `sort -u` inoffensif. Contourner avec `sort | uniq`.
+- **`pnpm gate` ne s'exécute pas tel quel dans un shell non interactif** : pnpm veut purger `node_modules` et exige un TTY (`ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`). Forcer avec `CI=true` **supprime le répertoire d'installation** — à ne pas faire à la légère.
+
 ## Style
 - TypeScript `strict`, indentation 2 espaces, ESM.
 - Français pour les commentaires de décision et la doc ; anglais toléré pour le code.

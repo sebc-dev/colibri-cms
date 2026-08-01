@@ -47,6 +47,34 @@ depends-on: [ADR-0003, ADR-0004, ADR-0010]
 >
 > **Ce que cela rachète.** Sur le mode d'échec de loin le plus probable — une adresse de destination erronée — la demande n'est plus perdue : l'éditrice corrige l'adresse et relance, et la demande **arrive réellement**. Le rattrapage est meilleur que celui que `FR-095` offrait sur ce cas précis. Restent hors d'atteinte l'échec qu'elle ne regarde jamais, et le fait que **le visiteur, lui, ne saura toujours rien** — c'est désormais le seul trou, et la seule raison de rouvrir `FR-095`.
 
+> **Amendement 2026-08-01 (d) — deux points que le document de suivi de la revue portait seul.**
+> Ce document a été clos et supprimé ; ces deux éléments n'existaient nulle part ailleurs.
+>
+> **1. Où vit un formulaire — le défaut que `FR-086` referme.** `FR-049` disait que le site présente
+> chaque formulaire publié **sans jamais dire où**. `FR-012` n'avait pas de type formulaire,
+> `FR-009` interdit à l'éditrice de créer une page, et la gestion des adresses est hors périmètre :
+> elle pouvait donc composer son devis, le publier, et il n'existait **aucun endroit du site où il
+> puisse apparaître**. `SC-007` était inatteignable par construction. La résolution est le partage
+> qui porte tout le produit — **le gabarit possède l'emplacement, l'éditrice désigne le contenu** :
+> une **zone de type formulaire** (`FR-086`, déclarée au contrat de gabarit, cf. ADR-0004). Un même
+> formulaire peut être désigné par **plusieurs** pages — le formulaire de contact réutilisé est le
+> cas le plus banal — ce qui est exactement pourquoi ADR-0010 § 7 pose qu'une référence est un
+> identifiant et jamais une copie.
+>
+> Deux options écartées, à ne pas rouvrir : *(a)* **une page auto-générée par formulaire** —
+> contredit `FR-009` et rouvre la gestion des adresses, exclue ; *(b)* **l'intégrateur câble en dur
+> quel formulaire va où** — `FR-040` (l'éditrice compose ses formulaires) perdrait son sens, et on
+> restaurerait précisément la dépendance à l'agence que `SC-007` existe pour supprimer.
+>
+> **2. Bord tranché de `FR-090`/`FR-091` : la définition a changé pendant que le visiteur
+> remplissait.** Le site public est statique et potentiellement en cache ; la définition `live` peut
+> donc avoir changé entre le chargement de la page et l'envoi. La règle est **d'acheminer avec le
+> total recalculé, sans rien signaler au visiteur** — et non de rejeter la soumission. Motif :
+> refuser la demande d'un prospect parce que la cliente a retouché un prix trois minutes plus tôt
+> serait absurde, et coûterait exactement ce que `SC-007` mesure. La validation de `FR-090` reste
+> stricte sur ce qui est vérifiable (champs existants, types, obligatoires, bornes, consentement) ;
+> c'est **l'écart de prix** qui est absorbé en silence, pas un champ devenu invalide.
+
 ---
 
 ## Contexte
@@ -114,6 +142,7 @@ Modèle de données : `forms` (identité) + `form_defs` + `form_fields` + `form_
 - **OBLIGATOIRE** : la route de soumission est un `writeHandler({auth:'public'})` avec vérification **Turnstile** avant tout traitement.
 - **OBLIGATOIRE** : toute soumission est validée contre la définition `state='live'` du formulaire — champs existants, types, obligatoires, bornes, consentement (FR-090).
 - **OBLIGATOIRE** : le total acheminé est **recalculé** côté serveur ; **INTERDIT** de reprendre un total venu de la requête du visiteur (FR-091).
+- **OBLIGATOIRE** *(amendement (d))* : un écart entre la définition chargée par le visiteur et la définition `state='live'` au moment de l'envoi se résout par le **total recalculé** ; **INTERDIT** de rejeter la soumission pour ce seul motif (FR-090, FR-091).
 - **INTERDIT** : conserver une soumission au-delà de son acheminement **réussi** — une demande livrée ne laisse aucune trace, et **INTERDIT** qu'elle entre dans la corbeille de FR-064.
 - **OBLIGATOIRE** *(amendement (c))* : la rétention de FR-064 est bornée dans le temps, et son **expiration est inconditionnelle** — **INTERDIT** de la repousser, de la suspendre ou de la conditionner à une action.
 - **INTERDIT** *(amendement (c))* : exposer sur la corbeille une recherche, un filtre, un tri, un export ou un statut « traité ». Une demande n'en sort que **livrée, effacée ou expirée** — consulter, relancer et effacer (FR-097 → FR-099) sont les seuls gestes offerts.
@@ -130,4 +159,4 @@ Modèle de données : `forms` (identité) + `form_defs` + `form_fields` + `form_
 - Consomme les seams de : ADR-0004 (`writeHandler` public, `sendMail`, `verifyTurnstile`, calcul de total pur) et le cycle de publication d'ADR-0010 (définition `state='live'`, `field_key` stable).
 - Briques : ADR-0003 (Turnstile) ; **Cloudflare Email Service** pour l'envoi sortant, vers adresse de destination vérifiée *(amendement 2026-08-01 (b) — annule le passage à Resend de l'amendement (a))*.
 - Testé par : ADR-0005 (route publique, Turnstile, e-mail mockés, soumission forgée, recalcul du total).
-- Cadre : PRD (FR-040 → FR-065, FR-086, FR-090, FR-091, FR-094, FR-096 → FR-099, US6, US7, SC-007), stack.md, [docs/suites-revue-prd.md](../suites-revue-prd.md) (D5, D10, D15, D18).
+- Cadre : PRD (FR-040 → FR-065, FR-086, FR-090, FR-091, FR-094, FR-096 → FR-099, US6, US7, SC-007), stack.md, revue contradictoire du PRD du 2026-08-01 (décisions D5, D10, D15, D18, reprises aux amendements (a) à (d)).

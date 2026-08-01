@@ -34,6 +34,50 @@ depends-on: [ADR-0003]
 
 ---
 
+> **Amendement 2026-08-01 (b) — fidélité de l'aperçu et coût du build dans la durée.** Deux
+> conséquences de l'architecture que la revue du PRD a mises au jour, et qui n'étaient portées que
+> par son document de suivi, depuis clos et supprimé.
+>
+> **1. L'aperçu ne peut pas rendre *exactement* le site public, et le PRD ne doit pas le promettre.**
+> `FR-031` disait « le même rendu que le site public ». Inatteignable au pied de la lettre : le site
+> est bâti avec **Sharp**, réservé à `apps/site` et **build-only** (ADR-0003) ; l'aperçu est rendu
+> par le Worker d'admin, où Sharp n'existe pas. Le pipeline d'images ne **peut** pas être le même.
+> Laissé tel quel, ce FR aurait forcé l'implémentation à inventer seule le barème d'une vérification
+> observable. Le barème est donc écrit : **mêmes gabarits et mêmes styles ⇒ mise en page, textes et
+> cadrage des images identiques** ; encodage et poids des fichiers **libres**. C'est ce que
+> l'anti-dérive de cet ADR garantit réellement — un renderer partagé, pas un pipeline d'images
+> partagé.
+>
+> Corollaire côté produit, déjà porté par `FR-030` : l'aperçu affiche l'état **enregistré**, donc le
+> bouton est « **Enregistrer et prévisualiser** ». Sans cela, elle modifie trois zones, clique
+> « Aperçu », et voit la version d'avant — l'aperçu lui ment au moment précis où elle cherche à se
+> rassurer. Écarté : rendre l'état non enregistré, c'est-à-dire un chemin de rendu parallèle, donc
+> exactement la dérive que cet ADR existe pour fermer.
+>
+> **2. `SC-004` (publication en moins de 5 minutes) pouvait être validé à la recette puis devenir
+> faux tout seul.** Le build reconstruit **tout le site** : son coût est proportionnel au **volume
+> total de médias publiés**, pas à ce qui a changé. Au lancement, trente photos : une minute, tout
+> le monde signe. Un an plus tard, six galeries et trois cents photos : corriger une **virgule**
+> relance le réencodage des trois cents, le délai franchit les cinq minutes et le quota de build
+> (`SC-001`) est mangé. C'était le seul critère de succès du PRD capable de pourrir par l'usage
+> normal. → `FR-093` : le délai **ne croît pas** avec le volume déjà publié, ce qui impose des
+> **dérivés d'image persistés en R2** entre deux mises en ligne (cf. `stack.md`) — délibérément
+> plutôt que via le cache de build de la plateforme, qu'on ne contrôle pas. → `SC-004` se mesure
+> **sur un site à volume réaliste**, jamais sur un site neuf. → La **première** mise en ligne, ou la
+> première après un changement de gabarit invalidant tous les dérivés, peut légitimement dépasser
+> cinq minutes : c'est un événement d'intégrateur, pas un geste d'éditrice.
+>
+> **3. Motif de la surface `FR-087` (§ i), pour qu'elle ne soit pas prise pour un confort.** La
+> publication est asynchrone. `FR-055`, `FR-056` et `FR-057` promettaient de « signaler » et
+> d'« expliquer » — à quelqu'un qui a fermé l'onglet depuis deux minutes. Elle publie, recharge son
+> site, ne voit rien : lent, cassé, ou a-t-elle mal cliqué ? Aucun moyen de trancher, donc **elle
+> appelle l'agence**, sur le geste le plus chargé du parcours et contre `SC-003`. L'état de mise en
+> ligne consultable **au retour** est ce qui donne enfin un destinataire à ces trois exigences.
+> Écarté pour la v1 : la **notification e-mail** de fin de publication — canal, gabarit et
+> délivrabilité à construire pour un gain marginal, puisqu'elle regarde son site dans la minute.
+
+---
+
 ## Résumé exécutif
 
 Deux règles porteuses inchangées : un **noyau pur** (`@colibri/core`, zéro dépendance Cloudflare) et un **contrat de lecture unique** (`@colibri/db`) partagé par le site (build SSG) et l'admin (SSR), qui empêche toute dérive entre les deux surfaces lisant les mêmes données. À cela s'ajoute la contrainte neuve du versionnage de flotte : le code se sépare en un **cœur packagé** (moteur réutilisable, open source, versionné SemVer) et un **projet client privé** qui l'épingle et fournit ses **gabarits, thème et configuration**. Le **contrat de gabarit** est l'interface entre les deux : le projet client déclare la *structure* de ses pages (zones typées) et fournit leur *rendu*, sans jamais éditer le cœur. Les frontières sont rendues **mécaniques** dès l'Étape 0 (ESLint `no-restricted-paths` / dependency-cruiser en CI).
