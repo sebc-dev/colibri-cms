@@ -14,6 +14,9 @@ Ce répertoire est l'**Architecture Decision Log** du projet. Chaque décision p
 | [0006](./ADR-0006-generation-ia-verification.md) | Génération IA & portail de vérification | accepted | `.claude/`, `tests/` | 0002, 0004, 0005 |
 | [0007](./ADR-0007-constructeur-de-formulaires.md) | Constructeur de formulaires (générique, borné) | accepted | `core/form`, `admin` | 0003, 0004 |
 | [0008](./ADR-0008-mise-a-jour-de-la-flotte.md) | Versionnage & mise à jour de la flotte | accepted | `.` | 0003, 0004 |
+| [0010](./ADR-0010-modele-brouillon-publie.md) | Modèle brouillon/publié à deux contenus | accepted | `packages/`, `apps/` | 0004 |
+
+*(0009 est réservé par `_candidates/0009-portail-qualite-draft.md`.)*
 
 ## Graphe de dépendance
 
@@ -25,10 +28,13 @@ Ce répertoire est l'**Architecture Decision Log** du projet. Chaque décision p
                  ├─ 0005  Stratégie de test
                  ├─ 0006  Génération IA & vérification   ←(aussi 0002, 0005)
                  ├─ 0007  Constructeur de formulaires     ←(aussi 0003)
-                 └─ 0008  Mise à jour de la flotte         ←(aussi 0003)
+                 ├─ 0008  Mise à jour de la flotte         ←(aussi 0003)
+                 └─ 0010  Modèle brouillon/publié
 ```
 
 Principe : **un ADR ne dépend que de ceux qui le précèdent.** La gouvernance précède le socle, le socle précède l'architecture, l'architecture définit les seams que le test vise, que la génération IA verrouille, que le constructeur de formulaires consomme, et que le versionnage de flotte exploite (frontière cœur/client).
+
+ADR-0010 se greffe sur 0004 : il fixe *où vit le contenu et quand il devient public*, et amende par ricochet 0004 (modèle de données), 0007 (définition publiée) et 0005 (cibles de test).
 
 ## Documents amont (hors ADR)
 
