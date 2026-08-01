@@ -117,6 +117,20 @@ Les suites de la revue du PRD ont fait apparaître deux besoins que le socle ne 
 
 ---
 
+## Amendement 2026-08-01 (b) — durée de session, révocation, et surface d'accès du Worker d'admin
+
+La revue du PRD avait laissé ouverte une seule question qu'elle avait elle-même créée : *combien de temps une session d'éditrice vit-elle, et par quel geste l'intégrateur coupe-t-il l'accès ?* `FR-001` refuse les personnes non autorisées sans rien dire de la durée ni du retrait. Réponse en trois points, dont le troisième n'avait pas été vu.
+
+1. **Durée de session : 7 jours**, réglée au niveau de l'**application** Access (pas de l'organisation), pour que le Worker d'admin ne dépende pas d'un réglage global partagé avec d'autres usages du compte. Access ne fait **pas** de session glissante : le compteur part de la connexion. Motif : l'édition réelle est une salve étalée sur quelques jours (une collection publiée sur une semaine) ; le défaut plateforme de 24 h imposerait le code e-mail à presque chaque venue — la charge technique que le brief bannit — et un mois laisserait un poste ouvert trop longtemps pour qu'on puisse dépendre d'une révocation manuelle. La plage offerte est 15 min–1 mois au niveau organisation, « expiration immédiate »–1 mois au niveau application/politique, précédence politique > application > organisation.
+
+2. **Révocation : deux gestes, dans cet ordre.** Retirer l'adresse de la **politique** Access, **puis** révoquer la personne (Zero Trust > Users > *Revoke*). L'un sans l'autre ne coupe rien durablement : la révocation seule invalide les jetons déjà émis en 20–30 s mais laisse la personne **se reconnecter au bout d'une minute** ; le retrait de la politique seul laisse vivre la session en cours jusqu'à son terme. C'est la procédure de sortie d'une cliente qui quitte l'agence, à porter dans ADR-0008.
+
+3. **La surface d'accès du Worker doit être réduite au nom d'hôte protégé.** Une application Access protège un **nom d'hôte** ; le Worker d'admin reste joignable sur son `*.workers.dev` **et** sur ses *preview URLs*, qui ne traversent aucune politique. `FR-001` tomberait entièrement par cette porte, et avec lui le point 2 : la révocation n'est effective que **parce que** chaque requête traverse Access à la périphérie. La vérification JWT côté Worker (seam JWKS, ADR-0004) est une défense en profondeur au service de `FR-003` — elle ne voit pas une révocation, elle ne voit qu'un `exp`. D'où deux réglages **explicites** dans `apps/admin/wrangler.jsonc`. Depuis Wrangler 4.44, `preview_urls` suit `workers_dev` par défaut : l'écrire quand même est ce qui le rend vérifiable par hook plutôt que dépendant d'une valeur par défaut qui a déjà changé trois fois en un an.
+
+Corollaire de flotte, hors socle : le **jeton d'API Workers Builds** est nécessairement *user-scoped* (amendement (a), point 1), donc attaché à une personne. Il est créé depuis un **membre de compte dédié et non nominatif** (identité d'agence), jamais depuis le compte personnel d'un intégrateur — sans quoi la publication de tous les sites clients dépend du maintien d'une personne dans l'organisation. → ADR-0008.
+
+---
+
 ## Caveats
 - **Patchs mouvants** : trancher `astro` et `wrangler` par `npm view <pkg> version` **le jour de l'installation**. Les plages (Astro 7.0.x, Wrangler ≥4.83.0) sont, elles, certaines.
 - **`compatibility_date`** : marquée [À VÉRIFIER].
@@ -143,6 +157,9 @@ Les suites de la revue du PRD ont fait apparaître deux besoins que le socle ne 
 - **OBLIGATOIRE** *(2026-08-01)* : la réduction d'image à l'entrée se fait **dans le navigateur** ; **INTERDIT** d'introduire une dépendance de traitement d'image dans le runtime Worker.
 - **INTERDIT** *(2026-08-01)* : déclarer `image/heic` dans l'attribut `accept` d'un sélecteur de fichier.
 - **OBLIGATOIRE** *(2026-08-01)* : la boucle du Cron Trigger est **idempotente** — aucune invocation n'est réessayée par la plateforme, le rattrapage se fait au tick suivant.
+- **OBLIGATOIRE** *(2026-08-01)* : `workers_dev: false` **et** `preview_urls: false` déclarés explicitement dans `apps/admin/wrangler.jsonc` — une application Access protège un nom d'hôte, pas un Worker ; laisser l'une de ces deux surfaces ouverte contourne `FR-001` intégralement.
+- **OBLIGATOIRE** *(2026-08-01)* : la durée de session de l'application Access d'admin vaut **7 jours**, réglée au niveau application.
+- **OBLIGATOIRE** *(2026-08-01)* : le jeton d'API Workers Builds est créé depuis un **membre de compte non nominatif** ; **INTERDIT** de le créer depuis le compte personnel d'un intégrateur.
 
 ## Related
 - Cadre : PRD ColibriCMS (§4 contraintes, §9 stack).

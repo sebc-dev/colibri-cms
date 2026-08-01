@@ -38,7 +38,7 @@ Chaîne documentaire : [brief](docs/brief.md) → [PRD](docs/prd.md) → [stack]
 **Socle (ADR-0003)**
 - Versions via `catalog:` pnpm ; ne pas mélanger les majeures Astro/adaptateur.
 - Pas de `@astrojs/tailwind` ni `tailwind.config.js` (Tailwind 4 = `@tailwindcss/vite`).
-- `nodejs_compat` + `compatibility_date` fixés dans `apps/admin/wrangler.jsonc`.
+- `nodejs_compat` + `compatibility_date` fixés dans `apps/admin/wrangler.jsonc`, ainsi que `workers_dev: false` et `preview_urls: false` — Access protège un **nom d'hôte**, pas un Worker ; l'une de ces surfaces ouverte contourne `FR-001`.
 - Auth par middleware Astro, pas de routage `src/fetch.ts` (bug #17181).
 - `sharp` : `apps/site` uniquement, build-only ; réduction d'image à l'entrée **dans le navigateur**, jamais dans le Worker.
 - Jamais `image/heic` dans un attribut `accept`. Boucle de Cron Trigger idempotente (aucun réessai plateforme).
@@ -56,8 +56,10 @@ Chaîne documentaire : [brief](docs/brief.md) → [PRD](docs/prd.md) → [stack]
 **Formulaires (ADR-0007)**
 - Soumission = `writeHandler({auth:'public'})` + vérif Turnstile avant tout traitement.
 - Valider toute soumission contre la définition `state='live'` ; **recalculer** le total côté serveur, jamais le reprendre de la requête.
-- Ne jamais conserver une soumission au-delà de son acheminement **réussi** ; la rétention de réessai n'expose aucune surface.
+- Ne jamais conserver une soumission au-delà de son acheminement **réussi** — une demande livrée n'entre jamais dans la corbeille de `FR-064`, qui ne contient que les **échecs**.
+- La corbeille offre trois gestes et rien d'autre : consulter, relancer, effacer. Jamais de recherche, filtre, tri, export ni statut « traité » ; son expiration est **inconditionnelle**.
 - Un champ `number` porte un **maximum** obligatoire ; adresse de destination **confirmée** avant publication.
+- Une soumission produit **un seul** message, vers une **adresse de destination vérifiée du compte** ; jamais d'envoi au visiteur ni de `Reply-To` vers lui (`FR-095` hors v1).
 - Montants en centimes entiers ; total = somme pure (`@colibri/core`), aucune règle conditionnelle en V1.
 - Aucun code tiers chargé avant une action explicite du visiteur (vaut pour Turnstile et le lecteur vidéo).
 
