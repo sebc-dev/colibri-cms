@@ -108,6 +108,15 @@ Fixer explicitement dans `apps/admin/wrangler.jsonc` : `compatibility_flags: ["n
 
 ---
 
+## Amendement 2026-08-01 — deux mécanismes absents du socle
+
+Les suites de la revue du PRD ont fait apparaître deux besoins que le socle ne portait pas. Ni l'un ni l'autre ne change une version figée ; tous deux ajoutent une brique de plateforme.
+
+1. **Cron Trigger sur le Worker d'admin** (FR-056, FR-087, FR-093). L'issue d'une mise en ligne n'est **pas** connue au déclenchement : un Deploy Hook Workers Builds retourne un `build_uuid`, et l'issue s'obtient en **interrogeant** l'API Builds. Il faut donc un déclencheur périodique, qui porte aussi la **boucle de réconciliation** (redéclencher tant que le dernier succès est antérieur à la dernière demande). Disponible sur l'offre gratuite : 5 déclencheurs, intervalle minimal 1 minute, chaque invocation compte dans les 100 000 requêtes/jour, **aucun réessai** si une invocation échoue — la boucle doit donc être idempotente et se rattraper d'elle-même au tick suivant. Le jeton d'API Builds doit être **user-scoped** (les jetons de compte sont refusés).
+2. **Réduction d'image dans le navigateur** (FR-088). Une image trop lourde est **réduite**, pas refusée. Sharp est `build-only` dans `apps/site` et n'existe pas dans le Worker : la réduction se fait donc côté client (`createImageBitmap` + `canvas.toBlob`) avant l'envoi. `FR-023` (8 Mo) reste la **butée serveur**, conforme à FR-014. Corollaire vérifié : l'attribut `accept` ne déclare **jamais** `image/heic` — c'est ce qui fait transcoder Safari en JPEG et évite le sujet HEIC à la source.
+
+---
+
 ## Caveats
 - **Patchs mouvants** : trancher `astro` et `wrangler` par `npm view <pkg> version` **le jour de l'installation**. Les plages (Astro 7.0.x, Wrangler ≥4.83.0) sont, elles, certaines.
 - **`compatibility_date`** : marquée [À VÉRIFIER].
@@ -131,6 +140,9 @@ Fixer explicitement dans `apps/admin/wrangler.jsonc` : `compatibility_flags: ["n
 - **OBLIGATOIRE** : `compatibility_flags: ["nodejs_compat"]` + `compatibility_date` fixés dans `apps/admin/wrangler.jsonc`.
 - **INTERDIT** : routage `src/fetch.ts` (bug OOM #17181) — utiliser le middleware Astro classique.
 - **OBLIGATOIRE** : `sharp` en dépendance de `apps/site` uniquement, usage build-only (jamais dans le runtime Worker).
+- **OBLIGATOIRE** *(2026-08-01)* : la réduction d'image à l'entrée se fait **dans le navigateur** ; **INTERDIT** d'introduire une dépendance de traitement d'image dans le runtime Worker.
+- **INTERDIT** *(2026-08-01)* : déclarer `image/heic` dans l'attribut `accept` d'un sélecteur de fichier.
+- **OBLIGATOIRE** *(2026-08-01)* : la boucle du Cron Trigger est **idempotente** — aucune invocation n'est réessayée par la plateforme, le rattrapage se fait au tick suivant.
 
 ## Related
 - Cadre : PRD ColibriCMS (§4 contraintes, §9 stack).

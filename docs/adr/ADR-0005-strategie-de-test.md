@@ -135,13 +135,15 @@ Pas de pourcentage imposé (Dodds : la couverture « does a very poor job » d'i
 - **OBLIGATOIRE** : l'intégration s'exécute dans **workerd** avec les vrais bindings locaux (Miniflare) ; **INTERDIT** de sur-mocker D1/R2/KV.
 - **OBLIGATOIRE** : 100 % des endpoints d'écriture testés pour l'autorisation (refus + happy-path + un cas d'erreur).
 - **INTERDIT** : déclencher le vrai Deploy Hook en test (toujours mocké — garde-fou free-tier).
-- **INTERDIT** : envoyer un vrai e-mail en test (Cloudflare Email Routing mocké — garde-fou free-tier).
+- **INTERDIT** : envoyer un vrai e-mail en test (mailer mocké — garde-fou free-tier). *(Amendement 2026-08-01 : le mailer par défaut est Resend, cf. ADR-0007 ; la règle est inchangée, seul le fournisseur mocké change.)*
+- **OBLIGATOIRE** *(2026-08-01, ADR-0010)* : **aucune lecture du build du site public ne sert une ligne `state='draft'`**. C'est la cible de test la plus importante du produit : une fuite de brouillon publierait du contenu que l'éditrice n'a pas publié. Testée sur le chemin réel (contenu en cours ≠ contenu en ligne, build, assertion sur le HTML bâti), pas sur la seule requête.
+- **OBLIGATOIRE** *(2026-08-01)* : sont également des cibles nommées — la **soumission forgée** rejetée (champ obligatoire vide, consentement absent, champ inconnu, valeur hors bornes, FR-090) ; le **recalcul du total** en test pur `@colibri/core`, y compris quand la définition a changé depuis l'affichage (FR-091) ; le **refus d'écrasement concurrent** (FR-092) ; l'**index de références** et le **non-rendu** d'un lien vers une page non publiée (FR-085) ; l'**atomicité de la publication** (un `batch()` D1, échec ⇒ aucun contenu en ligne modifié).
 - **OBLIGATOIRE** : la route **publique** de soumission de formulaire est testée pour la vérification anti-spam (refus d'un jeton Turnstile absent/invalide **+** happy-path), en plus de la validation Zod.
 - **INTERDIT** : terminer une migration D1 par un commentaire (bug #7739).
 - **INTERDIT** : dépendre d'un login IdP interactif en CI (service tokens ou JWT fabriqué).
 - **OBLIGATOIRE** : la couverture est un indicateur secondaire, jamais une cible chiffrée.
 
 ## Related
-- Vise les seams de : ADR-0004 (`@colibri/core`, `@colibri/db`, `writeHandler`, `AssetResolver`, JWKS injectable).
+- Vise les seams de : ADR-0004 (`@colibri/core`, `@colibri/db`, `writeHandler`, `AssetResolver`, JWKS injectable) et d'ADR-0010 (lectures typées par état, opération de publication).
 - Contraint par : ADR-0003 (versions d'outillage, `nodejs_compat`).
 - Compagnon : ADR-0006 (gouvernance de la génération IA & portail de vérification).

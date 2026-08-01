@@ -26,6 +26,14 @@ depends-on: [ADR-0003]
 
 ---
 
+> **Amendement 2026-08-01 — suites de la revue du PRD.** [ADR-0010](./ADR-0010-modele-brouillon-publie.md) introduit le **modèle à deux contenus** ; quatre conséquences sur cet ADR :
+> 1. **Le contrat de gabarit gagne quatre déclarations** : zone de type **formulaire** (FR-086), zone de type **date** (FR-012), **ordre et libellés du menu** (FR-084, filtré au build sur les pages en ligne), et **destination typée** d'un lien — page du site ou adresse externe (FR-015, FR-070). L'éditrice ne saisit jamais une adresse interne.
+> 2. **Deux surfaces nouvelles** : l'**index de références** (FR-085) et l'**état de la mise en ligne** (FR-087). Voir §§ h et i.
+> 3. **Le caveat « accès D1 au build » est levé.** Un build Workers Builds s'exécute dans un conteneur CI, pas dans workerd : aucun binding n'y existe. Le build lit D1 par l'**API REST** (`POST …/d1/database/:id/query`). L'architecture avait prévu le cas — le build fournit son adaptateur à `db` : cet adaptateur est **HTTP**.
+> 4. **Les lectures de `@colibri/db` sont typées par état** : deux fonctions distinctes, jamais une fonction générique paramétrée par l'état (ADR-0010, *Constraints*).
+
+---
+
 ## Résumé exécutif
 
 Deux règles porteuses inchangées : un **noyau pur** (`@colibri/core`, zéro dépendance Cloudflare) et un **contrat de lecture unique** (`@colibri/db`) partagé par le site (build SSG) et l'admin (SSR), qui empêche toute dérive entre les deux surfaces lisant les mêmes données. À cela s'ajoute la contrainte neuve du versionnage de flotte : le code se sépare en un **cœur packagé** (moteur réutilisable, open source, versionné SemVer) et un **projet client privé** qui l'épingle et fournit ses **gabarits, thème et configuration**. Le **contrat de gabarit** est l'interface entre les deux : le projet client déclare la *structure* de ses pages (zones typées) et fournit leur *rendu*, sans jamais éditer le cœur. Les frontières sont rendues **mécaniques** dès l'Étape 0 (ESLint `no-restricted-paths` / dependency-cruiser en CI).
@@ -137,6 +145,12 @@ On **ne peut pas** livrer une route d'écriture qui saute sa tête de pipeline :
 - `sendMail(msg, { mailer })` — Email Routing par défaut, **mock** en test (jamais d'envoi réel — garde-fou free tier).
 - `verifyTurnstile(token, { verifier })` — appel siteverify par défaut, **stub** en test.
 
+**h. Index de références — dérivé par une fonction pure, stocké pour être interrogeable** *(2026-08-01, FR-085)*.
+`extractReferences(descripteur, valeur) → Ref[]` est **pure** et vit dans `@colibri/core` : elle sait, pour un type de zone donné, quelles cibles une valeur désigne (page, formulaire, média). `@colibri/db` l'applique au contenu `draft` à chaque enregistrement et au contenu `live` à chaque publication, et matérialise le résultat dans `content_references`. Stocké et non calculé au build, parce que la question « où est-ce utilisé ? » se pose **avant** une dépublication (FR-083), donc hors build. Le build s'en sert pour ne pas rendre une référence dont la cible n'est pas en ligne ; FR-055 s'en sert pour vérifier que tout média référencé par le `live` existe encore.
+
+**i. État de la mise en ligne — une seule ligne, un Cron, une boucle de réconciliation** *(2026-08-01, FR-087)*.
+Le build étant **global**, l'état de mise en ligne l'est aussi. La publication pose la demande et l'identifiant de build retourné par le Deploy Hook ; un **Cron Trigger** interroge l'API Workers Builds, met à jour l'issue, et **redéclenche** tant que le dernier succès est antérieur à la dernière demande. Un seul mécanisme couvre le quota épuisé (FR-056), l'échec transitoire et la déduplication (FR-058) — sans dépendre d'un signal de quota, qui n'est pas documenté. Ce que lit l'éditrice pour une page se **dérive** de la comparaison entre sa date de dernière mise en ligne et celle du dernier build réussi.
+
 **g. Descripteur V2 dormant.**
 `ContentTypeDescriptor<T>` définit *la forme* à laquelle une future tranche de contenu éditorial (article…) se conformera. En V1 il n'est **pas** consommé par du code générique (règle de trois). Quand l'éditorial revient en V2, l'abstraction est déjà là.
 
@@ -185,7 +199,7 @@ On **ne peut pas** livrer une route d'écriture qui saute sa tête de pipeline :
 ---
 
 ## Caveats
-- **Accès D1 au build** SSG sur Workers Static Assets **[À VÉRIFIER]** : binding d'intégration build vs D1 REST. L'architecture est agnostique (le build fournit son adaptateur à `db`).
+- ~~**Accès D1 au build** SSG sur Workers Static Assets **[À VÉRIFIER]**~~ → **levé le 2026-08-01** : aucun binding n'existe dans le conteneur de build ; l'adaptateur de build est **HTTP**, sur l'API REST D1 (`POST /accounts/:id/d1/database/:id/query`). L'architecture l'avait prévu (le build fournit son adaptateur à `db`).
 - **Optimisation d'images distantes R2 au build** via `getImage()` + `image.remotePatterns` **[À VÉRIFIER]** : config Astro 7 exacte à confirmer.
 - **Auth via middleware Astro** (pas `src/fetch.ts`) tant que l'OOM #17181 n'est pas corrigé (ADR-0003).
 
@@ -203,8 +217,11 @@ On **ne peut pas** livrer une route d'écriture qui saute sa tête de pipeline :
 - **OBLIGATOIRE** : le verrou optimiste passe par `createRepository`, jamais réimplémenté.
 - **OBLIGATOIRE** : les seams JWKS, mailer et Turnstile sont injectables dès le code de prod.
 - **INTERDIT** : consommer `ContentTypeDescriptor` par du code générique en V1 (le garder dormant).
+- **OBLIGATOIRE** *(2026-08-01)* : le contrat de gabarit déclare les zones de type **formulaire** et **date**, l'**ordre et les libellés du menu**, et la **destination typée** d'un lien ; **INTERDIT** de laisser l'éditrice saisir l'adresse interne d'une page.
+- **OBLIGATOIRE** *(2026-08-01)* : l'extraction des références est une fonction **pure** de `@colibri/core` ; **INTERDIT** de la réimplémenter par du SQL ad hoc dans `apps/*`.
 
 ## Related
+- Complété par : **ADR-0010** (modèle brouillon/publié à deux contenus — lectures typées par état, opération de publication, index de références).
 - Contraint par : ADR-0003 (socle — middleware vs `src/fetch.ts`, bindings, versions).
 - Testé par : ADR-0005 (les seams `db`/`writeHandler`/`toBlocks`/total/JWKS/mailer/Turnstile sont les cibles de test).
 - Gouverné par : ADR-0006 (les frontières sont le portail anti-dérive de la génération IA).
