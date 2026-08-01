@@ -40,12 +40,26 @@ Chaîne documentaire : [brief](docs/brief.md) → [PRD](docs/prd.md) → [stack]
 - Pas de `@astrojs/tailwind` ni `tailwind.config.js` (Tailwind 4 = `@tailwindcss/vite`).
 - `nodejs_compat` + `compatibility_date` fixés dans `apps/admin/wrangler.jsonc`.
 - Auth par middleware Astro, pas de routage `src/fetch.ts` (bug #17181).
-- `sharp` : `apps/site` uniquement, build-only.
+- `sharp` : `apps/site` uniquement, build-only ; réduction d'image à l'entrée **dans le navigateur**, jamais dans le Worker.
+- Jamais `image/heic` dans un attribut `accept`. Boucle de Cron Trigger idempotente (aucun réessai plateforme).
+
+**Contenu — brouillon/publié (ADR-0010)**
+- Toute table de valeur de contenu porte `state ∈ ('draft','live')` dans sa clé primaire.
+- **Jamais** lire une ligne `state='draft'` depuis le build du site public — c'est le pire bug possible du produit.
+- Deux fonctions de lecture distinctes et typées dans `@colibri/db` ; jamais une fonction générique paramétrée par l'état.
+- Écrire dans `state='live'` uniquement depuis l'opération de publication ; recopie atomique (un `batch()` D1) **avant** le Deploy Hook, verrou et zones obligatoires vérifiés d'abord.
+- Une référence (page, formulaire, média) est un identifiant, jamais une copie du contenu.
+- Rien de rendu au visiteur ne vit hors des deux contenus — en particulier, pas de `media.alt`.
+- Les états de `FR-019` sont dérivés de `publications` ; aucune colonne d'état de publication sur `pages` ou `forms`.
+- Un champ de formulaire est désigné par une clé naturelle stable (`field_key`), jamais par un id de substitution.
 
 **Formulaires (ADR-0007)**
 - Soumission = `writeHandler({auth:'public'})` + vérif Turnstile avant tout traitement.
-- Ne jamais persister une soumission (acheminement e-mail uniquement).
+- Valider toute soumission contre la définition `state='live'` ; **recalculer** le total côté serveur, jamais le reprendre de la requête.
+- Ne jamais conserver une soumission au-delà de son acheminement **réussi** ; la rétention de réessai n'expose aucune surface.
+- Un champ `number` porte un **maximum** obligatoire ; adresse de destination **confirmée** avant publication.
 - Montants en centimes entiers ; total = somme pure (`@colibri/core`), aucune règle conditionnelle en V1.
+- Aucun code tiers chargé avant une action explicite du visiteur (vaut pour Turnstile et le lecteur vidéo).
 
 **Flotte (ADR-0008)**
 - Aucun code spécifique client dans le cœur ; ne pas forker le cœur (épinglage de version).
@@ -55,6 +69,7 @@ Chaîne documentaire : [brief](docs/brief.md) → [PRD](docs/prd.md) → [stack]
 **Test (ADR-0005)**
 - Intégration dans workerd avec vrais bindings locaux ; ne pas sur-mocker D1/R2/KV.
 - 100 % des endpoints d'écriture testés pour l'autorisation ; route publique testée pour Turnstile.
+- Cible nommée : **aucune fuite de brouillon** (le build ne sert jamais `state='draft'`), soumission forgée rejetée, recalcul du total, refus d'écrasement concurrent.
 - Ne jamais déclencher le vrai Deploy Hook ni envoyer un vrai e-mail en test (mockés).
 - Ne pas terminer une migration D1 par un commentaire (#7739).
 
