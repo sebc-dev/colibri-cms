@@ -77,6 +77,10 @@ Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt es
 - Rien de rendu au visiteur ne vit hors des deux contenus — en particulier, pas de `media.alt`.
 - Les états de `FR-019` sont dérivés de `publications` ; aucune colonne d'état de publication sur `pages` ou `forms`.
 - Un champ de formulaire est désigné par une clé naturelle stable (`field_key`), jamais par un id de substitution.
+- *(amdt (c))* `zone_key` / `field_key` / `option_key` : charset `^[a-z][a-z0-9_]{0,63}$`, engendrée **une fois** à la création puis **immuable** (un libellé renommé ne la change pas) ; unicité sur l'objet, **les deux états réunis**, suffixe déterministe ; clé non conforme **rejetée** à la lecture, jamais normalisée.
+- *(amdt (c))* Tout octet servi au visiteur est le dérivé d'un média référencé par du `state='live'` ; jamais d'original public, jamais le dérivé d'un média que seul un `draft` référence.
+- *(amdt (c))* Le retrait d'une page (`FR-083`) est reflété par le site servi dans le délai de `FR-036` (`FR-111`) ; jamais de HTML servi avec une fraîcheur supérieure à ce délai sans purge.
+- *(amdt (c))* Le jeton de verrou optimiste est le compteur entier `version` ; jamais un horodatage à la seconde — `datetime('now')` n'est pas un jeton.
 
 **Formulaires (ADR-0007)**
 - Soumission = `writeHandler({auth:'public'})` + vérif Turnstile avant tout traitement.

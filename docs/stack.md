@@ -4,7 +4,7 @@
 |---|---|
 | **Statut** | accepted |
 | **Créé** | 2026-07-17 |
-| **Révisé** | 2026-08-01 — suites de la revue du PRD ([ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md), vérifications factuelles), puis frontières de contenu hostile ([ADR-0011](./adr/ADR-0011-frontieres-de-contenu-hostile.md)) et leurs suites dans le cœur ([ADR-0004](./adr/ADR-0004-architecture-du-code.md) amendement (c) — restriction de schéma du `LinkTarget`) |
+| **Révisé** | 2026-08-01 — suites de la revue du PRD ([ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md), vérifications factuelles), puis frontières de contenu hostile ([ADR-0011](./adr/ADR-0011-frontieres-de-contenu-hostile.md)) et leurs suites dans le cœur ([ADR-0004](./adr/ADR-0004-architecture-du-code.md) amendement (c) — restriction de schéma du `LinkTarget`) et dans le modèle de contenu ([ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md) amendement (c) — clés naturelles, invariant étendu aux octets, cache après retrait, jeton de verrou entier) |
 | **Accepté** | 2026-08-01 — plus rien de spéculatif : chaque choix est adossé à un ADR accepté. Une confrontation au code produira des **amendements datés**, pas un retour en `Draft`. |
 | **Trace vers** | [docs/prd.md](./prd.md) |
 | **Détaille** | [docs/adr/](./adr/README.md) |
@@ -122,8 +122,11 @@ CREATE TABLE pages (               -- FR-006, FR-007, FR-082
   created_by  TEXT REFERENCES users(id),
   updated_by  TEXT REFERENCES users(id),
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))  -- jeton de verrou optimiste (FR-092)
-);
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now')), -- horodatage d'affichage, JAMAIS le jeton
+  version     INTEGER NOT NULL DEFAULT 1               -- jeton de verrou optimiste (FR-092)
+);                                 -- `version` s'incrémente à chaque écriture : jeton EXACT.
+                                   -- `datetime('now')` a une résolution d'une seconde et ne peut
+                                   -- pas servir de jeton (ADR-0010 amdt (c) point 4)
 
 CREATE TABLE forms (               -- FR-040 : identité seule
   id         TEXT PRIMARY KEY,
@@ -131,14 +134,17 @@ CREATE TABLE forms (               -- FR-040 : identité seule
   created_by TEXT REFERENCES users(id),
   updated_by TEXT REFERENCES users(id),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))   -- jeton de verrou (FR-092)
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),  -- horodatage d'affichage
+  version    INTEGER NOT NULL DEFAULT 1                -- jeton de verrou optimiste (FR-092)
 );
 
 -- ── Contenus versionnés : tout ce qui porte `state` ─────────────────────────
 
 CREATE TABLE page_zone_values (    -- FR-008, FR-012, FR-013, FR-078
   page_id    TEXT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
-  zone_key   TEXT NOT NULL,        -- correspond à une zone déclarée par le gabarit
+  zone_key   TEXT NOT NULL,        -- correspond à une zone déclarée par le gabarit ;
+                                   -- charset fermé ^[a-z][a-z0-9_]{0,63}$, rejet strict à la
+                                   -- lecture (ADR-0010 amdt (c) point 1)
   state      TEXT NOT NULL CHECK (state IN ('draft','live')),
   value_json TEXT NOT NULL,        -- forme validée par Zod selon le type de zone
   PRIMARY KEY (page_id, zone_key, state)
@@ -164,7 +170,11 @@ CREATE TABLE form_defs (           -- FR-046, FR-047 : définition de niveau for
 CREATE TABLE form_fields (         -- FR-041 → FR-045
   form_id    TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
   state      TEXT NOT NULL CHECK (state IN ('draft','live')),
-  field_key  TEXT NOT NULL,        -- clé NATURELLE stable : FR-091 rapproche par elle
+  field_key  TEXT NOT NULL,        -- clé NATURELLE stable : FR-091 rapproche par elle.
+                                   -- ^[a-z][a-z0-9_]{0,63}$, engendrée UNE FOIS à la création du
+                                   -- champ puis IMMUABLE (un libellé renommé ne la change pas) ;
+                                   -- unicité sur (form_id), LES DEUX ÉTATS RÉUNIS, collision
+                                   -- résolue par suffixe déterministe (ADR-0010 amdt (c) point 1)
   type       TEXT NOT NULL CHECK (type IN ('text','email','phone','textarea',
                                 'select_single','select_multi','number','date','consent')),
   label      TEXT NOT NULL,
@@ -180,7 +190,8 @@ CREATE TABLE form_field_options (  -- FR-044 : choix d'un champ select_*, avec m
   form_id     TEXT NOT NULL,
   state       TEXT NOT NULL,
   field_key   TEXT NOT NULL,
-  option_key  TEXT NOT NULL,       -- clé naturelle, comme field_key
+  option_key  TEXT NOT NULL,       -- clé naturelle, mêmes règles que field_key ; unicité sur
+                                   -- (form_id, field_key), les deux états réunis
   label       TEXT NOT NULL,
   price_delta INTEGER NOT NULL DEFAULT 0,  -- centimes entiers
   sort_order  INTEGER NOT NULL DEFAULT 0,
@@ -286,7 +297,8 @@ Notes :
   **Paramètre à fixer** : `expires_at` valait quelques heures quand la corbeille n'existait que pour le réessai automatique ; il doit maintenant laisser à l'éditrice le temps de s'apercevoir de l'échec. **Défaut proposé : 30 jours.** C'est la donnée à porter dans la mention d'information (question RGPD ouverte du PRD) — la conserver plus longtemps n'apporte rien, moins longtemps rend le geste inutile.
 - **La définition de formulaire est possédée par l'éditrice** (structure composable, FR-041) — à la différence des gabarits de page, possédés par l'intégrateur en code. C'est la seule surface où l'éditrice compose une structure ; l'entorse à la philosophie « zones typées non restructurables » est assumée et bornée aux formulaires.
 - **Réglages transverses** (`site_settings`) : clé → `value_json` typé par clé (liens réseaux sociaux, coordonnées), bâtis dans le site et servis sur toutes les pages ; **même cycle brouillon/publication** que les pages (FR-073), porté par `state` et par la ligne `('settings','site')` de `publications` — plus par la temporalité du build, qui ne suffisait pas.
-- **Verrou optimiste** : `updated_at` est le jeton, et **la protection est exigée** (FR-092). *La note antérieure — « le seam existe, la protection n'est pas une priorité v1 » — est caduque* : le refus d'écrasement silencieux est une exigence, pas un confort. `createRepository` (ADR-0004) le porte ; la publication vérifie le jeton **avant** toute écriture (ADR-0010).
+- **Verrou optimiste** : ~~`updated_at` est le jeton~~, et **la protection est exigée** (FR-092). *La note antérieure — « le seam existe, la protection n'est pas une priorité v1 » — est caduque* : le refus d'écrasement silencieux est une exigence, pas un confort. `createRepository` (ADR-0004) le porte ; la publication vérifie le jeton **avant** toute écriture (ADR-0010). **→ Renversé le 2026-08-01** ([ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md) amendement (c) point 4, audit `D-03`) : le jeton est **`version`, un compteur entier** incrémenté à chaque écriture, et `updated_at` redevient un pur horodatage d'affichage. Motif : `datetime('now')` a une résolution d'**une seconde**, deux écritures dans la même seconde produisent le même jeton et l'`UPDATE … WHERE` réussit là où il doit refuser. Le scénario métier (deux onglets à quelques heures) n'est jamais touché — **seul le test l'est**, et la cible « refus d'écrasement concurrent » d'ADR-0005 deviendrait intermittente, donc désactivée, donc absente tout en étant réputée tenue. Le compteur est **exact par construction** ; `strftime('%f')` (milliseconde) n'aurait réduit la probabilité de collision qu'à moitié de prix.
+- **Clés naturelles** (`zone_key`, `field_key`, `option_key`) — charset fermé `^[a-z][a-z0-9_]{0,63}$`, **engendrée une seule fois** à la création du champ puis **immuable** ; unicité sur l'objet, **les deux états réunis**, collision résolue par suffixe déterministe ; rejet Zod strict à la lecture comme à l'entrée. Motif : une clé traverse cinq contextes d'échappement (attribut `name`, JSON de soumission, corps du message, corbeille admin, clause `WHERE`) — un charset fermé la rend inerte dans les cinq d'un coup, et l'immuabilité est ce qui rend FR-090/FR-091 vrais sur une soumission antérieure. `zone_key` vient du **descripteur de gabarit** et non de l'éditrice : pas d'engendrement, mais mêmes charset et rejet ([ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md) amendement (c) point 1).
 
 ## Surfaces nouvelles
 
@@ -296,6 +308,9 @@ Notes :
 - **Menu** (FR-084) — déclaré **en code** par le projet client (ordre et libellés), au titre du contrat de gabarit ; jamais en base, jamais éditable. Le build le filtre sur `publications.en_ligne = 1`. Quasi gratuit : le build connaît déjà l'état.
 - **Provisionnement des pages** (FR-082) — **ni migration, ni graine ad hoc** : le jeu de pages est une **déclaration du projet client** (clé de gabarit, slug, titre d'admin), au même titre que ses gabarits. Une étape outillée (`colibri provision`) insère les lignes `pages` + `publications` **manquantes**, et ne touche ni ne supprime jamais une page existante (FR-010). Motif : une migration appartient au **cœur** et serait la même pour tous les clients, alors que le jeu de pages est du **sur-mesure client** — le mettre en migration violerait la frontière d'ADR-0004. Conséquence pour ADR-0008 : ajouter une page chez un client = amender sa déclaration + rejouer le provisionnement, sans toucher au cœur.
 - **Retraitement incrémental** (FR-093) — les dérivés d'image sont **persistés en R2** (`media_derivatives`), clés par `(media_id, transform)`. Le build consulte R2 **avant** de réencoder ; seul un média nouveau ou une transformation nouvelle coûte du Sharp. Le délai cesse ainsi de croître avec le volume déjà publié. *Choix délibéré de ne pas s'en remettre au cache de build de la plateforme* (il existe — l'API expose sa purge — mais son contenu et sa persistance ne sont pas garantis) : R2 est sous notre contrôle et déjà au périmètre.
+
+  **Sort d'un dérivé après dépublication** *(2026-08-01, [ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md) amendement (c) points 2 et 3)* : il n'est **pas** supprimé — le supprimer contredirait FR-093 et exigerait un comptage de références sur les deux états, mécanisme reporté en post-V1 parce qu'il serait le premier du produit à détruire du contenu irrécupérable. Ce que FR-083 garantit est donc la disparition de la **surface publique navigable**, pas l'irrésolvabilité d'une adresse déjà connue ; la clé en UUID est une atténuation, pas un contrôle d'accès. En sens inverse, l'invariant vaut sans réserve : un média que seul un contenu `draft` référence n'a **aucun** dérivé sur la surface publique.
+- **Cache du site servi** *(2026-08-01, FR-111)* — FR-035 décrit l'état du **build** ; le visiteur reçoit ce que le CDN sert. Le HTML est donc servi avec une **durée de fraîcheur bornée par le délai de FR-036** (moins de 5 minutes), ou une purge explicite accompagne la mise à jour : sans cela, une page retirée du site resterait servie au-delà du délai et FR-111 serait faux quel que soit le comportement du build. Les **assets hachés** ne sont pas concernés — leur nom change avec leur contenu, un cache long y est sûr par construction. Le **délai** est normatif, le moyen de le tenir ne l'est pas.
 - **Réduction d'image à l'entrée** (FR-088) — **dans le navigateur**, avant l'envoi : Sharp est *build-only* et n'existe pas dans le Worker. `createImageBitmap` + `canvas.toBlob`, plafond de côté long et qualité cible, jusqu'à passer sous la limite. `FR-023` (8 Mo) reste la **butée serveur** (FR-014), jamais atteinte dans le parcours nominal. L'attribut `accept` ne déclare **jamais** `image/heic` : c'est ce qui fait transcoder Safari en JPEG et évite le sujet HEIC à la source.
 - **Vignette vidéo** (FR-069 × FR-089) — **conséquence non évidente** : la récupérer chez le fournisseur *au moment de la visite* serait déjà une requête tierce avant action du visiteur. Elle est donc récupérée **au build** (oEmbed), stockée en R2 et servie depuis le site. Le lecteur du fournisseur n'est chargé **qu'au clic** (façade).
 - **Anti-spam** (FR-063 × FR-089) — **Turnstile conservé**, mais son script n'est chargé qu'au **premier geste dans le formulaire** (focus d'un champ), jamais au chargement de la page. FR-089 est satisfait — un geste dans le formulaire *est* une action explicite — et SC-005, qui se mesure au chargement, n'est pas affecté. Le mode d'intégration est donc contraint : rendu **explicite** (`turnstile.render()` après injection du script), jamais le rendu implicite qui suppose le script présent au chargement.
@@ -309,6 +324,7 @@ Notes :
 Les ADR 0001–0008 sont **acceptés**. La revue du PRD du 1<sup>er</sup> août 2026 en a ouvert un neuvième (ADR-0010) et en amende trois ; l'audit de sécurité du même jour en a ouvert un dixième (ADR-0011) :
 
 - **[ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md) — Modèle brouillon/publié à deux contenus (accepté).** La décision mère : discriminant `state ∈ ('draft','live')` dans la clé primaire des tables de valeur ; recopie synchrone en un `batch()` D1 au clic « Publier », **avant** le Deploy Hook ; publication granulaire par objet ; une référence est un identifiant, jamais une copie ; rien de rendu au visiteur ne vit hors des deux contenus. Écarté : l'instantané JSON figé (dédoublerait le chemin de lecture qu'ADR-0004 unifie) et les tables séparées (double migration, `UNION` partout).
+- **ADR-0010 — amendé (c), 2026-08-01** — ce que le modèle n'écrivait qu'à moitié, suites de l'audit de sécurité : **clés naturelles** (`zone_key`, `field_key`, `option_key`) au charset fermé `^[a-z][a-z0-9_]{0,63}$`, engendrées une fois puis immuables, unicité sur les **deux états réunis** par suffixe déterministe, rejet Zod strict à la lecture ; l'**invariant « rien de public hors des deux contenus » étendu aux octets** — un octet servi au visiteur est le dérivé d'un média référencé par du `live`, le transport restant tranché par ADR-0004 (c) point 4 ; **délai borné du retrait** (`FR-111`, aligné sur FR-036) avec la durée de fraîcheur du HTML qui en découle, et le sort des dérivés écrit comme un renoncement borné ; **jeton de verrou = compteur entier `version`**, `datetime('now')` disqualifié comme jeton.
 - **[ADR-0011](./adr/ADR-0011-frontieres-de-contenu-hostile.md) — Frontières de contenu hostile (accepté).** La racine « sécurité » que la chaîne documentaire n'avait pas (audit du 2026-08-01) : allowlist **fermée** du schéma de texte riche, neutralisation à l'entrée et jamais au rendu ; **contexte de rendu déclaré** par le contrat de gabarit ; type réel d'un téléversement par **signature d'octets**, liste fermée JPEG/PNG/WebP/AVIF, `image/svg+xml` interdit sans ADR, extension de clé R2 dérivée du type détecté ; en-têtes de réponse et politique de contenu, sur le site statique comme sur le Worker, sans `unsafe-inline`. Écarté : l'assainissement au rendu (laisse la donnée hostile en base, où cinq autres surfaces la relisent) et le stockage en HTML assaini (perd la marque `link` typée, donc FR-085).
 - **ADR-0004 — amendé (c), 2026-08-01** — le cœur face au contenu hostile, suites de l'audit de sécurité : `toBlocks()` retourne un **arbre de blocs typés** rendu nœud par nœud, ce qui rend `set:html` inutile puis interdit ; **toute requête D1 est paramétrée**, interpolation exclue jusque pour un nom de colonne ou une clause `IN` variable ; l'**aperçu SSR et les médias bruts** quittent l'origine des endpoints d'écriture pour un **hôte distinct sous la même politique Access**, avec sa propre politique de contenu — `checkOrigin` n'y protégeait de rien ; en-têtes de service d'un média (type **détecté**, `nosniff`, `Content-Disposition` normalisé), bucket d'originaux jamais public ; `verifyAccessJwt` vérifie signature, `aud`, `iss`, `exp` et refuse **fail-closed**, Access restant l'unique source d'autorisation ; la soumission publique passe à `writeHandler({auth:'public', against:'live-form-definition'})`, relecture de la définition `live` et **recalcul du total** dans la tête du pipeline. Au passage : signatures `getBySlug(…, {includeDrafts})` renversées (ADR-0010) et « Email Routing » corrigé en **Email Service**.
 - **ADR-0004 — amendé** — le **contrat de gabarit** gagne quatre déclarations : zone de type **formulaire** (FR-086), zone de type **date** (FR-012), **ordre et libellés du menu** (FR-084), **destination typée** d'un lien (FR-015, FR-070). S'y ajoutent l'**index de références** (FR-085), la **surface d'état de publication** (FR-087) et l'**adaptateur HTTP** que le build fournit à `@colibri/db` pour lire D1 par l'API REST — le caveat `[À VÉRIFIER]` correspondant est **levé**.

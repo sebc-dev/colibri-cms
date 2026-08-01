@@ -21,7 +21,7 @@
 | **L1** | PRD — section « Exigences transverses », `FR-100` → `FR-110` | 8 | ✅ fait le 2026-08-01 |
 | **L2** | ADR-0011 « Frontières de contenu hostile » (création) | 5 | ✅ fait le 2026-08-01 |
 | **L3** | ADR-0004 amendement (c) — le cœur | 10 | ✅ fait le 2026-08-01 |
-| L4 | ADR-0010 amendement (c) — clés naturelles, assets, cache | 4 | à faire |
+| **L4** | ADR-0010 amendement (c) — clés naturelles, assets, cache | 4 | ✅ fait le 2026-08-01 |
 | L5 | ADR-0007 amendement (e) — chemin de soumission | 11 | à faire |
 | L6 | ADR-0003 amendement (d) — plateforme et exposition | 8 | à faire |
 | L7 | ADR-0006 amendement + promotion d'ADR-0009 | 4 | à faire |
@@ -181,7 +181,7 @@ dans `stack.md`** — ses occurrences disaient déjà « Email Service » ; la c
 porté que sur ADR-0004. Résiduel connu, laissé à son lot : `ADR-0005` § amendement 2026-07-17
 dit encore « Email Routing » (lot **L9**).
 
-### L4 — ADR-0010 amendement (c) : clés naturelles, assets, cache
+### L4 — ADR-0010 amendement (c) : clés naturelles, assets, cache ✅ *fait le 2026-08-01*
 
 `docs/adr/ADR-0010-modele-brouillon-publie.md` · `docs/stack.md` · `docs/prd.md`
 **Ferme : B-06, B-10, C-13, D-03.**
@@ -196,6 +196,16 @@ Délai borné d'effacement du cache CDN après dépublication, aligné sur `SC-0
 dérivés R2 (C-13). Jeton de verrou optimiste **sous-seconde**
 (`strftime('%Y-%m-%dT%H:%M:%f','now')` ou compteur entier) — sinon la cible de test « refus
 d'écrasement concurrent » serait **intermittente**, pire qu'absente (D-03).
+
+**Tranché à l'exécution** (arbitrage humain, D-03) : **compteur entier `version`** sur `pages` et
+`forms`, et non l'horodatage milliseconde — le compteur est exact *par construction*, l'horodatage
+ne réduit qu'une probabilité, et `updated_at` cesse au passage de porter deux rôles. **Piège de
+forme confirmé** : le tableau de suivi donnait « stack.md, ADR-0004 §d » comme doc cible de D-03,
+mais ADR-0004 a consommé son unique amendement daté au lot L3 — la règle est portée par ADR-0010
+(c) point 4 et par le DDL de `stack.md`. C-13 a exigé une exigence PRD (**`FR-111`**, retrait
+reflété dans le délai de FR-036), avec son renoncement écrit sur le sort des dérivés. B-10 est
+**clos côté documentaire** : ADR-0004 (c) point 4 tenait le transport, ADR-0010 (c) point 2 prend
+le critère de contenu ; ne reste que sa cible de test (lot **L9**).
 
 ### L5 — ADR-0007 amendement (e) : le chemin de soumission
 
