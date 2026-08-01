@@ -67,5 +67,19 @@ Chaîne documentaire : [brief](docs/brief.md) → [PRD](docs/prd.md) → [stack]
 - TypeScript `strict`, indentation 2 espaces, ESM.
 - Français pour les commentaires de décision et la doc ; anglais toléré pour le code.
 
+## Agent skills
+
+### Issue tracker
+
+Le suivi est la chaîne `/scd-sdd` : `specs/NNN-slug/{spec,plan,tasks}.md` (un lot `Rn` ≈ un ticket ≈ une PR) + `docs/JOURNAL.md` pour les événements. Pas de `.scratch/`. Voir [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+Les cinq rôles canoniques de triage — applicables uniquement aux demandes hors chaîne ouvertes en GitHub Issue. Voir [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Mono-contexte : `CONTEXT.md` à la racine + `docs/adr/`. Voir [docs/agents/domain.md](docs/agents/domain.md).
+
 <!-- Si deux règles se contredisent, le corriger ici plutôt que de laisser l'agent trancher au hasard.
      Diagnostiquer le contexte chargé avec /memory et /context. -->
