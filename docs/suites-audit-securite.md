@@ -22,7 +22,7 @@
 | **L2** | ADR-0011 « Frontières de contenu hostile » (création) | 5 | ✅ fait le 2026-08-01 |
 | **L3** | ADR-0004 amendement (c) — le cœur | 10 | ✅ fait le 2026-08-01 |
 | **L4** | ADR-0010 amendement (c) — clés naturelles, assets, cache | 4 | ✅ fait le 2026-08-01 |
-| L5 | ADR-0007 amendement (e) — chemin de soumission | 11 | à faire |
+| **L5** | ADR-0007 amendement (e) — chemin de soumission | 12 | ✅ fait le 2026-08-01 |
 | L6 | ADR-0003 amendement (d) — plateforme et exposition | 8 | à faire |
 | L7 | ADR-0006 amendement + promotion d'ADR-0009 | 4 | à faire |
 | L8 | ADR-0008 amendement (b) — distribution, secrets, exploitation | 11 | à faire |
@@ -67,8 +67,10 @@ assigné, et la couverture est vérifiable.
 | PRD, stack.md, CLAUDE.md | **Pas** de convention d'amendement lettré — seulement une date `Révisé`. Plusieurs lots peuvent donc les toucher sans conflit de forme. |
 
 **Numérotation.** `ADR-0011` est libre ; `0009` reste réservé par
-`_candidates/0009-portail-qualite-draft.md`. Côté PRD, `FR-110` est désormais le maximum —
-numérotation dense, **jamais renumérotée**.
+`_candidates/0009-portail-qualite-draft.md`. Côté PRD, ~~`FR-110` est désormais le maximum~~ —
+numérotation dense, **jamais renumérotée**. **→ À jour au 2026-08-01** : `FR-111` (lot L4, retrait
+d'une page reflété) puis `FR-112` (lot L5, soumission vers un formulaire retiré) ont été pris ; le
+prochain numéro libre est **`FR-113`**.
 
 **Outillage.** Réel et extensible : 2 hooks `PreToolUse`, portail à 11 checks rejoué en CI et
 en nightly. Trois voies d'application — `estCheminProtege()`
@@ -207,10 +209,10 @@ reflété dans le délai de FR-036), avec son renoncement écrit sur le sort des
 **clos côté documentaire** : ADR-0004 (c) point 4 tenait le transport, ADR-0010 (c) point 2 prend
 le critère de contenu ; ne reste que sa cible de test (lot **L9**).
 
-### L5 — ADR-0007 amendement (e) : le chemin de soumission
+### L5 — ADR-0007 amendement (e) : le chemin de soumission ✅ *fait le 2026-08-01*
 
-`docs/adr/ADR-0007-constructeur-de-formulaires.md` · `docs/stack.md` · `docs/prd.md`
-**Ferme : B-03, B-04, B-08, B-09, B-11, C-05, C-06, C-08, C-09, C-14, D-10.**
+`docs/adr/ADR-0007-constructeur-de-formulaires.md` · `docs/stack.md` · `docs/prd.md` · `CLAUDE.md`
+**Ferme : B-03, B-04, B-08, B-09, B-11, C-05, C-06, C-08, C-09, C-11ʳ, C-14, D-10.**
 
 Le lot le plus dense, mais indivisible : tout y porte sur la seule route publique.
 
@@ -236,6 +238,37 @@ Le lot le plus dense, mais indivisible : tout y porte sur la seule route publiqu
 - **Pour mémoire** : écrire le renoncement de `D-10` — un visiteur peut avoir vu 5 € quand
   l'éditrice reçoit 500 €, sans trace de part ni d'autre. `FR-051` est la parade et elle
   suffit, mais le corpus a l'habitude d'écrire ses renoncements.
+
+**Tranché à l'exécution.** Deux **arbitrages humains**. *(1) La limite de débit vit aux **deux
+étages*** — une règle de périphérie (WAF, offre gratuite) **et** un compteur KV par formulaire et
+fenêtre glissante. Ni l'un ni l'autre seul : la règle de périphérie est la seule à absorber un
+flood **sans consommer d'invocation** — donc la seule à protéger le quota de requêtes partagé,
+qui est exactement ce que `C-04` réclamera au lot L6 — et le compteur est le seul à tenir `FR-102`,
+dont la borne est *par formulaire*, notion qu'une règle de périphérie ne connaît pas. Deux
+barrières indépendantes (ADR-0011 § 1). *(2) Plafonds* : `max_value` ≤ 10 000, `unit_price` ≤
+1 000 000 c, `price_delta` ∈ [0, 1 000 000 c], 50 champs, 50 options, libellés ≤ 120 caractères,
+**total ≤ 100 000 000 c** (1 000 000 €) — pire produit 10⁴ × 10⁶ = 10¹⁰, soit 5 × 10¹¹ sur un
+formulaire plein, cinq ordres de grandeur sous `MAX_SAFE_INTEGER` ; la marge est écrite dans l'ADR
+pour n'avoir pas à être recalculée.
+
+**Les trois pièges de forme, tranchés.** *(a)* Le volet **« exécuteur de la purge » de `C-09` est
+pris ici**, et non laissé au lot L6 : la matrice n'assigne `C-09` qu'à L5, et la liste de L6 ne le
+contient pas — le laisser flotter l'aurait rendu orphelin. **ADR-0003 n'est pas amendé pour
+autant** : un ADR de fonctionnalité peut charger le Cron idempotent d'un troisième travail sans
+rouvrir le socle qui le déclare, et l'amendement (d) d'ADR-0003 reste entier pour L6. Le troisième
+volet de `C-09` — accès direct D1 de l'agence aux PII — n'appartient pas à cette route : **résiduel
+nommé, laissé au lot L8** avec `C-10`. *(b)* `B-08` et `B-09` **ne rouvrent pas le PRD** :
+`FR-101` et `FR-102` (lot L1) portent le *quoi*, L5 n'écrit que le *comment* et les `## Constraints`.
+*(c)* **Incohérence de matrice corrigée** : la ligne de suivi de `C-11` **et** ADR-0011 § 6
+renvoyaient le bornage de `failure_reason` vers ADR-0007, alors que la matrice de couverture
+n'assignait `C-11` qu'à L1. Le résiduel est traité ici (un point, une contrainte) et la matrice
+corrigée — `C-11ᵖ` en L1, `C-11` en L5.
+
+**Une exigence PRD nouvelle** : **`FR-112`** (soumission refusée vers un formulaire retiré du site),
+même geste que `FR-111` au lot L4 — la règle technique (`publications.en_ligne = 1`) reçoit sa
+promesse produit, plus un cas limite. `FR-112` devient le maximum ; le prochain libre est `FR-113`.
+**Front-matter et `README.md` intacts** : ajouter `ADR-0011` au `depends-on` d'ADR-0007 aurait
+changé le graphe de dépendance, hors du périmètre annoncé du lot ; l'amendement le cite en prose.
 
 ### L6 — ADR-0003 amendement (d) : plateforme et exposition
 
@@ -364,11 +397,11 @@ qu'aucune relecture du présent plan ne peut dire.
 
 | Lot | Constats fermés | Total |
 |---|---|---|
-| L1 ✅ | A-01ᵖ · B-08ᵖ · B-09ᵖ · B-12ᵖ · C-11 · C-12ᵖ · C-17d · D-01ᵖ | 8 |
+| L1 ✅ | A-01ᵖ · B-08ᵖ · B-09ᵖ · B-12ᵖ · C-11ᵖ · C-12ᵖ · C-17d · D-01ᵖ | 8 |
 | L2 | A-01 · A-02 · C-07 · C-12 · C-17a | 5 |
 | L3 | A-03ᵖ · B-02 · B-05 · B-07 · B-10ᵖ · C-01 · C-15 · C-17b · D-02 · D-04 | 10 |
 | L4 | B-06 · B-10 · C-13 · D-03 | 4 |
-| L5 | B-03 · B-04 · B-08 · B-09 · B-11 · C-05 · C-06 · C-08 · C-09 · C-14 · D-10 | 11 |
+| L5 ✅ | B-03 · B-04 · B-08 · B-09 · B-11 · C-05 · C-06 · C-08 · C-09 · C-11 · C-14 · D-10 | 12 |
 | L6 | B-01 · B-13ᵖ · C-03 · C-04 · C-17g · C-17h · D-01 · D-07 | 8 |
 | L7 | B-14 · C-17e · C-17f · D-09 | 4 |
 | L8 | A-03 · A-04 · B-12 · B-13 · C-02 · C-10 · C-16 · C-17i · C-17j · D-06 · D-08 | 11 |
@@ -381,7 +414,7 @@ qu'aucune relecture du présent plan ne peut dire.
 `A-01`(1,2) `A-02`(2) `A-03`(3,8) `A-04`(8) · `B-01`(6) `B-02`(3) `B-03`(5) `B-04`(5)
 `B-05`(3) `B-06`(4) `B-07`(3) `B-08`(1,5) `B-09`(1,5) `B-10`(3,4) `B-11`(5) `B-12`(1,8)
 `B-13`(6,8) `B-14`(7) · `C-01`(3) `C-02`(8) `C-03`(6) `C-04`(6) `C-05`(5) `C-06`(5)
-`C-07`(2) `C-08`(5) `C-09`(5) `C-10`(8) `C-11`(1) `C-12`(1,2) `C-13`(4) `C-14`(5)
+`C-07`(2) `C-08`(5) `C-09`(5) `C-10`(8) `C-11`(1,5) `C-12`(1,2) `C-13`(4) `C-14`(5)
 `C-15`(3) `C-16`(8) `C-17a`(2) `C-17b`(3) `C-17c`(9) `C-17d`(1) `C-17e`(7) `C-17f`(7)
 `C-17g`(6) `C-17h`(6) `C-17i`(8) `C-17j`(8) · `D-01`(1,6) `D-02`(3) `D-03`(4) `D-04`(3)
 `D-05`(9) `D-06`(8) `D-07`(6) `D-08`(8) `D-09`(7) `D-10`(5)
@@ -397,9 +430,9 @@ sont assignés à L9 et L5.
 L1 (PRD FR-100→110)  ✅ fait
  └─ L2 (ADR-0011)  ✅ fait          ← racine citée par L3, L4, L5
      ├─ L3 (0004 c)  ─┐  ✅ fait
-     ├─ L4 (0010 c)   │
-     ├─ L5 (0007 e)   ├─ commutables : un fichier ADR distinct chacun
-     ├─ L6 (0003 d)   │
+     ├─ L4 (0010 c)   │  ✅ fait
+     ├─ L5 (0007 e)   ├─ ✅ fait — commutables : un fichier ADR distinct chacun
+     ├─ L6 (0003 d)   │  ← prochain
      ├─ L7 (0006 + promo 0009)     │
      └─ L8 (0008 b)  ─┘
          └─ L9 (0005 + clôture)    ← en dernier : cite tout ce qui précède

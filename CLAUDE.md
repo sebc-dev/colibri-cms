@@ -22,7 +22,7 @@ Un [audit de sécurité du socle documentaire](docs/audit-securite-2026-08-01.md
 
 - **Le plan** — [docs/suites-audit-securite.md](docs/suites-audit-securite.md) : 11 lots, un par document cible, avec la matrice de traçabilité des 54 constats et les règles de forme des amendements. **Le lire avant de toucher un ADR.** Document temporaire, supprimé par le lot L9.
 - **Le suivi par constat** — le tableau de la section `## Suivi` de l'audit. Un constat ne passe `Traité` que si sa règle vit dans un `## Constraints` **et** que le hook ou le check CI existe ; sinon `En cours`.
-- **Où en est-on** — tableau d'avancement en tête du plan. **L1 à L4 sont faits** (PRD `FR-100` → `FR-111` ; [ADR-0011](docs/adr/ADR-0011-frontieres-de-contenu-hostile.md) « Frontières de contenu hostile », la racine que les lots suivants citent ; [ADR-0004](docs/adr/ADR-0004-architecture-du-code.md) amendement (c), ses suites dans le cœur ; [ADR-0010](docs/adr/ADR-0010-modele-brouillon-publie.md) amendement (c), clés naturelles, assets, cache et jeton de verrou) ; le lot suivant est **L5**, l'amendement (e) d'ADR-0007 — le chemin de soumission, 11 constats, le lot le plus dense mais indivisible.
+- **Où en est-on** — tableau d'avancement en tête du plan. **L1 à L5 sont faits** (PRD `FR-100` → `FR-112` ; [ADR-0011](docs/adr/ADR-0011-frontieres-de-contenu-hostile.md) « Frontières de contenu hostile », la racine que les lots suivants citent ; [ADR-0004](docs/adr/ADR-0004-architecture-du-code.md) amendement (c), ses suites dans le cœur ; [ADR-0010](docs/adr/ADR-0010-modele-brouillon-publie.md) amendement (c), clés naturelles, assets, cache et jeton de verrou ; [ADR-0007](docs/adr/ADR-0007-constructeur-de-formulaires.md) amendement (e), le chemin de soumission de bout en bout — composition du message, corbeille, bornes, débit, destinataire, formulaire dépublié, vidéo) ; le lot suivant est **L6**, l'amendement (d) d'ADR-0003 — plateforme et exposition, 8 constats, dont `B-01` (comment la route publique traverse Access) qui est une contradiction non résolue du corpus.
 
 Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt est écarté** (il précède la réécriture documentaire du 2026-08-01 et son candidat « ADR-0010 » entre en collision avec l'ADR-0010 accepté) — c'est ce qui a permis au lot L2 de **prendre `ADR-0011`** ; et `0009` reste réservé par `docs/adr/_candidates/`, si bien que le prochain numéro libre est `0012`.
 
@@ -91,6 +91,14 @@ Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt es
 - Une soumission produit **un seul** message, vers une **adresse de destination vérifiée du compte** ; jamais d'envoi au visiteur ni de `Reply-To` vers lui (`FR-095` hors v1).
 - Montants en centimes entiers ; total = somme pure (`@colibri/core`), aucune règle conditionnelle en V1.
 - Aucun code tiers chargé avant une action explicite du visiteur (vaut pour Turnstile et le lecteur vidéo).
+- *(amdt (e))* Message acheminé : **sujet constant** (au plus le titre du formulaire), **corps en texte brut**, caractères de contrôle **rejetés à l'entrée** ; jamais d'en-tête composé à partir d'une valeur du visiteur.
+- *(amdt (e))* Corbeille **rendue comme texte**, jamais interprétée ; expiration à **30 jours** exécutée par le Cron en **suppression effective** (`DELETE`), jamais par une lecture filtrée.
+- *(amdt (e))* Bornes dans la **tête du pipeline**, jamais dans `run` : longueur par type de champ, corps ≤ 64 Kio ; `price_delta >= 0` ; `max_value`/`unit_price` plafonnés ; total au-delà du plafond absolu = **soumission refusée**, jamais un montant approché.
+- *(amdt (e))* Limite de débit à **deux étages** (règle de périphérie + compteur par formulaire, `FR-102`), distincte de Turnstile ; `hostname` de `siteverify` contrôlé ; `siteverify` injoignable = **refus** (fail-closed).
+- *(amdt (e))* Le destinataire n'est ni dans le site (projection publique **sans `recipient_email`**) ni dans le geste : adresse **relue depuis `form_defs` en `state='live'`** et appartenance à `verified_recipients` vérifiée **à chaque acheminement, relance comprise**.
+- *(amdt (e))* Soumission acceptée seulement si `publications.en_ligne = 1` (`FR-112`) — des lignes `state='live'` subsistent après dépublication.
+- *(amdt (e))* Zone vidéo : `ref` par **expression rationnelle du fournisseur**, URL d'embed **construite par le cœur et jamais stockée**, `sandbox` + `referrerpolicy`, oEmbed en dur, type et taille de la vignette vérifiés avant écriture R2.
+- *(amdt (e))* `failure_reason` = **code + catégorie** ; jamais la réponse brute du service d'envoi ni une donnée personnelle (`FR-104`).
 
 **Flotte (ADR-0008)**
 - Aucun code spécifique client dans le cœur ; ne pas forker le cœur (épinglage de version).

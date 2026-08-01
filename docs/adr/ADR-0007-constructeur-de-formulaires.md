@@ -12,7 +12,7 @@ depends-on: [ADR-0003, ADR-0004, ADR-0010]
 
 # ADR-0007 — Constructeur de formulaires (générique, borné)
 
-**Statut :** accepted — 2026-07-17 · *amendé le 2026-08-01 (suites de la revue du PRD)*
+**Statut :** accepted — 2026-07-17 · *amendé le 2026-08-01 (suites de la revue du PRD, amendements (a) à (d) ; puis suites de l'audit de sécurité, amendement (e))*
 
 > **Place dans la famille.** ADR-0007 est le premier ADR de *fonctionnalité* (les précédents cadrent le socle). Il consomme les seams d'ADR-0004 (`writeHandler` public, `sendMail`, `verifyTurnstile`, calcul de total pur), les briques d'ADR-0003 (Turnstile) et le cycle de publication d'ADR-0010.
 
@@ -74,6 +74,203 @@ depends-on: [ADR-0003, ADR-0004, ADR-0010]
 > serait absurde, et coûterait exactement ce que `SC-007` mesure. La validation de `FR-090` reste
 > stricte sur ce qui est vérifiable (champs existants, types, obligatoires, bornes, consentement) ;
 > c'est **l'écart de prix** qui est absorbé en silence, pas un champ devenu invalide.
+
+> **Amendement 2026-08-01 (e) — le chemin de soumission.** Suites de l'[audit de sécurité du
+> 1<sup>er</sup> août 2026](../audit-securite-2026-08-01.md) (lot L5). La racine est
+> [ADR-0011](./ADR-0011-frontieres-de-contenu-hostile.md), qui tient l'entrée (schéma), le rendu
+> (contexte déclaré) et le transport (en-têtes) ; son § 6 renvoie ici **le chemin de soumission**
+> — bornes, journaux, et tout ce qui n'appartient qu'à cette surface. ADR-0004 (c) point 6 a
+> remonté `FR-090`/`FR-091` dans la tête du pipeline
+> (`writeHandler({auth:'public', against:'live-form-definition'})`) ; le présent amendement
+> **achève de décrire cette tête**, puis suit le message jusqu'à la boîte de l'éditrice.
+>
+> Le corpus disait *qui* protège cette route (Turnstile), *contre quoi* elle valide (la définition
+> `state='live'`) et *où* ces deux règles vivent. Il ne disait nulle part comment le message est
+> **composé**, ce que la corbeille **rend**, ce qui **borne** une valeur, qui **exécute** une
+> expiration, à qui le message **part** réellement, ni si un formulaire **retiré du site** accepte
+> encore des demandes. Neuf points, plus un renoncement. Ils ferment `B-03`, `B-04`, `B-08`,
+> `B-09`, `B-11`, `C-05`, `C-06`, `C-08`, `C-09`, `C-14`, `D-10`, et le résiduel de `C-11`.
+>
+> **1. Le message est composé, pas concaténé** *(B-04)*. Le corpus prescrivait avec soin *ce que*
+> le message contient et *à qui* il va, jamais **comment** il est composé — ni sujet, ni format,
+> ni traitement des retours chariot. Trois règles :
+> - **Sujet constant**, au plus complété par le **titre du formulaire**. Le réflexe naturel
+>   (« Nouvelle demande de {nom} ») est exactement ce qui est interdit : le titre est une donnée
+>   d'**éditrice**, le nom une donnée de **visiteur**, et seule la première a franchi une surface
+>   authentifiée.
+> - **Corps en texte brut en v1.** Le message n'a aucun besoin de mise en forme, et ce choix ferme
+>   d'un seul coup le lien piégé, le contenu déguisé en message système visant l'administratrice
+>   du site, et le réaffichage hostile du point 2. C'est le contexte de rendu `text` d'ADR-0011 § 3
+>   — « la valeur est du texte, point » — instancié sur cette surface.
+> - **Rejet à l'entrée de tout caractère de contrôle** dans un champ mono-ligne (`text`, `email`,
+>   `phone`, et les libellés). Une valeur porteuse de `\r\n` injecte des en-têtes arbitraires
+>   (`Bcc:`, `Reply-To:`) selon la composition MIME. Le rejet vit dans le **schéma d'entrée**, pas
+>   dans le compositeur : la même règle qu'ADR-0011 § 1 — la neutralisation est une propriété de
+>   l'entrée, jamais de l'étage qui restitue.
+>
+> **INTERDIT, en toutes lettres** : composer un en-tête d'e-mail à partir d'une valeur fournie par
+> le visiteur. Aucune exception, y compris pour un sujet « plus utile ».
+>
+> **2. La corbeille est du texte, et son expiration a un exécuteur** *(B-03, C-09)*. L'amendement
+> (c) argumentait la frontière *produit* — la corbeille ne révèle rien de plus que l'e-mail non
+> reçu — en raisonnant sur le contenu **informationnel** du message, pas sur son contenu **actif**.
+> `FR-097` crée pourtant une surface neuve : du contenu **100 % contrôlé par un visiteur anonyme**,
+> rendu dans l'origine authentifiée de l'admin, et **ouvert par le geste de remédiation lui-même**
+> — l'éditrice va voir la corbeille précisément *parce que* quelque chose a échoué, donc le taux de
+> déclenchement est élevé. Le contenu d'une demande non acheminée est donc **affiché comme texte,
+> jamais interprété** ; le corps en texte brut du point 1 rend la règle triviale à tenir.
+>
+> Deux manques distincts du même constat, tranchés ici :
+> - **Le délai devient normatif : 30 jours.** `stack.md` en faisait un « paramètre à fixer, défaut
+>   proposé » alors que le PRD exige qu'il soit *écrit* et annoncé (`FR-105`) ; un défaut proposé
+>   n'est ni annonçable ni testable. La valeur est celle que `stack.md` proposait — la conserver
+>   plus longtemps n'apporte rien, moins longtemps rend le geste de `FR-098` inutile.
+> - **La purge a un exécuteur nommé** : le **Cron Trigger idempotent** d'ADR-0003 (a), qui porte
+>   déjà le suivi de build et la boucle de réconciliation, gagne un troisième travail — supprimer
+>   les lignes échues. Par **suppression effective** (`DELETE`), jamais par une lecture filtrée :
+>   une expiration « inconditionnelle » implémentée en filtre laisse la ligne de données
+>   personnelles vivante en base, et l'invariant serait faux tout en paraissant tenu. C'est le
+>   même piège que la cible de test intermittente d'ADR-0010 (c) point 4.
+>
+> *Note de périmètre* : ADR-0003 n'est **pas** amendé pour autant — un ADR de fonctionnalité peut
+> charger le Cron d'un travail sans rouvrir le socle qui le déclare. Et le troisième volet de
+> `C-09` — l'**accès direct D1 de l'agence** aux données personnelles de production — n'appartient
+> pas à cette route : il reste à ADR-0008 (lot L8), avec les sauvegardes de `C-10`.
+>
+> **3. Ce qui entre est borné** *(B-08)*. `FR-045` bornait la **valeur** d'un champ nombre, pour la
+> justesse du total ; rien ne bornait la **taille** de quoi que ce soit d'autre. Une soumission de
+> plusieurs mégaoctets dans un `textarea` est validée, son total recalculé, son message composé —
+> puis soit acheminée (la limite de plateforme est de 25 Mio, largement de quoi rendre la boîte de
+> l'éditrice inutilisable), soit mise en échec, où elle s'installe trente jours en D1 sur un quota
+> gratuit. Répétée, c'est un déni de service sur la base, dont le geste de remédiation lui-même
+> (`FR-097`) exige de charger les lignes. Donc, longueur maximale **par type de champ** :
+>
+> | Type | Borne | Motif |
+> |---|---|---|
+> | `text` | 200 caractères | un libellé de réponse, pas un texte |
+> | `email` | 254 caractères | maximum d'une adresse (RFC 5321) |
+> | `phone` | 32 caractères | indicatif international compris |
+> | `textarea` | 5 000 caractères | le champ « votre demande » d'un devis |
+> | `select_single` / `select_multi` | clés existantes, au plus le nombre d'options du champ | une clé inconnue **rejette**, elle n'est pas ignorée |
+> | `date` | forme `YYYY-MM-DD` stricte | |
+> | `number` | bornes de `FR-045` | inchangé |
+> | `consent` | booléen | |
+>
+> Plus une **taille maximale de corps de requête : 64 Kio**, vérifiée avant toute analyse. Ces
+> bornes sont portées par le schéma **dérivé de la définition `live`**, donc appliquées **dans la
+> tête du pipeline** (ADR-0004 (c) point 6) et jamais dans `run` : elles tombent du même côté que
+> `FR-090` parce qu'elles sont la même règle — ne rien croire de ce qui arrive.
+>
+> **4. Ce qui est composé est borné aussi** *(C-14)*. Trois trous distincts, dont un est une
+> **contradiction interne du corpus** :
+> - **`price_delta` n'a aucune contrainte de signe** dans le DDL, alors que le § Décision point 3
+>   énonce « un champ à prix ne peut jamais faire *baisser* le total ». L'invariant était garanti
+>   pour le champ `number` (minimum borné à 0) et **pas** pour les options d'un choix. Donc
+>   `CHECK (price_delta >= 0)` — et c'est le DDL qui a tort, pas l'ADR.
+> - **`max_value × unit_price` peut déborder.** Un total faux, éventuellement négatif, traverserait
+>   le recalcul de `FR-091` et arriverait dans le message comme **le montant qui fait foi** —
+>   c'est-à-dire la chose exacte que l'amendement (a) existe pour empêcher, obtenue par un autre
+>   chemin. Plafonds retenus (centimes entiers) : `max_value` ≤ 10 000, `unit_price` ≤ 1 000 000
+>   (10 000 €), `price_delta` ∈ [0, 1 000 000]. Pire produit : 10⁴ × 10⁶ = 10¹⁰, soit 5 × 10¹¹
+>   sommé sur un formulaire plein — cinq ordres de grandeur sous `Number.MAX_SAFE_INTEGER`
+>   (≈ 9 × 10¹⁵). La marge est écrite pour qu'on n'ait pas à la recalculer.
+> - **Bornes de composition d'une définition** — 50 champs par formulaire, 50 options par champ,
+>   libellés et titre ≤ 120 caractères. Cette définition est **bâtie dans le site** et **relue à
+>   chaque soumission** : non bornée, elle est un vecteur des deux côtés.
+>
+> Et un **plafond absolu du total** : 100 000 000 centimes (1 000 000 €). Un dépassement fait
+> **échouer la soumission** ; **INTERDIT** de tronquer, de saturer ou d'acheminer un montant
+> approché — un devis refusé se voit, un devis faux ne se voit pas.
+>
+> **5. Turnstile n'est pas une limite de débit** *(B-09)*. Il élève le coût unitaire d'une
+> soumission automatisée sans le porter à l'infini ; un solveur commercial permet des centaines de
+> soumissions valides, chacune produisant un e-mail hors quota vers la boîte de la cliente — et la
+> corbeille, volontairement dépourvue de recherche et de tri, ne peut même pas servir de témoin.
+> Pire, l'amendement (b) a présenté comme un *bénéfice* la disparition de « la borne de 50
+> soumissions/jour », qui était involontairement **le seul limiteur de volume du système**. Il est
+> ici remplacé, en deux étages indépendants :
+> - **une règle de limitation de débit en périphérie** (WAF Cloudflare, disponible sur l'offre
+>   gratuite), en **amont** du Worker : elle absorbe un flood **sans consommer d'invocation**, ce
+>   qui est le seul étage capable de protéger le quota de requêtes partagé entre l'admin, le Cron
+>   et l'endpoint public ;
+> - **un compteur KV par formulaire et fenêtre glissante**, dans le Worker : c'est lui qui tient
+>   `FR-102`, dont la borne est « par formulaire » — une règle de périphérie borne un chemin ou une
+>   adresse IP, elle ne connaît pas `form_id`. Plafond configurable au provisionnement.
+>
+> Aucun des deux ne rattrape le défaut de l'autre (ADR-0011 § 1) : le premier protège la
+> plateforme, le second protège la boîte de l'éditrice.
+>
+> Deux points connexes du même constat, qui ne sont pas du débit mais de la **vérification** :
+> - **le `hostname` de la réponse `siteverify` est contrôlé** contre l'hôte de l'instance. Sans
+>   cela, un jeton obtenu sur un autre site du même compte Cloudflare est rejouable — et la flotte
+>   partageant un compte *est* une topologie envisagée par ADR-0008 ;
+> - **`siteverify` injoignable refuse la soumission** (*fail-closed*). Même geste que
+>   `verifyAccessJwt` en ADR-0004 (c) point 5 : une vérification qu'on ne peut pas faire n'est pas
+>   une vérification qui passe.
+>
+> **6. Le destinataire n'est ni dans le site, ni dans le geste** *(B-11, C-06)*. Deux manières
+> différentes de perdre la garantie que l'amendement (b) tenait pour acquise — « un seul message,
+> vers une adresse de destination vérifiée du compte ».
+> - **La définition bâtie dans le site est une projection publique**, **sans** `recipient_email` ni
+>   aucune donnée de destination. `form_defs` porte l'adresse personnelle ou professionnelle de la
+>   cliente ; embarquée telle quelle dans les assets, elle est publiée en clair sur un site statique
+>   — collecte triviale par robots, alors même que Turnstile protège soigneusement l'endpoint. Le
+>   rendu et le calcul navigateur n'ont besoin que des **champs, choix et prix** : l'adresse n'est
+>   **résolue que côté serveur**, à l'acheminement.
+> - **L'appartenance à `verified_recipients` est vérifiée à chaque acheminement, relance comprise.**
+>   `FR-046` en faisait une condition **de publication**, pas d'**envoi** : une adresse retirée de
+>   `verified_recipients` après publication continuait de recevoir. Et `FR-098` ne disait pas
+>   **quelle** adresse une relance utilise — si elle acceptait une adresse fournie au moment du
+>   geste, la corbeille deviendrait un **relais de courrier vers une adresse arbitraire avec un
+>   contenu contrôlé par un tiers**, ce qui est très exactement l'abus que le corpus se félicitait
+>   d'avoir fermé par construction. Donc : l'adresse est **relue depuis `form_defs` en
+>   `state='live'`** au moment de l'envoi, et **INTERDIT** qu'elle soit fournie par la requête du
+>   geste — ni en relance, ni en message de test.
+>
+> **7. Un formulaire retiré du site n'accepte plus rien** *(C-05)*. ADR-0010 § 4 pose que dépublier
+> **ne touche pas au contenu en ligne** : les lignes `state='live'` subsistent par conception. Or
+> la validation est formulée « contre la définition `state='live'` » — critère qu'un formulaire
+> dépublié satisfait **toujours**. Un formulaire retiré continuait donc d'accepter des soumissions
+> forgées (l'adresse et les `field_key` sont connaissables depuis d'anciens caches, cas que
+> l'amendement (d) reconnaît explicitement) et d'acheminer des e-mails — c'est-à-dire de
+> **collecter des données personnelles par une surface que l'éditrice croit fermée**. La condition
+> devient : définition `state='live'` **d'un formulaire dont `publications.en_ligne = 1`**, vérifiée
+> **avant tout traitement**, sinon rejet. La promesse produit correspondante est `FR-112`.
+>
+> **8. La zone vidéo** *(C-08)*. Ce point n'est pas un point de formulaire, et il faut dire
+> pourquoi il vit ici : ADR-0004 et ADR-0011 ont consommé leur amendement daté sur cette campagne,
+> et ADR-0007 est le seul ADR de *fonctionnalité* qui porte déjà le motif dont il s'agit — une
+> **liste fermée de fournisseurs** dont une **valeur d'éditrice** est interpolée. Trois défauts :
+> - **`ref` est conforme à une expression rationnelle par fournisseur** — `^[A-Za-z0-9_-]{11}$`
+>   pour YouTube, `^[0-9]{6,12}$` pour Vimeo. Non contrainte, elle permet une évasion d'attribut ou
+>   une manipulation des paramètres d'embed, puisqu'elle est interpolée dans une URL d'iframe.
+> - **L'URL d'embed est construite par le cœur, et jamais stockée.** Ce qui est stocké est le
+>   couple `{ provider, ref }` ; l'adresse est fabriquée au rendu, à partir d'un gabarit en dur par
+>   fournisseur. Une URL stockée serait une adresse d'origine tierce que le produit n'aurait plus
+>   aucun moyen de valider. L'iframe porte `sandbox` et `referrerpolicy`.
+> - **L'endpoint oEmbed est en dur par fournisseur, sans redirection hors domaine**, et la vignette
+>   récupérée au build voit son **type réel et sa taille vérifiés avant écriture R2** — même règle
+>   de signature d'octets qu'ADR-0011 § 4, parce que c'est le même problème : un fichier d'origine
+>   tierce servi ensuite depuis **notre** domaine. Sans cela, la récupération est un SSRF léger et
+>   la vignette un fichier arbitraire servi depuis notre origine.
+>
+> **9. Le motif d'échec est borné** *(résiduel de `C-11`)*. `FR-104` interdit les données
+> personnelles dans les journaux techniques ; ADR-0011 § 6 renvoie ici le motif d'échec **conservé
+> en base**, qui n'est pas un journal mais pose le même problème. Le `failure_reason` de
+> `undelivered_submissions` retient donc un **code et une catégorie** — jamais la réponse brute du service
+> d'envoi, qui peut porter l'adresse de destination ou un fragment de message. Le motif « sans
+> terme technique » que lit l'éditrice (`FR-094`) se **dérive** du code : c'est une table de
+> traduction du cœur, pas une chaîne recopiée. Corollaire : ce champ ne peut pas servir de journal
+> de débogage, et c'est voulu.
+>
+> **Pour mémoire — un renoncement que le corpus n'avait pas écrit** *(D-10)*. L'amendement (d)
+> point 2 tranche que l'écart de prix est **absorbé en silence**. La conséquence complète, jamais
+> écrite : un visiteur peut avoir vu **5 €** quand l'éditrice reçoit **500 €**, sans qu'aucune des
+> deux parties ne détienne de trace de ce qui a été affiché — `FR-095` (copie au visiteur) étant
+> retirée de la v1, il ne reste aucun exemplaire côté visiteur. `FR-051` (total indicatif, non
+> contractuel) est la parade, et elle **suffit** : rien de ce qui est affiché n'est opposable. Le
+> renoncement est donc borné et assumé — il est écrit ici parce que ce corpus écrit ses
+> renoncements, et que celui-ci était le seul de la revue à ne pas l'être.
 
 ---
 
@@ -154,9 +351,29 @@ Modèle de données : `forms` (identité) + `form_defs` + `form_fields` + `form_
 - **OBLIGATOIRE** *(amendement (b))* : une soumission produit **un seul** message, vers une **adresse de destination vérifiée du compte** ; **INTERDIT** d'envoyer à une adresse fournie par le visiteur (FR-095 est hors v1) ou de composer un `Reply-To` vers lui (FR-061).
 - **INTERDIT** : charger le script anti-spam avant une action explicite du visiteur (FR-089).
 - **INTERDIT** : introduire logique conditionnelle, multi-étapes ou upload sans ADR (backlog).
+- **OBLIGATOIRE** *(2026-08-01)* : le sujet du message acheminé est **constant**, au plus complété par le titre du formulaire ; **INTERDIT** d'y faire entrer une valeur fournie par le visiteur.
+- **OBLIGATOIRE** *(2026-08-01)* : le corps du message acheminé est en **texte brut** ; **INTERDIT** d'y composer du balisage en v1.
+- **INTERDIT** *(2026-08-01)* : composer un **en-tête** d'e-mail à partir d'une valeur fournie par le visiteur, sans exception.
+- **OBLIGATOIRE** *(2026-08-01)* : le schéma d'entrée **rejette** tout caractère de contrôle dans un champ mono-ligne (`text`, `email`, `phone`) et dans un libellé ; **INTERDIT** de les filtrer, de les échapper ou de les normaliser au moment de composer.
+- **OBLIGATOIRE** *(2026-08-01)* : le contenu d'une demande non acheminée est affiché **comme texte** ; **INTERDIT** de l'interpréter, sur quelque surface de l'admin que ce soit.
+- **OBLIGATOIRE** *(2026-08-01)* : l'expiration de `FR-064` est exécutée par le **Cron Trigger idempotent**, par **suppression effective** de la ligne ; **INTERDIT** de la réaliser par une lecture filtrée qui laisserait la ligne en base.
+- **OBLIGATOIRE** *(2026-08-01)* : le schéma de soumission borne la **longueur de chaque valeur** selon le type de champ et la **taille totale du corps** de la requête ; ces bornes vivent dans la tête du pipeline (`against:'live-form-definition'`), **INTERDIT** de les laisser à `run`.
+- **OBLIGATOIRE** *(2026-08-01)* : `price_delta >= 0` — un champ à prix ne peut jamais faire **baisser** le total, pour un choix comme pour un nombre.
+- **OBLIGATOIRE** *(2026-08-01)* : `max_value`, `unit_price`, `price_delta`, le nombre de champs, le nombre d'options et la longueur des libellés sont **plafonnés** ; les plafonds sont choisis pour que tout produit intermédiaire reste très en deçà de `Number.MAX_SAFE_INTEGER`.
+- **OBLIGATOIRE** *(2026-08-01)* : le total recalculé est vérifié contre un **plafond absolu** ; un dépassement fait **échouer la soumission** — **INTERDIT** de tronquer, de saturer ou d'acheminer un montant approché.
+- **OBLIGATOIRE** *(2026-08-01)* : la route publique est protégée par une **limite de débit à deux étages** — une règle de périphérie en amont du Worker et un compteur par formulaire et fenêtre glissante (`FR-102`) ; **INTERDIT** de tenir la vérification anti-robot pour une limite de débit.
+- **OBLIGATOIRE** *(2026-08-01)* : la vérification Turnstile contrôle le `hostname` de la réponse `siteverify` contre l'hôte de l'instance, et **refuse** quand `siteverify` est injoignable (*fail-closed*).
+- **OBLIGATOIRE** *(2026-08-01)* : la définition de formulaire bâtie dans le site est une **projection sans `recipient_email`** ni aucune donnée de destination ; **INTERDIT** qu'une adresse de `form_defs` atteigne un asset public.
+- **OBLIGATOIRE** *(2026-08-01)* : l'appartenance de l'adresse à `verified_recipients` est vérifiée **à chaque acheminement, relance comprise** ; l'adresse est **relue depuis `form_defs` en `state='live'`** et **INTERDIT** qu'elle soit fournie par la requête du geste.
+- **OBLIGATOIRE** *(2026-08-01)* : une soumission n'est acceptée que si le formulaire visé porte `publications.en_ligne = 1` ; **INTERDIT** de tenir la seule existence de lignes `state='live'` pour un critère de publication (`FR-112`).
+- **OBLIGATOIRE** *(2026-08-01)* : la `ref` d'une zone vidéo est validée par une **expression rationnelle propre au fournisseur**, et l'URL d'embed est **construite par le cœur** — **INTERDIT** de stocker une URL d'embed ou de la dériver d'une saisie ; l'iframe porte `sandbox` et `referrerpolicy`.
+- **OBLIGATOIRE** *(2026-08-01)* : l'endpoint oEmbed est **en dur par fournisseur**, sans redirection hors domaine, et le type réel et la taille de la vignette sont vérifiés **avant** écriture R2 (ADR-0011 § 4).
+- **OBLIGATOIRE** *(2026-08-01)* : `failure_reason` retient un **code et une catégorie** ; **INTERDIT** d'y écrire la réponse brute du service d'envoi, un fragment de message ou une donnée personnelle (`FR-104`).
 
 ## Related
 - Consomme les seams de : ADR-0004 (`writeHandler` public, `sendMail`, `verifyTurnstile`, calcul de total pur) et le cycle de publication d'ADR-0010 (définition `state='live'`, `field_key` stable).
 - Briques : ADR-0003 (Turnstile) ; **Cloudflare Email Service** pour l'envoi sortant, vers adresse de destination vérifiée *(amendement 2026-08-01 (b) — annule le passage à Resend de l'amendement (a))*.
-- Testé par : ADR-0005 (route publique, Turnstile, e-mail mockés, soumission forgée, recalcul du total).
-- Cadre : PRD (FR-040 → FR-065, FR-086, FR-090, FR-091, FR-094, FR-096 → FR-099, US6, US7, SC-007), stack.md, revue contradictoire du PRD du 2026-08-01 (décisions D5, D10, D15, D18, reprises aux amendements (a) à (d)).
+- Testé par : ADR-0005 (route publique, Turnstile, e-mail mockés, soumission forgée, recalcul du total). *(Amendement (e) : s'y ajoutent une valeur porteuse de CRLF ne produisant aucun en-tête supplémentaire, une soumission vers un formulaire dépublié rejetée, un total dépassant le plafond faisant échouer la soumission, aucun asset bâti ne contenant une adresse de `form_defs`, et la ligne effacée après `expires_at`.)*
+- Enraciné dans : **ADR-0011** *(2026-08-01)* (frontières de contenu hostile) — le § 6 renvoie ici le chemin de soumission : bornes de taille et plafond de volume (`FR-101`, `FR-102`) et bornage des journaux techniques (`FR-104`). Le contexte de rendu `text` du § 3 est ce que l'amendement (e) point 1 instancie sur le message acheminé.
+- Cadre : PRD (FR-040 → FR-065, FR-086, FR-090, FR-091, FR-094, FR-096 → FR-099, FR-100 → FR-104, FR-112, US6, US7, SC-007), stack.md, revue contradictoire du PRD du 2026-08-01 (décisions D5, D10, D15, D18, reprises aux amendements (a) à (d)).
+- Origine de l'amendement (e) : [audit de sécurité du 2026-08-01](../audit-securite-2026-08-01.md), constats `B-03` (corbeille hostile), `B-04` (composition du message), `B-08` (bornes d'entrée), `B-09` (limite de débit et Turnstile), `B-11` (`recipient_email` publié), `C-05` (formulaire dépublié), `C-06` (destinataire non re-vérifié), `C-08` (zone vidéo), `C-09` (délai et purge de la corbeille), `C-14` (bornes de définition et débordement), `D-10` (écart de total), plus le résiduel de `C-11` (bornage de `failure_reason`).
