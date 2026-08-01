@@ -22,9 +22,9 @@ Un [audit de sécurité du socle documentaire](docs/audit-securite-2026-08-01.md
 
 - **Le plan** — [docs/suites-audit-securite.md](docs/suites-audit-securite.md) : 11 lots, un par document cible, avec la matrice de traçabilité des 54 constats et les règles de forme des amendements. **Le lire avant de toucher un ADR.** Document temporaire, supprimé par le lot L9.
 - **Le suivi par constat** — le tableau de la section `## Suivi` de l'audit. Un constat ne passe `Traité` que si sa règle vit dans un `## Constraints` **et** que le hook ou le check CI existe ; sinon `En cours`.
-- **Où en est-on** — tableau d'avancement en tête du plan. **L1 est fait** (PRD, `FR-100` → `FR-110`) ; le lot suivant est **L2**, la création d'ADR-0011 « Frontières de contenu hostile ».
+- **Où en est-on** — tableau d'avancement en tête du plan. **L1 et L2 sont faits** (PRD `FR-100` → `FR-110` ; [ADR-0011](docs/adr/ADR-0011-frontieres-de-contenu-hostile.md) « Frontières de contenu hostile », la racine que les lots suivants citent) ; le lot suivant est **L3**, l'amendement (c) d'ADR-0004.
 
-Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt est écarté** (il précède la réécriture documentaire du 2026-08-01 et son candidat « ADR-0010 » entre en collision avec l'ADR-0010 accepté) — **`ADR-0011` est donc libre** ; et `0009` reste réservé par `docs/adr/_candidates/`.
+Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt est écarté** (il précède la réécriture documentaire du 2026-08-01 et son candidat « ADR-0010 » entre en collision avec l'ADR-0010 accepté) — c'est ce qui a permis au lot L2 de **prendre `ADR-0011`** ; et `0009` reste réservé par `docs/adr/_candidates/`, si bien que le prochain numéro libre est `0012`.
 
 ## Comment travailler ici
 
@@ -44,6 +44,14 @@ Deux faits qui ne se dérivent d'aucun fichier : le **stash unique du dépôt es
 - Verrou optimiste via `createRepository` uniquement.
 - Seams **JWKS, mailer, Turnstile** injectables dès le code de prod.
 - `ContentTypeDescriptor` reste **dormant** (non consommé en V1).
+
+**Contenu hostile (ADR-0011)**
+- Le schéma d'entrée d'un texte riche est une **allowlist fermée** : nœuds, marques et attributs énumérés ; tout élément non listé **rejette** la valeur — jamais ignoré ni nettoyé.
+- Jamais `z.any()`, `z.unknown()`, `z.record(...)` ni `.passthrough()` dans un schéma de valeur de zone ou de définition de formulaire.
+- La neutralisation est une propriété du **schéma d'entrée**, jamais du rendu — aucun assainissement à l'étage de rendu.
+- Le descripteur de gabarit déclare le **contexte de rendu** (`html`, `attribute`, `url`, `meta`, `text`) de chaque zone ; jamais de contexte implicite. Un contexte `url` énumère ses schémas d'adresse.
+- Type réel d'un téléversement par **signature d'octets** côté Worker, jamais par `Content-Type` ni par extension ; liste fermée JPEG/PNG/WebP/AVIF ; **jamais `image/svg+xml`** sans nouvel ADR ; extension de clé R2 dérivée du type détecté, jamais du nom fourni.
+- Toute réponse HTML porte CSP, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, posés en **un point unique par surface** ; jamais `unsafe-inline` ni `unsafe-eval`.
 
 **Socle (ADR-0003)**
 - Versions via `catalog:` pnpm ; ne pas mélanger les majeures Astro/adaptateur.

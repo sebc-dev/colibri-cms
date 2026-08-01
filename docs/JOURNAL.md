@@ -29,6 +29,7 @@
 | 2026-08-01 | audit | audit de sécurité du socle documentaire · 4 angles indépendants en contexte frais · 62 constats bruts → **54** fusionnés (4 critiques, 14 élevés, 26 moyens, 10 faibles) · verdict : corpus remarquable sur les risques nommés, muet sur l'injection |
 | 2026-08-01 | plan | découpage en 11 lots, un par document cible · matrice de traçabilité des 54 constats · `docs/suites-audit-securite.md` |
 | 2026-08-01 | remédiation | **L1** — PRD, section « Exigences transverses » `FR-100` → `FR-110` · mentions légales et information de confidentialité **rapatriées en V1** · ferme C-17d, avance A-01, B-08, B-09, B-12, C-11, C-12, D-01 |
+| 2026-08-01 | remédiation | **L2** — `ADR-0011` « Frontières de contenu hostile » `accepted`, racine sécurité de la chaîne documentaire · allowlist fermée du texte riche, contexte de rendu déclaré, type réel par signature d'octets (SVG interdit), en-têtes et CSP · README ADR, `stack.md` et `CLAUDE.md` réalignés · ferme A-01, avance A-02, C-07, C-12, C-17a |
 
 ## 001-ci-quality-gate
 

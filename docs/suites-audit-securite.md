@@ -19,7 +19,7 @@
 | Lot | Cible | Constats | État |
 |---|---|---|---|
 | **L1** | PRD — section « Exigences transverses », `FR-100` → `FR-110` | 8 | ✅ fait le 2026-08-01 |
-| L2 | ADR-0011 « Frontières de contenu hostile » (création) | 5 | à faire |
+| **L2** | ADR-0011 « Frontières de contenu hostile » (création) | 5 | ✅ fait le 2026-08-01 |
 | L3 | ADR-0004 amendement (c) — le cœur | 10 | à faire |
 | L4 | ADR-0010 amendement (c) — clés naturelles, assets, cache | 4 | à faire |
 | L5 | ADR-0007 amendement (e) — chemin de soumission | 11 | à faire |
@@ -117,7 +117,7 @@ surface d'édition et blocage de publication, déconnexion volontaire. Rature de
 RGPD amendée — ce n'est plus l'*existence* d'une mention qui est ouverte, seulement sa
 *rédaction*.
 
-### L2 — ADR-0011 « Frontières de contenu hostile » (création, `accepted`)
+### L2 — ADR-0011 « Frontières de contenu hostile » (création, `accepted`) ✅ *fait le 2026-08-01*
 
 `docs/adr/ADR-0011-frontieres-de-contenu-hostile.md` *(nouveau)* · `docs/adr/README.md` ·
 `docs/stack.md` · `CLAUDE.md` · **Ferme : A-01, A-02, C-07, C-12, C-17a.**
@@ -374,7 +374,7 @@ sont assignés à L9 et L5.
 
 ```
 L1 (PRD FR-100→110)  ✅ fait
- └─ L2 (ADR-0011)                  ← racine citée par L3, L4, L5
+ └─ L2 (ADR-0011)  ✅ fait          ← racine citée par L3, L4, L5
      ├─ L3 (0004 c)  ─┐
      ├─ L4 (0010 c)   │
      ├─ L5 (0007 e)   ├─ commutables : un fichier ADR distinct chacun

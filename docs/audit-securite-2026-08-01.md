@@ -504,8 +504,8 @@ Renseigner la colonne **Preuve** avec ce qui permet de vérifier sans relire : l
 
 | ID | Constat | Doc cible | État | Preuve |
 |---|---|---|---|---|
-| A-01 | Aucune racine sécurité dans la chaîne documentaire | ADR-0011 (à créer) + PRD | En cours | Volet PRD fait : section « Exigences transverses », `FR-100` → `FR-110` (2026-08-01). Reste **ADR-0011**, qui porte les `## Constraints` (lot L2). |
-| A-02 | Sanitisation / échappement du contenu éditrice non spécifiés | ADR-0004 §a, stack.md | À traiter | |
+| A-01 | Aucune racine sécurité dans la chaîne documentaire | ADR-0011 + PRD | Traité | Les deux volets existent en documents acceptés : PRD, section « Exigences transverses » `FR-100` → `FR-110`, et **ADR-0011 « Frontières de contenu hostile »** `accepted` (2026-08-01, lot L2), dont le `## Constraints` est compilable en hooks/CI. La racine demandée existe ; les règles qu'elle porte sont suivies individuellement par A-02, C-07, C-12, C-17a. |
+| A-02 | Sanitisation / échappement du contenu éditrice non spécifiés | ADR-0011, stack.md | En cours | **ADR-0011** § Décision 2 et `## Constraints` — allowlist fermée du schéma de texte riche, élément non énuméré **rejeté**, neutralisation à l'entrée et jamais au rendu ; `stack.md` § Modèle de données (2026-08-01, lot L2). Reste le check refusant `z.any`/`z.unknown`/`z.record`/`.passthrough()` sur un schéma de valeur de zone. |
 | A-03 | Rendu délégué au projet client sans contrainte | ADR-0004, ADR-0008 (b) | À traiter | |
 | A-04 | Publication npm du cœur non sécurisée | ADR-0008 | À traiter | |
 
@@ -538,17 +538,17 @@ Renseigner la colonne **Preuve** avec ce qui permet de vérifier sans relire : l
 | C-04 | Quotas free tier comme vecteur de DoS | ADR-0003 (c) | À traiter | |
 | C-05 | Soumission vers un formulaire dépublié | ADR-0007 | À traiter | |
 | C-06 | Destinataire non re-vérifié à l'envoi et à la relance | ADR-0007, PRD FR-046 | À traiter | |
-| C-07 | « Type réel » non défini ; SVG non exclu | ADR-0003 ou ADR-0011 | À traiter | |
+| C-07 | « Type réel » non défini ; SVG non exclu | ADR-0011 | En cours | **ADR-0011** § Décision 4 et `## Constraints` (2026-08-01, lot L2) : signature d'octets côté Worker, liste fermée JPEG/PNG/WebP/AVIF, `image/svg+xml` interdit sans nouvel ADR, extension de clé R2 dérivée du type détecté. Reste le check refusant `image/svg+xml` et la cible de test « fichier dont la signature contredit l'extension ». |
 | C-08 | Vidéo : `ref` non validée, iframe et oEmbed non contraints | stack.md, ADR-0007 | À traiter | |
 | C-09 | Corbeille : délai non normatif, purge sans exécuteur | stack.md, ADR-0003 | À traiter | |
 | C-10 | Sauvegardes D1 : lieu, accès, rétention absents | ADR-0008 §4–5 | À traiter | |
 | C-11 | Logs du Worker : aucune exigence, PII possibles | PRD ou ADR-0004 | En cours | PRD `FR-104` (2026-08-01). Reste le bornage de `failure_reason` en **ADR-0007** (lot L5). |
-| C-12 | Aucun en-tête de sécurité, aucune CSP | ADR-0011 | À traiter | Attendu en **ADR-0011** (lot L2). |
+| C-12 | Aucun en-tête de sécurité, aucune CSP | ADR-0011 | En cours | **ADR-0011** § Décision 5 et `## Constraints` (2026-08-01, lot L2) : CSP, `nosniff`, `Referrer-Policy`, `Permissions-Policy` sur les deux surfaces, point de pose unique par surface, `unsafe-inline`/`unsafe-eval` interdits. Reste la vérification des en-têtes sur le HTML bâti (Playwright, ADR-0005). |
 | C-13 | Cache CDN et dérivés après dépublication | PRD ou ADR-0010 | À traiter | |
 | C-14 | Définition de formulaire non bornée ; `price_delta` sans signe | PRD FR-048, stack.md | À traiter | |
 | C-15 | FR-090 / FR-091 hors du pipeline `writeHandler` | ADR-0004 §e | À traiter | |
 | C-16 | Migrations D1 : vérification, rollback, exécutant | ADR-0008 §4–5 | À traiter | |
-| C-17a | Contextes d'échappement hétérogènes | ADR-0004 | À traiter | |
+| C-17a | Contextes d'échappement hétérogènes | ADR-0011 + ADR-0004 | En cours | **ADR-0011** § Décision 3 et `## Constraints` (2026-08-01, lot L2) : cinq contextes de rendu (`html`, `attribute`, `url`, `meta`, `text`) déclarés par le descripteur, aucun contexte implicite. Reste le portage dans le descripteur du **contrat de gabarit** (ADR-0004) et son check. |
 | C-17b | Restriction http(s) hors de tout `## Constraints` | ADR-0004 | À traiter | |
 | C-17c | Service tokens E2E sans gouvernance | ADR-0005 | À traiter | |
 | C-17d | Accumulation de médias non bornée | PRD | Traité | PRD `FR-103` (2026-08-01) : volume borné, éditrice informée avant la limite. Exigence produit, non mécanisable par hook. |
@@ -588,6 +588,7 @@ Une ligne par session de remédiation, la plus récente en haut. Reporter aussi 
 
 | Date | Constats traités | Documents amendés | Note |
 |---|---|---|---|
+| 2026-08-01 | A-01 **Traité** ; A-02, C-07, C-12, C-17a **En cours** | `docs/adr/ADR-0011-frontieres-de-contenu-hostile.md` *(nouveau)*, `docs/adr/README.md`, `docs/stack.md`, `CLAUDE.md` | **Lot L2** — création d'**ADR-0011 « Frontières de contenu hostile »**, `accepted`, `depends-on: [ADR-0004]`, tracé vers `FR-100` → `FR-104`. Trois frontières tenues chacune en un seul endroit : entrée (schéma), rendu (contexte déclaré), transport (en-têtes) — aucune ne rattrape le défaut d'une autre. Allowlist **fermée** du texte riche, élément non énuméré **rejeté** et non ignoré ; `z.any`/`z.unknown`/`z.record`/`.passthrough()` interdits sur un schéma de valeur de zone, forme mécaniquement détectable de l'allowlist ouverte. Contexte de rendu déclaré par le descripteur (`html`, `attribute`, `url`, `meta`, `text`). Type réel par signature d'octets, liste fermée JPEG/PNG/WebP/AVIF, `image/svg+xml` interdit sans ADR — Sharp étant *build-only*, aucun réencodage ne rattrape la validation. En-têtes et CSP sur les deux surfaces, point de pose unique, sans `unsafe-inline`. Le § 6 nomme ce que ce lot **ne ferme pas** (A-03, C-17b, B-02, B-08/B-09, C-11), pour que les lots suivants ne le rejouent pas. **Tension signalée, non tranchée** : les quatre constats mécanisables restent `En cours` jusqu'à la mécanisation, alors que la Porte 1 exige `Traité` — arbitrage renvoyé au lot de clôture. |
 | 2026-08-01 | C-17d **Traité** ; A-01, B-08, B-09, B-12, C-11, D-01 **En cours** | `docs/prd.md` | **Lot L1** — section « Exigences transverses », `FR-100` → `FR-110`. Bornes de taille des entrées visiteur, plafond de volume de soumissions distinct de l'anti-robot, bornage des médias, PII hors journaux, information de confidentialité et mentions légales **rapatriées en V1** avec surface d'édition et blocage de publication, déconnexion volontaire. La ligne « Pied de page enrichi » des Pistes post-V1 est scindée par rature. `SC-001` et `SC-007` gagnent leurs nouveaux *Servi par* ; la question ouverte RGPD est amendée. Découpage des dix lots suivants dans [`suites-audit-securite.md`](./suites-audit-securite.md). |
 | 2026-08-01 | — | — | Audit initial : 54 constats ouverts (4 critiques, 14 élevés, 26 moyens, 10 faibles/info). Aucune remédiation encore appliquée. |
 

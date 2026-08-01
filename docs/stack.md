@@ -4,7 +4,7 @@
 |---|---|
 | **Statut** | accepted |
 | **Créé** | 2026-07-17 |
-| **Révisé** | 2026-08-01 — suites de la revue du PRD ([ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md), vérifications factuelles) |
+| **Révisé** | 2026-08-01 — suites de la revue du PRD ([ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md), vérifications factuelles), puis frontières de contenu hostile ([ADR-0011](./adr/ADR-0011-frontieres-de-contenu-hostile.md)) |
 | **Accepté** | 2026-08-01 — plus rien de spéculatif : chaque choix est adossé à un ADR accepté. Une confrontation au code produira des **amendements datés**, pas un retour en `Draft`. |
 | **Trace vers** | [docs/prd.md](./prd.md) |
 | **Détaille** | [docs/adr/](./adr/README.md) |
@@ -258,7 +258,7 @@ Notes :
   | Type de zone | Forme | FR |
   |---|---|---|
   | texte simple | chaîne | FR-012 |
-  | texte riche | JSON ProseMirror, marque `link` **typée** (voir ci-dessous) | FR-015 |
+  | texte riche | JSON ProseMirror, **allowlist fermée** de nœuds / marques / attributs (voir ci-dessous), marque `link` **typée** | FR-015, FR-100 |
   | image | `{ media_id, alt }` — **l'alt est ici**, pas sur `media` | FR-025, FR-078 |
   | galerie | `{ items: [{ media_id, alt, caption? }, …] }`, liste **ordonnée** | FR-066, FR-067 |
   | vidéo | `{ provider: 'youtube'\|'vimeo', ref, poster_media_id? }` | FR-069 |
@@ -267,6 +267,8 @@ Notes :
   | **formulaire** | `{ form_id }` — une **référence**, jamais une copie | FR-086 |
   | répéteur | `{ items: [ { <clé_sous-champ>: <valeur typée>, … }, … ] }`, ordonnée | FR-074, FR-076 |
 
+- **Le schéma du texte riche est la frontière de neutralisation** (FR-015, FR-100 — [ADR-0011](./adr/ADR-0011-frontieres-de-contenu-hostile.md)). Le stockage en JSON ProseMirror est structurellement plus favorable que du HTML brut, mais cette sûreté n'est réelle **que si le schéma Zod est une allowlist fermée** : les `type` de nœuds, les marques et, pour chaque nœud et chaque marque, ses attributs sont **énumérés**, chacun avec son propre schéma. Tout élément non énuméré **rejette la valeur entière** — jamais ignoré, jamais nettoyé. Le piège à ne pas laisser passer est `z.record(z.unknown())` sur les `attrs` : c'est la forme naturelle de « valider du JSON ProseMirror », et elle annule toute la protection. Corollaire : la neutralisation vit **à l'entrée**, jamais au rendu — pas d'assainissement dans `toBlocks` ni dans un composant. Ajouter une marque à l'éditeur est donc un geste de **schéma**, pas un geste d'îlot.
+- **Contexte de rendu déclaré** ([ADR-0011](./adr/ADR-0011-frontieres-de-contenu-hostile.md)) — les textes libres n'atterrissent pas au même endroit : corps HTML (FR-015), attribut (`alt`, FR-025), URL (FR-070 à FR-072), `<title>` et `content` d'une `<meta>` (FR-027, FR-028), texte non-HTML (message acheminé). Un échappement uniforme « corps HTML » est **faux** pour les trois derniers ; le descripteur de gabarit porte donc le contexte de chaque zone, et une valeur sans contexte déclaré n'est pas rendue.
 - **Destination typée d'un lien** (FR-015, FR-070) — l'éditrice ne saisit **jamais** une adresse interne. Une même forme sert au CTA et à la marque `link` du texte riche :
   ```ts
   type LinkTarget =
@@ -303,9 +305,10 @@ Notes :
 
 ## Décisions structurantes → ADR
 
-Les ADR 0001–0008 sont **acceptés**. La revue du PRD du 1<sup>er</sup> août 2026 en a ouvert un neuvième et en amende trois :
+Les ADR 0001–0008 sont **acceptés**. La revue du PRD du 1<sup>er</sup> août 2026 en a ouvert un neuvième (ADR-0010) et en amende trois ; l'audit de sécurité du même jour en a ouvert un dixième (ADR-0011) :
 
 - **[ADR-0010](./adr/ADR-0010-modele-brouillon-publie.md) — Modèle brouillon/publié à deux contenus (accepté).** La décision mère : discriminant `state ∈ ('draft','live')` dans la clé primaire des tables de valeur ; recopie synchrone en un `batch()` D1 au clic « Publier », **avant** le Deploy Hook ; publication granulaire par objet ; une référence est un identifiant, jamais une copie ; rien de rendu au visiteur ne vit hors des deux contenus. Écarté : l'instantané JSON figé (dédoublerait le chemin de lecture qu'ADR-0004 unifie) et les tables séparées (double migration, `UNION` partout).
+- **[ADR-0011](./adr/ADR-0011-frontieres-de-contenu-hostile.md) — Frontières de contenu hostile (accepté).** La racine « sécurité » que la chaîne documentaire n'avait pas (audit du 2026-08-01) : allowlist **fermée** du schéma de texte riche, neutralisation à l'entrée et jamais au rendu ; **contexte de rendu déclaré** par le contrat de gabarit ; type réel d'un téléversement par **signature d'octets**, liste fermée JPEG/PNG/WebP/AVIF, `image/svg+xml` interdit sans ADR, extension de clé R2 dérivée du type détecté ; en-têtes de réponse et politique de contenu, sur le site statique comme sur le Worker, sans `unsafe-inline`. Écarté : l'assainissement au rendu (laisse la donnée hostile en base, où cinq autres surfaces la relisent) et le stockage en HTML assaini (perd la marque `link` typée, donc FR-085).
 - **ADR-0004 — amendé** — le **contrat de gabarit** gagne quatre déclarations : zone de type **formulaire** (FR-086), zone de type **date** (FR-012), **ordre et libellés du menu** (FR-084), **destination typée** d'un lien (FR-015, FR-070). S'y ajoutent l'**index de références** (FR-085), la **surface d'état de publication** (FR-087) et l'**adaptateur HTTP** que le build fournit à `@colibri/db` pour lire D1 par l'API REST — le caveat `[À VÉRIFIER]` correspondant est **levé**.
 - **ADR-0007 — amendé** — validation serveur contre la définition publiée (FR-090), **total recalculé** (FR-091), bornes de champ nombre avec maximum obligatoire (FR-045), rétention transitoire en cas d'échec (FR-064), message de test (FR-096), chargement différé de l'anti-spam (FR-089 × FR-063). **Fait** — amendements (a) et (b) du 2026-08-01. L'ADR a porté un renversement de fournisseur (Resend à la place de Cloudflare, l'envoi Cloudflare n'atteignant aucun destinataire quelconque en gratuit) puis **son annulation** le même jour, sur décision de n'ajouter aucune dépendance hors écosystème : retour à **Cloudflare Email Service**, `FR-095` retirée de la v1 et `Reply-To` abandonné. Le seam `sendMail` étant injectable, cet aller-retour n'a coûté aucune architecture — c'est précisément ce que le seam achetait.
 - **ADR-0005 — amendé** — nouvelles cibles : soumission forgée rejetée, recalcul du total (test pur `@colibri/core`), index de références, refus d'écrasement concurrent (FR-092), non-rendu d'un lien vers une page non publiée (FR-085), et **la fuite de brouillon** — qu'aucune lecture du build ne serve une ligne `state='draft'`. C'est le pire bug possible du produit : il mérite sa cible dédiée.
