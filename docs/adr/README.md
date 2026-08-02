@@ -14,10 +14,11 @@ Ce répertoire est l'**Architecture Decision Log** du projet. Chaque décision p
 | [0006](./ADR-0006-generation-ia-verification.md) | Génération IA & portail de vérification | accepted | `.claude/`, `tests/` | 0002, 0004, 0005 |
 | [0007](./ADR-0007-constructeur-de-formulaires.md) | Constructeur de formulaires (générique, borné) | accepted | `core/form`, `admin` | 0003, 0004 |
 | [0008](./ADR-0008-mise-a-jour-de-la-flotte.md) | Versionnage & mise à jour de la flotte | accepted | `.` | 0003, 0004 |
+| [0009](./ADR-0009-portail-qualite.md) | Portail de qualité (registre unique, contrat machine, *fail-closed*) | accepted | `tooling/`, `.claude/`, `.github/` | 0002, 0004, 0005, 0006, 0008 |
 | [0010](./ADR-0010-modele-brouillon-publie.md) | Modèle brouillon/publié à deux contenus | accepted | `packages/`, `apps/` | 0004 |
 | [0011](./ADR-0011-frontieres-de-contenu-hostile.md) | Frontières de contenu hostile | accepted | `packages/`, `apps/` | 0004 |
 
-*(La numérotation saute `0009`, toujours réservé par `_candidates/0009-portail-qualite-draft.md` : c'est un trou tenu, pas un numéro libre. Le prochain ADR est donc `0012`.)*
+*(La numérotation ne saute plus rien : `0009`, resté candidat depuis le 2026-07-19, a été **promu `accepted` le 2026-08-01** — lot L7, constat `C-17f`. `0001` → `0011` existent tous ; le prochain ADR est `0012`. `_candidates/` est vide : il sera recréé au premier candidat suivant.)*
 
 ## Graphe de dépendance
 
@@ -28,6 +29,7 @@ Ce répertoire est l'**Architecture Decision Log** du projet. Chaque décision p
             └─ 0004  Architecture (cœur packagé + tranches)
                  ├─ 0005  Stratégie de test
                  ├─ 0006  Génération IA & vérification   ←(aussi 0002, 0005)
+                 │    └─ 0009  Portail de qualité         ←(aussi 0002, 0004, 0005, 0008)
                  ├─ 0007  Constructeur de formulaires     ←(aussi 0003)
                  ├─ 0008  Mise à jour de la flotte         ←(aussi 0003)
                  ├─ 0010  Modèle brouillon/publié
@@ -35,6 +37,8 @@ Ce répertoire est l'**Architecture Decision Log** du projet. Chaque décision p
 ```
 
 Principe : **un ADR ne dépend que de ceux qui le précèdent.** La gouvernance précède le socle, le socle précède l'architecture, l'architecture définit les seams que le test vise, que la génération IA verrouille, que le constructeur de formulaires consomme, et que le versionnage de flotte exploite (frontière cœur/client).
+
+ADR-0009 est le seul ADR dont le sujet n'est pas le produit mais **l'outillage qui le vérifie**. ADR-0002 §3 et ADR-0006 §7/§9 imposent *qu'un* portail déterministe existe ; 0009 tranche où il vit, comment ses contrôles sont définis, ce qu'il émet et comment il se comporte quand un contrôle ne peut pas s'exécuter (*fail-closed*). Il dépend d'ADR-0008 parce que la publication délibérée de `main` est ce qui rend acceptable le décalage du contrôle de mutation vers le régime planifié.
 
 ADR-0010 se greffe sur 0004 : il fixe *où vit le contenu et quand il devient public*, et amende par ricochet 0004 (modèle de données), 0007 (définition publiée) et 0005 (cibles de test).
 

@@ -1,8 +1,8 @@
 ---
 id: ADR-0009
 title: Portail de qualité (topologie, registre à source unique, contrat machine, fail-closed)
-status: candidate    # CANDIDAT — à promouvoir manuellement en `proposed` puis `accepted`
-date: 2026-07-19
+status: accepted
+date: 2026-08-01
 authors: [sebc-dev]
 scope: tooling/, .claude/, .github/
 supersedes: []
@@ -10,11 +10,48 @@ superseded-by: null
 depends-on: [ADR-0002, ADR-0004, ADR-0005, ADR-0006, ADR-0008]
 ---
 
-# ADR-0009 (candidat) — Portail de qualité : topologie, registre à source unique, contrat machine, fail-closed
+# ADR-0009 — Portail de qualité : topologie, registre à source unique, contrat machine, fail-closed
 
-> **Statut : candidat.** Ébauche produite pendant le plan de la feature `001-ci-quality-gate`.
-> À promouvoir manuellement (`_candidates/` → `docs/adr/`) après approbation. Tant qu'il est ici,
-> il n'est **pas** une source de vérifications déterministes.
+**Statut :** accepted — 2026-08-01 · *promu depuis `_candidates/`, rédigé le 2026-07-19*
+
+> **Note de promotion — 2026-08-01** (suites de l'audit de sécurité, lot L7, constat `C-17f`).
+> Cet ADR est resté **candidat** une semaine de trop : la feature `001-ci-quality-gate`
+> a été livrée (lots R1 → R11, 2026-07-26) et le portail tourne — onze contrôles, deux hooks
+> `PreToolUse`, CI par changement et build planifié —, si bien qu'un dispositif appliquait des
+> règles qu'**aucun document accepté ne reconnaissait comme sources de vérifications
+> déterministes** (ADR-0002 § 3). C'est l'inverse de la gouvernance : l'application existait, sa
+> charte était une ébauche qui disait d'elle-même ne pas en être une.
+>
+> **La décision, les alternatives, les conséquences et les six contraintes ci-dessous sont celles
+> du candidat, inchangées.** La promotion ne les rouvre pas.
+>
+> **Vérification faite à la promotion**, contrainte par contrainte, contre le code livré : cinq
+> sont tenues à la lettre — `tooling/quality-gate` hors `packages/`/`apps/` ; registre unique
+> `src/checks/index.ts` tagué par régime et `runGate()` appelé aussi bien par `pnpm gate` que par
+> la CI ; mutation cantonnée au régime planifié (`nightly.yml`) et absente du gate de merge ;
+> `renderHuman` et `renderMachine` dérivés du même `GateResult` ; enveloppe *fail-closed* du
+> `runner`. **La sixième ne l'est qu'à moitié** : la baseline de survivants est bien versionnée,
+> à cliquet, et son absence ou son illisibilité fait échouer le contrôle — mais
+> `mutation-survivors.baseline.json` **n'est pas** dans `estCheminProtege()`
+> (`tooling/quality-gate/src/protected-paths.ts`), donc pas « possédée par l'humain » au sens du
+> § 5. Une génération peut y ajouter une entrée et faire verdir le build planifié — c'est-à-dire
+> désarmer le cliquet qui borne le négatif assumé au § Conséquences.
+>
+> **Cause, écrite parce qu'elle est instructive** : la liste livrée est exactement celle
+> d'ADR-0006 § 9, antérieur à la baseline que le présent ADR a inventée. Personne n'a écrit la
+> jointure entre une contrainte nouvelle et la liste qui l'aurait appliquée — la même classe de
+> défaut que `C-17f` lui-même. **Écart nommé, assigné au lot L10**, avec l'extension de la liste
+> protégée demandée par `C-17f` : c'est le même geste, sur le même fichier.
+>
+> **Échéance, écrite ici pour ne pas dépendre d'un document de travail temporaire** : l'exposition
+> est **nulle aujourd'hui** — la baseline vaut `[]` et le contrôle `mutation` retourne `ignoré`
+> tant que `packages/core` n'existe pas —, et elle devient réelle **au premier commit de
+> `packages/core`**. La correction est donc due **avant la première ligne du cœur**, condition
+> vérifiable sans relire quoi que ce soit. *Contrainte d'ordre à ne pas manquer* : étendre
+> `estCheminProtege()` rend `tooling/quality-gate/` protégé, donc **`protected-paths.ts` se protège
+> lui-même à l'instant où on le modifie** — le marqueur d'approbation d'ADR-0006 (amdt 2026-08-01
+> point 3) doit exister **avant ou dans la même tranche**, sans quoi le geste suivant sur ce fichier
+> est bloqué sans issue.
 
 ## Contexte
 
@@ -92,7 +129,11 @@ un contrôle ne peut pas s'exécuter. La feature 001 doit fixer ces points struc
   repli « local only » a été écarté précisément pour préserver ce (b).
 
 ## Constraints
-> À activer seulement une fois l'ADR promu en `accepted` (source de vérifications déterministes).
+> ~~À activer seulement une fois l'ADR promu en `accepted` (source de vérifications déterministes).~~
+> **→ Levé le 2026-08-01 (promotion, lot L7).** L'ADR est `accepted` : ces six contraintes sont
+> désormais des sources de vérifications déterministes au sens d'ADR-0002 § 3, compilées en hooks
+> `PreToolUse` et en contrôles du portail. Cinq sont tenues par le code livré ; la sixième ne l'est
+> qu'à moitié — voir la note de promotion en tête.
 - **OBLIGATOIRE** : le portail vit dans `tooling/` (hors frontières ADR-0004).
 - **OBLIGATOIRE** : contrôles définis une seule fois (registre TS, tagués par régime) ; local et CI appellent le même `runGate(ctx, régime)`.
 - **OBLIGATOIRE** : le régime par-changement (gate de merge) exclut la mutation ; la mutation vit dans le régime planifié (récurrent sur `main`), exécuté **mécaniquement** en CI — jamais laissé à la seule discipline locale.

@@ -24,10 +24,10 @@
 | **L4** | ADR-0010 amendement (c) — clés naturelles, assets, cache | 4 | ✅ fait le 2026-08-01 |
 | **L5** | ADR-0007 amendement (e) — chemin de soumission | 12 | ✅ fait le 2026-08-01 |
 | **L6** | ADR-0003 amendement (d) — plateforme et exposition | 8 | ✅ fait le 2026-08-01 |
-| L7 | ADR-0006 amendement + promotion d'ADR-0009 | 4 | à faire |
+| **L7** | ADR-0006 amendement + promotion d'ADR-0009 | 4 | ✅ fait le 2026-08-02 |
 | L8 | ADR-0008 amendement (b) — distribution, secrets, exploitation | 11 | à faire |
 | L9 | ADR-0005 (cibles de test) + clôture du chantier | 2 | à faire |
-| L10 | Mécanisation (hooks / checks) — optionnel, après L7 | — | à faire |
+| L10 | Mécanisation (hooks / checks) — ~~optionnel, après L7~~ **requis avant la première ligne de `@colibri/core`** *(déclassé le 2026-08-02, lot L7)* | — | à faire |
 | L11 | Re-passe d'audit — après la Porte 1 | — | à faire |
 
 ---
@@ -66,8 +66,10 @@ assigné, et la couverture est vérifiable.
 | Front-matter | 9 champs, ordre fixe. Aucun champ `amended-by` : les amendements n'y laissent pas de trace. |
 | PRD, stack.md, CLAUDE.md | **Pas** de convention d'amendement lettré — seulement une date `Révisé`. Plusieurs lots peuvent donc les toucher sans conflit de forme. |
 
-**Numérotation.** `ADR-0011` est libre ; `0009` reste réservé par
-`_candidates/0009-portail-qualite-draft.md`. Côté PRD, ~~`FR-110` est désormais le maximum~~ —
+**Numérotation.** `ADR-0011` est libre ; ~~`0009` reste réservé par
+`_candidates/0009-portail-qualite-draft.md`~~ **→ Levé le 2026-08-02 (lot L7)** : `0009` a été
+**promu `accepted`** et déplacé en `docs/adr/ADR-0009-portail-qualite.md` ; `_candidates/` est vide,
+la numérotation ne saute plus rien, et le prochain ADR reste **`0012`**. Côté PRD, ~~`FR-110` est désormais le maximum~~ —
 numérotation dense, **jamais renumérotée**. **→ À jour au 2026-08-01** : `FR-111` (lot L4, retrait
 d'une page reflété), `FR-112` (lot L5, soumission vers un formulaire retiré) puis `FR-113` (lot L6,
 tiers chargés chez le visiteur nommés dans l'information de confidentialité) ont été pris ; le
@@ -77,10 +79,16 @@ prochain numéro libre est **`FR-114`**.
 en nightly. Trois voies d'application — `estCheminProtege()`
 (`tooling/quality-gate/src/protected-paths.ts`, source unique), un nouveau hook, un check dans
 `src/checks/index.ts`. **Mais aucun ne mord aujourd'hui** : 5 des 11 checks dépendent de
-`apps/`/`packages/`, absents ; la CI est verte par vacuité de périmètre. Et **ADR-0009, qui
-gouverne ce portail, est resté candidat**.
+`apps/`/`packages/`, absents ; la CI est verte par vacuité de périmètre. ~~Et **ADR-0009, qui
+gouverne ce portail, est resté candidat**.~~ **→ Levé le 2026-08-02 (lot L7)** : ADR-0009 est
+`accepted` ; ses six contraintes sont désormais des sources de vérifications déterministes, et la
+vérification faite à la promotion a relevé un écart — la baseline de mutants n'est pas dans
+`estCheminProtege()` —, assigné au lot **L10** avec `C-17f`.
 
-**`docs/JOURNAL.md` n'existe pas** dans l'arbre, alors que `CLAUDE.md` et l'audit y renvoient.
+~~**`docs/JOURNAL.md` n'existe pas** dans l'arbre, alors que `CLAUDE.md` et l'audit y renvoient.~~
+**→ Périmé, constaté le 2026-08-02 (lot L7)** : le fichier **existe** et porte une ligne par lot.
+La mention *(recréé)* de la section L9 ci-dessous est donc à corriger **par L9**, à qui elle
+appartient ; elle est signalée ici pour n'être pas découverte deux fois.
 
 ---
 
@@ -342,10 +350,10 @@ provisionnement, l'autre l'endroit *hors du dépôt* où un secret est déposé.
 **`Accepté`**, ce que le constat demandait exactement : il ne reprochait pas le choix du facteur
 unique, mais qu'il ne soit **nulle part écrit comme risque accepté**.
 
-### L7 — ADR-0006 amendement + promotion d'ADR-0009
+### L7 — ADR-0006 amendement + promotion d'ADR-0009 ✅ *fait le 2026-08-02*
 
 `docs/adr/ADR-0006-generation-ia-verification.md` · `_candidates/0009-…` → `docs/adr/` ·
-`docs/adr/README.md` · `SECURITY.md` *(nouveau)* · **Ferme : B-14, C-17e, C-17f, D-09.**
+`docs/adr/README.md` · `SECURITY.md` *(nouveau)* · `CLAUDE.md` · **Ferme : B-14, C-17e, C-17f, D-09.**
 
 Contrôles d'**innocuité**, distincts des contrôles de conformité : ADR-0006 est calibré sur
 « plausible mais subtilement faux » et la triche aux tests ; un code intentionnellement
@@ -359,10 +367,68 @@ liste protégée, **avec re-vérification par la CI** puisque la protection des 
 hooks est auto-référente (C-17f). `SECURITY.md`, protection de branche, revue obligatoire —
 théorique tant que le dépôt est fermé, immédiat à son ouverture (D-09).
 
-**La promotion d'ADR-0009 est ici** parce que C-17f en dépend : ses six contraintes sont
-**déjà entièrement implémentées** par le code livré (R1 → R11), mais l'ADR n'a jamais été
+**La promotion d'ADR-0009 est ici** parce que C-17f en dépend : ~~ses six contraintes sont
+**déjà entièrement implémentées** par le code livré (R1 → R11)~~ **→ Nuancé le 2026-08-02 à
+l'exécution : cinq sur six** (voir ci-dessous), mais l'ADR n'a jamais été
 promu — le portail applique donc des règles qu'aucun document accepté ne reconnaît comme
 sources de vérifications déterministes.
+
+**Forme de l'amendement — famille tranchée.** Le tableau « Règles de forme » ne disait rien
+d'ADR-0006. Retenu : **section `## Amendement …` en corps** (famille 0003 / 0010), placée après
+« Seuils qui feraient reconsidérer » et avant « Caveats » — parallèle structurel exact avec
+ADR-0003. Trois motifs : ADR-0006 porte **déjà** un bloc-citation en tête (« Pourquoi un ADR
+séparé ») qui n'est **pas** un amendement, et un second bloc long s'y collerait en repoussant le
+résumé exécutif ; la famille bloc-citation de 0004/0005/0007 est un **héritage** de séries
+commencées par des notes courtes, que l'immuabilité a figé ; et les deux ADR dont l'amendement est
+long et structuré en points numérotés — 0003 et 0010 — sont tous deux en `##`. Titre **non
+lettré**, cité « (a) » par les lots suivants.
+
+**Tranché à l'exécution.** Trois **arbitrages humains**. *(1) `B-14`* : **seam clos + revue
+déclenchée par le portail**. Côté mécanique, la frontière est posée sur les appels sortants —
+aucun hors d'un **fichier de seam déclaré**, ce qui **ferme une topologie à moitié existante**
+(ADR-0004 § f avait nommé JWKS, `sendMail` et Turnstile ; le Deploy Hook, l'API Workers Builds,
+l'API REST D1 du build et l'oEmbed prennent ce nom ici, soit sept chemins et pas un huitième) ;
+**allowlist versionnée** d'hôtes par seam, y compris la réponse « aucun hôte » pour ce qui passe
+par *binding* — écrite précisément parce qu'un mailer qui en *acquerrait* un doit déclencher la
+revue ; et un hôte arrivant **comme donnée** (la `thumbnail_url` d'oEmbed) validé **avant**
+l'appel, forme d'ADR-0011 § 4 appliquée au transport. Côté humain, **renversement partiel du brief
+écrit frontalement** : le déclencheur de la revue reste **mécanique et bloquant**, la surface est
+bornée **par la forme**, et l'alternative « aucune revue » est écartée pour un motif **interne** —
+`C-17e` *est* une revue humaine. *(2) ADR-0009* : promotion **verbatim** — décision, alternatives,
+conséquences et six contraintes inchangées — **plus une note de promotion datée** qui enregistre la
+vérification. *(3) `D-09`* : état **`En cours`**, la configuration du forge restant due.
+
+**Écart découvert à la vérification.** Cinq des six contraintes d'ADR-0009 sont tenues à la lettre
+par le code livré ; la sixième ne l'est **qu'à moitié** — `mutation-survivors.baseline.json` n'est
+**pas** dans `estCheminProtege()`, donc pas « possédée par l'humain », si bien qu'une génération
+peut y ajouter une entrée et **désarmer le cliquet** qui borne le négatif assumé par ADR-0009.
+Cause : la liste livrée est celle d'ADR-0006 § 9, **antérieur** à un artefact qu'ADR-0009 a
+inventé — personne n'a écrit la jointure, la classe de défaut même de `C-17f`. **Assigné au lot
+L10**, où c'est le même geste sur le même fichier que l'extension déjà prévue.
+
+**Sort du candidat : supprimé.** La flèche `_candidates/0009-…` → `docs/adr/` de ce plan est un
+**déplacement** (`git mv`) : la règle d'immuabilité couvre les ADR, pas `_candidates/`, et
+conserver le fichier laisserait deux documents revendiquant `ADR-0009`, dont un qui dit de lui-même
+« il n'est **pas** une source de vérifications déterministes ». L'historique git le conserve.
+
+**Incohérence relevée et tranchée** — d'une nature nouvelle : ni la matrice, ni la ligne de suivi,
+ni le corps du constat ne se contredisent sur ces quatre-là. C'est la **prémisse d'un constat
+démentie par l'état du dépôt**. `D-09` se disait « théorique pré-V1, immédiat à l'ouverture du
+dépôt », et ce plan « théorique tant que le dépôt est fermé » : vérification faite le 2026-08-02,
+le dépôt est **public**, `main` sans protection ni *ruleset*, sans `SECURITY.md` ni `CODEOWNERS`.
+Le déclencheur a **déjà sonné** — la règle est donc écrite **inconditionnelle**, et `D-09` passe
+`En cours` et non `Traité`, par divergence **nommée** avec le précédent `C-17g` : l'acte de
+celui-ci survient à la création d'une instance, donc dans le futur par construction, tandis que
+celui-ci est **dû maintenant et non fait**.
+
+**Aucune exigence PRD nouvelle** : ces quatre constats sont de la gouvernance interne, pas du
+produit. `FR-113` reste le maximum, `FR-114` le prochain libre. **`docs/stack.md` intact** : le
+contenu de l'allowlist **dérive** de faits déjà écrits (§ Anti-spam, § État de la mise en ligne,
+§ Vignette vidéo, § Secrets) — l'amendement ajoute une règle, pas un fait de socle. **Résiduels
+nommés** : le projet client, hors portail, reste à **L8** (règle ESLint livrée et checklist, avec
+`A-03`), ainsi que le retrait d'une version compromise (`C-17i`) ; la cible de test « aucun appel
+réseau du cœur ne sort de l'allowlist déclarée » va à **L9** ; les quatre checks et le marqueur
+d'approbation vont à **L10**.
 
 ### L8 — ADR-0008 amendement (b) : distribution, secrets, exploitation
 
@@ -417,18 +483,38 @@ Report des contraintes porteuses dans `CLAUDE.md`. **Recréation de `docs/JOURNA
 en-tête, une section `##` par niveau, tableau `| Date | Phase | Résultat |`, append-only, plus
 récente **en bas**. Clôture des trois portes de l'audit et **suppression de ce fichier**.
 
-### L10 — Mécanisation *(optionnel, après L7)*
+### L10 — Mécanisation ~~*(optionnel, après L7)*~~ *(requis avant la première ligne de `@colibri/core`)*
 
 `tooling/quality-gate/src/checks/` · `src/protected-paths.ts` · `.claude/settings.json`
 
 Ce qui fait passer les constats mécanisables de `En cours` à `Traité` : check refusant un
 littéral gabarit contenant `SELECT`/`INSERT`/`UPDATE`/`DELETE` avec substitution (B-05) ;
 check refusant `set:html` (A-03) ; extension de `estCheminProtege()` (C-17f) ; check
-d'allowlist des hôtes réseau (B-14).
+d'allowlist des hôtes réseau (B-14) ; marqueur d'approbation de la revue humaine ciblée (B-14,
+ADR-0006 amdt 2026-08-01 point 3).
 
 **À mener comme une feature `specs/003-…` par la chaîne `/scd-sdd`**, pas à la main — c'est du
 code de production soumis au portail. **Sous réserve** : ces checks ne mordront que le jour où
-`packages/` et `apps/` existeront.
+`packages/` et `apps/` existeront. *(Note de numérotation, 2026-08-02 : seul `specs/001` existe ;
+le prochain numéro libre est `002`. À trancher à l'ouverture du lot, pas ici.)*
+
+**Déclassé de « optionnel » le 2026-08-02** *(lot L7)*. Le mot était défendable tant que L10 ne
+portait que des checks sans périmètre ; il ne l'est plus depuis que L10 porte **la seule chose qui
+arme le cliquet d'un ADR accepté**. La promotion d'ADR-0009 a révélé que
+`mutation-survivors.baseline.json` n'est pas dans `estCheminProtege()`, donc pas « possédée par
+l'humain » au sens de sa contrainte 6 : une génération peut y ajouter une entrée et faire verdir le
+build planifié. **Exposition actuelle : nulle** — la baseline vaut `[]` et le contrôle `mutation`
+retourne `ignoré` tant que `packages/core` n'existe pas (`applies()` teste l'existence du
+répertoire). **Échéance, donc, et elle est vérifiable : L10 avant le premier commit de
+`packages/core`**, moment exact où l'exposition passe de nulle à réelle. Le correctif ne coûte rien
+de plus : c'est la même ligne, dans la même liste, que l'extension déjà prévue pour `C-17f`.
+
+**Contrainte d'ordre à l'intérieur du lot** — non évidente, et elle mordra : étendre
+`estCheminProtege()` rend `tooling/quality-gate/` protégé, si bien que **`protected-paths.ts` se
+protège lui-même à l'instant où on le modifie**. Le **marqueur d'approbation** doit donc exister
+**avant ou dans la même tranche** que l'extension de la liste, faute de quoi le geste suivant sur
+ce fichier est bloqué sans issue. C'est l'auto-référence décrite par ADR-0006 amdt 2026-08-01
+point 5, rencontrée pour de vrai, sur le fichier même qui l'incarne.
 
 ### L11 — Re-passe d'audit
 
@@ -453,7 +539,7 @@ qu'aucune relecture du présent plan ne peut dire.
 | L4 | B-06 · B-10 · C-13 · D-03 | 4 |
 | L5 ✅ | B-03 · B-04 · B-08 · B-09 · B-11 · C-05 · C-06 · C-08 · C-09 · C-11 · C-14 · D-10 | 12 |
 | L6 ✅ | B-01 · B-13ᵖ · C-03 · C-04 · C-17g · C-17h · D-01 · D-07 | 8 |
-| L7 | B-14 · C-17e · C-17f · D-09 | 4 |
+| L7 ✅ | B-14 · C-17e · C-17f · D-09 | 4 |
 | L8 | A-03 · A-04 · B-12 · B-13 · C-02 · C-10 · C-16 · C-17i · C-17j · D-06 · D-08 | 11 |
 | L9 | C-17c · D-05 | 2 |
 
@@ -483,10 +569,10 @@ L1 (PRD FR-100→110)  ✅ fait
      ├─ L4 (0010 c)   │  ✅ fait
      ├─ L5 (0007 e)   ├─ ✅ fait — commutables : un fichier ADR distinct chacun
      ├─ L6 (0003 d)   │  ✅ fait
-     ├─ L7 (0006 + promo 0009)     │  ← prochain
-     └─ L8 (0008 b)  ─┘
+     ├─ L7 (0006 + promo 0009)  ✅ fait
+     └─ L8 (0008 b)  ─┘            ← prochain
          └─ L9 (0005 + clôture)    ← en dernier : cite tout ce qui précède
-             ├─ L10 (mécanisation, optionnel — dépend de L7 pour ADR-0009)
+             ├─ L10 (mécanisation — requis avant `packages/core` ; dépend de L7)
              └─ L11 (re-passe d'audit — après la Porte 1)
 ```
 
