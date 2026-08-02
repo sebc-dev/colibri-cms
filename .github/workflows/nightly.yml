@@ -37,6 +37,7 @@ jobs:
         run: pnpm audit --audit-level high
 
       - name: Exécuter le portail qualité en régime planifié
+        if: always()
         # Sortie machine consommée telle quelle pour l'annotation du run ;
         # aucune option ne doit masquer un code de sortie non-zéro ici :
         # un survivant hors base de référence doit faire échouer ce build.
