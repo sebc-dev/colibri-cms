@@ -12,11 +12,123 @@ depends-on: [ADR-0003, ADR-0004]
 
 # ADR-0005 — Stratégie de test
 
-**Statut :** accepted — 2026-07-17 · *ex-ADR-001, re-pointé sur les seams d'ADR-0004 ; volet IA extrait vers ADR-0006 ; amendé pour le périmètre page + formulaires (2026-07-17)*
+**Statut :** accepted — 2026-07-17 · *ex-ADR-001, re-pointé sur les seams d'ADR-0004 ; volet IA extrait vers ADR-0006 ; amendé pour le périmètre page + formulaires (2026-07-17) ; puis cibles de test de l'audit de sécurité (2026-08-01)*
 
-> **Amendement 2026-07-17 (périmètre page + constructeur de formulaires).** Trois ajouts au périmètre de test, sans changer la taxonomie : (1) l'**endpoint public de soumission de formulaire** (première route d'écriture non protégée par Access) est une cible d'intégration — testé pour la vérification Turnstile et le refus d'un jeton absent/invalide, pas seulement le happy-path ; (2) l'**envoi d'e-mail** (Cloudflare Email Routing) est **mocké** en test, au même titre que le Deploy Hook (garde-fou free tier — jamais d'envoi réel), et la vérification **Turnstile** est **injectable/mockée** (clé de test) comme le JWKS ; (3) le **calcul du total** du formulaire (somme des contributions) est une cible de **test unitaire pur** dans `@colibri/core`, au même rang que `toBlocks`. Les **migrations D1** sont testées sur données réelles-locales **avant** tout déploiement de flotte (lien ADR-0008).
+> **Amendement 2026-07-17 (périmètre page + constructeur de formulaires).** Trois ajouts au périmètre de test, sans changer la taxonomie : (1) l'**endpoint public de soumission de formulaire** (première route d'écriture non protégée par Access) est une cible d'intégration — testé pour la vérification Turnstile et le refus d'un jeton absent/invalide, pas seulement le happy-path ; (2) l'**envoi d'e-mail** (~~Cloudflare Email Routing~~ **Cloudflare Email Service** — *corrigé le 2026-08-01, amendement « les cibles de test de l'audit de sécurité » point 3 : Email Routing est le service de courrier **entrant**, cf. audit `D-04` ; même correction qu'ADR-0004 amendement 2026-07-17 point 4*) est **mocké** en test, au même titre que le Deploy Hook (garde-fou free tier — jamais d'envoi réel), et la vérification **Turnstile** est **injectable/mockée** (clé de test) comme le JWKS ; (3) le **calcul du total** du formulaire (somme des contributions) est une cible de **test unitaire pur** dans `@colibri/core`, au même rang que `toBlocks`. Les **migrations D1** sont testées sur données réelles-locales **avant** tout déploiement de flotte (lien ADR-0008).
 
 > **Ce qui a changé depuis l'ex-ADR-001** (ce document, renuméroté). (1) Renuméroté et re-pointé sur les seams concrets d'ADR-0004 (`@colibri/core`, `@colibri/db`, `writeHandler`, `AssetResolver`, JWKS injectable) au lieu du vague `packages/shared`. (2) Le volet *génération de code par IA* — qui gonflait ce document — est **extrait vers ADR-0006** ; ADR-0005 ne traite plus que la taxonomie et l'outillage de test.
+
+---
+
+> **Amendement 2026-08-01 — les cibles de test de l'audit de sécurité.** Suites de l'[audit de
+> sécurité du socle documentaire](../audit-securite-2026-08-01.md) (2026-08-01), dernier des neuf
+> lots d'amendement. Les huit lots précédents ont écrit des **règles** ; celui-ci écrit **ce qui les
+> prouve**. Le corpus a déjà fait ce geste une fois, pour la fuite de brouillon : la règle de forme
+> d'[ADR-0010](./ADR-0010-modele-brouillon-publie.md) n'a de valeur que parce qu'une cible de test
+> nommée refuse de s'en remettre à la vigilance. Les frontières posées par
+> [ADR-0011](./ADR-0011-frontieres-de-contenu-hostile.md) et par les amendements de 0003, 0004, 0006,
+> 0007, 0008 et 0010 reçoivent ici le même traitement — **au même rang**, sans hiérarchie entre
+> « aucune fuite de brouillon » et les cibles ci-dessous. Quatre points.
+>
+> *Note de forme, déclarée pour n'être pas redécouverte* : cet amendement est **non lettré** — il est
+> le premier bloc daté de sa série sur ce document —, mais la chaîne « Amendement 2026-08-01 »
+> apparaissait **déjà** dans une parenthèse du `## Constraints` (correction du fournisseur d'envoi),
+> et trois puces y portent le marqueur `*(2026-08-01)*` posé par les suites de la revue du PRD. C'est
+> le sous-titre qui désambiguïse, pas la date. Les lots ultérieurs le citent « amendement
+> 2026-08-01 (cibles de test) ».
+>
+> **1. Les cibles de test de l'audit.** Dix-huit cibles, groupées par frontière plutôt qu'en liste
+> plate : c'est la frontière qui dit *où* le test s'exécute, et deux cibles de la même frontière
+> partagent leur montage. Chacune est écrite dans la forme qui la rend **déterministe** — le corpus a
+> payé une fois le prix d'une cible intermittente (audit `D-03`, jeton de verrou à la seconde) et
+> retient la leçon : *une cible intermittente est désactivée puis réputée tenue*.
+>
+> - **Entrée — le schéma est la barrière** (ADR-0011 § 1 et § 2). Un nœud, une marque ou un attribut
+>   **non énuméré** fait **rejeter la valeur entière** ; l'assertion porte sur le rejet, jamais sur
+>   une sortie nettoyée — un test qui vérifierait que l'attribut a disparu passerait aussi bien sur
+>   un assainissement au rendu, qui est précisément ce qui est interdit (audit `A-02`). Un fichier
+>   dont la **signature d'octets** contredit l'extension ou le `Content-Type` déclaré est **refusé**,
+>   et `image/svg+xml` est refusé quelle que soit sa signature (audit `C-07`).
+> - **Rendu et transport — l'en-tête est posé, ou il ne l'est pas.** CSP, `nosniff`,
+>   `Referrer-Policy` et `Permissions-Policy` présents sur le **HTML réellement bâti** *et* sur la
+>   **surface non fiable** (`/preview/*` et les médias bruts), sans `unsafe-inline` ni `unsafe-eval`
+>   — Playwright sur les deux surfaces, la seconde étant celle qui rend du `state='draft'` (audit
+>   `C-12`, `B-02`). Un média servi hors build répond avec le `Content-Type` du **type détecté à
+>   l'entrée**, `nosniff` et un `Content-Disposition` normalisé (audit `B-07`). Le contenu d'une
+>   demande non acheminée est **rendu comme texte** dans la corbeille — l'assertion porte sur ce
+>   qu'affiche la page, pas sur ce que contient `payload_json` (audit `B-03`).
+> - **Autorisation — le refus est le cas nominal du test.** Un JWT **signé valide mais d'audience
+>   étrangère** est rejeté ; un **JWKS injoignable** ferme l'admin au lieu de l'ouvrir (*fail-closed*,
+>   aucun chemin dégradé) (audit `C-01`). Et, en E2E, **les routes admin restent derrière Access
+>   pendant que la soumission publique fonctionne** : les deux moitiés dans le même test, faute de
+>   quoi chacune passe séparément sur une configuration qui les contredit ensemble (audit `B-01`).
+> - **Chemin de soumission — ce qui est refusé compte plus que ce qui passe.** Une valeur porteuse de
+>   **CRLF** ne produit **aucun en-tête supplémentaire** dans le message composé (audit `B-04`). Une
+>   soumission vers un formulaire **dépublié** (`publications.en_ligne ≠ 1`) est rejetée, alors même
+>   que ses lignes `state='live'` subsistent (audit `C-05`). Un total **au-delà du plafond absolu**
+>   fait **échouer** la soumission — l'assertion est le refus, jamais un montant tronqué ou approché
+>   (audit `C-14`). Une adresse **retirée de `verified_recipients`** ne reçoit **aucun acheminement,
+>   relance comprise** (audit `C-06`). Après `expires_at`, la ligne **n'existe plus en base** :
+>   l'assertion est une requête directe sur D1, pas une lecture de la surface, sans quoi un filtre
+>   passerait pour une suppression (audit `C-09`).
+> - **Contenu et clés — l'invariant se teste sur le chemin réel.** Renommer le **libellé** d'un champ
+>   publié ne change pas sa `field_key`, et une soumission antérieure reste valide (audit `B-06`).
+>   Une image référencée **par le seul `draft`** ne répond pas sur la surface publique (audit
+>   `B-10`). **Aucun asset bâti** ne contient une adresse de `form_defs` — assertion sur la sortie du
+>   build, au même titre que la fuite de brouillon (audit `B-11`).
+> - **Cœur et flotte.** **Aucun appel réseau du cœur ne sort de l'allowlist déclarée** : la cible
+>   couvre les sept seams et la réponse « aucun hôte » pour ce qui passe par *binding*
+>   (ADR-0006 amdt 2026-08-01 point 1 ; audit `B-14`). Et la **vérification post-migration** exécute
+>   les invariants d'ADR-0010 sur la base migrée — état dans la clé primaire, aucune ligne de contenu
+>   sans état, clés naturelles conformes, comptages comparés au delta déclaré — et **échoue quand
+>   elle ne peut pas s'exécuter** (audit `C-16`).
+>
+> **2. Gouvernance des service tokens E2E** (audit `C-17c`). Le § d les nommait comme contournement
+> d'Access recommandé, sans dire *où* ils vivent, *quand* ils tournent, ni *ce qu'ils sont* pour le
+> code de production. Trois volets.
+>
+> - **Restriction.** Un service token n'existe que sur une instance de **test ou de staging** ;
+>   **INTERDIT** d'en créer un sur une instance de production. Motif : un service token franchit la
+>   politique Access et vit dans les secrets de la CI — c'est un contournement permanent du seul
+>   contrôle d'accès du produit, et le placer sur l'instance qui porte les données réelles annulerait
+>   la révocation en deux gestes d'ADR-0003 (b) pour le porteur du secret CI. **Rotation** à cadence
+>   écrite, et **révocation au départ d'une personne** qui a vu les secrets de CI — troisième geste de
+>   la sortie, au même titre que les secrets d'instance (ADR-0008 amendement (b) point 3).
+> - **Sémantique tranchée** *(arbitrage humain)*. Un service token n'a **pas de claim `email`** ; or
+>   `writeHandler` résout `email → users` pour enregistrer l'identité d'autorat. La règle est
+>   **fail-closed** : `verifyAccessJwt` **refuse** toute assertion sans `email`, sans chemin dégradé —
+>   même geste que le JWKS injoignable (ADR-0004 amendement (c) point 5). Un service token ne peut
+>   donc **pas** exercer un endpoint d'écriture, et **aucune seconde résolution d'identité n'entre
+>   dans le seam d'auth**.
+> - **Conséquence assumée, et ce qu'elle achète.** L'écriture en E2E passe par la voie « local sans
+>   Access + JWT fabriqué » que le § e recommandait déjà pour le gros de la CI (zéro réseau, zéro
+>   quota) ; ce qui reste au service token est **de prouver qu'Access est appliqué** — c'est-à-dire
+>   exactement la cible de test de `B-01` ci-dessus, qui est la seule à exiger la vraie politique.
+>   Deux alternatives écartées, nommées pour n'être pas rejouées : *(a)* résoudre un service token
+>   vers une **identité de test non nominative** provisionnée dans `users` ajouterait au seam d'auth
+>   une seconde branche dont **l'absence d'une donnée de provisionnement serait la seule barrière** —
+>   or ADR-0011 § 1 pose que deux barrières valent mieux qu'une demie, pas qu'une branche vaut une
+>   barrière ; *(b)* supprimer les service tokens retirerait le **seul véhicule** de la cible de
+>   `B-01`, et le corpus perdrait la seule vérification qui exerce Access pour de bon.
+>
+> **3. Deux corrections factuelles.** *(a)* Audit `D-05` : le § f véhiculait « 500 builds/mois », une
+> métrique qu'ADR-0003 amendement (c) point 3 a explicitement invalidée — c'est un héritage de Pages
+> qui ne s'applique pas à Workers Builds, dont la limite est de **3 000 minutes/mois**. Raturée sur
+> place ; le fond était vrai et le reste (workerd et Miniflare tournent dans le *runner*, aucun quota
+> Cloudflare distant n'est consommé). *(b)* Audit `D-04`, résiduel laissé par le lot L3 : le
+> bloc-citation du 2026-07-17 disait encore « Cloudflare Email Routing », qui est le service de courrier
+> **entrant** ; raturé en **Cloudflare Email Service**, même geste et même motif qu'ADR-0004.
+>
+> **4. Ce que cet amendement ne fait pas — et pourquoi les constats restent `En cours`.** Il **nomme**
+> des cibles ; il ne les écrit pas, aucun code de production n'existant. La règle de suivi de l'audit
+> demande, pour toute règle applicable mécaniquement, que le **mécanisme d'application existe** — et
+> pour ces règles-là, **le test *est* le mécanisme** : il vit dans le dépôt, il s'exécute au portail,
+> et une cible nommée sans test ne refuse rien. Les quatorze constats qui renvoyaient ici leur
+> résiduel restent donc `En cours`, sans exception ni cas particulier : ce qui change est la **nature** du
+> résiduel, qui passe de « l'ADR doit nommer la cible » à « le test doit être écrit », c'est-à-dire
+> d'une dette documentaire — payable aujourd'hui — à une dette de code, payable avec le code. La
+> décision est écrite ici, dans un document accepté, plutôt que dans le plan de remédiation qui
+> disparaît avec ce lot.
 
 ---
 
@@ -86,7 +198,7 @@ Trophée de test (Kent C. Dodds) pondéré par le risque : investissement massif
 **E2E + contournement Access (Élevée sur les mécanismes).** Parcours : login → CRUD Page + construction de formulaire → upload R2 → preview SSR → Deploy Hook **mocké** ; + autorisation refusée, conflit de verrou. Contournement : (1) **service tokens** (Service Auth) — recommandé ; (2) tests **locaux sans Access** avec header `Cf-Access-Jwt-Assertion` fabriqué — recommandé pour le gros de la CI (zéro réseau/quota). Playwright : `webServer` en mode production-ish (`wrangler dev` sur les assets bâtis), `storageState` via `globalSetup`.
 
 ### (f) CI/CD & réplicabilité
-Turborepo, cibles affectées : `turbo run test --filter='...[origin/main...HEAD]'` ; `test` dépend de `^build` (pour que `@colibri/core` soit bâti avant les apps). GitHub Actions, Node 22, cache pnpm, `fetch-depth: 0`. workerd/Miniflare **en local** dans le runner → **aucun** des 500 builds/mois consommé. Réplicabilité : `vitest.config`, `playwright.config`, workflow, `turbo.json` **identiques** par client ; seules les valeurs de binding (IDs D1/R2/KV, `TEAM_DOMAIN`, `POLICY_AUD`) changent.
+Turborepo, cibles affectées : `turbo run test --filter='...[origin/main...HEAD]'` ; `test` dépend de `^build` (pour que `@colibri/core` soit bâti avant les apps). GitHub Actions, Node 22, cache pnpm, `fetch-depth: 0`. workerd/Miniflare **en local** dans le runner → **aucun quota de build Cloudflare consommé** (~~aucun des 500 builds/mois~~ — *raturé le 2026-08-01, amendement « les cibles de test de l'audit de sécurité » point 3 : la métrique héritée des Pages ne s'applique pas à Workers Builds, dont la limite est de **3 000 minutes/mois**, cf. ADR-0003 amendement (c) point 3 et audit `D-05`. Le fond est inchangé*). Réplicabilité : `vitest.config`, `playwright.config`, workflow, `turbo.json` **identiques** par client ; seules les valeurs de binding (IDs D1/R2/KV, `TEAM_DOMAIN`, `POLICY_AUD`) changent.
 
 ---
 
@@ -140,11 +252,20 @@ Pas de pourcentage imposé (Dodds : la couverture « does a very poor job » d'i
 - **OBLIGATOIRE** *(2026-08-01)* : sont également des cibles nommées — la **soumission forgée** rejetée (champ obligatoire vide, consentement absent, champ inconnu, valeur hors bornes, FR-090) ; le **recalcul du total** en test pur `@colibri/core`, y compris quand la définition a changé depuis l'affichage (FR-091) ; le **refus d'écrasement concurrent** (FR-092) ; l'**index de références** et le **non-rendu** d'un lien vers une page non publiée (FR-085) ; l'**atomicité de la publication** (un `batch()` D1, échec ⇒ aucun contenu en ligne modifié).
 - **OBLIGATOIRE** *(2026-08-01, ADR-0007 amendement (c))* : **aucune soumission acheminée avec succès ne subsiste** — la corbeille de FR-064 est vide sur le chemin nominal, et une demande relancée avec succès (FR-098) en disparaît. C'est l'invariant qui sépare une corbeille de courrier non distribué d'une base de prospects : il se teste, sinon il dérive. Sont également nommés l'**expiration inconditionnelle** de la rétention et l'absence de toute surface de recherche.
 - **OBLIGATOIRE** : la route **publique** de soumission de formulaire est testée pour la vérification anti-spam (refus d'un jeton Turnstile absent/invalide **+** happy-path), en plus de la validation Zod.
+- **OBLIGATOIRE** *(2026-08-01, cibles de test)* : cibles d'**entrée** — un nœud, une marque ou un attribut **non énuméré** fait **rejeter la valeur** (l'assertion porte sur le rejet, jamais sur une sortie nettoyée) ; un fichier dont la **signature d'octets** contredit l'extension ou le `Content-Type` déclaré est **refusé** ; `image/svg+xml` est refusé quelle que soit sa signature.
+- **OBLIGATOIRE** *(2026-08-01, cibles de test)* : cibles de **rendu et de transport** — CSP, `nosniff`, `Referrer-Policy` et `Permissions-Policy` vérifiés sur le **HTML réellement bâti** *et* sur la **surface non fiable** (aperçu et médias bruts), sans `unsafe-inline` ; un média servi hors build répond avec le `Content-Type` du **type détecté à l'entrée**, `nosniff` et un `Content-Disposition` normalisé ; le contenu d'une demande non acheminée est **rendu comme texte**, l'assertion portant sur la page rendue.
+- **OBLIGATOIRE** *(2026-08-01, cibles de test)* : cibles d'**autorisation** — un JWT signé valide mais d'**audience étrangère** est rejeté ; un **JWKS injoignable refuse** (*fail-closed*) ; et, dans le même test, **les routes admin restent derrière Access pendant que la soumission publique fonctionne**.
+- **OBLIGATOIRE** *(2026-08-01, cibles de test)* : cibles du **chemin de soumission** — une valeur porteuse de **CRLF** ne produit aucun en-tête supplémentaire ; une soumission vers un formulaire **dépublié** est rejetée ; un total **au-delà du plafond absolu** fait **échouer** la soumission, jamais un montant approché ; une adresse **retirée de `verified_recipients`** ne reçoit aucun acheminement, **relance comprise** ; après `expires_at` la ligne **n'existe plus en base**, vérifié par requête directe et non par la surface.
+- **OBLIGATOIRE** *(2026-08-01, cibles de test)* : cibles de **contenu et de clés** — renommer le libellé d'un champ publié ne change pas sa `field_key` et une soumission antérieure reste valide ; une image référencée **par le seul `draft`** ne répond pas sur la surface publique ; **aucun asset bâti** ne contient une adresse de `form_defs`.
+- **OBLIGATOIRE** *(2026-08-01, cibles de test)* : cibles **cœur et flotte** — **aucun appel réseau du cœur ne sort de l'allowlist déclarée** (les sept seams, « aucun hôte » compris) ; la **vérification post-migration** exécute les invariants d'ADR-0010 et les comptages comparés au delta déclaré, et **échoue quand elle ne peut pas s'exécuter**.
+- **INTERDIT** *(2026-08-01)* : un service token sur une instance de **production** — test et staging uniquement, rotation à cadence écrite, révocation au départ d'une personne ayant vu les secrets de CI.
+- **INTERDIT** *(2026-08-01)* : qu'une assertion Access **sans claim `email`** ouvre un endpoint d'écriture — `verifyAccessJwt` refuse (*fail-closed*), sans seconde résolution d'identité dans le seam d'auth. Un service token ne peut donc pas écrire ; l'écriture en E2E emprunte la voie « local sans Access + JWT fabriqué ».
 - **INTERDIT** : terminer une migration D1 par un commentaire (bug #7739).
 - **INTERDIT** : dépendre d'un login IdP interactif en CI (service tokens ou JWT fabriqué).
 - **OBLIGATOIRE** : la couverture est un indicateur secondaire, jamais une cible chiffrée.
 
 ## Related
 - Vise les seams de : ADR-0004 (`@colibri/core`, `@colibri/db`, `writeHandler`, `AssetResolver`, JWKS injectable) et d'ADR-0010 (lectures typées par état, opération de publication).
+- *(2026-08-01)* Vise aussi les frontières d'ADR-0011 (schéma d'entrée, contexte de rendu déclaré, en-têtes de réponse) et les règles posées par les amendements de l'audit de sécurité dans ADR-0003 (d), ADR-0004 (c), ADR-0006, ADR-0007 (e) et ADR-0008 (b). Cité en prose et non dans `depends-on` : l'amendement ajoute des cibles, pas une dépendance de graphe.
 - Contraint par : ADR-0003 (versions d'outillage, `nodejs_compat`).
 - Compagnon : ADR-0006 (gouvernance de la génération IA & portail de vérification).
