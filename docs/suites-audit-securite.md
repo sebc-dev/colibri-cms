@@ -25,7 +25,7 @@
 | **L5** | ADR-0007 amendement (e) — chemin de soumission | 12 | ✅ fait le 2026-08-01 |
 | **L6** | ADR-0003 amendement (d) — plateforme et exposition | 8 | ✅ fait le 2026-08-01 |
 | **L7** | ADR-0006 amendement + promotion d'ADR-0009 | 4 | ✅ fait le 2026-08-02 |
-| L8 | ADR-0008 amendement (b) — distribution, secrets, exploitation | 11 | à faire |
+| **L8** | ADR-0008 amendement (b) — distribution, secrets, exploitation | 11 | ✅ fait le 2026-08-02 |
 | L9 | ADR-0005 (cibles de test) + clôture du chantier | 2 | à faire |
 | L10 | Mécanisation (hooks / checks) — ~~optionnel, après L7~~ **requis avant la première ligne de `@colibri/core`** *(déclassé le 2026-08-02, lot L7)* | — | à faire |
 | L11 | Re-passe d'audit — après la Porte 1 | — | à faire |
@@ -430,7 +430,7 @@ nommés** : le projet client, hors portail, reste à **L8** (règle ESLint livr�
 réseau du cœur ne sort de l'allowlist déclarée » va à **L9** ; les quatre checks et le marqueur
 d'approbation vont à **L10**.
 
-### L8 — ADR-0008 amendement (b) : distribution, secrets, exploitation
+### L8 — ADR-0008 amendement (b) : distribution, secrets, exploitation ✅ *fait le 2026-08-02*
 
 `docs/adr/ADR-0008-mise-a-jour-de-la-flotte.md` · `docs/stack.md`
 **Ferme : A-03, A-04, B-12, B-13, C-02, C-10, C-16, C-17i, C-17j, D-06, D-08.**
@@ -458,6 +458,67 @@ poussé et inventaire des versions déployées (C-17i) ; signaux minimaux remont
 toute la visibilité convergeant aujourd'hui vers l'éditrice (C-17j) ; cycle de vie des données
 de l'éditrice (D-06) ; chiffrement au repos, TLS de l'acheminement, localisation géographique
 (D-08).
+
+**Tranché à l'exécution.** Trois **arbitrages humains**, tous les trois retenant l'option qui
+*supprime* une chose plutôt que d'en encadrer une. *(1) `A-04`* : **publication depuis la CI par
+*trusted publishing* OIDC, sans qu'aucun jeton de publication existe** — le paquet refuse la
+publication par jeton et la provenance est émise à chaque publication. La remédiation littérale du
+constat (« jeton détenu par l'identité d'agence non nominative ») est **dépassée par un fait de
+plateforme vérifié** : c'est le même geste qu'au lot L6 sur `B-01`, la question du secret réglée par
+**sa disparition**, et l'interdiction « jamais depuis un poste » qui devient mécanique au lieu de
+rester déclarative. Trois limites sont écrites pour n'être pas crues : le compte de registre est un
+point unique *déplacé* et non supprimé (d'où la 2FA, qui protège désormais une configuration et non
+un jeton), un *runner* auto-hébergé ferait retomber dans le régime du jeton, et le workflow de
+publication est déjà zone protégée d'ADR-0006. *(2) `B-13`* : **un compte Cloudflare par client**,
+sur un motif qui n'est **pas** celui du constat — celui-ci argumentait par le rayon d'un jeton
+compromis, or le motif décisif est que **les quotas de l'offre gratuite se comptent par compte** :
+en compte partagé, un flood chez un client consomme les 100 000 requêtes/jour et les 3 000 minutes
+de build des autres, ce qui est exactement la menace de `C-04` avec une parade (de périphérie) qui
+est *par instance* et n'y peut rien. En prime, la **classe entière** du rejeu de jeton Turnstile
+disparaît ; le contrôle du `hostname` reste, en seconde barrière (ADR-0011 § 1). *(3) `C-10`/`C-16`*
+: la « sauvegarde » du §4 **n'est pas une copie mais un point de restauration relevé** — *bookmark*
+Time Travel, toujours actif, sans coût, **7 jours sur l'offre gratuite** qui est la nôtre. `C-10`
+s'éteint alors **en grande partie faute d'objet** (aucun fichier, donc aucun lieu, aucun accès,
+aucune rétention à spécifier), et l'export de D1 hors instance devient **interdit** sans nouvel ADR.
+
+**Deux trouvailles d'exécution**, qui ne se dérivent d'aucun document. *(a)* La **re-purge
+post-restauration** que `C-10` réclame est obtenue **par construction** : la purge de la corbeille
+est un `DELETE … WHERE expires_at < now` exécuté par le Cron **idempotent** (lot L5), donc un
+invariant récurrent et non un événement unique — une restauration qui ressusciterait des demandes
+expirées est corrigée au tick suivant, sans geste ni procédure. La forme idempotente, choisie au lot
+L5 pour une tout autre raison, l'achète gratuitement. *(b)* `C-02` révèle le point que l'amendement
+(a) §c ne pouvait pas voir : le **membre de compte non nominatif résout la dépendance à *une*
+personne, il ne résout pas le partage d'un identifiant entre plusieurs** — donc ses identifiants
+entrent eux-mêmes dans la rotation dès qu'un partant les détenait, ce qu'il détenait s'il publiait.
+
+**Trois pièges de forme, tranchés.** *(a)* ADR-0008 porte un amendement **non lettré** dont les
+sous-sections sont `### a.` → `### d.` ; celui-ci est le **(b)** et ses sous-sections sont
+**numérotées** `### 1.` → `### 10.`, ce qui évite la collision de rangs avec (a). Elles **répètent**
+en revanche celles de `## Décision` (`### 1.` → `### 5.`), et c'est sans conséquence parce que le
+corpus dispose déjà de la désambiguïsation : « **§N** » désigne la Décision, « **point N** »
+l'amendement — convention que citent déjà les lignes de suivi (« ADR-0003 amdt (d) point 2 »). Le
+cas le plus exposé est heureux : le point 4 amende précisément le §4. *(b)* La « **nouvelle section Sécurité de la distribution** » annoncée ci-dessus est le
+**point 1 de l'amendement**, et non une section `##` autonome : la règle de grain (« un lot = un
+document = un amendement daté unique ») prime sur la formulation du plan. *(c)* Le périmètre de
+`stack.md` est tenu à **`D-06` et `D-08`** — les neuf autres constats vivent dans l'ADR seul ; seules
+s'y ajoutent la date `Révisé` et la puce d'ADR-0008 dans « Décisions structurantes → ADR ».
+
+**Un constat ne passe pas `Traité`, et le motif est écrit** : `A-04`, alors que sa règle est
+complète. Divergence nommée avec le précédent `C-17g` (lot L6), passé `Traité` parce que son acte
+survient à la création d'une instance, donc **dans le futur par construction** ; le mécanisme
+d'`A-04` — workflow de publication et configuration du *trusted publisher* — est au contraire un
+artefact que **ce dépôt** possédera et que le portail pourra vérifier, et il n'existe pas.
+Échéance : **Porte 2**, avant la première publication. `A-03` reste `En cours` de même, son volet
+hors du cœur étant fermé et le check du portail restant à **L10**.
+
+**Résiduel fermé au passage** : la ligne de suivi de `B-09` annonçait depuis le lot L5 « Reste le
+check et le **provisionnement de la règle de périphérie** (ADR-0008, lot L8) » — le volet
+provisionnement est pris par le point 10 ; ne reste que le check. C'est aussi ce qui a permis à
+`C-04` de passer `Traité` au lot L6 sans rien orpheliner.
+
+**Résiduels nommés, laissés à leur lot.** Vers **L9** : la cible de test des invariants vérifiés
+après migration, et celle du non-acheminement vers une adresse retirée de `verified_recipients`.
+Vers **L10** : le check du portail refusant `set:html`, dernier volet d'`A-03`.
 
 ### L9 — ADR-0005 (cibles de test) + clôture du chantier
 
@@ -540,7 +601,7 @@ qu'aucune relecture du présent plan ne peut dire.
 | L5 ✅ | B-03 · B-04 · B-08 · B-09 · B-11 · C-05 · C-06 · C-08 · C-09 · C-11 · C-14 · D-10 | 12 |
 | L6 ✅ | B-01 · B-13ᵖ · C-03 · C-04 · C-17g · C-17h · D-01 · D-07 | 8 |
 | L7 ✅ | B-14 · C-17e · C-17f · D-09 | 4 |
-| L8 | A-03 · A-04 · B-12 · B-13 · C-02 · C-10 · C-16 · C-17i · C-17j · D-06 · D-08 | 11 |
+| L8 ✅ | A-03 · A-04 · B-12 · B-13 · C-02 · C-10 · C-16 · C-17i · C-17j · D-06 · D-08 | 11 |
 | L9 | C-17c · D-05 | 2 |
 
 ᵖ = fermeture **partielle**, le constat est repris dans un lot ultérieur.
@@ -570,8 +631,8 @@ L1 (PRD FR-100→110)  ✅ fait
      ├─ L5 (0007 e)   ├─ ✅ fait — commutables : un fichier ADR distinct chacun
      ├─ L6 (0003 d)   │  ✅ fait
      ├─ L7 (0006 + promo 0009)  ✅ fait
-     └─ L8 (0008 b)  ─┘            ← prochain
-         └─ L9 (0005 + clôture)    ← en dernier : cite tout ce qui précède
+     └─ L8 (0008 b)  ─┘  ✅ fait
+         └─ L9 (0005 + clôture)    ← prochain, et en dernier : cite tout ce qui précède
              ├─ L10 (mécanisation — requis avant `packages/core` ; dépend de L7)
              └─ L11 (re-passe d'audit — après la Porte 1)
 ```
