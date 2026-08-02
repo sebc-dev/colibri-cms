@@ -23,7 +23,7 @@
 | **L3** | ADR-0004 amendement (c) — le cœur | 10 | ✅ fait le 2026-08-01 |
 | **L4** | ADR-0010 amendement (c) — clés naturelles, assets, cache | 4 | ✅ fait le 2026-08-01 |
 | **L5** | ADR-0007 amendement (e) — chemin de soumission | 12 | ✅ fait le 2026-08-01 |
-| L6 | ADR-0003 amendement (d) — plateforme et exposition | 8 | à faire |
+| **L6** | ADR-0003 amendement (d) — plateforme et exposition | 8 | ✅ fait le 2026-08-01 |
 | L7 | ADR-0006 amendement + promotion d'ADR-0009 | 4 | à faire |
 | L8 | ADR-0008 amendement (b) — distribution, secrets, exploitation | 11 | à faire |
 | L9 | ADR-0005 (cibles de test) + clôture du chantier | 2 | à faire |
@@ -69,8 +69,9 @@ assigné, et la couverture est vérifiable.
 **Numérotation.** `ADR-0011` est libre ; `0009` reste réservé par
 `_candidates/0009-portail-qualite-draft.md`. Côté PRD, ~~`FR-110` est désormais le maximum~~ —
 numérotation dense, **jamais renumérotée**. **→ À jour au 2026-08-01** : `FR-111` (lot L4, retrait
-d'une page reflété) puis `FR-112` (lot L5, soumission vers un formulaire retiré) ont été pris ; le
-prochain numéro libre est **`FR-113`**.
+d'une page reflété), `FR-112` (lot L5, soumission vers un formulaire retiré) puis `FR-113` (lot L6,
+tiers chargés chez le visiteur nommés dans l'information de confidentialité) ont été pris ; le
+prochain numéro libre est **`FR-114`**.
 
 **Outillage.** Réel et extensible : 2 hooks `PreToolUse`, portail à 11 checks rejoué en CI et
 en nightly. Trois voies d'application — `estCheminProtege()`
@@ -270,9 +271,9 @@ promesse produit, plus un cas limite. `FR-112` devient le maximum ; le prochain 
 **Front-matter et `README.md` intacts** : ajouter `ADR-0011` au `depends-on` d'ADR-0007 aurait
 changé le graphe de dépendance, hors du périmètre annoncé du lot ; l'amendement le cite en prose.
 
-### L6 — ADR-0003 amendement (d) : plateforme et exposition
+### L6 — ADR-0003 amendement (d) : plateforme et exposition ✅ *fait le 2026-08-01*
 
-`docs/adr/ADR-0003-socle-technique.md` · `docs/stack.md`
+`docs/adr/ADR-0003-socle-technique.md` · `docs/stack.md` · `docs/prd.md` · `CLAUDE.md`
 **Ferme : B-01, B-13ᵖ, C-03, C-04, C-17g, C-17h, D-01, D-07.**
 
 **Mécanisme d'exposition de la route publique face à Access tranché** — Bypass strictement
@@ -291,6 +292,55 @@ arbitrage exact-pin vs plage caret, boucle de veille CVE définie (C-17h). Facte
 comme **risque accepté** — la sécurité de l'admin égale celle de la boîte mail de la cliente
 (D-01). Volet information ePrivacy pour Turnstile et l'embed vidéo, l'analyse consignée ne
 couvrant que la mesure d'audience (D-07).
+
+**Tranché à l'exécution.** Deux **arbitrages humains**. *(1) `B-01`* : la route publique passe par
+un **motif de route unique** — `<apex-du-site>/api/forms/*/submit`, déclaré dans
+`apps/admin/wrangler.jsonc` — vers le Worker d'admin, sur le domaine du site, et **aucune exclusion
+Access n'est créée nulle part**. Le *Bypass*, l'autre issue nommée par l'audit, est écarté pour
+trois motifs dont le dernier décide : il n'applique aucun contrôle **et ne journalise pas**, il
+ignore la méthode HTTP, et il vit dans le **tableau de bord** — hors du dépôt, donc hors de ce
+qu'ADR-0002 permet de vérifier, alors qu'un motif de route est versionné à côté de
+`workers_dev: false`. **La question cross-origin est réglée par disparition** : la soumission part
+du site vers son propre apex, donc same-origin — ni CORS, ni préflight, ni dérogation à
+`checkOrigin`. Topologie finale : quatre noms, trois régimes (`admin.<apex>` et `apercu.<apex>`
+sous Access, `<apex>` public, un chemin de l'apex routé vers l'admin). Fait de plateforme vérifié
+en documentation : une route **plus spécifique** l'emporte sur le Custom Domain du même nom d'hôte.
+*(2) `C-17h`* : **exact-pin**, le `catalog:` fait foi ; les `^` de la table de décision sont des
+plages de **compatibilité peer**, désambiguïsées par une **clause d'interprétation** plutôt que par
+treize ratures ; `--frozen-lockfile` en CI pour les transitives ; veille en trois gestes sans
+service nouveau (alertes du forge, `pnpm audit` au nightly déjà en place, revue à cadence écrite
+qui bump le `catalog:`).
+
+**Les trois pièges de forme, tranchés.** *(a)* `B-01` et `D-01` renvoyaient en « Doc cible » vers
+**ADR-0007** et **ADR-0003 (b)**, tous deux amendements **consommés** — la redirection est écrite
+en colonne **Preuve**, la colonne « Doc cible » restant le registre de ce que l'audit proposait.
+*(b)* Le tableau de quotas de l'amendement (c) vit dans une section datée, donc immuable : il est
+**repris intégralement dans (d)** avec la colonne nouvelle et une ligne de plus (les **100 000
+requêtes/jour**, absentes de (c) alors que (a) point 1 les mentionne en prose) — **jamais édité en
+place**, et le choix est déclaré dans l'amendement. *(c)* La **parade périphérique** (règle WAF) et
+l'**exécuteur de la purge** ont été pris par L5 : L6 les **cite et les exploite**, il ne les
+re-décide pas.
+
+**Une exigence PRD nouvelle** : **`FR-113`** — l'information de confidentialité nomme les tiers
+susceptibles d'être chargés à la suite d'une action du visiteur, ce qu'ils déposent, et le fait
+qu'une page seulement consultée n'en charge aucun. Motif : `FR-089` garantit qu'aucun tiers ne
+s'exécute avant une action, mais c'est une règle de **conception**, pas un mécanisme de
+consentement. `FR-113` devient le maximum ; le prochain libre est **`FR-114`**. `FR-110`
+(déconnexion, lot L1) n'est **ni rouverte ni rejouée**.
+
+**Incohérence relevée et tranchée.** Le second volet de `C-04` — « documenter la parade
+périphérique gratuite **au provisionnement** » — vise ADR-0008, auquel la matrice de couverture
+**n'assigne pas** `C-04` ; le laisser flotter en aurait fait un orphelin, comme `C-11` au lot L5.
+Il n'en est pas un : il est **déjà porté** par le résiduel de `B-09`, dont la ligne de suivi écrit
+depuis L5 « Reste le check et le **provisionnement de la règle de périphérie** (ADR-0008, lot L8) ».
+`C-04` passe donc `Traité` sans rien orpheliner, et **aucune correction de matrice n'est
+nécessaire** — le raisonnement est écrit dans sa colonne Preuve.
+
+**Trois constats sortent du régime `En cours`.** `C-04` et `C-17g` passent **`Traité`** : ni l'un ni
+l'autre n'est mécanisable par un check du dépôt — l'un est une analyse de menace et une règle de
+provisionnement, l'autre l'endroit *hors du dépôt* où un secret est déposé. `D-01` passe
+**`Accepté`**, ce que le constat demandait exactement : il ne reprochait pas le choix du facteur
+unique, mais qu'il ne soit **nulle part écrit comme risque accepté**.
 
 ### L7 — ADR-0006 amendement + promotion d'ADR-0009
 
@@ -402,7 +452,7 @@ qu'aucune relecture du présent plan ne peut dire.
 | L3 | A-03ᵖ · B-02 · B-05 · B-07 · B-10ᵖ · C-01 · C-15 · C-17b · D-02 · D-04 | 10 |
 | L4 | B-06 · B-10 · C-13 · D-03 | 4 |
 | L5 ✅ | B-03 · B-04 · B-08 · B-09 · B-11 · C-05 · C-06 · C-08 · C-09 · C-11 · C-14 · D-10 | 12 |
-| L6 | B-01 · B-13ᵖ · C-03 · C-04 · C-17g · C-17h · D-01 · D-07 | 8 |
+| L6 ✅ | B-01 · B-13ᵖ · C-03 · C-04 · C-17g · C-17h · D-01 · D-07 | 8 |
 | L7 | B-14 · C-17e · C-17f · D-09 | 4 |
 | L8 | A-03 · A-04 · B-12 · B-13 · C-02 · C-10 · C-16 · C-17i · C-17j · D-06 · D-08 | 11 |
 | L9 | C-17c · D-05 | 2 |
@@ -432,8 +482,8 @@ L1 (PRD FR-100→110)  ✅ fait
      ├─ L3 (0004 c)  ─┐  ✅ fait
      ├─ L4 (0010 c)   │  ✅ fait
      ├─ L5 (0007 e)   ├─ ✅ fait — commutables : un fichier ADR distinct chacun
-     ├─ L6 (0003 d)   │  ← prochain
-     ├─ L7 (0006 + promo 0009)     │
+     ├─ L6 (0003 d)   │  ✅ fait
+     ├─ L7 (0006 + promo 0009)     │  ← prochain
      └─ L8 (0008 b)  ─┘
          └─ L9 (0005 + clôture)    ← en dernier : cite tout ce qui précède
              ├─ L10 (mécanisation, optionnel — dépend de L7 pour ADR-0009)
