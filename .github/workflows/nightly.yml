@@ -33,6 +33,9 @@ jobs:
       - name: Installer les dépendances
         run: pnpm install --frozen-lockfile
 
+      - name: Veille CVE (ADR-0003 (d) — échec au niveau élevé)
+        run: pnpm audit --audit-level high
+
       - name: Exécuter le portail qualité en régime planifié
         # Sortie machine consommée telle quelle pour l'annotation du run ;
         # aucune option ne doit masquer un code de sortie non-zéro ici :

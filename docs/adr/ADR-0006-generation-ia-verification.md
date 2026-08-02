@@ -349,6 +349,63 @@ test « aucun appel réseau du cœur ne sort de l'allowlist déclarée » revien
 
 ---
 
+## Amendement 2026-08-02 (b) — la revue exigée, à l'endroit où elle peut vivre
+
+La protection de branche appelée par l'amendement (a) a été posée le 2026-08-02. Elle a révélé une
+**incohérence interne** de cet amendement, que sa rédaction seule ne montrait pas.
+
+**Ce qui est en place.** Un *ruleset* actif sur la branche par défaut : pull request obligatoire,
+force-push refusé, suppression refusée, **`bypass_actors` vide** — propriétaire compris —, et le
+régime **par-changement** du portail (`quality-gate`) en **check requis**. Deux des trois exigences
+de la contrainte sont donc tenues, et la troisième — « revue exigée » — n'a pas été posée.
+
+**Pourquoi elle ne peut pas l'être.** La forge interdit d'approuver sa propre pull request, et le
+dépôt a un **mainteneur unique**. Exiger une approbation sans second approbateur ne produit pas de
+la sûreté : elle rend la branche par défaut **immergeable**. Et ce blocage a une issue naturelle,
+inscrire le propriétaire en `bypass_actors` — c'est-à-dire détruire exactement ce qui fait du
+troisième maillon le seul qu'une écriture de fichier ne désactive pas. **Une contrainte dont le
+seul chemin d'application praticable est le contournement du mécanisme qu'elle sert est une
+contrainte mal placée.**
+
+**Et c'était déjà écrit ici.** Le **point 3** de l'amendement (a) pose que « l'approbateur est la
+personne qui lance l'agent » et que « le marqueur d'approbation est lui-même un artefact du
+dépôt ». La revue humaine y vit **dans le dépôt**, déclenchée par le portail. La contrainte, elle,
+la plaçait **sur le forge**. Les deux ne pouvaient pas être vraies ensemble sur un dépôt à un seul
+mainteneur ; la configuration n'a fait que rendre l'écart visible.
+
+**Décision : la revue reste exigée, son lieu est corrigé.**
+
+- Sur le **forge**, l'exigence est ramenée à ce qu'une forge peut tenir sans second humain — et
+  **renforcée** là où elle le peut : PR obligatoire, aucun push direct, aucun force-push, aucune
+  suppression, **aucun acteur en contournement**, portail en check requis. Ce que cela garantit
+  tient en une phrase : **rien n'atteint la branche par défaut sans avoir été relu par le portail,
+  et personne ne peut s'en dispenser.**
+- La relecture **humaine** reste portée par le **point 3** : le portail refuse un diff touchant un
+  seam, un endpoint d'écriture nouveau, l'allowlist réseau, un manifeste de dépendances ou le
+  mécanisme d'application, tant que le marqueur d'approbation n'est pas porté. Marqueur dans le
+  dépôt, vérification dans la CI, impossibilité de court-circuiter la CI sur le forge : **la chaîne
+  des trois maillons du point 5 est intacte**, elle passe par trois artefacts au lieu de deux.
+
+**Ce que la correction coûte, écrit plutôt que découvert.** Rien n'est perdu par rapport à l'état
+réellement atteignable : l'approbation par un tiers n'a jamais été disponible sur ce dépôt. Ce qui
+est perdu, c'est l'écrit qui laissait croire qu'elle l'était. Le résiduel reste celui que
+l'amendement (a) nommait déjà — un approbateur qui relit un diff qu'il veut voir merger est un
+adversaire faible ; la revue vaut contre un agent dévoyé ou une dépendance piégée, pas contre une
+intention humaine.
+
+**Seuil, et il est mécanique.** Dès qu'une **seconde personne a le droit de merger** sur ce dépôt,
+`required_approving_review_count` passe à 1 et `require_last_push_approval` à vrai. Le geste est
+nommé ici pour n'avoir pas à être re-décidé. C'est le seuil du point 6 de l'amendement (a) — « un
+flux de contribution réel » —, ici avec sa configuration.
+
+*Ce que cet amendement ne ferme pas, nommé pour n'être pas rejoué :* le **marqueur d'approbation**
+et l'extension d'`estCheminProtege()` restent dus (lot L10, requis avant la première ligne du
+cœur). Tant qu'ils manquent, le check requis passe au vert sur un diff que le portail ne sait pas
+encore refuser — et il rend cet écart **plus** piégeur qu'avant, parce qu'il produit un vert qui
+ressemble à une garantie.
+
+---
+
 ## Caveats
 - **Versions d'outillage** (`fast-check`, Stryker, `dependency-cruiser`) **à épingler au jour de l'installation** — non figées ici, dans l'esprit d'ADR-0003.
 - **Aucune source ne prescrit ce régime pour ce stack précis** : il compose des pratiques établies (test-first, property-based, mutation, boundaries) — inférence raisonnée, à valider à l'usage.
@@ -376,7 +433,9 @@ test « aucun appel réseau du cœur ne sort de l'allowlist déclarée » revien
 - **OBLIGATOIRE** *(2026-08-01)* : toute dépendance **nouvelle** (directe ou entrée du `catalog:`) est approuvée explicitement par un humain ; **INTERDIT** à l'IA d'éditer `package.json`, `pnpm-workspace.yaml` ou `pnpm-lock.yaml`.
 - **INTERDIT** *(2026-08-01)* : à l'IA d'éditer le **mécanisme d'application** — `.claude/hooks/`, `.claude/settings.json`, `.github/workflows/`, `tooling/quality-gate/` et la base de référence des mutants survivants d'ADR-0009 § 5.
 - **OBLIGATOIRE** *(2026-08-01)* : la **CI re-vérifie**, à partir du diff et non de l'exécution du hook, qu'aucun chemin protégé n'a changé sans approbation — la protection des hooks par les hooks étant auto-référente.
-- **OBLIGATOIRE** *(2026-08-01)* : la branche par défaut est protégée **sur le forge** — aucun push direct, revue exigée, régime **par-changement** du portail en **check requis** ; c'est le seul maillon hors du dépôt, donc le seul qu'une écriture de fichier ne peut pas désactiver.
+- ~~**OBLIGATOIRE** *(2026-08-01)* : la branche par défaut est protégée **sur le forge** — aucun push direct, revue exigée, régime **par-changement** du portail en **check requis** ; c'est le seul maillon hors du dépôt, donc le seul qu'une écriture de fichier ne peut pas désactiver.~~ **→ Nuancé le 2026-08-02** (amendement (b)) : « revue exigée » était placée sur le forge, où un dépôt à mainteneur unique ne peut pas la tenir sans se contourner lui-même. Remplacée par les deux contraintes suivantes.
+- **OBLIGATOIRE** *(2026-08-02)* : la branche par défaut est protégée **sur le forge** — pull request obligatoire, aucun push direct, aucun force-push, aucune suppression, **aucun acteur en contournement** (`bypass_actors` vide, propriétaire compris), et le régime **par-changement** du portail en **check requis**. C'est le seul maillon hors du dépôt, donc le seul qu'une écriture de fichier ne peut pas désactiver.
+- **OBLIGATOIRE** *(2026-08-02)* : l'exigence de relecture **humaine** est portée par le **marqueur d'approbation du dépôt** et son contrôle par la CI (point 3 de l'amendement (a)), non par un compte d'approbations sur le forge ; **OBLIGATOIRE** de porter `required_approving_review_count` à 1 et `require_last_push_approval` à vrai **dès qu'une seconde personne a le droit de merger**.
 - **OBLIGATOIRE** *(2026-08-01)* : `SECURITY.md` à la racine — canal de signalement **privé**, délai de réponse, périmètre ; **INTERDIT** de signaler une vulnérabilité par une issue publique.
 
 ## Related
@@ -387,3 +446,4 @@ test « aucun appel réseau du cœur ne sort de l'allowlist déclarée » revien
 - **Portail qui applique ces contrôles** *(2026-08-01)* : [ADR-0009](./ADR-0009-portail-qualite.md), promu `accepted` par le même lot — topologie, registre à source unique, contrat machine, *fail-closed* et cliquet de la baseline de mutation. L'amendement ci-dessus étend ce portail ; il ne le redéfinit pas.
 - **Épinglage exact, `--frozen-lockfile` et veille CVE** *(2026-08-01)* : ADR-0003 amendement (d) point 6, qui renvoyait ici la seule **approbation d'une dépendance nouvelle**.
 - Origine *(2026-08-01)* : [audit de sécurité du 2026-08-01](../audit-securite-2026-08-01.md), constats `B-14` (innocuité), `C-17e` (dépendances), `C-17f` (mécanisme d'application), `D-09` (contributions externes).
+- Origine de l'amendement (b) *(2026-08-02)* : la pose effective de la protection de branche, qui a révélé une incohérence **interne** à l'amendement (a) — son point 3 place la revue humaine dans le dépôt, sa contrainte la plaçait sur le forge. Aucun constat d'audit nouveau ; `C-17f` (troisième maillon) et `D-09` (configuration du forge) en sont les lignes de suivi.
