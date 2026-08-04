@@ -48,3 +48,10 @@
 | 2026-07-19 | plan | 22 fichiers touchés · 1 candidat ADR (0009) · (reconstitué) |
 | 2026-07-19 | tasks | 11 lots R1..R11 · 58 tâches · (reconstitué) |
 | 2026-07-26 | run | R1..R11 livrés · 58/58 tâches cochées · portail à 11 checks, 2 hooks, CI + nightly · (reconstitué) |
+
+## 002-mecanisation-portail
+
+| Date | Phase | Résultat |
+|---|---|---|
+| 2026-08-03 | kickoff-feature | `specs/002-mecanisation-portail/` créé · cycle complet · **delta** (cible : `specs/001-ci-quality-gate/spec.md`) · lot **L10** de la remédiation d'audit |
+| 2026-08-03 | specify | 28 FR ajoutés (FR-031→FR-058) · 5 modifiés (FR-013, 017, 018, 021, 023) · 8 SC · 3 [NEEDS CLARIFICATION] · périmètre : 4 résiduels d'outillage + 5 dormants + dette 001 (5 écarts code/spec) · 10 résiduels exclus avec motif |
