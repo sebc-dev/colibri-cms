@@ -42,3 +42,15 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+# Test de mutation (régime nocturne — .github/workflows/nightly.yml)
+.stryker-tmp/
+reports/
+
+# Réglages Claude Code personnels — `.claude/settings.json` est versionné et
+# surveillé par `quality-config-guard` ; la variante `.local` ne l'est pas.
+.claude/settings.local.json
+
+# Copie locale de l'ancien socle, conservée hors du dépôt : git en garde déjà
+# l'historique, et sans cette ligne un `git add -A` la réintroduirait.
+archive/

@@ -1,6 +1,0 @@
-packages:
-  - "apps/*"
-
-catalog:
-  astro: 7.0.7
-  "@astrojs/cloudflare": 14.1.2

@@ -3,21 +3,34 @@
 | | |
 |---|---|
 | **Statut** | Draft |
-| **Créé** | 2026-07-17 |
-| **Trace vers** | [docs/prd.md](./prd.md) |
-| **Détaille** | [docs/adr/](./adr/README.md) |
+| **Date** | 2026-08-07 |
+| **Trace vers** | [PRD](./prd.md) |
+| **Consommé par** | ADR, CI, niveau specs |
+| **Documents liés** | [Socle de livraison](./socle-de-livraison.md) — invariants `I1`–`I6`, contraintes `C1`–`C10`, annexe A datée |
 
-> Ce fichier est une **synthèse**. Le *pourquoi* détaillé et les alternatives écartées vivent dans les ADR : ici on relie chaque choix aux exigences qu'il sert et à l'ADR qui le porte. Les **versions exactes** ne sont pas recopiées ici — elles vivent dans le `catalog:` pnpm, décidé par [ADR-0003](./adr/ADR-0003-socle-technique.md).
+> **Ce que ce document est.** La synthèse des fondations techniques, en mode *options
+> justifiées* : chaque ligne a été arbitrée par l'humain, contre des faits relevés le
+> 6 août 2026, et chacune sert au moins une exigence du PRD. Le **rationale détaillé** de
+> chaque décision coûteuse à inverser part dans un ADR — c'est la dernière section qui
+> pilote cette phase-là, pas le tableau des choix.
+>
+> La colonne « ADR » est **volontairement vide** : `/scd-sdd:adr` la back-fille.
 
 ---
 
 ## Vue d'ensemble
 
-Deux applications dans un monorepo pnpm, une seule base de code partagée. Un **site public statique** (Astro SSG) que le CDN sert sans runtime, et une **admin en rendu serveur** (Astro SSR sur Cloudflare Workers) où vit tout le dynamique. Les données passent par des **bindings Cloudflare directs** (D1, R2, KV), sans API REST publique. Le configurateur de devis calcule son estimation dans le navigateur du visiteur et n'appelle le serveur qu'à l'envoi — unique entaille à la staticité du site public.
+ColibriCMS est **un site statique et un outil d'édition, déployés côte à côte dans le
+compte Cloudflare de la cliente**, sans aucune infrastructure Isometria. L'état publié du
+site n'existe qu'en **fichiers plats dans le dépôt Git de la cliente** ; la base ne porte
+que le brouillon, la médiathèque et les demandes de devis. Publier, c'est écrire un commit
+— et ce commit est le seul déclencheur de la reconstruction, si bien que la copie portable
+et la mise en ligne sont le même geste et ne peuvent pas diverger.
 
-Cette forme découle directement du PRD : le visiteur ne doit toucher aucun runtime (`FR-039`, `SC-005`), l'ensemble doit tenir sur le free tier Cloudflare (`SC-001`), et l'éditrice ne crée aucun compte hors son e-mail (`FR-002`, `SC-006`).
-
-Le code se répartit en deux niveaux : un **cœur versionné open source** (le moteur : admin, site, `@colibri/core`, `@colibri/db`, migrations) et, par client, un **projet privé** qui épingle une version du cœur et fournit ses gabarits, son thème et sa configuration. C'est cette séparation qui permet de mettre à jour toute la flotte sans code divergent par client (`SC-008`) — mécanisme détaillé en « Contraintes techniques transverses ».
+Deux objets déployables aux cycles de vie disjoints : un **Worker de site public** qui ne
+sert que des assets statiques, jamais un script ; un **Worker de CMS** qui porte l'admin,
+la base, la publication et l'unique traitement serveur du produit — la réception d'une
+demande de devis.
 
 ---
 
@@ -25,163 +38,199 @@ Le code se répartit en deux niveaux : un **cœur versionné open source** (le m
 
 | Domaine | Choix | Sert (FR/SC) | ADR |
 |---|---|---|---|
-| Langage | TypeScript `strict` | (tous) ; frontière de typage | [0003](./adr/ADR-0003-socle-technique.md) |
-| Framework site public | Astro **SSG**, sans adaptateur | FR-039, SC-005 | [0003](./adr/ADR-0003-socle-technique.md) |
-| Framework admin | Astro **SSR** `@astrojs/cloudflare` + îlots React | FR-006→FR-034, FR-040→FR-048 | [0003](./adr/ADR-0003-socle-technique.md) |
-| Base de données | **D1** (SQLite), bindings directs | FR-004→FR-019, FR-038, FR-040 | [0003](./adr/ADR-0003-socle-technique.md), [0004](./adr/ADR-0004-architecture-du-code.md) |
-| Stockage médias | **R2**, binding direct | FR-020→FR-023 | [0003](./adr/ADR-0003-socle-technique.md) |
-| Cache / session | **KV** | FR-003 (résolution user) | [0003](./adr/ADR-0003-socle-technique.md) |
-| Éditeur de texte riche | **TipTap** (stockage JSON ProseMirror) | FR-015 | [0003](./adr/ADR-0003-socle-technique.md) |
-| Validation | **Zod**, partagée client/serveur | FR-013, FR-014, FR-048 | [0004](./adr/ADR-0004-architecture-du-code.md) |
-| Auth éditrice | **Cloudflare Access** (JWT vérifié côté Worker) | FR-001, FR-002, FR-032, SC-006 | [0003](./adr/ADR-0003-socle-technique.md), [0004](./adr/ADR-0004-architecture-du-code.md) |
-| Optimisation images | **Sharp** au build (SSG) | FR-026, SC-005 | [0003](./adr/ADR-0003-socle-technique.md) |
-| Mise à jour du site public | **Deploy Hook** sur publication explicite | FR-034→FR-037, FR-058, SC-004 | [0004](./adr/ADR-0004-architecture-du-code.md) |
-| Styles | **Tailwind 4** via `@tailwindcss/vite` | (présentation admin) | [0003](./adr/ADR-0003-socle-technique.md) |
-| Constructeur de formulaires | Îlot React en admin ; définition en base | FR-040→FR-048 | 0007 *(à créer)* |
-| Acheminement des soumissions | **Cloudflare Email Routing** (envoi depuis le Worker) | FR-061, SC-007 | 0007 *(à créer)* |
-| Anti-spam des soumissions | **Cloudflare Turnstile** (vérifié côté Worker) | FR-063 | 0007 *(à créer)* |
-| Total du formulaire | **Calcul côté navigateur** (définition du formulaire bâtie dans le site) | FR-050, FR-051 | 0007 *(à créer)* |
-| Déploiement | **Workers + Static Assets**, une instance/client | SC-001, SC-002 | [0003](./adr/ADR-0003-socle-technique.md) |
-| Distribution du cœur | **Paquets versionnés open source**, épinglés par site client privé | SC-008 | 0008 *(à créer)* |
-| Versionnage | **SemVer** (majeure = migration/rupture de contrat gabarit) | SC-008 | 0008 *(à créer)* |
-| Mise à jour de la flotte | Bump de version épinglée + migrations D1 rejouables (étape outillée + sauvegarde) + redéploiement outillé | SC-008 | 0008 *(à créer)* |
-| Tests | Vitest + `@cloudflare/vitest-pool-workers` + Playwright | (tous) | [0005](./adr/ADR-0005-strategie-de-test.md) |
-| Monorepo | **pnpm workspaces** (`catalog:`) + Turborepo | NFR maintenabilité | [0003](./adr/ADR-0003-socle-technique.md), [0004](./adr/ADR-0004-architecture-du-code.md) |
+| **Langage** | TypeScript strict, avec validation de schéma à l'exécution sur toutes les frontières d'entrée | `FR-065`, `FR-066`, `FR-067` · contrainte « vérifications mécaniques » | [ADR-0006](./adr/0006-typescript-strict-validation-aux-frontieres.md) |
+| **Framework du site public** | Astro | `FR-045`, `FR-046`, `FR-047`, `FR-058`, `SC-005` | [ADR-0005](./adr/0005-astro-moteur-de-rendu.md) |
+| **Framework de l'admin** | Coquille statique Astro + îlots interactifs + API JSON dans le Worker | `FR-004`–`FR-014`, `FR-030`, `FR-048`–`FR-056`, `FR-072`–`FR-079` | [ADR-0005](./adr/0005-astro-moteur-de-rendu.md) · [ADR-0004](./adr/0004-cloudflare-workers-deux-workers-separes.md) |
+| **Magasin de l'état publié** | Le dépôt Git de la cliente, en fichiers plats — source de vérité unique | `FR-037`, `FR-040`, `FR-043`, `SC-009`, `SC-011` | [ADR-0001](./adr/0001-depot-client-magasin-de-l-etat-publie.md) |
+| **Format du contenu déposé** | Markdown pour le texte riche, frontmatter YAML pour les champs structurés | `FR-006`, `FR-037`, `FR-043`, `SC-011` | [ADR-0002](./adr/0002-format-du-contenu-markdown-frontmatter-yaml.md) |
+| **Médias** | Fichiers statiques du dépôt ; dérivés responsive générés au build | `FR-017`, `FR-021`, `FR-038`, `FR-039`, `SC-010`, `SC-001` | [ADR-0003](./adr/0003-medias-en-fichiers-du-depot-r2-ecarte.md) |
+| **Base de données** | Cloudflare D1 — brouillon, médiathèque, demandes. Ne porte **jamais** l'état publié | `FR-023`, `FR-024`, `FR-029`, `FR-035`, `FR-066`, `FR-072`, `FR-075`, `FR-080` | [ADR-0001](./adr/0001-depot-client-magasin-de-l-etat-publie.md) |
+| **Auth** | Lien magique, mécanique déléguée à une bibliothèque d'authentification éprouvée | `FR-001`, `FR-002`, `FR-003`, `SC-006`, `SC-015` | [ADR-0007](./adr/0007-authentification-par-lien-magique.md) |
+| **Envoi d'e-mail** | Cloudflare Email Service, **restreint à l'adresse de destination vérifiée** de la cliente | `FR-068`, `FR-069`, `FR-070`, `FR-071`, `SC-016` | [ADR-0008](./adr/0008-envoi-e-mail-cloudflare-email-service.md) |
+| **Anti-abus** | Deux étages : 1 règle WAF en périphérie + Turnstile devant l'enregistrement | `FR-065`, `SC-017` | [ADR-0009](./adr/0009-anti-abus-a-deux-etages.md) |
+| **Forge** | GitHub, dépôt ouvert au nom de la cliente ; publication par l'API Git | `FR-037`, `FR-041`, `FR-088`, `SC-013` | [ADR-0010](./adr/0010-github-forge-et-chemin-de-publication.md) |
+| **Cible de déploiement** | Cloudflare Workers, **deux Workers séparés** (site public en assets · CMS) | `FR-046`, `FR-086`, `FR-097`, `FR-098`, `SC-008`, `SC-012` | [ADR-0004](./adr/0004-cloudflare-workers-deux-workers-separes.md) |
+| **Système de build** | Workers Builds, déclenché par le commit, dans le compte de la cliente | `FR-040`, `FR-042`, `FR-045`, `SC-004` | [ADR-0004](./adr/0004-cloudflare-workers-deux-workers-separes.md) |
+| **Maintien de la flotte** | CMS publié en paquet versionné ; dépôt d'instance mince (contenu + config, pas de code) | `FR-086`, `SC-008` | [ADR-0011](./adr/0011-cms-en-paquet-versionne-depot-d-instance-mince.md) |
+| **Stratégie de test** | Trois étages — unitaire/intégration · bout en bout · **épreuves d'invariant rejouables** — portail bloquant sur le code nouveau | `SC-011`, `SC-012`, `SC-014` · contrainte « code non relu ligne à ligne » | [ADR-0012](./adr/0012-strategie-de-test-a-trois-etages.md) |
+
+### Domaines explicitement non applicables
+
+- **Rôles et permissions** — `EXCLU` du Brief : une seule éditrice par instance, la collision
+  qu'un modèle de droits protégerait est structurellement impossible.
+- **Analytique** — `EXCLU` du Brief et `FR-081`. L'instrument du produit est le compteur de
+  demandes en D1, pas le trafic.
+- **File d'attente et traitement asynchrone** — aucun traitement différé au périmètre v1 :
+  la publication est synchrone jusqu'au commit, puis c'est le build qui prend le relais.
+- **Internationalisation** — hors périmètre v1, aucun `FR` ne la demande.
+- **Mutualisation / multi-tenant** — `EXCLU` du Brief : un déploiement = un site = un client.
 
 ---
 
 ## Contraintes techniques transverses
 
-- **Free tier Cloudflare, invariants de garde** (SC-001) : enregistrement explicite jamais en autosave (protège les écritures D1/KV) ; Deploy Hook **uniquement** sur « Publier » (protège le quota de builds) ; optimisation d'images au **build** avec Sharp (évite le stockage d'images payant).
-- **Le visiteur ne touche aucun runtime** (FR-039) sauf l'envoi d'un devis : les pages de contenu et le calcul d'estimation sont servis/exécutés sans code serveur.
-- **Aucune API REST publique** : accès direct aux bindings dans l'admin SSR (« Local API pattern »). Corollaire imposé par l'architecture : le contrôle d'accès est **réappliqué explicitement** dans chaque endpoint d'écriture (FR-003) — voir [ADR-0004](./adr/ADR-0004-architecture-du-code.md).
-- **Validation partagée, revalidée côté serveur** (FR-014, FR-042) : le client n'est jamais de confiance.
-- **Secrets hors dépôt** : bindings, URL du Deploy Hook (traitée comme un secret), clés Turnstile → `wrangler secret put`, jamais dans un fichier versionné.
-- **Le code entrant n'est pas relu ligne à ligne** (brief) : la confiance vient de vérifications mécaniques — voir [ADR-0005](./adr/ADR-0005-strategie-de-test.md), [ADR-0006](./adr/ADR-0006-generation-ia-verification.md).
-- **Réplicabilité par client** : configs identiques d'une instance à l'autre ; seules changent les valeurs de binding.
-- **Maintenabilité de la flotte** (SC-008) — *mécanisme de versionnage défini* :
-  - **Séparation cœur / site client.** Le **cœur** ColibriCMS (moteur admin, site, `@colibri/core`, `@colibri/db`, pipeline de rendu, migrations) est publié en **paquets versionnés open source**. Chaque **site client** est un projet **privé distinct** qui **dépend d'une version épinglée** du cœur et fournit ses propres **gabarits, thème et configuration**. Le sur-mesure vit dans le projet client — qui *consomme* le cœur, ne le forke jamais ; le cœur ne contient aucun code spécifique client. C'est ce qui réconcilie « open source » et « pas de code divergent par client ».
-  - **SemVer.** `MAJEUR.MINEUR.CORRECTIF`. Une **majeure** = rupture : migration D1 non rétro-compatible **ou** changement du contrat de gabarit. Mineure = ajout compatible ; correctif = bug.
-  - **Mise à jour d'un client** = bump de la version du cœur épinglée + redéploiement ; opération **outillée sur la flotte** (jamais manuelle client par client). Chaque client monte de version quand il est prêt (les épinglages sont indépendants).
-  - **Migrations D1** versionnées, ordonnées, rejouables, appliquées par une **étape explicite outillée, après sauvegarde du D1 client et vérification** — jamais automatiquement au déploiement (garde-fou anti-perte de contenu, SC-008).
-  - Formalisation → ADR-0008. Le **contrat de gabarit** (comment un projet client enregistre ses gabarits/zones/thème auprès du cœur sans éditer le cœur) est le seam qui rend tout ceci possible → à définir dans ADR-0004.
+**Gratuité conditionnelle (`I5`, `C9`, `SC-001`).** Tout composant retenu est gratuit
+**sans moyen de paiement enregistré**. C'est ce critère — et non le prix — qui a écarté
+Cloudflare R2 (activation par un parcours de souscription exigeant une carte), Cloudflare
+Images (produit payant) et l'envoi d'e-mail vers des destinataires arbitraires (plan
+Workers Paid).
+
+**Tout dans le compte de la cliente (`I1`, `I4`, `FR-041`, `FR-102`).** Domaine, compte
+Cloudflare, dépôt GitHub, base D1, les deux Workers, le domaine d'envoi d'e-mail, le widget
+Turnstile : chacun ouvert à son nom. Isometria n'y a que des accès révocables.
+
+**Le contenu publié n'a pas de second exemplaire (`I2`, `I3`).** Il n'existe qu'en fichiers
+plats. Aucune double écriture n'est possible, donc aucune divergence ne l'est.
+
+**Enveloppe du palier gratuit, relevé du 6 août 2026** — les valeurs vivent dans l'annexe A
+du socle de livraison, qui se révise sans rouvrir le contrat. Ce qui contraint le code :
+
+| Limite | Valeur (plan Free) | Ce que le code doit en faire |
+|---|---|---|
+| Fichiers par version de Worker | 20 000 | Compter au build et alerter à 15 000 (`C5`) — les dérivés d'images sont le poste dominant |
+| CPU par invocation | 10 ms | Aucun rendu de gabarit à la demande : l'admin est servi en assets, le script ne fait que des écritures courtes. L'attente réseau n'est pas comptée |
+| Requêtes Worker | 100 000/jour | La règle WAF doit arrêter la rafale **avant** le Worker, sinon Turnstile la rejette correctement en brûlant le quota |
+| D1 | 5 M lignes lues/j · 100 k écrites/j · 5 Go | Confortable pour ce profil ; à surveiller si la médiathèque devient volumineuse |
+| Workers Builds | 3 000 min/mois · 1 build concurrent · timeout 20 min | Le comportement au-delà des minutes reste non documenté — ne rien contractualiser dessus (réserve 1 de l'annexe A) |
+
+**Un seul destinataire d'e-mail.** L'envoi n'est gratuit que vers une **adresse de
+destination vérifiée** du compte. Le produit ne dépasse jamais ce couloir parce que son
+unique destinataire est l'éditrice elle-même — et l'exclusion « accusé de réception par
+e-mail au visiteur » du PRD n'est donc plus seulement une décision de périmètre : **elle
+porte la gratuité de l'envoi**. La rouvrir rouvre `SC-001`.
+
+**Le dépôt ne maigrit jamais.** Une image supprimée disparaît de l'arbre de travail mais
+demeure dans l'historique. C'est le prix assumé du renoncement à R2 ; il n'a aucun effet
+sur `SC-010` (aucune page publiée n'affiche d'image manquante) mais il pèse sur la taille
+du dépôt dans la durée.
+
+**Anti-rebond à la charge du CMS (`C4`, `FR-042`).** La concurrence de build à 1 *sérialise*
+une rafale, elle ne la fusionne pas. Le regroupement des publications rapprochées est du
+travail applicatif, pas un acquis de la plateforme.
+
+**Concentration chez un fournisseur unique.** Framework, hébergement, build, base, envoi
+d'e-mail et anti-abus relèvent tous de Cloudflare depuis l'acquisition d'Astro en janvier
+2026. Contrepoids retenus : Astro est sous licence MIT et son code est public ; l'épreuve
+de réversibilité (`SC-011`) ne dépend d'aucun accès Cloudflare ; `I3` s'entend « sans accès
+Cloudflare », pas « sans registre de paquets ».
+
+**Open source**, sans promesse d'usage par des tiers en v1 — reprise de la contrainte du
+Brief, sans effet sur les choix ci-dessus.
 
 ---
 
-## Modèle de données (D1 / SQLite)
+## Ce que cette phase rouvre en amont
 
-Le modèle est **centré page**, pas éditorial : ni articles, ni auteurs, ni tags (hors périmètre, brief). Une page est une instance de gabarit ; ses **valeurs de zone** sont stockées à part, indexées par clé de zone, ce qui permet à l'intégrateur de faire évoluer un gabarit sans migration de colonnes. Les **définitions** de gabarits et de zones vivent dans le code (elles sont typées, versionnées, possédées par l'intégrateur) ; la base ne stocke que les **valeurs**.
+Deux points à traiter hors de ce document, avant qu'ils ne se figent dans un ADR :
 
-Esquisse (le DDL de référence et les invariants d'accès sont portés par [ADR-0004](./adr/ADR-0004-architecture-du-code.md)) :
+- **`C1` du socle de livraison est devenu faux.** Il écrit « le CMS écrit le contenu dans D1
+  **et** le commite en fichiers plats ». L'arbitrage retenu supprime la double écriture : D1
+  ne porte plus l'état publié. `C1` et sa colonne de vérification sont à amender.
+- **Réserve 1 de l'annexe A, partiellement levée.** Le quantum des minutes de build est
+  désormais documenté (3 000/mois, plan Free) ; seul le comportement au dépassement reste
+  non documenté. La réserve se resserre au lieu de disparaître.
 
-```sql
-PRAGMA foreign_keys = ON;
-
-CREATE TABLE users (               -- FR-003, FR-004
-  id         TEXT PRIMARY KEY,
-  email      TEXT NOT NULL UNIQUE,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE media (               -- FR-020 → FR-023, FR-025
-  id         TEXT PRIMARY KEY,
-  r2_key     TEXT NOT NULL UNIQUE, -- media/{yyyy}/{mm}/{uuid}.{ext}
-  alt        TEXT,
-  width      INTEGER, height INTEGER, size INTEGER,
-  mime       TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE pages (               -- FR-006, FR-007, FR-019, FR-027 → FR-029, FR-038
-  id              TEXT PRIMARY KEY,
-  template        TEXT NOT NULL,   -- clé de gabarit (défini en code)
-  slug            TEXT NOT NULL UNIQUE,  -- fixé au provisioning, non éditable (FR-009/011)
-  title           TEXT NOT NULL,
-  status          TEXT NOT NULL DEFAULT 'draft'
-                    CHECK (status IN ('draft','published')),
-  seo_title       TEXT, seo_description TEXT, og_image_id TEXT REFERENCES media(id),
-  created_by      TEXT REFERENCES users(id),
-  updated_by      TEXT REFERENCES users(id),
-  created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
-  published_at    TEXT
-);
-
-CREATE TABLE page_zone_values (    -- FR-008, FR-012, FR-013
-  page_id   TEXT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
-  zone_key  TEXT NOT NULL,         -- correspond à une zone du gabarit
-  value_json TEXT NOT NULL,        -- forme validée par Zod selon le type de zone
-  PRIMARY KEY (page_id, zone_key)
-);
-
-CREATE TABLE forms (               -- FR-040, FR-046, FR-047
-  id             TEXT PRIMARY KEY,
-  slug           TEXT NOT NULL UNIQUE,
-  title          TEXT NOT NULL,
-  recipient_email TEXT NOT NULL,   -- destination des soumissions (FR-046)
-  status         TEXT NOT NULL DEFAULT 'draft'
-                   CHECK (status IN ('draft','published')),
-  created_by     TEXT REFERENCES users(id),
-  updated_by     TEXT REFERENCES users(id),
-  created_at     TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at     TEXT NOT NULL DEFAULT (datetime('now')),
-  published_at   TEXT
-);
-
-CREATE TABLE form_fields (         -- FR-041, FR-042, FR-043, FR-045
-  id          TEXT PRIMARY KEY,
-  form_id     TEXT NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
-  type        TEXT NOT NULL        -- text|email|phone|textarea|select_single|select_multi|number|date|consent
-                CHECK (type IN ('text','email','phone','textarea',
-                                'select_single','select_multi','number','date','consent')),
-  label       TEXT NOT NULL,
-  required    INTEGER NOT NULL DEFAULT 0,   -- booléen 0/1 (FR-043)
-  unit_price  INTEGER,             -- centimes, pour type 'number' à prix unitaire (FR-045)
-  sort_order  INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE TABLE form_field_options (  -- FR-044 : choix d'un champ select_*, avec montant
-  id         TEXT PRIMARY KEY,
-  field_id   TEXT NOT NULL REFERENCES form_fields(id) ON DELETE CASCADE,
-  label      TEXT NOT NULL,
-  price_delta INTEGER NOT NULL DEFAULT 0,  -- centimes, entier
-  sort_order INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE TABLE site_settings (       -- FR-071, FR-072, FR-073 : réglages transverses
-  key        TEXT PRIMARY KEY,     -- ex : 'social_links', 'contact'
-  value_json TEXT NOT NULL,        -- forme validée par Zod selon la clé
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  published_at TEXT
-);
-```
-
-Notes :
-- **`value_json` typé par zone** : texte simple → chaîne ; texte riche → JSON ProseMirror (FR-015) ; image → `{ media_id }` ; galerie → `{ items: [{ media_id, caption? }, ...] }`, liste **ordonnée** (FR-066) avec légende facultative par image (FR-067) — le texte alternatif vit sur `media.alt` ; vidéo → `{ provider, ref }` ou `{ url }` `[À VÉRIFIER : hébergée vs intégrée]` (FR-069) ; CTA → `{ label, href }` (FR-070) ; répéteur → `{ items: [ { <clé_sous-champ>: <valeur typée>, ... }, ... ] }`, liste **ordonnée** d'éléments conformes à la forme déclarée par le gabarit (FR-074), chaque sous-champ validé selon son type de base (FR-076). Un schéma Zod par type de zone valide la forme (FR-013) ; c'est la frontière serveur (FR-014).
-- **Répéteur — exemple « carrousel d'avis »** : le gabarit déclare la forme d'un élément `{ image, auteur, texte, rôle?, avatar?, date? }` ; l'éditrice gère la liste d'éléments (FR-075), le gabarit rend chaque élément comme une diapo (image + avis en surimpression). La *forme* est possédée par le gabarit (intégrateur), le *contenu* par l'éditrice — même partage que page/zone. **Pas d'imbrication en v1** : un sous-champ n'est jamais lui-même un répéteur ou une galerie (FR-076).
-- **Mode d'affichage d'une galerie** (grille, carrousel…) : déclaré par le **gabarit en code** (FR-068), jamais stocké en base ni éditable ; la base ne connaît que la liste ordonnée d'images. L'éditrice gère le contenu, le gabarit gère la présentation.
-- **Montants en centimes entiers** : jamais de flottant pour de la monnaie. Le total est une **somme** des contributions (montants de choix sélectionnés + valeur×`unit_price`), calculée côté navigateur (FR-050) ; aucune règle conditionnelle (hors périmètre).
-- **Cycle brouillon/publication des formulaires** (FR-047) : la définition d'un formulaire publié est **bâtie dans le site** (donnée statique consommée par le rendu et le calcul navigateur, FR-049/FR-050) ; une modification non publiée reste en base sans rebuild, donc invisible au public. Sémantique fine (portée du « Publier ») → [ADR-0004](./adr/ADR-0004-architecture-du-code.md).
-- **Pas de table de soumissions** : une soumission est acheminée par e-mail puis non conservée (FR-064).
-- **La définition de formulaire est possédée par l'éditrice** (structure composable, FR-041) — à la différence des gabarits de page, possédés par l'intégrateur en code. C'est la seule surface où l'éditrice compose une structure ; l'entorse à la philosophie « zones typées non restructurables » est assumée et bornée aux formulaires.
-- **Réglages transverses** (`site_settings`) : clé → `value_json` typé par clé (liens réseaux sociaux, coordonnées), bâtis dans le site et servis sur toutes les pages ; même cycle brouillon/publication que les pages (FR-073), géré par la temporalité du build.
-- **Verrou optimiste** : `updated_at` reste le jeton, mais **édition concurrente hors périmètre v1** (une éditrice) — le seam existe, la protection n'est pas une priorité v1.
+**Restent ouvertes, et non tranchées ici** — ce ne sont pas des choix de stack : la perte ou
+la compromission de la boîte e-mail de la cliente (clé de voûte de l'instance), et les
+obligations RGPD attachées aux coordonnées transportées par chaque demande. Toutes deux à
+cadrer avant la première mise en ligne, comme le Brief le pose.
 
 ---
 
 ## Décisions structurantes → candidats ADR
 
-Les ADR 0001–0006 (recherche existante) couvrent la gouvernance, le socle, l'architecture, le test et la génération IA. Cette session en amende deux et en ouvre un :
+Une ligne = un futur ADR. Chacune est coûteuse à inverser ; les choix cosmétiques et les
+conventions évidentes n'y figurent pas.
 
-- **ADR-0007 — Constructeur de formulaires (nouveau).** Un moteur de formulaire **générique dans sa structure, borné dans ses capacités** : l'éditrice compose des formulaires (champs typés, obligatoires, à prix) ; le total est une **somme calculée côté navigateur** à partir de la définition bâtie dans le site (préserve FR-039/SC-005 hors envoi) ; acheminement par **Cloudflare Email Routing** depuis le Worker (reste dans l'écosystème, gratuit, sert SC-001) ; anti-spam par **Cloudflare Turnstile** vérifié côté Worker ; **aucune persistance** des soumissions (FR-064). Le devis de la cliente en est la première instance, pas un objet dédié. Alternatives écartées : formulaire devis-spécifique en dur (non réutilisable) ; constructeur avec logique conditionnelle/multi-étapes (abstraction en avance sur le besoin — règle de trois) ; Resend / MailChannels (dépendance tierce, gratuité moins sûre) ; stockage des soumissions (mini-CRM hors périmètre) ; calcul serveur (romprait la staticité au-delà du nécessaire).
-- **ADR-0004 à amender** : le modèle passe d'éditorial (article/auteur/tag) à **centré page + formulaires** (pages + zones ; forms + fields + options). Les tranches `article/author/tag` disparaissent de la v1 ; le seam `ContentTypeDescriptor` reste dormant. La surface d'écriture ajoute la gestion des formulaires (admin, via `writeHandler`) et l'endpoint public de soumission (via `writeHandler` sans auth Access — route publique — mais avec vérif Turnstile + envoi e-mail mocké en test). **Point d'attention** : l'endpoint de soumission est la première route d'écriture **publique** (non protégée par Access) ; le pipeline `writeHandler` doit distinguer les routes authentifiées des routes publiques anti-spam. **Frontière cœur/site client** : le mécanisme de versionnage (voir « Maintenabilité de la flotte ») impose qu'ADR-0004 définisse le cœur comme un ensemble de paquets consommés par un projet client privé ; le **contrat de gabarit** — l'interface par laquelle un projet client déclare ses gabarits, zones et thème au cœur sans l'éditer — devient un seam de premier plan, au même rang que `@colibri/db` ou `writeHandler`.
-- **ADR-0005 à amender** : ajouter l'endpoint de soumission aux cibles d'intégration ; l'envoi d'e-mail est **mocké** en test (comme le Deploy Hook, garde-fou free tier) ; le calcul du total côté navigateur est une cible de test pur (`@colibri/core`) ; la vérification Turnstile est mockée/injectable en test.
-- **ADR-0008 — Stratégie de mise à jour de la flotte (nouveau).** Répond à SC-008. **Décidé** (cf. contrainte « Maintenabilité de la flotte » ci-dessus) : cœur en **paquets SemVer open source**, site client **privé** épinglant une version ; **majeure = migration/rupture du contrat de gabarit** ; migrations appliquées par **étape outillée + sauvegarde + vérification**, jamais au déploiement. **Reste à formaliser dans l'ADR** : l'outil concret de redéploiement de la flotte (CI par dépôt client vs orchestration centrale) ; le format des migrations et le registre de leur application par instance ; la procédure de rollback. Interagit avec ADR-0003 (déploiement Workers), **ADR-0004** (le contrat de gabarit est le seam cœur/client), ADR-0005 (migrations testées sur données réelles-locales avant flotte) et ADR-0006 (migrations possédées par l'humain, jamais éditées par l'IA pour verdir).
+1. **Le dépôt de la cliente porte l'état publié ; D1 ne porte que le brouillon.** Retenue
+   parce que `I2`, `I3` et `SC-009` deviennent vrais par construction et qu'aucune
+   divergence n'est possible faute de second exemplaire. *Alternative écartée* : D1 porte
+   tout et le dépôt en est une copie déposée (le `C1` d'origine) — écartée parce que la
+   double écriture ouvre une fenêtre où `I2` est faux si le commit échoue après le succès
+   en base, fenêtre qu'il faudrait réconcilier par du code que rien ne teste tant qu'il ne
+   casse pas.
 
----
+2. **Format du contenu déposé : Markdown + frontmatter YAML.** Retenue parce que `FR-037`
+   « fichiers lisibles » et `SC-011` ne valent que si un tiers ouvre le fichier et lit,
+   sans connaître aucun schéma ; et parce que borner l'éditeur à ce que Markdown exprime va
+   dans le sens du produit — elle ne peut pas casser sa mise en page. *Alternative écartée*
+   : le JSON structuré de l'éditeur — fidélité parfaite, mais `SC-011` obligerait le tiers à
+   décoder le schéma d'un éditeur, et `US11` prévient que ce format se paie s'il est repris
+   tard.
 
-## Questions ouvertes (techniques)
+3. **Médias en fichiers statiques du dépôt, dérivés générés au build ; R2 écarté.** Retenue
+   par élimination : R2 était techniquement supérieur — hors du décompte de fichiers, dépôt
+   qui ne gonfle pas, suppression honnête — mais son activation exige un moyen de paiement
+   sur le compte, ce qui rend faux `I5`, `C9`, `SC-001` et la clause §4.1 du clausier.
+   *Alternative écartée* : R2, sur ce seul motif — à rouvrir si Cloudflare change cette
+   condition d'entrée.
 
-- **Cloudflare Email Routing en envoi sortant** `[À VÉRIFIER]` : confirmer que l'envoi *depuis* un Worker (pas seulement le routage entrant) est disponible sur le free tier et ses limites, au jour de l'installation. Repli documenté si non : Resend (gratuit plafonné).
-- **Accès D1 au build** SSG `[À VÉRIFIER]` : binding d'intégration au build vs D1 REST — hérité d'ADR-0004, inchangé par cette session.
-- **`compatibility_date` / `nodejs_compat`** : à fixer selon la version de miniflare installée — voir ADR-0003.
+4. **Plateforme et topologie : Cloudflare Workers, deux Workers séparés.** Retenue parce que
+   le site public et le CMS ont des cycles de vie disjoints — publier du contenu ne doit pas
+   redéployer du code, et sortir une version du CMS ne doit pas retoucher le site en ligne
+   (`SC-008`) — et parce qu'un défaut de l'admin ne peut alors pas retirer le site.
+   *Alternative écartée* : Cloudflare Pages, malgré sa limite écrite de 500 déploiements par
+   mois, parce que Cloudflare publie un guide de migration vers Workers et que l'adaptateur
+   Astro ne le cible plus par défaut.
+
+5. **Astro comme moteur de rendu du site public et de l'admin.** Retenue pour les collections
+   de contenu lisant les fichiers plats, la génération des dérivés d'images au build — ce qui
+   remplace exactement ce que R2 aurait apporté —, les îlots pour le calcul du total chez le
+   visiteur (`FR-058`) et le zéro JavaScript par défaut (`FR-047`, `SC-005`), le tout sur un
+   seul outillage partagé avec l'admin. *Alternative écartée* : Eleventy, plus neutre vis-à-vis
+   du fournisseur, mais sans pipeline d'images ni îlots — il faudrait les écrire, et `SC-005`
+   redeviendrait un travail d'optimisation manuel.
+
+6. **TypeScript strict, avec validation de schéma à l'exécution sur les frontières.** Retenue
+   parce que la contrainte « le code entrant n'est pas relu ligne à ligne » exige des
+   vérifications mécaniques, et que les types disparaissent à la compilation : trois
+   frontières reçoivent des octets non maîtrisés — soumission du visiteur, réponses de l'API
+   GitHub, lignes relues de D1. *Alternative écartée* : TypeScript seul, où une donnée mal
+   formée se propage jusqu'à échouer loin de sa cause.
+
+7. **Authentification par lien magique, mécanique déléguée à une bibliothèque éprouvée.**
+   Retenue parce qu'elle réalise le geste exact de `FR-001` — l'adresse, puis un clic,
+   aucune autre information demandée — sans que la sécurité de l'admin repose sur cinq
+   points (aléa, usage unique, expiration, comparaison en temps constant, fixation de
+   session) qui se trompent en silence et ne font échouer aucun test. *Alternative écartée*
+   : Cloudflare Access par code à six chiffres — zéro code d'authentification et une
+   protection du quota à la périphérie, mais elle impose de retaper un code, ce qui s'écarte
+   de la lettre de `FR-001` et du scénario `US1`.
+
+8. **Cloudflare Email Service, envoi restreint à l'adresse de destination vérifiée.**
+   Retenue parce que c'est le seul chemin gratuit **sans moyen de paiement** qui satisfait
+   les trois conditions posées par le Brief (compte au nom de la cliente, aucune carte,
+   délivrabilité vérifiable), et parce que l'échec d'envoi est rendu de façon synchrone —
+   ce qui honore `FR-070` et `FR-071` sans aucune surveillance hébergée, donc sans entamer
+   `I6`. *Alternative écartée* : un service tiers d'envoi (Resend, Brevo et assimilés), qui
+   ajouterait un compte, un secret et une dépendance là où la plateforme déjà retenue suffit.
+
+9. **Anti-abus à deux étages : règle WAF en périphérie + Turnstile devant l'enregistrement.**
+   Retenue parce que les deux étages font deux travaux qui ne se remplacent pas : la règle
+   WAF protège le quota de requêtes (`I5`) en arrêtant la rafale avant le Worker, Turnstile
+   protège la liste des demandes et les deux nombres (`SC-017`) mais s'exécute *dans* le
+   Worker. *Alternative écartée* : Turnstile seul — correct sur `SC-017`, mais une rafale
+   massive serait proprement rejetée tout en brûlant le quota journalier.
+
+10. **GitHub comme forge et comme chemin de publication.** Retenue pour l'épreuve de
+    passation (`SC-014`) : c'est la forge que le développeur tiers connaît déjà, et une
+    épreuve « sans poser aucune question » se joue sur du familier. *Alternative écartée* :
+    GitLab, dont l'API de commits accepte toutes les actions de fichiers en une seule
+    requête réellement atomique — un avantage réel sur le chemin le plus critique du
+    produit, payé en familiarité.
+
+11. **Maintien de la flotte : CMS publié en paquet versionné, dépôt d'instance mince.**
+    Retenue parce que `FR-086` exige littéralement qu'aucun code propre au client n'existe :
+    le dépôt de la cliente ne porte que ce qui lui appartient — contenu, médias, gabarits,
+    configuration — et monter de version est un changement de numéro. *Alternative écartée*
+    : le dépôt-gabarit forké et monté par fusion amont, qui produit des conflits à résoudre
+    client par client dès la première personnalisation, c'est-à-dire précisément le code
+    divergent que le Brief interdit.
+
+12. **Stratégie de test à trois étages, portail bloquant sur le code nouveau.** Retenue
+    parce que les promesses centrales du produit — `SC-011`, `SC-012`, `SC-014` — ne se
+    vérifient par aucun test unitaire : ce sont des procédures qu'on exécute et dont la
+    sortie est une pièce datée. Le portail porte sur le code nouveau pour qu'un seuil global
+    ne puisse pas se dégrader sans que rien ne refuse. *Alternative écartée* : les parcours
+    de bout en bout seuls, trop grossiers pour localiser un défaut dans un code que personne
+    ne relit ligne à ligne.
