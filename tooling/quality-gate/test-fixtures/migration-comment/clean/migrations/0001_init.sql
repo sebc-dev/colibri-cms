@@ -1,4 +1,0 @@
-CREATE TABLE page (
-  id INTEGER PRIMARY KEY,
-  titre TEXT NOT NULL
-);
