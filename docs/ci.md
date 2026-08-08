@@ -133,6 +133,66 @@ refus**. C'est un arbitrage, pas un oubli.
 positifs n'est pas « inconnu », il est **nul par construction** — ou alors le contrôle a un
 défaut, pas un bruit.
 
+### Ce que `test-integrity` peut et ne peut pas faire
+
+Il ne peut **pas** reproduire la règle temporelle du niveau implémentation — « les tests
+existent, rouges, et ne bougent plus pendant l'implémentation ». En mode TDD, la PR d'un lot
+contient légitimement les tests **et** le code, et rien dans le diff ne distingue l'ordre
+d'écriture. Il porte donc les signaux qui restent vrais quel que soit le moment, répartis en
+**deux régimes qu'il ne faut pas confondre** :
+
+| Régime | Mode de défaillance | Signal cherché dans le diff | Issue |
+|---|---|---|---|
+| **A** | Test neutralisé | `.skip(` `.only(` `.todo(` `.fixme(` `xit(` `xdescribe(` `expect(true).toBe(true)` ajoutés | **aucune** — refus sec |
+| **B** | Test supprimé | `git diff --diff-filter=D` sur les globs de test | **signature** |
+| **B** | Assertions affaiblies | plus de lignes `expect(`/`assert` retirées qu'ajoutées | **signature** |
+
+Globs surveillés : `**/*.test.ts(x)`, `**/*.spec.ts(x)`, `tests/**`, `e2e/**`. Ils sont
+**normatifs** : un test écrit ailleurs échappe au contrôle.
+
+**Pourquoi deux régimes, et pas un.** La première rédaction n'en avait qu'un — refus sec sur
+les trois signaux — au motif que « la sortie est de retirer le test, pas de l'endormir ». Ce
+motif se contredisait : le garde refusait précisément qu'on retire un test. Le défaut n'est
+pas resté théorique, il a bloqué la PR de reprise, où le retrait du projet abandonné
+supprimait 14 fichiers de test et 204 assertions sans aucune issue possible.
+
+La correction sépare les deux gestes. **Endormir un test n'a jamais de justification
+recevable** : aucune soupape, et c'est délibéré. **Retirer un test ou alléger un oracle est
+légitime** — retrait d'un module, refonte — et strictement indiscernable d'une subversion par
+le seul diff. On ne l'interdit donc pas : on exige que l'humain le **signe de sa main**, par
+la même mécanique que `suppression-guard` et le même
+`.github/scripts/verify-signed-commits.sh`. Tout commit de l'intervalle qui touche un fichier
+de test doit alors être signé — c'est l'ensemble qui porte la responsabilité, pas le seul
+commit où le compteur bascule.
+
+**Ce qu'il coûte.** Une refonte de tests devient une PR dont les commits sont signés. C'est le
+prix voulu : alléger un oracle est une décision, pas un détail d'implémentation.
+
+### La soupape de `quality-config-guard`
+
+Sans elle, ce contrôle bloquerait sa propre maintenance. Le changement de configuration est
+autorisé si **tous** les commits qui y touchent portent un scope explicite —
+`chore(ci):`, `chore(config):`, `build(ci):` ou `chore(agent):` — ou si la PR porte le label
+`config-change`. Jamais en silence.
+
+Chemins surveillés : `eslint.config.*`, `.eslintrc*`, `tsconfig*.json`, `vitest.config.*`,
+`playwright.config.*`, `stryker.conf.*`, `knip.*`, `prettier.config.*`, `.prettierrc*`,
+`.prettierignore`, `.eslintignore`, `pnpm-workspace.yaml`, `.github/workflows/**`,
+`.github/scripts/**`, et — parce qu'ils contraignent l'agent lui-même — `CLAUDE.md`,
+`AGENTS.md`, `.claude/**`.
+
+`package.json` est surveillé **partiellement** : seules les lignes des scripts du portail
+(`test`, `typecheck`, `lint`, `build`, `coverage`, `knip`, `mutation`) déclenchent l'exigence
+de scope. Ajouter une dépendance touche `package.json` légitimement et ne doit pas faire de
+bruit — un contrôle bruyant finit désactivé.
+
+> **Cette soupape-là ne résiste pas à un agent, et il faut le savoir.** Un scope de commit
+> s'écrit ; un label se pose par l'API avec une portée `repo`. Elle rend le changement
+> **visible**, elle ne le rend pas **impossible** — c'est suffisant pour de la configuration,
+> et c'est exactement pourquoi les deux gardes qui visent la subversion des vérificateurs
+> exigent une signature à la place. Voir § Ce que ces contrôles ne couvrent pas.
+
+---
 ---
 
 ## Le garde de suppression — la seule soupape qu'un agent ne peut pas écrire
@@ -394,9 +454,35 @@ dans aucun workflow de ce projet. Tant que ce contexte reste exigé, **toute PR 
 `pending` pour toujours** — et comme le bypass est à `never`, personne ne peut merger,
 propriétaire compris.
 
-La commande ci-dessous remplace la liste des checks et laisse le reste intact. **Je ne
-l'exécute pas** ; elle est à coller telle quelle, une fois `.github/workflows/ci.yml`
-présent sur la branche que vous proposerez :
+### L'ordre de pose — en trois temps, et l'ordre n'est pas indifférent
+
+**Un portail ne peut pas garder sa propre installation.** La PR qui apporte ces contrôles est
+aussi celle qui retire le projet abandonné : elle supprime 14 fichiers de test et 204
+assertions. `test-integrity` le refuse, et il a raison de le refuser — sauf que la signature
+qui l'autoriserait suppose `.github/allowed_signers`, lequel arrive dans cette même PR.
+Mesuré sur la PR #14 le 2026-08-08 : 12 jobs verts, `test-integrity` et `deps-policy` rouges,
+état `BLOCKED`.
+
+La reprise est donc **la dernière chose qui passe sans portail, parce qu'elle *est* le
+portail**. Séquence :
+
+1. **Retirer le fantôme sans encore exiger les nouveaux checks.** Poser le ruleset avec
+   `deletion`, `non_fast_forward` et `pull_request`, **sans** `required_status_checks` —
+   c'est-à-dire le JSON ci-dessous privé de sa dernière règle. Le contexte `quality-gate`
+   disparaît, la PR cesse d'être `pending` pour toujours.
+2. **Poser le label `deps` sur la PR de reprise**, puis la merger. `deps-policy` repasse au
+   vert ; `test-integrity` reste rouge, **visible et non requis** — et il rapporte un fait
+   exact, qu'il vaut mieux lire que masquer.
+3. **Poser alors le JSON complet**, avec les 9 checks requis. À partir de là tout est gardé,
+   et plus aucune exception n'est nécessaire : le régime B de `test-integrity` donne
+   désormais une issue par signature à tout retrait de test ultérieur.
+
+**Je n'exécute aucune de ces commandes** ; le label de l'étape 2 non plus — un label se pose
+par l'API avec une portée `repo`, donc à ma portée, et une soupape que l'agent actionne
+lui-même n'est pas une soupape.
+
+La commande ci-dessous remplace la liste des checks et laisse le reste intact — c'est
+l'étape 3 :
 
 ```bash
 gh api -X PUT repos/sebc-dev/colibri-cms/rulesets/20239278 \
@@ -529,6 +615,15 @@ protège que les sessions de cet agent, pas un `git` tapé dans un autre termina
   pas qu'un SHA épinglé est bien atteignable depuis le dépôt de l'action (*impostor-commit*).
   Le compromis est délibéré : un audit en ligne dépend d'une limite de débit, et un contrôle
   intermittent finit désactivé.
+- **Les soupapes par scope et par label ne résistent pas à un agent.** `quality-config-guard`
+  s'ouvre par un scope de commit ou le label `config-change` ; `deps-policy` par un scope ou
+  le label `deps`. Un scope s'écrit ; un label se pose par l'API avec une portée `repo`, que
+  le jeton d'un agent porte couramment — relevé le 2026-08-08 sur la session de ce projet :
+  portées `gist, read:org, repo, workflow`. Ces deux soupapes rendent le changement
+  **visible**, elles ne le rendent pas **impossible**. C'est assumé : pour de la
+  configuration, la visibilité suffit. Les deux gardes qui visent la subversion d'un
+  vérificateur — `suppression-guard` et le régime B de `test-integrity` — exigent une
+  signature précisément parce que la visibilité n'y suffirait pas.
 - **La logique métier et l'autorisation.** Le SAST ne modélise pas l'intention : un IDOR sur
   la médiathèque ou sur les demandes de devis ne produit aucun motif suspect.
 - **Les invariants du produit.** `SC-011` (réversibilité), `SC-012` (révocation des accès) et

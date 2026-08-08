@@ -324,6 +324,13 @@ jobs:
   # du niveau implémentation (« les tests existent, rouges, et ne bougent plus ») :
   # en TDD, la PR d'un lot contient légitimement les tests ET le code. Il porte donc
   # les signaux vrais quel que soit le moment.
+  #
+  # DEUX RÉGIMES, et la distinction est le cœur du job :
+  #   A. endormir un test  → refus sec, aucune issue ;
+  #   B. retirer un test ou alléger un oracle → légitime, mais SOUS SIGNATURE.
+  # Sans B, le job se contredisait : il disait « la sortie est de retirer le test »
+  # et refusait qu'on retire un test. Constaté sur la PR de reprise, où le retrait
+  # d'un projet abandonné bloquait sans issue possible.
   test-integrity:
     name: test-integrity
     runs-on: ubuntu-latest
@@ -349,27 +356,41 @@ jobs:
           d() { git diff "$BASE_SHA"...HEAD -- "${TESTS[@]}"; }
           fail=0
 
-          # 1. Un fichier de test supprimé.
-          sup=$(git diff --diff-filter=D --name-only "$BASE_SHA"...HEAD -- "${TESTS[@]}")
-          if [ -n "$sup" ]; then
-            echo "::error title=Test supprimé::$sup"
-            fail=1
-          fi
-
-          # 2. Un neutralisant ajouté (désactivation, focus, tautologie).
+          # ── A. Un neutralisant ajouté — AUCUNE soupape ────────────────────
+          # Endormir un test n'a jamais de justification recevable : la sortie
+          # est de le RETIRER, et retirer est exactement ce que le point B
+          # autorise sous signature. C'est la seule branche sans issue, et
+          # c'est délibéré.
           neutre=$(d | grep -nE '^\+.*(\.skip\(|\.only\(|\.todo\(|\.fixme\(|\bxit\(|\bxdescribe\(|expect\(true\)\.toBe\(true\)|expect\(1\)\.toBe\(1\))') || true
           if [ -n "$neutre" ]; then
             echo "::error title=Neutralisant ajouté dans un test::$neutre"
             fail=1
           fi
 
-          # 3. Plus d'assertions retirées qu'ajoutées sur le diff des tests.
+          # ── B. Test supprimé, ou assertions nettes retirées — SOUS SIGNATURE
+          # Retirer un test ou alléger un oracle est LÉGITIME (retrait d'un
+          # module, refonte) et INDISCERNABLE d'une subversion. On ne l'interdit
+          # donc pas : on exige que l'humain le signe de sa main. Même mécanique
+          # que `suppression-guard` — un scope de commit ou un label seraient
+          # écrits par l'agent lui-même.
+          raisons=()
+          sup=$(git diff --diff-filter=D --name-only "$BASE_SHA"...HEAD -- "${TESTS[@]}")
+          [ -n "$sup" ] && raisons+=("fichier(s) de test supprimé(s)")
+
           a=$(d | grep -cE '^\+.*(expect\(|assert)') || true
           r=$(d | grep -cE '^-.*(expect\(|assert)') || true
           echo "Assertions — ajoutées: ${a:-0} · retirées: ${r:-0}"
-          if [ "${r:-0}" -gt "${a:-0}" ]; then
-            echo "::error title=Assertions affaiblies::${r} retirées pour ${a} ajoutées."
-            fail=1
+          [ "${r:-0}" -gt "${a:-0}" ] && raisons+=("${r} assertions retirées pour ${a} ajoutées")
+
+          if [ ${#raisons[@]} -gt 0 ]; then
+            printf 'Signature exigée — %s\n' "$(IFS='; '; echo "${raisons[*]}")"
+            [ -n "$sup" ] && printf '  supprimé : %s\n' $sup
+            # Tout commit de l'intervalle qui touche un fichier de test doit
+            # être signé : c'est l'ensemble qui porte la responsabilité, pas
+            # le seul commit où le compteur bascule.
+            mapfile -t touchants < <(git rev-list --no-merges "$BASE_SHA..HEAD" -- "${TESTS[@]}")
+            bash .github/scripts/verify-signed-commits.sh \
+              .github/allowed_signers "${touchants[@]}" || fail=1
           fi
 
           exit $fail
@@ -419,27 +440,9 @@ jobs:
 
           PAT='^\+.*(@ts-ignore|@ts-nocheck|@ts-expect-error|eslint-disable|\bas any\b|\bas unknown as\b|:[[:space:]]*any\b|catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{[[:space:]]*\})'
 
-          git config gpg.format ssh
-
-          verifier() {
-            # $1 : fichier allowed_signers · $2… : SHA à vérifier
-            local signers="$1"; shift
-            git config gpg.ssh.allowedSignersFile "$signers"
-            # Rend le type de chaque clé de confiance visible dans le log. Une clé
-            # `sk-*` est adossée à un jeton matériel ; toute autre est un fichier,
-            # dont la protection tient à un usage et non à une preuve. Le jour où
-            # la migration a lieu, elle se voit ici sans rien avoir à relire.
-            awk '{printf "  clé de confiance : %s — type %s\n", $1, $2}' "$signers"
-            local c
-            for c in "$@"; do
-              if git verify-commit "$c" 2>&1 | sed 's/^/    /'; then
-                echo "  ✓ $c — signature valide"
-              else
-                echo "::error title=Commit non signé::$c — $(git log -1 --format=%s "$c")"
-                fail=1
-              fi
-            done
-          }
+          # La vérification vit dans .github/scripts/ — partagée avec
+          # `test-integrity`, parce qu'une logique de sécurité dupliquée dérive.
+          verifier() { bash .github/scripts/verify-signed-commits.sh "$@" || fail=1; }
 
           # ── 1. La liste des clés se protège elle-même ─────────────────────────
           # Sans cela, l'agent y ajoute sa propre clé et le garde ne vaut plus rien.
@@ -473,11 +476,6 @@ jobs:
             echo "── $c — $(git log -1 --format=%s "$c")"
             git show --format= --unified=0 "$c" -- "${SRC[@]}" | grep -nE "$PAT" | sed 's/^/    /'
           done
-
-          if [ ! -f "$SIGNERS" ]; then
-            echo "::error title=Aucune clé de confiance::$SIGNERS est absent — aucune suppression ne peut être prouvée, donc aucune n'est acceptée. Installez la liste (docs/ci.md § Le garde de suppression)."
-            exit 1
-          fi
 
           verifier "$SIGNERS" "${offenders[@]}"
           exit $fail
@@ -518,6 +516,7 @@ jobs:
                   ':(glob).prettierignore'   ':(glob).eslintignore'
                   ':(glob)pnpm-workspace.yaml'
                   ':(glob).github/workflows/**'
+                  ':(glob).github/scripts/**'
                   ':(glob)CLAUDE.md'         ':(glob)AGENTS.md'
                   ':(glob).claude/**')
           fail=0
