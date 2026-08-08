@@ -12,7 +12,10 @@
 > vit dans [`docs/ci.md`](./ci.md) et n'est pas recopié ici. Ce qui suit est le *comment* :
 > les gestes, dans l'ordre, avec ce qu'ils affichent quand ils marchent et quand ils ratent.
 >
-> Toutes les commandes ci-dessous ont été éprouvées le 2026-08-08 en dépôt jetable.
+> Les commandes ci-dessous ont été éprouvées en dépôt jetable le 2026-08-08 — **y compris
+> sous phrase de passe**, ce qui n'avait pas été le cas de la première rédaction : la
+> recette de rattrapage du § 5 avait été validée avec une clé sans phrase, et échouait
+> donc dans le seul cas où elle servait.
 
 ---
 
@@ -110,19 +113,54 @@ git réclame la phrase dans **votre** terminal. Si rien ne la demande et que la 
 
 Le cas le plus fréquent : la CI refuse, et les commits sont déjà écrits.
 
+**Vérifiez d'abord que c'est nécessaire** — `git log --format='%G? %h %s' <base>..HEAD`. Un
+commit déjà `G` n'a pas à être re-signé, et une branche déjà à jour n'a pas à être rebasée.
+
 ```bash
-# Un seul commit, le dernier :
+# Un seul commit, le dernier — le cas courant :
 git commit --amend --no-edit -S
 
-# Tout un intervalle — chaque commit est ré-écrit et re-signé.
-# La phrase est demandée UNE FOIS PAR COMMIT : c'est normal, et c'est le prix.
-git rebase <base> --exec "git commit --amend --no-edit -S"
+# Plusieurs commits : rebase INTERACTIF, et on amende à chaque arrêt.
+git rebase -i <base>        # remplacer `pick` par `edit` devant les commits à signer
+#   à chaque arrêt, dans VOTRE terminal :
+git commit --amend --no-edit -S
+git rebase --continue
 
 # Puis, la branche ayant été réécrite :
 git push --force-with-lease
 ```
 
 `--force-with-lease` et jamais `--force` : il refuse si quelqu'un a poussé entre-temps.
+
+> **N'utilisez pas `git rebase <base> --exec "git commit --amend --no-edit -S"`.** `--exec`
+> lance la commande avec un **stdin qui n'est pas un terminal** : `ssh-keygen` n'a nulle part
+> où demander la phrase de passe, et échoue sur `incorrect passphrase supplied to decrypt
+> private key?` — un message qui accuse la phrase alors que le problème est l'absence de
+> terminal. Le rebase interactif, lui, vous rend la main à chaque arrêt : la demande arrive
+> dans votre shell. Vérifié le 2026-08-08, après que la variante `--exec` a bloqué un rebase
+> quatre fois de suite.
+
+**Si vous êtes déjà coincé dans un rebase** — HEAD détachée, `git status` parle d'un rebase en
+cours : `git rebase --abort` restaure la branche à l'identique. Attention, c'est un
+`reset --hard` : **toute modification non commitée est perdue**, y compris dans des fichiers
+sans rapport avec le rebase. Commitez ou remisez avant.
+
+### 5b. Beaucoup de commits à signer — l'exception, bornée
+
+Le rebase interactif demande la phrase une fois par commit. Au-delà de quelques-uns, la seule
+alternative est de charger la clé dans `ssh-agent` — ce que le § 3 interdit. Si vous le
+faites, faites-le **borné** :
+
+```bash
+ssh-add -t 600 ~/.ssh/colibri_sign      # expire tout seul au bout de 10 minutes
+git rebase -i <base>                     # … signer, continuer …
+ssh-add -d ~/.ssh/colibri_sign           # et sans attendre l'expiration
+ssh-add -l                               # vérifier qu'elle n'y est plus
+```
+
+**Pendant cette fenêtre, la protection n'existe pas** : tout processus du même utilisateur
+peut obtenir une signature. Ne l'ouvrez pas pendant qu'une session d'agent tourne, et
+refermez-la vous-même plutôt que d'attendre l'expiration.
 
 ---
 
