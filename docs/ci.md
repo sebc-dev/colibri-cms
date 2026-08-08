@@ -432,25 +432,48 @@ build · test · sca · deps-policy · secrets · workflow-audit
 test-integrity · suppression-guard · quality-config-guard
 ```
 
-### État : **À METTRE À JOUR — un check requis fantôme bloque déjà toute PR**
+### État : **POSÉE le 2026-08-08**
 
-Un ruleset `Main protect` (id `20239278`) est actif. Relevé à nouveau le **2026-08-08**,
-inchangé depuis le 2026-08-02 :
+Relevé sur la forge après application — ruleset `Main protect`, id `20239278` :
 
 ```
 enforcement: active · target: branch · conditions.ref_name.include: ["~DEFAULT_BRANCH"]
 rules: deletion · non_fast_forward · pull_request · required_status_checks
 bypass_actors: [] · current_user_can_bypass: "never"
-required_status_checks.contexts: [ "quality-gate" ]        ← projet abandonné
+allowed_merge_methods: ["merge"]
+required_status_checks: 9 contextes, identiques aux noms de jobs
 ```
 
-L'interdiction de bypass, de force-push et de suppression est donc **déjà conforme** et n'a
-pas à être reposée. En revanche `quality-gate` est le job de l'ancien portail : il n'existe
-dans aucun workflow de ce projet. Tant que ce contexte reste exigé, **toute PR reste
-`pending` pour toujours** — et comme le bypass est à `never`, personne ne peut merger,
-propriétaire compris.
+Les neuf contextes ont été comparés un à un aux clés `jobs:` de
+`.github/workflows/ci.yml` : correspondance exacte, aucun contexte inconnu, et les trois
+jobs informatifs (`lint`, `coverage`, `sast`) sont bien **hors** de la liste.
 
-### L'ordre de pose — en trois temps, et l'ordre n'est pas indifférent
+> **Ce que cela change.** Tout ce qui précède cesse d'être informatif. Une PR qui échoue à
+> l'un des neuf ne se merge pas, et personne ne peut passer outre — `bypass_actors` est vide
+> et `current_user_can_bypass` vaut `never`, propriétaire compris.
+
+#### Pourquoi `allowed_merge_methods` est réduit à `["merge"]`
+
+Une signature SSH couvre **l'objet commit**. *Squash* et *rebase* en fabriquent de nouveaux,
+donc la signature de l'auteur ne peut pas y survivre — et GitHub y substitue la sienne :
+mesuré sur le merge commit `30c6877`, `verified=true` avec `committer GitHub
+<noreply@github.com>`. Le badge « Verified » resterait vert **en attestant de GitHub et non
+de l'humain**, ce qui est pire qu'une perte visible.
+
+Sur un dépôt dont `suppression-guard` et le régime B de `test-integrity` font reposer
+l'intégrité sur « qui a signé », laisser ces deux boutons dans l'interface revient à offrir
+un clic qui efface la preuve. Le merge commit préserve les objets d'origine — vérifié : les
+douze commits de la PR #14 sont restés atteignables depuis `main` avec leurs SHA d'origine,
+ce dont dépendent tous les SHA cités dans les messages de commit, la fiche de chantier et ce
+document.
+
+Un historique linéaire reste possible : rebaser sa branche **en local** sur `main` avant de
+livrer, en re-signant (`docs/signature-des-commits.md` § 5), puis atterrir par un merge
+commit. `git log --first-parent` donne la vue linéaire à la lecture.
+
+### L'ordre de pose — exécuté le 2026-08-08, et l'ordre n'était pas indifférent
+
+*Conservé comme trace : c'est l'exception unique du projet, et elle doit rester lisible.*
 
 **Un portail ne peut pas garder sa propre installation.** La PR qui apporte ces contrôles est
 aussi celle qui retire le projet abandonné : elle supprime 14 fichiers de test et 204
@@ -473,12 +496,16 @@ portail**. Séquence :
    et plus aucune exception n'est nécessaire : le régime B de `test-integrity` donne
    désormais une issue par signature à tout retrait de test ultérieur.
 
-**Je n'exécute aucune de ces commandes** ; le label de l'étape 2 non plus — un label se pose
-par l'API avec une portée `repo`, donc à ma portée, et une soupape que l'agent actionne
-lui-même n'est pas une soupape.
+Les trois temps ont été joués le 2026-08-08, par un geste humain. Le label de l'étape 2 en
+particulier : un label se pose par l'API avec une portée `repo`, donc à la portée d'un agent,
+et une soupape que l'agent actionne lui-même n'est pas une soupape.
 
-La commande ci-dessous remplace la liste des checks et laisse le reste intact — c'est
-l'étape 3 :
+**Cette exception ne se reproduit pas.** Le régime B de `test-integrity` donne désormais une
+issue par signature à tout retrait de test, et `.github/allowed_signers` est en place depuis
+le 2026-08-08. Un futur retrait de module se signe ; il ne demande plus qu'on ouvre le
+portail.
+
+Le JSON de l'étape 3, conservé pour reposer le ruleset à l'identique si besoin :
 
 ```bash
 gh api -X PUT repos/sebc-dev/colibri-cms/rulesets/20239278 \
@@ -499,7 +526,7 @@ gh api -X PUT repos/sebc-dev/colibri-cms/rulesets/20239278 \
         "require_code_owner_review": false,
         "require_last_push_approval": false,
         "required_review_thread_resolution": false,
-        "allowed_merge_methods": ["merge", "squash", "rebase"] } },
+        "allowed_merge_methods": ["merge"] } },
     { "type": "required_status_checks", "parameters": {
         "strict_required_status_checks_policy": true,
         "do_not_enforce_on_create": false,
