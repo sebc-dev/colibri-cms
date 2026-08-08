@@ -7,6 +7,7 @@
 | **Trace vers** | [Stack](./stack.md) · [ADR-0012](./adr/0012-strategie-de-test-a-trois-etages.md) · [ADR-0006](./adr/0006-typescript-strict-validation-aux-frontieres.md) · [ADR-0010](./adr/0010-github-forge-et-chemin-de-publication.md) |
 | **Adossé à** | [Contrôles CI du code généré par agent](./research/ci/2026-08-07-controles-ci-code-genere-ia.md) — rapport du 2026-08-07 |
 | **Forge** | GitHub Actions — `.github/workflows/ci.yml` · `.github/workflows/nightly.yml` |
+| **Documents liés** | [Signature des commits](./signature-des-commits.md) — la marche à suivre opérationnelle |
 | **Consommé par** | `CLAUDE.md` (phase `contract`), qui lit ses commandes ici plutôt que de les inventer |
 
 > **Ce que ce document est.** La synthèse de ce qui est **vérifié hors de l'agent**. Le
@@ -262,39 +263,27 @@ cesse d'être demandée.
 > résister : il n'y a pas d'occasion. C'est ce qui rend la discipline soutenable là où
 > `ssh-add -c` échouerait ici, faute d'*askpass*.
 
-### La recette — geste humain, je ne l'exécute pas
+### La marche à suivre — geste humain, je ne l'exécute pas
 
-```bash
-# 1. Une clé DÉDIÉE À LA SIGNATURE, chiffrée par une phrase que vous seul connaissez.
-#    `-a 100` : 100 tours de KDF bcrypt, pour rendre coûteux un cassage hors ligne
-#    si le fichier venait à sortir de la machine.
-ssh-keygen -t ed25519 -a 100 -C "colibri-signing" -f ~/.ssh/colibri_sign
+Création de la clé, signature au quotidien, rattrapage d'un commit non signé, rotation,
+perte de la clé, dépannage : tout cela vit dans **[`docs/signature-des-commits.md`](./signature-des-commits.md)**,
+et n'est pas recopié ici. Ce document-ci dit *ce qui est vérifié et pourquoi* ; celui-là dit
+*comment s'y prendre*.
 
-# 2. L'enregistrer sur GitHub comme clé de SIGNATURE (pas d'authentification) —
-#    c'est ce qui donne le badge « Verified ». La CI, elle, ne dépend pas de cet
-#    enregistrement : elle vérifie contre le fichier posé à l'étape 4.
-gh ssh-key add ~/.ssh/colibri_sign.pub --type signing --title "colibri-signing"
+Deux points en relèvent quand même, parce qu'ils ne sont pas des gestes mais des propriétés
+du contrôle :
 
-# 3. Configurer git pour ce dépôt. NE PAS poser commit.gpgsign = true :
-#    seuls les commits qui éteignent un vérificateur ont besoin d'être signés,
-#    et une phrase réclamée à chaque commit se contourne par lassitude.
-git config gpg.format ssh
-git config user.signingkey ~/.ssh/colibri_sign.pub
-
-# 4. Poser la liste de confiance, et la POUSSER VOUS-MÊME (voir l'amorçage ci-dessous).
-printf '%s %s\n' "chauveau.sebastien@gmail.com" "$(cat ~/.ssh/colibri_sign.pub)" \
-  > .github/allowed_signers
-```
-
-Signer devient `git commit -S -m "…"`, et git réclame la phrase — à vous, dans votre
-terminal. **Ne faites jamais `ssh-add ~/.ssh/colibri_sign`.**
+> **La clé ne doit jamais entrer dans `ssh-agent`.** C'est la condition de tout le
+> dispositif — hors agent la signature échoue pour qui ne connaît pas la phrase, dans
+> l'agent elle est servie à tout processus du même utilisateur. La règle tient parce que
+> cette clé ne sert qu'à signer : `ssh-add` n'a aucune raison légitime d'être invoqué dessus.
 
 > **L'amorçage est le seul trou, et il est irréductible.** Tant que
 > `.github/allowed_signers` n'existe pas à la base, la PR qui l'installe le fait **sans
 > preuve** — le workflow émet un `::warning` explicite et laisse passer. Il n'existe aucune
 > clé de confiance pour signer l'arrivée de la première clé de confiance. **Poussez ce
-> fichier vous-même**, directement, et vérifiez de vos yeux la clé qu'il contient. Après
-> cela, le fichier est auto-protégé.
+> fichier vous-même**, et vérifiez de vos yeux la clé qu'il contient. Après cela, le fichier
+> est auto-protégé.
 
 ### Ce que ce garde ne protège pas
 
