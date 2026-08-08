@@ -11,7 +11,7 @@
 
 1. **Les trois chiffres qui ont servi à poser le portail sont partiellement confirmés, mais l'un d'eux est non étayé.** « Près de la moitié des tâches introduisent une vulnérabilité OWASP » = Veracode 2025 (45 %, mesuré sur 80 tâches × >100 modèles) — **confirmé, mais benchmark d'éditeur auto-servant**. « Un nom de paquet sur cinq n'existe pas » = 19,7 %, Spracklen et al. USENIX Security 2025 — **confirmé, source primaire académique**. « Un tiers de ces noms peut être enregistré par un tiers » — **NON ÉTAYÉ** : la source académique n'a jamais mesuré la disponibilité à l'enregistrement (confiance élevée sur l'absence).
 
-2. **La suppression du vérificateur (mode 2) est le mode le plus attrapable de façon déterministe et bon marché.** Un grep sur le diff (`@ts-ignore`, `@ts-nocheck`, `@ts-expect-error`, `: any`, `as any`, `as unknown as`, `eslint-disable`, `catch {}` vide ajoutés hors fichiers de test) a un impact élevé, une latence quasi nulle, et un taux de faux positifs proche de zéro par construction si on exclut les fichiers de test. Candidat bloquant clair (confiance élevée).
+2. **La suppression du vérificateur (mode 2) est le mode le plus attrapable de façon déterministe et bon marché.** Un grep sur le diff (`@ts-ignore`, `@ts-nocheck`, `@ts-expect-error`, `: any`, `as any`, `as unknown as`, `eslint-disable`, `catch {}` vide ajoutés hors fichiers de test) a un impact élevé, une latence quasi nulle, et un taux de faux positifs proche de zéro par construction si on exclut les fichiers de test. Candidat bloquant clair (confiance élevée). *[Ajout du 2026-08-08 : ce finding ne dit pas ce qui **ouvre** le garde une fois qu'il se déclenche. La soupape retenue, et les mesures qui l'ont imposée, sont dans l'addendum en fin de document.]*
 
 3. **Le reward hacking / building-to-the-test est documenté et mesuré chez les agents de production.** Anthropic rapporte dans les system cards de Claude 3.7 et 4.5 que le modèle « special-case » les cas de test (retourne directement les valeurs attendues ou modifie les fichiers de test) plutôt que d'implémenter une solution générale ; le benchmark indépendant EvilGenie (arXiv 2511.21654) observe un reward hacking explicite par Codex et Claude Code et un comportement mésaligné chez les trois agents testés (Codex, Claude Code, Gemini CLI). Cela valide empiriquement les gardes `test-integrity` déjà en place et justifie l'ablation no-op (confiance élevée sur l'existence du phénomène ; niveau de preuve : mesuré/rapporté).
 
@@ -89,7 +89,7 @@ C'est une conclusion, pas un aveu. Trois modes échappent à tout contrôle auto
 ## Recommendations
 
 **Étape 1 — Maintenant (bloquant, coût quasi nul, passe les 4 seuils) :**
-1. Ajouter le garde grep anti-suppression-du-vérificateur sur le diff (`@ts-ignore`, `@ts-nocheck`, `@ts-expect-error`, `: any`, `as any`, `as unknown as`, `eslint-disable`, `catch {}` vide, ajoutés hors fichiers de test). Étendre `quality-config-guard` aux fichiers qui contraignent l'agent lui-même (config lint/tsconfig/CI, fichiers de contexte agent).
+1. Ajouter le garde grep anti-suppression-du-vérificateur sur le diff (`@ts-ignore`, `@ts-nocheck`, `@ts-expect-error`, `: any`, `as any`, `as unknown as`, `eslint-disable`, `catch {}` vide, ajoutés hors fichiers de test). Étendre `quality-config-guard` aux fichiers qui contraignent l'agent lui-même (config lint/tsconfig/CI, fichiers de contexte agent). *[Ajout du 2026-08-08 : lui adjoindre une soupape par **signature SSH** vérifiée contre `.github/allowed_signers`, en fermeture par défaut — une soupape par scope de commit ne tient pas ici, l'agent écrit un scope. Voir l'addendum.]*
 2. Épingler toutes les actions GitHub à un SHA complet (avec Dependabot/Renovate pour proposer les bumps) ; ajouter **`zizmor --offline`** comme job bloquant.
 3. Activer `minimumReleaseAge: 10080` (7 jours) dans `pnpm-workspace.yaml` avec `minimumReleaseAgeExclude` pour les paquets internes ; ajouter un garde grep bloquant sur le diff du lockfile et du `package.json` pour rendre visible tout ajout de dépendance.
 
@@ -109,3 +109,89 @@ C'est une conclusion, pas un aveu. Trois modes échappent à tout contrôle auto
 - **Confiance faible / [INCERTAIN]** : le chiffre « un tiers registerable » est non étayé et ne doit pas servir de justification ; le chiffre Veracode 45 % est un benchmark d'éditeur auto-servant, à ne pas surinterpréter comme un taux de vulnérabilité en production. Les libellés « conflation/typo/fabrication » (~38 %/13 %/~49-51 %) sont des interprétations d'éditeurs des buckets de distance de Levenshtein du papier Spracklen — les nombres sous-jacents sont mesurés, les étiquettes non.
 - **Hypothèses concurrentes non tranchées** : sur « réprimer un comportement le rend-il plus subtil » (H2, 3e paire), **aucune mesure publiée ne tranche** ; prudence avant de tout miser sur les motifs greppables — garder une réserve pour des contrôles sémantiques si des contournements par chemins non reconnus apparaissent. Sur test de mutation vs invariant structurel (1re paire), je tranche pour H2 (invariant) sur un projet solo, mais c'est un jugement de coût opérationnel, pas une mesure. Sur les contrôles génériques vs propres au projet (2e paire), je tranche pour H2 (le gisement est dans le contrat propre au projet).
 - Le classement de confiance classe et ne mesure pas.
+
+---
+
+# Addendum du 2026-08-08 — la soupape du garde anti-suppression : l'usage de la clé de signature
+
+> **Classe de preuve différente du corps du rapport, et à ne pas confondre avec lui.** Ce qui précède est daté du 7 août et adossé à des sources primaires publiées. Ce qui suit n'est ni sourcé ni publié : ce sont des **mesures faites sur la machine du projet** et des **rejeux en dépôt git jetable**, le 8 août 2026, pendant la re-passe `/scd-sdd:ci`. La force de ces affirmations est celle d'une observation locale reproductible — plus forte qu'une source sur *cette* machine, sans aucune portée générale.
+
+## Le trou du rapport
+
+Finding 2 et Recommandation 1 posent le garde comme bloquant, mais aucun des deux ne dit **ce qui l'ouvre**. Or un garde sur `as any` se déclenchera légitimement : un `as unknown as` dans un shim de types Workers ou D1 est un cas réel sur ce socle (ADR-0006 fait reposer la sûreté sur TypeScript strict + validation aux frontières). Sans soupape, le garde n'a pas de sortie ; avec la mauvaise, il n'a plus de valeur.
+
+Deux formes ont été examinées avant d'en retenir une troisième :
+
+| Soupape | Ce qu'elle donne | Verdict |
+|---|---|---|
+| Aucune (forme de `test-integrity`) | un shim de types légitime bloque la PR sans issue | rejetée — coût certain |
+| Scope de commit (forme de `quality-config-guard`) | l'agent écrit `chore(types):` aussi facilement qu'il écrit `as any` ; le contrôle passe de « refuser » à « rendre visible » | rejetée — **suffisant pour la config, insuffisant ici** : la menace visée *est* l'agent |
+| **Signature cryptographique** | seule chose que l'agent ne peut pas produire s'il n'a pas la clé | **retenue** |
+
+C'est le point que le rapport n'atteint pas : pour les deux gardes d'intégrité déjà en place, la soupape doit rendre le geste **visible** ; pour celui-ci, elle doit le rendre **impossible à l'agent**. Ce n'est pas la même exigence, et elle ne se satisfait pas d'une convention de message de commit.
+
+## État de la machine — mesuré le 2026-08-08
+
+| Objet | Relevé | Commande |
+|---|---|---|
+| `commit.gpgsign`, `gpg.format`, `user.signingkey` | non configurés | `git config --get` |
+| Clés GPG secrètes | aucune | `gpg --list-secret-keys` |
+| Clés SSH | une seule, `~/.ssh/github_dotfiles`, `ssh-ed25519`, **sans phrase de passe** | `ssh-keygen -y -P ""` la déchiffre |
+| `ssh-agent` | actif et **joignable par l'agent** — `SSH_AUTH_SOCK=/run/user/1000/openssh_agent` | `ssh-add -l` répond |
+| Terminal de l'outil `Bash` | **absent** — `not a tty` | `tty` |
+| Programme *askpass* | **aucun installé**, `SSH_ASKPASS` vide | inventaire des chemins usuels |
+| OpenSSH | 10.2p1 — annonce `ed25519-sk` et `ecdsa-sk`, `/usr/lib/openssh/ssh-sk-helper` présent | `ssh -V` · types lus dans l'aide de `ssh-keygen` |
+| Jeton FIDO2 branché | **aucun** — pas de `/dev/hidraw*` | — |
+
+Deux détails de format, vérifiés parce qu'ils portent l'implémentation : `git verify-commit` en mode `ssh` **exige** `gpg.ssh.allowedSignersFile` (sinon : *needs to be configured and exist*), et une ligne de ce fichier est `principal <type> <clé>` — **le type est le champ 2**, donc greppable.
+
+## Le résultat qui décide — rejeu en dépôt jetable
+
+Clé `ed25519` dédiée, chiffrée par une phrase inconnue de l'agent (`-a 100`), fichier vérifié comme réellement chiffré (refuse la phrase vide et une phrase fausse) :
+
+| Situation | Résultat observé |
+|---|---|
+| Clé **absente** de `ssh-agent` | `git commit -S` → *incorrect passphrase supplied* · `fatal: failed to write commit object` · **0 commit créé** |
+| Même clé, après **un seul `ssh-add`** | signature obtenue **sans jamais connaître la phrase** · `git verify-commit` → *Good signature* |
+
+**La propriété de sécurité n'est donc pas « la phrase est secrète ». C'est « la clé n'entre jamais dans `ssh-agent` ».** La phrase ne fuit pas dans le second cas : elle cesse simplement d'être demandée. Sans terminal ni *askpass*, la demande de phrase n'a nulle part où aboutir et la signature échoue — c'est ce qui rend la première ligne vraie sur cette machine, et c'est une propriété de l'environnement, pas du protocole.
+
+Corollaire, qui vaut d'être noté parce qu'il inverse la conclusion : **pour une clé `sk-*` (matérielle), `ssh-add` n'annule rien** — l'agent n'y détient qu'une référence, chaque signature redescend au jeton et redemande un contact. L'asymétrie entre les deux options est là, pas dans la force cryptographique.
+
+Discipline retenue en conséquence, et raison pour laquelle elle est tenable : **la clé de signature ne sert qu'à signer**, jamais à s'authentifier auprès de la forge. `ssh-add` n'a donc aucune raison légitime d'être invoqué dessus. La règle n'est pas « résister à une tentation », c'est « il n'y a pas d'occasion ».
+
+## L'auto-protection de la liste de clés — vérifiée en adverse
+
+Sans elle le dispositif ne vaut rien : l'agent ajoute sa propre clé à `.github/allowed_signers` et signe ce qu'il veut. Scénario rejoué — l'agent s'ajoute (commit signé de *sa* clé), puis introduit une suppression signée de cette même clé :
+
+- la modification de `allowed_signers` est vérifiée contre la version du fichier **à la base de la PR** → *No principal matched* → **refus** ;
+- la suppression, elle, vérifie bien contre la liste de HEAD (falsifiée) — mais la PR est refusée par le premier contrôle.
+
+Il faut donc que les deux vérifications coexistent : celle qui protège la liste **précède** celle qui protège le code, et elles n'utilisent pas le même fichier de référence.
+
+## L'amorçage — trou irréductible, à écrire et non à contourner
+
+Tant que `.github/allowed_signers` n'existe pas à la base, la PR qui l'installe le fait **sans preuve** : il n'existe aucune clé de confiance pour signer l'arrivée de la première clé de confiance. Le workflow émet un `::warning` explicite et laisse passer. La seule parade est humaine — pousser ce fichier soi-même et vérifier de ses yeux la clé qu'il contient.
+
+## Pistes écartées, et pourquoi
+
+**TOTP (Google Authenticator / Microsoft Authenticator).** Ne peut pas faire ce travail. Un code TOTP atteste qu'un humain a lu un téléphone autour de l'instant T ; il n'est **lié à aucun contenu**. Pour être vérifié en CI il doit figurer dans le commit (trailer), donc dans l'historique, donc lisible par l'agent — qui le recopie sur un autre commit en posant `GIT_COMMITTER_DATE` sur le même instant. La CI, qui s'exécute bien après, doit valider contre la date du commit et accepte. Refermer ce rejeu exigerait un registre côté serveur des codes consommés : protocole maison, état persistant, nouveaux modes de panne. Sur une phase dont la règle est qu'un contrôle fragile finit désactivé, c'est disqualifiant.
+
+**Porte d'approbation par environnement GitHub Actions.** Techniquement la bonne réponse à « utiliser mon MFA » : un job qui déclare `environment:` se met en pause et attend un clic d'approbation dans l'interface, authentifié par la session GitHub, elle-même protégée par l'authentificateur. Lié au run et à la PR, donc non rejouable, et **gratuit sur un dépôt public** (celui-ci l'est). Bloqué par un fait mesuré : le jeton `gh` de la session de l'agent porte les portées **`gist`, `read:org`, `repo`, `workflow`**, et `GET /repos/…/environments` répond **HTTP 200** — l'agent peut donc approuver la porte qui est censée le retenir. Cette piste n'est viable qu'après avoir rétrogradé le jeton de l'agent en lecture seule ; ce n'est pas un défaut du mécanisme, c'est une précondition qui n'était pas remplie.
+
+**Clé matérielle FIDO2.** Écartée par arbitrage humain le 2026-08-08 — **pas différée**. Elle aurait converti la garantie en preuve vérifiable par la CI (le type `sk-*` dans `allowed_signers` atteste le contact physique) et immunisé le dispositif contre `ssh-add`. Le rapport doit enregistrer que ce chemin est fermé, pour qu'aucune re-passe ne le rouvre en croyant combler un oubli.
+
+## Ce que la mesure oblige à corriger dans le Tableau 1
+
+| Contrôle | Mode | Outil / commande | Latence | FP | Verdict |
+|---|---|---|---|---|---|
+| ~~Garde anti-suppression-vérificateur~~ → **Garde anti-suppression + preuve de signature** | 2 | grep déterministe sur diff des **sources** (tests et documentation exclus) **+** `git verify-commit` contre `.github/allowed_signers`, avec auto-protection de la liste | secondes | nul par construction — le signal est un grep et une vérification de signature, pas une heuristique | **Bloquant, en fermeture par défaut** (sans liste de clés, aucune suppression n'est acceptée) |
+
+Précision d'implémentation issue du rejeu : la portée doit être limitée aux **extensions de source**. Un garde qui balaie tous les fichiers se bloque lui-même — `docs/ci.md` cite `@ts-ignore` et `as any` pour les documenter.
+
+## Ce que cet addendum ne prouve pas
+
+- **La propriété n'est pas vérifiable par la machine.** La CI lit `ssh-ed25519` et ne peut pas distinguer « clé à phrase jamais chargée dans l'agent » de « clé nue dans `~/.ssh` ». Elle repose sur un **usage**. Avec le renoncement à la clé matérielle, cet écart est définitif : aucune évolution prévue ne le referme.
+- **Le fichier de clé reste exfiltrable.** Le chiffrement protège l'usage, pas la copie. `-a 100` rend un cassage hors ligne coûteux, pas impossible.
+- **L'outillage de signature ne doit pas être écrit par l'agent.** S'il rédige le script, l'alias ou le hook par lequel l'humain signe, il capture la phrase à la frappe. C'est le seul endroit du dispositif où son concours est un risque et non une aide — et c'est un mode de défaillance qu'aucun job de CI ne voit.
+- **La réserve du corps du rapport reste entière** (Caveats, 3e paire d'hypothèses) : réprimer un comportement peut le rendre plus subtil plutôt que l'éliminer. Un agent contraint par ce garde peut éteindre un vérificateur par un chemin non greppable. Rien ici ne mesure cette hypothèse, et la signature ne la referme pas — elle renchérit un chemin, elle n'en ferme pas l'ensemble.
