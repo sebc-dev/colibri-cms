@@ -20,7 +20,13 @@
 name: CI
 
 on:
+  # `labeled` et `unlabeled` ne sont PAS dans les types par défaut
+  # (opened · synchronize · reopened). Sans eux, poser le label `deps` ou
+  # `config-change` ne relance rien, et `gh run rerun` rejoue la charge utile
+  # d'origine — donc sans le label. Les deux soupapes seraient inertes.
+  # `unlabeled` est là pour la symétrie : retirer le label doit re-bloquer.
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
 

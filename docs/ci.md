@@ -385,6 +385,13 @@ Déclencheurs : `pull_request` **et** `push` sur `main`. Un check qui ne tourne 
 `pull_request` n'apparaît jamais dans la liste des status checks sélectionnables et bloque
 la PR indéfiniment une fois exigé.
 
+Les types d'activité sont **déclarés explicitement** — `opened`, `synchronize`, `reopened`,
+`labeled`, `unlabeled`. Les deux derniers ne sont pas dans les valeurs par défaut, et sans
+eux les soupapes par label (`deps`, `config-change`) seraient **inertes** : poser un label ne
+relancerait rien, et un `gh run rerun` rejoue la charge utile d'origine, donc sans le label.
+Constaté sur la PR #14 avant qu'elle ne serve. `unlabeled` est là pour la symétrie — retirer
+le label doit re-bloquer.
+
 ### Le régime nocturne — `.github/workflows/nightly.yml`
 
 Ouvert le 2026-08-08. Il tourne à 3 h et à la demande, **jamais sur `pull_request`** : aucun
