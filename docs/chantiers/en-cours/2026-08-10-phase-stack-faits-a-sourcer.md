@@ -1,7 +1,7 @@
 # Phase stack — les faits datés à sourcer avant d'arbitrer
 
 Portée : socle
-Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `df5090f`
+Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `77b3082`
 
 ## Objectif
 
@@ -86,11 +86,25 @@ dépend n'est pas sourcé et daté.
 - **⑤ moyen anti-abus n'était consigné nulle part**, alors que le brief le renvoie en Stack et que
   ses faits sont déjà sourcés : Turnstile Free, 20 widgets, siteverify **illimité en mode managed**
   (plafond 1 M/mois seulement en mode invisible), doc du 16/04/2026.
+- **⑪ tranché — le lien magique tient sur Workers Free, et son jeton vit en D1.** Cloudflare publie
+  l'exemple (`crypto.randomUUID()` + binding `send_email`, MAJ 09/06/2026) mais **n'implémente ni
+  stockage, ni validation, ni expiration** — les « 15 minutes » ne sont que le texte de l'e-mail.
+  KV est disqualifié comme magasin du jeton : plancher `expirationTtl` de **60 s** (MAJ 22/06) et
+  « not ideal … atomic operations » (MAJ 21/04), face au `getAndDelete` qu'exige Better Auth
+  (1.6.26 au registre npm ; jeton **300 s**, usage unique, consommé atomiquement). Le « donc D1 »
+  est ma déduction, pas une phrase de l'éditeur.
+- **L'adresse de l'éditrice étant pré-vérifiée, l'envoi du lien reste du côté gratuit** — c'est le
+  même fait que `FR-063`. Corollaire de périmètre : ce dispositif n'authentifie **que** des
+  adresses déclarées, jamais un visiteur.
+- **Un quatrième sous-fait rejoint la recette** : `DELETE … RETURNING` sur D1 n'est **pas
+  documenté** (la page SQL n'énumère que FTS5, JSON, math et renvoie au code source). Et une voie
+  « zéro code » reste ouverte sans être instruite — **Access one-time PIN** (PIN 10 min, MAJ
+  19/06) — dont le palier gratuit n'a **aucune source primaire**, donc invérifiable face à `I5`.
 
 ## Prochaine étape
 
-Jouer le dernier lookup — ⑪ lien magique — puis composer la recherche « Pages ou Workers » avant
-de lancer `/scd-sdd:stack`.
+Composer la recherche « Pages ou Workers », puis lancer `/scd-sdd:stack`. Le domaine ⑪ est clos ;
+plus aucun lookup en attente.
 
 ## Écarté
 
@@ -121,3 +135,8 @@ de lancer `/scd-sdd:stack`.
 - **Trancher « Pages ou Workers » sur le seul dire d'Astro** — Astro fait autorité sur son
   adapter, pas sur le statut d'un produit Cloudflare.
 - **Les agrégateurs de versions** (astrobuild, blogs) — en retard d'une release sur le registre npm.
+- **KV comme magasin du jeton de lien magique** — plancher de 60 s et aucune opération atomique.
+- **Trancher « Better Auth / implémentation maison / Access OTP » par recherche** — c'est un
+  arbitrage à trois branches pour la Stack, pas un fait à sourcer.
+- **Le palier gratuit d'Access lu sur des comparateurs commerciaux** — ils se citent entre eux :
+  une seule source, pas un recoupement.
