@@ -1,7 +1,7 @@
 # Phase stack — les faits datés à sourcer avant d'arbitrer
 
 Portée : socle
-Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `96421f0`
+Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `df5090f`
 
 ## Objectif
 
@@ -14,11 +14,11 @@ dépend n'est pas sourcé et daté.
             que les arbitrages tranchés doivent tenir sans retouche (797 l.)
 à extraire  `docs/socle-de-livraison.md` › § 5 « Les contraintes de développement du CMS » (C1–C10)
             et § « Annexe A » — C6 est à amender, le seuil d'alerte de C5 est à 15 000 (364 l.)
-à extraire  `docs/brief.md` › § « Questions ouvertes » — les 4 renvois Stack non encore tranchés
+à extraire  `docs/brief.md` › § « Questions ouvertes » — **5** renvois Stack, pas 4 (376 l.)
 à extraire  `docs/research/2026-08-10-gating-paiement-r2-email-cloudflare.md` › § « Tableau de
-            gating » — verbatims, URL et dates citables dans un ADR
+            gating » — verbatims, URL et dates citables dans un ADR (77 l.)
 à extraire  `docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md` › § « Détail par
-            composant » — les chiffres destinés à l'annexe datée
+            composant » — les chiffres destinés à l'annexe datée (178 l.)
 à situer    `docs/research/2026-08-10-acheminement-demandes-envoi-email.md` — son § C ne sert que
             si la voie Cloudflare tombe
 à situer    `docs/research/2026-08-10-api-github-commit-atomique.md` — conclusion déjà dans Acquis
@@ -35,10 +35,9 @@ dépend n'est pas sourcé et daté.
   J'ai écarté « le dépôt EST le magasin » sur `FR-032` : reconstruire l'index inverse sans base
   dépasse le plafond de **50 sous-requêtes par requête** (Workers Limits).
 - **Médias tranchés — même dépôt, branche `media` orpheline réécrite à chaque publication.**
-  L'espace maigrit, `FR-037` et `FR-084` restent vrais, le PRD n'est pas touché.
-- Le PRD n'exigeait pas un espace unique : `FR-087` et `FR-088` sont distincts et `FR-107` dit
-  « les espace**s** ». `SC-011` n'exige pas l'identité binaire — d'où la branche sans historique.
-  `FR-108` exige le manifeste des médias **inconditionnellement** : il n'a jamais discriminé.
+  L'espace maigrit, `FR-037` et `FR-084` restent vrais, le PRD n'est pas touché : `FR-087` et
+  `FR-088` sont distincts, `FR-107` dit « les espace**s** », `SC-011` n'exige pas l'identité
+  binaire — d'où la branche sans historique. `FR-108` exige le manifeste **inconditionnellement**.
 - Ces deux choix déposent en Stack : **C6 à amender** (« un clone, deux branches ») · publication
   en trois temps (médias additifs → commit contenu → effacement des orphelins, après le build) ·
   **sérialisation des publications devenue obligatoire** (`prd.md:642`) · les 20 000 fichiers
@@ -52,8 +51,6 @@ dépend n'est pas sourcé et daté.
   elle est à créer. Seul l'accusé périodique teste le canal réel, et sa valeur repose sur une
   éditrice qui remarque une **absence** — fréquence non tranchée. Repli SMTP : 465/587 ouverts,
   25 bloqué ; SMTP authentifié en bêta (08/06/2026).
-- Écriture groupée de N fichiers : existe, verrou optimiste obligatoire — et le force-push de
-  `media` devra porter l'oid attendu pour ne pas le contourner.
 - **③ tranché — l'oid attendu passe, mais par GraphQL `updateRefs` seul** : `RefUpdate.beforeOid`
   + `force: true`, atomique sur plusieurs refs. Ni `updateRef` (singulier) ni REST
   `PATCH /git/refs` n'ont de champ d'oid attendu ; hors API,
@@ -61,27 +58,39 @@ dépend n'est pas sourcé et daté.
   pour REST seulement : **Contents: write**. À citer : le schéma public
   `docs.github.com/public/fpt/schema.docs.graphql`, et la table des permissions fine-grained sous
   `docs.github.com/en/rest/authentication/`.
+- **④ tranché pour l'essentiel — la branche `media` est atteignable, mais rien ne garantit
+  qu'elle soit déjà là.** Dépôt privé supporté (Pages, MAJ 21/04/2026), `git` présent dans
+  l'image de build (MAJ 30/07/2026). Cloudflare **ne documente ni la profondeur du clone ni les
+  refs récupérées** : le fetch de `media` doit être **explicite dans le build command et porter
+  son propre jeton**, permission **`Contents`** en lecture — un secret de plus, à ouvrir sous
+  `I4` et à inventorier sous `C7`. Repli non écarté : build hors Cloudflare + **Direct Upload**
+  (`wrangler`), qui quitterait les comptes de la cliente et heurterait `I1`.
 - **Trois sous-faits non établis, à trancher d'un appel réel en recette et non par recherche** :
   le scope qu'exige `updateRefs` (GitHub ne publie aucune table de permissions GraphQL),
   « Contents: write » pour le `git push` en HTTPS (rapporté, jamais primaire), et la sortie de
-  preview d'`updateRefs` (inférée — aucun `@preview` dans le schéma FPT, page previews absente de
-  dotcom, encore présente en GHES 3.12).
-- Les gestes manuels des rapports A et B sont devenus des vérifications de **recette**.
-- **④ tranché pour l'essentiel — la branche `media` est atteignable, mais rien ne garantit
-  qu'elle soit déjà là.** Dépôt privé supporté (Pages, MAJ 21/04/2026), `git` présent dans
-  l'image de build (MAJ 30/07/2026). En revanche Cloudflare **ne documente ni la profondeur du
-  clone ni les refs récupérées**, et aucune source ne dit si les credentials du checkout
-  survivent dans le conteneur. J'en tire que le fetch de `media` doit être **explicite dans le
-  build command et porter son propre jeton**, permission **`Contents`** en lecture — c'est la
-  seule qui porte l'accès Git HTTP, écrit tel quel par GitHub. Ce jeton est un secret de plus,
-  à ouvrir au nom de la cliente sous `I4` et à inventorier sous `C7`.
-- Repli documenté si le clone à deux branches ne passait pas : construire hors Cloudflare et
-  déposer par **Direct Upload** (`wrangler`). Le build quitterait les comptes de la cliente et
-  heurterait `I1` — je ne le prends pas par défaut, et il n'est pas écarté non plus.
+  preview d'`updateRefs` (inférée). Les gestes manuels des rapports A et B sont devenus des
+  vérifications de **recette**.
+- **⑥ tranché — Astro 7.2.0 (06/08/2026) ; adapter `@astrojs/cloudflare` v14 pour Astro 7, v13
+  pour Astro 6** (peerDeps du registre npm). **Un site statique n'a pas d'adapter du tout.** Les
+  images responsive ne multiplient les fichiers **que si `layout` est posé** : `image.layout` vaut
+  `undefined` par défaut, `fixed` → 2 fichiers, `constrained` w=800 → 7, `full-width` → 8 (jeu
+  `LIMITED_RESOLUTIONS`, retenu dès que le service d'images est local) ; `<Picture>` multiplie par
+  le nombre de `formats`. Source primaire : `packages/astro/src/assets/layout.ts` et `internal.ts`
+  du monorepo. **C'est un levier de configuration sur le plafond de 20 000, donc sur C5.**
+- **Un domaine nouveau est sorti de ⑥ : Pages ou Workers.** L'adapter v14 « no longer supports
+  deployment on Cloudflare Pages » et Astro renvoie vers Workers ; Cloudflare, lui, **ne déprécie
+  Pages nulle part** (guide Astro/Pages en ligne, MAJ 21/04/2026 ; page de migration du 28/07/2026
+  qui parle de parité de coût). Ne se tranche pas d'un lookup : l'Annexe A chiffre le palier
+  **côté Pages**, et la hausse à 100 000 fichiers des Workers static assets ne vaut **que pour les
+  plans payants**.
+- **⑤ moyen anti-abus n'était consigné nulle part**, alors que le brief le renvoie en Stack et que
+  ses faits sont déjà sourcés : Turnstile Free, 20 widgets, siteverify **illimité en mode managed**
+  (plafond 1 M/mois seulement en mode invisible), doc du 16/04/2026.
 
 ## Prochaine étape
 
-Jouer les 2 lookups restants, un par un — ⑥ Astro · ⑪ lien magique — puis `/scd-sdd:stack`.
+Jouer le dernier lookup — ⑪ lien magique — puis composer la recherche « Pages ou Workers » avant
+de lancer `/scd-sdd:stack`.
 
 ## Écarté
 
@@ -109,3 +118,6 @@ Jouer les 2 lookups restants, un par un — ⑥ Astro · ⑪ lien magique — pu
   infirmé ; ça se tranche d'un appel réel en recette, pas par recherche.
 - **Le « clone superficiel » de Cloudflare comme fait** — il ne circule qu'en anecdotique, et le
   fil Community qui en discute renvoie 403 au fetcher.
+- **Trancher « Pages ou Workers » sur le seul dire d'Astro** — Astro fait autorité sur son
+  adapter, pas sur le statut d'un produit Cloudflare.
+- **Les agrégateurs de versions** (astrobuild, blogs) — en retard d'une release sur le registre npm.
