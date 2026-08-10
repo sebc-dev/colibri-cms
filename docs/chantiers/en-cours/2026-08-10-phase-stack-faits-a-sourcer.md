@@ -1,7 +1,7 @@
 # Phase stack — les faits datés à sourcer avant d'arbitrer
 
 Portée : socle
-Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `521c1c5`
+Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `78dec77`
 
 ## Objectif
 
@@ -10,65 +10,77 @@ dépend n'est pas sourcé et daté.
 
 ## Contexte à charger
 
-à extraire  `docs/brief.md` › § « Questions ouvertes » — les 6 renvois à la phase Stack (48 l. sur 376)
-à extraire  `docs/research/2026-08-10-gating-paiement-r2-email-cloudflare.md` › § « Tableau de gating » — les verbatims, URL et dates citables dans un ADR
-à extraire  `docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md` › § « Détail par composant (verbatim porteur) » — les chiffres destinés à l'annexe datée
-à situer    `docs/research/2026-08-10-acheminement-demandes-envoi-email.md` — conclusions absorbées ; son § C ne sert que si la voie Cloudflare tombe
-à situer    `docs/prd.md` — `FR-063`, `FR-066`, `FR-091` déjà dans Acquis, ne pas relire
+à extraire  `docs/prd.md` › `FR-083`–`FR-091`, `FR-107`, `FR-108`, `SC-010`, `SC-011` — le contrat
+            que les arbitrages tranchés doivent tenir sans retouche (797 l.)
+à extraire  `docs/socle-de-livraison.md` › § « C1–C10 » et § « Annexe A » — C6 est à amender,
+            le seuil d'alerte de C5 est à 15 000 (364 l.)
+à extraire  `docs/brief.md` › § « Questions ouvertes » — les 4 renvois Stack non encore tranchés
+à extraire  `docs/research/2026-08-10-gating-paiement-r2-email-cloudflare.md` › § « Tableau de
+            gating » — verbatims, URL et dates citables dans un ADR
+à extraire  `docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md` › § « Détail par
+            composant » — les chiffres destinés à l'annexe datée
+à situer    `docs/research/2026-08-10-acheminement-demandes-envoi-email.md` — son § C ne sert que
+            si la voie Cloudflare tombe
 à situer    `docs/research/2026-08-10-api-github-commit-atomique.md` — conclusion déjà dans Acquis
-à situer    `docs/socle-de-livraison.md` — I1–I6 valides ; son annexe datée est la destination des chiffres
 
 ## Acquis
 
-- Méthode : **rejouer à blanc**. La stack et les 12 ADR de `work/reprise-zero-2` (2026-08-07)
-  ne sont ni relus ni cités — leurs « faits datés » ne portent aucune source.
-- Écriture groupée de N fichiers : existe, verrou optimiste obligatoire.
-- **« Magasin de l'état publié » et « où vivent les médias » ne font qu'un arbitrage** : `FR-091`
-  ne tient par construction que si contenu et médias partent du même geste.
-- Officiel : aucune bascule automatique vers le payant ; dépassement = **mur** sur Workers, Pages,
-  D1, KV, DO ; servir les assets ne consomme aucun quota ; Pages ≈ Workers+assets.
-- **R2 est disqualifié par `I5`, sur source primaire** — non par le fil Community, qui reste
-  anecdotique, mais par la Billing policy : activer R2 est une souscription auto-renouvelée
-  facturée à un moyen de paiement enregistré, et `I5` porte sur l'**enregistrement**.
-- **L'envoi tient sur Workers Free, sans carte** (verbatim officiel) : vers une adresse de
-  destination **vérifiée**, Email Routing seul configuré. Or `FR-063` n'achemine que vers
-  l'**adresse autorisée du déploiement**. Prérequis dur : le domaine sur **DNS Cloudflare**.
-- **Aucun FR n'envoie d'e-mail au visiteur** — un accusé au visiteur exigerait un destinataire
-  arbitraire, donc Workers Paid, donc la chute de `I5`. C'est une frontière de périmètre.
-- Réserves e-mail restantes : **bêta publique** (16/04/2026, quota quotidien conservateur au
-  départ) et **délivrabilité FR**, qui ne se prouve qu'à la recette.
-- **Détection de panne** : le PRD n'en porte aucun FR, seulement l'atténuation (`FR-066`,
-  `FR-010`) — elle est à créer. Aucun mécanisme ne couvre tout ; seul l'accusé périodique teste
-  le canal réel, et sa valeur repose sur une éditrice qui remarque une **absence** — fréquence
-  non tranchée. Repli SMTP : **465/587** ouverts, 25 bloqué ; SMTP authentifié en bêta (08/06/2026).
-- Les gestes manuels des rapports A et B ne bloquent plus aucun arbitrage : ce sont désormais des
-  vérifications de **recette**.
+- Méthode : **rejouer à blanc**. La stack et les 12 ADR de `work/reprise-zero-2` (2026-08-07) ne
+  sont ni relus ni cités — leurs « faits datés » ne portent aucune source.
+- **R2 disqualifié par `I5`**, sur la Billing policy (souscription auto-renouvelée sur moyen de
+  paiement enregistré) et non sur le fil Community. Seul composant à compteur facturé ; les six
+  autres opposent un **mur**. Servir les assets ne consomme aucun quota.
+- **Magasin tranché — D1 porte brouillons et état publié, le dépôt reçoit la copie publiée.**
+  Confirme C1 et `I2` sans retouche ; ordre imposé, commit d'abord et marquage « publié » ensuite.
+  J'ai écarté « le dépôt EST le magasin » sur `FR-032` : reconstruire l'index inverse sans base
+  dépasse le plafond de **50 sous-requêtes par requête** (Workers Limits).
+- **Médias tranchés — même dépôt, branche `media` orpheline réécrite à chaque publication.**
+  L'espace maigrit, `FR-037` et `FR-084` restent vrais, le PRD n'est pas touché.
+- Le PRD n'exigeait pas un espace unique : `FR-087` et `FR-088` sont distincts et `FR-107` dit
+  « les espace**s** ». `SC-011` n'exige pas l'identité binaire — d'où la branche sans historique.
+  `FR-108` exige le manifeste des médias **inconditionnellement** : il n'a jamais discriminé.
+- Ces deux choix déposent en Stack : **C6 à amender** (« un clone, deux branches ») · publication
+  en trois temps (médias additifs → commit contenu → effacement des orphelins, après le build) ·
+  **sérialisation des publications devenue obligatoire** (`prd.md:642`) · les 20 000 fichiers
+  acquis comme donnée, le garde-fou C5 pour seul remède.
+- **L'envoi tient sur Workers Free, sans carte** : send_email vers l'adresse de destination
+  **vérifiée**, ce que `FR-063` demande exactement. Prérequis dur : domaine sur DNS Cloudflare.
+  Destinataire arbitraire → Workers Paid → chute de `I5` ; or **aucun FR n'envoie d'e-mail au
+  visiteur**, c'est une frontière de périmètre. Réserves : bêta publique (16/04/2026) et
+  délivrabilité FR, qui ne se prouve qu'à la recette.
+- **Détection de panne** : aucun FR ne la porte, seulement l'atténuation (`FR-066`, `FR-010`) —
+  elle est à créer. Seul l'accusé périodique teste le canal réel, et sa valeur repose sur une
+  éditrice qui remarque une **absence** — fréquence non tranchée. Repli SMTP : 465/587 ouverts,
+  25 bloqué ; SMTP authentifié en bêta (08/06/2026).
+- Écriture groupée de N fichiers : existe, verrou optimiste obligatoire — et le force-push de
+  `media` devra porter l'oid attendu pour ne pas le contourner.
+- Les gestes manuels des rapports A et B sont devenus des vérifications de **recette**.
 
 ## Prochaine étape
 
-Trancher l'arbitrage racine restant — **le magasin de contenu et les médias**, désormais sans R2 :
-les médias repartent avec le contenu, donc un espace versionné qui grossit sans maigrir, les
-images de retour dans le décompte de fichiers par déploiement, et le geste « supprimer » de
-l'écran Médias à tenir pour `SC-011`. Restent ensuite les 4 lookups — ③ jeton d'écriture ·
-④ dépôts privés · ⑥ Astro · ⑪ lien magique — avant de jouer `/scd-sdd:stack`.
+Jouer les 4 lookups restants, un par un — ③ jeton d'écriture (peut-il forcer une ref avec l'oid
+attendu, sous quelle permission ?) · ④ dépôts privés (le build doit cloner deux branches) ·
+⑥ Astro · ⑪ lien magique — puis `/scd-sdd:stack`.
 
 ## Écarté
 
 - **Reprendre la stack du 2026-08-07** — arbitrage humain, faits non sourcés.
+- **Le dépôt comme magasin** (voie 1 du Brief), et sa variante **dépôt + index D1 dérivé** — les
+  50 sous-requêtes tombent dans les deux cas, à la lecture comme à la reconstruction de l'index.
+- **Médias en un dépôt à historique complet** — `FR-037` et `FR-084` deviendraient faux à l'écran.
+- **Médias en deux dépôts distincts** — mêmes bénéfices que la branche orpheline, un espace de
+  plus à ouvrir et à vérifier sous `I1`.
+- **Médias dans D1 / KV / DO** — `FR-107` exige des **fichiers** ; un clone nu ne produirait rien.
+- **R2 pour les médias** — `I5`, sur la Billing policy et non sur le témoignage.
 - **Le palier gratuit en cinq lookups séparés** — `I5` les relie et c'est lui qui décide.
-- **Trancher le magasin avant les médias** — question posée, interrompue à raison.
 - **Sourcer moi-même ce qui descend dans un ADR** — la vérification doit laisser une trace citable.
-- **Instruire un repli hors Cloudflare** — l'hébergement est une donnée d'entrée (`brief.md:244`).
-- **Figer les chiffres de paliers dans le Brief ou un ADR** — le Brief les route vers l'annexe datée.
-- **La recommandation 4 du rapport A telle quelle** (état publié dans D1) — le chercheur n'avait
-  que `I5` en grille, pas `I2` « contenu en clair, hors base ».
-- **Le SMTP de la boîte de la cliente** — praticable, mais suspendu à un fournisseur grand public
-  qui accepterait l'envoi depuis une IP Cloudflare partagée.
+- **Instruire un repli hors Cloudflare**, et **la recommandation 3 du rapport C** (autre stockage
+  objet) — l'hébergement est une donnée d'entrée (`brief.md:244`).
+- **Figer les chiffres de paliers dans le Brief ou un ADR** — le Brief les route vers l'annexe.
+- **La recommandation 4 du rapport A** (état publié dans D1) — le chercheur n'avait que `I5` en
+  grille, pas `I2` « contenu en clair, hors base ».
+- **Le SMTP de la boîte de la cliente** — suspendu à un fournisseur grand public qui accepterait
+  l'envoi depuis une IP Cloudflare partagée.
 - **SendGrid · SES · MailerSend · ZeptoMail** — échouent sur « permanent » ou sur « sans carte ».
-- **La clause d'ancrage du rapport B** (« chaque chiffre décisif est ancré à une page primaire ») —
-  ses propres liens la démentent sur cinq lignes de son tableau.
-- **R2 pour les médias** — `I5`, tranché sur la Billing policy officielle et non sur le témoignage.
-- **La recommandation 3 du rapport C** (un autre fournisseur de stockage objet) — même motif que
-  le repli hors Cloudflare : l'hébergement est une donnée d'entrée.
-- **Le geste ① comme préalable à l'arbitrage** — la Billing policy tranche sans lui ; il reste une
-  vérification de recette.
+- **La clause d'ancrage du rapport B** — ses propres liens la démentent sur cinq lignes.
+- **Le geste ① comme préalable à l'arbitrage** — la Billing policy tranche sans lui.
