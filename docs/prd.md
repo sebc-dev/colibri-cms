@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Statut** | Draft |
+| **Statut** | accepted |
 | **Date** | 2026-08-10 |
 | **Trace vers** | [Brief](./brief.md) |
 | **Consommé par** | Stack, Archi, ADR, niveau specs |
@@ -252,12 +252,14 @@ apporté, et ce que ça a donné. Ce qu'elle retire de la liste ne disparaît pa
      « commande », et trois demandes issues de « Devis atelier » sans aucune commande,
      **When** l'éditrice ouvre l'écran des demandes, **Then** elle lit 14 demandes et
      3 commandes pour le site, ainsi que la ventilation `11 → 3` et `3 → 0` par formulaire.
-  6. **Given** ces mêmes demandes, **When** l'éditrice en retire deux en déclarant le retrait
-     ordinaire, **Then** l'écran affiche 12 demandes, 3 commandes et 2 retirées — et aucune
-     autre demande n'est effacée par le système lui-même.
-  7. **Given** quarante soumissions automatisées entrées sous le seuil de fréquence, **When**
-     l'éditrice les sélectionne et les retire en un geste en les déclarant indésirables,
-     **Then** elles disparaissent de la liste et **aucun des trois nombres ne bouge**.
+  6. **Given** ces mêmes demandes, **When** l'éditrice en retire deux qui étaient sans suite,
+     en déclarant le retrait ordinaire, **Then** l'écran affiche 12 demandes, 3 commandes et
+     2 retirées — et aucune autre demande n'est effacée par le système lui-même.
+  7. **Given** quarante soumissions automatisées entrées sous le seuil de fréquence, qui font
+     momentanément lire 54 demandes, **When** l'éditrice les sélectionne et les retire en un
+     geste en les déclarant indésirables, **Then** les trois nombres retrouvent **exactement**
+     les valeurs qu'ils portaient avant l'arrivée de ces soumissions — le nombre de retirées,
+     en particulier, n'a pas bougé.
 
 ### US11 — Déployer une instance au nom du client (Priorité : P1)
 

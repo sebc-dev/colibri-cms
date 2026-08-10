@@ -4,7 +4,7 @@
 |---|---|
 | **Statut** | traité — 11 constats sur 11 arbitrés le 2026-08-10 |
 | **Date** | 2026-08-10 |
-| **Documents audités** | [Brief](./brief.md) (accepted, amendé 2026-08-10) · [PRD](./prd.md) (Draft, 2026-08-10) |
+| **Documents audités** | [Brief](./brief.md) (accepted, amendé 2026-08-10) · [PRD](./prd.md) (accepted, 2026-08-10) |
 | **Objet** | Incohérences et oublis entre les deux documents, à arbitrer un par un |
 | **Issue** | PRD : 103 → 117 FR (renumérotation complète), 19 → 20 SC, 13 → 17 cas limites, 4 exclusions ajoutées · Brief amendé en 2 points · 1 recherche versée ([rétention](./research/2026-08-10-retention-donnees-demandes-devis.md)) |
 
