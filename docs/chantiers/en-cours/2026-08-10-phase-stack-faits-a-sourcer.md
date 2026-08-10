@@ -1,7 +1,7 @@
 # Phase stack — les faits datés à sourcer avant d'arbitrer
 
 Portée : socle
-Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `78dec77`
+Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `99f7b2c`
 
 ## Objectif
 
@@ -54,12 +54,23 @@ dépend n'est pas sourcé et daté.
   25 bloqué ; SMTP authentifié en bêta (08/06/2026).
 - Écriture groupée de N fichiers : existe, verrou optimiste obligatoire — et le force-push de
   `media` devra porter l'oid attendu pour ne pas le contourner.
+- **③ tranché — l'oid attendu passe, mais par GraphQL `updateRefs` seul** : `RefUpdate.beforeOid`
+  + `force: true`, atomique sur plusieurs refs. Ni `updateRef` (singulier) ni REST
+  `PATCH /git/refs` n'ont de champ d'oid attendu ; hors API,
+  `git push --force-with-lease=<ref>:<oid>` fait le même compare-and-swap. Permission établie
+  pour REST seulement : **Contents: write**. À citer : le schéma public
+  `docs.github.com/public/fpt/schema.docs.graphql`, et la table des permissions fine-grained sous
+  `docs.github.com/en/rest/authentication/`.
+- **Trois sous-faits non établis, à trancher d'un appel réel en recette et non par recherche** :
+  le scope qu'exige `updateRefs` (GitHub ne publie aucune table de permissions GraphQL),
+  « Contents: write » pour le `git push` en HTTPS (rapporté, jamais primaire), et la sortie de
+  preview d'`updateRefs` (inférée — aucun `@preview` dans le schéma FPT, page previews absente de
+  dotcom, encore présente en GHES 3.12).
 - Les gestes manuels des rapports A et B sont devenus des vérifications de **recette**.
 
 ## Prochaine étape
 
-Jouer les 4 lookups restants, un par un — ③ jeton d'écriture (peut-il forcer une ref avec l'oid
-attendu, sous quelle permission ?) · ④ dépôts privés (le build doit cloner deux branches) ·
+Jouer les 3 lookups restants, un par un — ④ dépôts privés (le build doit cloner deux branches) ·
 ⑥ Astro · ⑪ lien magique — puis `/scd-sdd:stack`.
 
 ## Écarté
