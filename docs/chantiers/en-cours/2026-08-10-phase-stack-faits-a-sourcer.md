@@ -1,7 +1,7 @@
 # Phase stack — les faits datés à sourcer avant d'arbitrer
 
 Portée : socle
-Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `99f7b2c`
+Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `96421f0`
 
 ## Objectif
 
@@ -12,8 +12,8 @@ dépend n'est pas sourcé et daté.
 
 à extraire  `docs/prd.md` › `FR-083`–`FR-091`, `FR-107`, `FR-108`, `SC-010`, `SC-011` — le contrat
             que les arbitrages tranchés doivent tenir sans retouche (797 l.)
-à extraire  `docs/socle-de-livraison.md` › § « C1–C10 » et § « Annexe A » — C6 est à amender,
-            le seuil d'alerte de C5 est à 15 000 (364 l.)
+à extraire  `docs/socle-de-livraison.md` › § 5 « Les contraintes de développement du CMS » (C1–C10)
+            et § « Annexe A » — C6 est à amender, le seuil d'alerte de C5 est à 15 000 (364 l.)
 à extraire  `docs/brief.md` › § « Questions ouvertes » — les 4 renvois Stack non encore tranchés
 à extraire  `docs/research/2026-08-10-gating-paiement-r2-email-cloudflare.md` › § « Tableau de
             gating » — verbatims, URL et dates citables dans un ADR
@@ -67,11 +67,21 @@ dépend n'est pas sourcé et daté.
   preview d'`updateRefs` (inférée — aucun `@preview` dans le schéma FPT, page previews absente de
   dotcom, encore présente en GHES 3.12).
 - Les gestes manuels des rapports A et B sont devenus des vérifications de **recette**.
+- **④ tranché pour l'essentiel — la branche `media` est atteignable, mais rien ne garantit
+  qu'elle soit déjà là.** Dépôt privé supporté (Pages, MAJ 21/04/2026), `git` présent dans
+  l'image de build (MAJ 30/07/2026). En revanche Cloudflare **ne documente ni la profondeur du
+  clone ni les refs récupérées**, et aucune source ne dit si les credentials du checkout
+  survivent dans le conteneur. J'en tire que le fetch de `media` doit être **explicite dans le
+  build command et porter son propre jeton**, permission **`Contents`** en lecture — c'est la
+  seule qui porte l'accès Git HTTP, écrit tel quel par GitHub. Ce jeton est un secret de plus,
+  à ouvrir au nom de la cliente sous `I4` et à inventorier sous `C7`.
+- Repli documenté si le clone à deux branches ne passait pas : construire hors Cloudflare et
+  déposer par **Direct Upload** (`wrangler`). Le build quitterait les comptes de la cliente et
+  heurterait `I1` — je ne le prends pas par défaut, et il n'est pas écarté non plus.
 
 ## Prochaine étape
 
-Jouer les 3 lookups restants, un par un — ④ dépôts privés (le build doit cloner deux branches) ·
-⑥ Astro · ⑪ lien magique — puis `/scd-sdd:stack`.
+Jouer les 2 lookups restants, un par un — ⑥ Astro · ⑪ lien magique — puis `/scd-sdd:stack`.
 
 ## Écarté
 
@@ -95,3 +105,7 @@ Jouer les 3 lookups restants, un par un — ④ dépôts privés (le build doit 
 - **SendGrid · SES · MailerSend · ZeptoMail** — échouent sur « permanent » ou sur « sans carte ».
 - **La clause d'ancrage du rapport B** — ses propres liens la démentent sur cinq lignes.
 - **Le geste ① comme préalable à l'arbitrage** — la Billing policy tranche sans lui.
+- **Supposer que le checkout Cloudflare atteint `media` sans jeton fourni** — ni documenté ni
+  infirmé ; ça se tranche d'un appel réel en recette, pas par recherche.
+- **Le « clone superficiel » de Cloudflare comme fait** — il ne circule qu'en anecdotique, et le
+  fil Community qui en discute renvoie 403 au fetcher.
