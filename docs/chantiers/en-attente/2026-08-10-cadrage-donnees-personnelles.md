@@ -20,8 +20,9 @@ PRD hors du chemin ; il n'a pas fait le cadrage lui-même.
 ## Acquis
 
 - J'avais établi qu'aucun texte n'impose de purge automatique au logiciel : le PRD n'exige
-  donc rien, et surtout n'interdit plus rien — l'ancienne `FR-065` bloquait toute politique
-  de rétention alors qu'elle ne visait qu'à interdire une cascade.
+  donc rien, et surtout n'interdit plus rien — l'exigence qui bannissait tout effacement à
+  l'initiative du système a été rétrécie à ce qu'elle visait vraiment, l'interdiction d'une
+  cascade (aujourd'hui `FR-079`).
 - J'avais retenu que le comptage d'une demande retirée survit à l'effacement de son contenu,
   précisément pour que l'issue du cadrage ne casse pas le relevé.
 - J'avais noté que la copie e-mail échappe au produit : aucune fonction logicielle ne peut à

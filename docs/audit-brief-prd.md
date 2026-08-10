@@ -8,6 +8,14 @@
 | **Objet** | Incohérences et oublis entre les deux documents, à arbitrer un par un |
 | **Issue** | PRD : 103 → 117 FR (renumérotation complète), 19 → 20 SC, 13 → 17 cas limites, 4 exclusions ajoutées · Brief amendé en 2 points · 1 recherche versée ([rétention](./research/2026-08-10-retention-donnees-demandes-devis.md)) |
 
+> **⚠ Avertissement de lecture.** Les constats ci-dessous ont été écrits contre le PRD
+> **d'avant traitement**. Toutes leurs références — numéros `FR-xxx` comme renvois de ligne
+> `prd.md:NNN` — désignent cette version-là et **ne correspondent plus** au document actuel,
+> renuméroté `FR-001` à `FR-117`. Elles sont conservées telles quelles : un constat d'audit
+> est daté, le réécrire le rendrait invérifiable. Pour savoir où chaque constat a atterri,
+> lire le **récapitulatif des arbitrages en fin de document**, seul endroit qui emploie la
+> numérotation d'aujourd'hui.
+
 > **Méthode.** Croisement systématique : chaque rubrique du Brief (Inclus, EXCLU,
 > contraintes, invariants, SC, questions ouvertes) contre les US, FR, SC, cas limites et
 > NON inclus du PRD, et retour. Chaque constat porte un identifiant `A-nn`, une sévérité,
