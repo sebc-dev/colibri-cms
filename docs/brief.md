@@ -4,6 +4,7 @@
 |---|---|
 | **Statut** | accepted |
 | **Date** | 2026-08-10 |
+| **Amendé** | 2026-08-10 — traitement de l'[audit Brief ↔ PRD](./audit-brief-prd.md), constats `A-02` et `A-04` |
 | **Trace vers** | — (racine de la chaîne) |
 | **Consommé par** | PRD, Stack, Archi, ADR |
 | **Documents liés** | [Socle de livraison](./socle-de-livraison.md) — invariants, clausier, limites datées |
@@ -122,7 +123,9 @@ qu'elle possède, sans aucun accès à ColibriCMS.
   valeur — et recense les comptes dont la récupération dépend de sa boîte e-mail.
 - **Restauration** : retour à la dernière version publiée, abandonnant le brouillon en
   cours.
-- **Authentification** de l'éditrice par sa seule adresse e-mail.
+- **Authentification** de l'éditrice par sa seule adresse e-mail dans le parcours courant, et
+  un **moyen de reprise** non e-mail, remis à la livraison et rangé chez la cliente, qui ouvre
+  l'admin quand l'e-mail ne répond plus.
 
 ### EXCLU (v1)
 
@@ -353,9 +356,13 @@ S'y ajoutent les contraintes de conception et d'exploitation :
   Stack.
 - **Perte ou compromission de la boîte e-mail de la cliente.** Cette boîte ouvre l'admin
   et porte la récupération de tous les comptes ouverts à son nom : c'est la clé de voûte
-  de l'instance. Quel est le chemin de reprise si elle devient inaccessible, et
-  qu'exige-t-il d'avoir été préparé à la livraison ? À cadrer avant la première mise en
-  ligne.
+  de l'instance. **Tranché pour la perte** : un moyen de reprise non e-mail est remis à la
+  livraison et rangé chez la cliente — c'est ce qu'exigeait d'avoir été préparé à la
+  livraison, et le dossier d'instance dit où il est rangé, jamais sa valeur. La
+  **compromission** relève d'un autre geste, qui reste dans le produit : remplacer l'adresse
+  autorisée. Reste ouvert, et hors produit : le cas où le moyen de reprise et la boîte sont
+  perdus ensemble — le dernier recours est alors la reprise sur pièces du déploiement
+  (`SC-014`).
 - **Moyen anti-abus des surfaces exposées.** Non choisi. Quel qu'il soit : gratuit sans
   moyen de paiement (`I5`), sans compte visiteur, sans service hébergé par Isometria.
   **Tranché en phase Stack.**
