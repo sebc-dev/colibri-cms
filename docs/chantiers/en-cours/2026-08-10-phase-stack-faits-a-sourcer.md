@@ -1,7 +1,7 @@
 # Phase stack — les faits datés à sourcer avant d'arbitrer
 
 Portée : socle
-Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `77b3082`
+Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `ccb410e`
 
 ## Objectif
 
@@ -12,13 +12,16 @@ dépend n'est pas sourcé et daté.
 
 à extraire  `docs/prd.md` › `FR-083`–`FR-091`, `FR-107`, `FR-108`, `SC-010`, `SC-011` — le contrat
             que les arbitrages tranchés doivent tenir sans retouche (797 l.)
-à extraire  `docs/socle-de-livraison.md` › § 5 « Les contraintes de développement du CMS » (C1–C10)
-            et § « Annexe A » — C6 est à amender, le seuil d'alerte de C5 est à 15 000 (364 l.)
+à extraire  `docs/socle-de-livraison.md` › § 5 « Les contraintes de développement du CMS » (C1–C10),
+            § « Annexe A » et § « Ce qui reste ouvert » n° 4 — C6 est à amender, le seuil d'alerte
+            de C5 est à 15 000 (364 l.)
 à extraire  `docs/brief.md` › § « Questions ouvertes » — **5** renvois Stack, pas 4 (376 l.)
 à extraire  `docs/research/2026-08-10-gating-paiement-r2-email-cloudflare.md` › § « Tableau de
             gating » — verbatims, URL et dates citables dans un ADR (77 l.)
 à extraire  `docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md` › § « Détail par
             composant » — les chiffres destinés à l'annexe datée (178 l.)
+à extraire  `docs/research/2026-08-10-pages-ou-workers-static-assets.md` › § « Key Findings » n° 1
+            et § « Tableau 2 » — la citation datée et les valeurs comparées, citables (96 l.)
 à situer    `docs/research/2026-08-10-acheminement-demandes-envoi-email.md` — son § C ne sert que
             si la voie Cloudflare tombe
 à situer    `docs/research/2026-08-10-api-github-commit-atomique.md` — conclusion déjà dans Acquis
@@ -100,11 +103,33 @@ dépend n'est pas sourcé et daté.
   documenté** (la page SQL n'énumère que FTS5, JSON, math et renvoie au code source). Et une voie
   « zéro code » reste ouverte sans être instruite — **Access one-time PIN** (PIN 10 min, MAJ
   19/06) — dont le palier gratuit n'a **aucune source primaire**, donc invérifiable face à `I5`.
+- **Le domaine sorti de ⑥ est instruit — Pages n'est ni déprécié ni en fin de vie, et les deux
+  voies tiennent `I5`.** Seule parole d'éditeur, datée du 08/04/2025 : Pages « continuera d'être
+  pris en charge », mais tout l'investissement va à Workers ; Workers static assets est GA depuis
+  ce même jour. Les paliers sont **égaux** — 20 000 fichiers, 25 Mio, service des assets gratuit
+  et illimité, traitement serveur au quota Workers de 100 000 req/j — tous les dépassements sont
+  des **murs**, et aucun moyen de paiement n'est exigé d'aucun côté.
+- **Le couplage referme deux questions d'un coup** : dans le périmètre retenu (CI hébergée),
+  choisir la cible **c'est** choisir le système de build. La question ouverte n° 4 du socle et
+  « Pages ou Workers » n'en font qu'une. Reste un arbitrage humain : le rapport **recommande**
+  Workers, il ne le décide pas.
+- **Contrainte de nommage découverte** : Workers n'accepte aucun domaine dont les serveurs de noms
+  ne sont pas gérés par Cloudflare, là où Pages l'accepte par CNAME. Sans effet ici — `send_email`
+  exige déjà le domaine sur DNS Cloudflare ; les deux contraintes convergent.
+- **Deux choses ne sont PAS acquises, et l'une contredit le socle.** « Aucun compteur facturé sur
+  le gratuit » est une **déduction** tirée du silence de la doc, pas une phrase de l'éditeur ; et
+  l'overage des builds gratuits reste non documenté **des deux côtés**, donc la réserve 1 de
+  l'Annexe A n'est pas levée. Or l'Annexe A prête aux 500 déploiements Pages/mois un « refus
+  jusqu'à la remise à zéro » que rien ne source.
+- **Un cinquième sous-fait rejoint la recette** : qu'on puisse encore ouvrir un nouveau projet
+  Pages n'a pas été constaté — le dashboard est derrière une connexion, et C3 réclame désormais
+  `--platform=pages`.
 
 ## Prochaine étape
 
-Composer la recherche « Pages ou Workers », puis lancer `/scd-sdd:stack`. Le domaine ⑪ est clos ;
-plus aucun lookup en attente.
+Lancer `/scd-sdd:stack`. Plus aucune recherche ni aucun lookup en attente. Deux points se
+tranchent pendant la phase et pas avant : l'arbitrage Pages ou Workers lui-même, et le
+comportement non sourcé que l'Annexe A prête aux 500 déploiements.
 
 ## Écarté
 
@@ -140,3 +165,9 @@ plus aucun lookup en attente.
   arbitrage à trois branches pour la Stack, pas un fait à sourcer.
 - **Le palier gratuit d'Access lu sur des comparateurs commerciaux** — ils se citent entre eux :
   une seule source, pas un recoupement.
+- **`run_worker_first` et `not_found_handling` comme acquis** — les Recommandations du rapport les
+  tiennent d'un billet de blog personnel, pas de la documentation.
+- **Le « benchmark » de ~3 000 requêtes serveur par jour** — c'est 100 000 ÷ 30, présenté comme un
+  seuil ; aucune source.
+- **Les billets tiers annonçant Pages « deprecated »** — inférences de lecteur, démenties par la
+  seule parole d'éditeur datée.
