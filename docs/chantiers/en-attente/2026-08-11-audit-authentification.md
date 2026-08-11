@@ -1,9 +1,7 @@
 # Audit de l'authentification, sur les seules pièces déjà au dépôt
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `948eb54`
-Bloqué par : la clôture du lot L4 de l'audit de la stack — `S-02` et `S-01` touchent au même
-inventaire de secrets, auditer avant rendrait les constats caducs
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `209c85f`
 
 ## Objectif
 
@@ -41,6 +39,12 @@ traitement de `S-05` a **nommé** les mécanismes ; personne ne les a encore **a
 - **Jamais instruit, donc premier gisement** : ce qu'une session compromise fait de la
   publication, le coût d'une CSP stricte sur des îlots Svelte, et `I3` face à des sessions
   vivant en base.
+- **L'ordre a été inversé le 11/08, et le `Bloqué par` retiré.** J'avais posé que cet audit
+  attende la clôture de L4, `S-02` et `S-01` touchant au même inventaire de secrets. C'est
+  l'inverse qui a été décidé : **L4 consommera les arbitrages de cet audit**, et le traitement
+  de l'audit de la stack est passé en attente derrière lui. Conséquence à assumer en écrivant
+  les constats — `stack.md` sera lu avec `S-02` et `S-01` **non encore arbitrés**, donc son
+  inventaire de secrets est un état intermédiaire, pas une cible.
 
 ## Prochaine étape
 
