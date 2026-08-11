@@ -30,6 +30,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Contenu publié en fichiers | Un répertoire par objet dans le dépôt : `page.json` pour la structure, un `.md` par emplacement de texte riche | FR-087, FR-107, FR-109, SC-011 | |
 | Médias publiés | Même dépôt, branche orpheline `media` : dépôt **additif** à la publication, **élagage des orphelins au début de la publication suivante** | FR-037, FR-084, FR-088, FR-107, FR-108, SC-011 | |
 | Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
+| Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
 | Auth | Implémentation maison sur D1 : jeton haché à usage unique et expirant, cookie de session signé | FR-001 à FR-014, SC-006, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** | FR-063, FR-064, SC-007 | |
@@ -163,6 +164,38 @@ en conditions adverses, là où le verrou D1 les sérialise et les espace.
 Mesure du 11/08/2026, sur dépôt jetable et avec témoin :
 [relevé](./research/2026-08-11-sous-requetes-publication.md), trace brute rejouable à côté.
 
+### Ce que le déclenchement par `main` seule règle, et ce qu'il laisse
+
+`FR-089` fait du dépôt du **contenu publié** l'unique déclencheur : le dépôt des médias n'en
+est pas un, donc `media` ne déclenche rien et une publication ne produit **qu'un** build.
+L'élagage ayant quitté l'après-build (ci-dessus), il n'y a plus d'écriture sur `media` après
+le build non plus. Reste une dépendance qu'il faut lever **avant** la mise en ligne et non
+après : le *checkout* de Workers Builds doit atteindre `media`, sinon le build ne trouve
+aucun média. C'est un point **bloquant** de la recette, plus une curiosité.
+
+**`C4` est tenu par construction, mais sa vérification teste autre chose.** « Une rafale
+d'enregistrements doit produire un build, pas dix » décrit une architecture où enregistrer
+commite. Ici les enregistrements vont en D1 et ne commitent jamais : seule une publication
+commite, et c'est un geste explicite avec récapitulatif et confirmation (`FR-083`, `FR-085`).
+Dix enregistrements en deux minutes produisent **zéro** déploiement. La ligne de vérification
+du socle est à corriger en conséquence. Résidu assumé : dix *publications* en deux minutes
+feraient dix builds — le verrou sérialise, il ne débounce pas —, mais la concurrence de build
+est de 1 et les met en file **sans erreur ni coût** (Annexe A).
+
+**Les minutes de build ne sont bornées par rien de mesuré.** À la limite de conception de
+`C5` — 15 000 fichiers, de l'ordre de 3 000 photographies —, le build régénère toutes les
+variantes d'images. Le mur des **20 minutes par build** est la limite dure, et les 3 000
+minutes/mois sont précisément le quota dont le comportement au dépassement n'est documenté
+d'aucun côté (Annexe A, réserve 1). La durée du build rejoint donc le nombre de fichiers par
+photographie dans ce qui **se mesure au premier déploiement réel**.
+
+**La bifurcation, écrite pour ne pas être découverte au mur.** Si cette mesure montre une
+durée qui croît avec la médiathèque, la parade connue est de **générer les variantes à la
+publication** et de les déposer, le build ne faisant plus que les servir. Elle a un prix
+chiffrable dès aujourd'hui : cinq fichiers par photographie au lieu d'un font tomber le
+budget médias de **42 à environ 8 par publication**. C'est `archi` qui tranchera, avec le
+chiffre en main — pas cette page.
+
 ### `C6` change de forme
 
 « Un clone nu du dépôt produit le site complet » devient **« un clone, deux branches »** :
@@ -256,8 +289,10 @@ ils sont mesurés ci-dessus.
    code source.
 2. Le routage `/api/*` vers le code du Worker — `run_worker_first` et `not_found_handling` ne
    sont tenus que d'un billet personnel, pas de la documentation.
-3. Le *checkout* Cloudflare atteint-il la branche `media` sans jeton fourni — ni documenté ni
-   infirmé.
+3. **Bloquant.** Le *checkout* Cloudflare atteint-il la branche `media` sans jeton fourni —
+   ni documenté ni infirmé. Le build ne déclenche que sur `main` : si la réponse est non, le
+   jeton de lecture `Contents: Read-only` déjà prévu au §7 du socle devient **obligatoire**,
+   et sans lui le site bâti n'a aucun média. À lever avant la mise en ligne.
 4. La délivrabilité réelle vers les boîtes françaises — Email Sending est en bêta publique
    depuis le 16/04/2026.
 
@@ -381,7 +416,11 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 
 - **`docs/socle-de-livraison.md`** : §3, `C6`, Annexe A et réserve 1 amendés le 2026-08-10
   par cette phase (le bandeau ⚠️ du document demandait cette revalidation) ; le n° 6 de « Ce
-  qui reste ouvert » fermé le 2026-08-11 par la mesure du jeton d'écriture.
+  qui reste ouvert » fermé le 2026-08-11 par la mesure du jeton d'écriture ; **réserve 3 de
+  l'Annexe A élargie à la durée du build** le 2026-08-11 par le traitement de `S-08`.
+- **`C4` reste à corriger au socle** : sa vérification (« dix enregistrements en deux minutes
+  → un seul déploiement ») teste une architecture où enregistrer commite, ce qui n'est pas
+  celle-ci. Dette portée par le traitement de `S-14`.
 - **La recette de livraison** (§7 du socle) gagne trois lignes que cette phase impose :
   le jeton d'écriture créé **sans expiration** et portant `Contents: Read and write` seule,
   le jeton de lecture de `media` en `Contents: Read-only`, et le Cron de maintien en vie

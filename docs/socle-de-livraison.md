@@ -363,8 +363,13 @@ vers 3 000 photographies dans la configuration retenue.
 2. La « bande passante illimitée » n'est chiffrée nulle part ; elle est encadrée par les conditions
    de service (pas de vidéo, pas de proportion disproportionnée de contenu non-HTML). **Non
    chiffrable, donc non contractualisable en valeur.**
-3. Le nombre de fichiers produits par photographie dépend de la configuration réelle du build.
-   **À mesurer sur le premier déploiement réel** et à reporter ici.
+3. Le nombre de fichiers produits par photographie dépend de la configuration réelle du build —
+   **et sa durée aussi.** Le build régénère les variantes d'images ; à la limite de conception
+   de `C5` (15 000 fichiers, de l'ordre de 3 000 photographies), personne n'a compté ce que
+   cela coûte face au mur des **20 minutes par build**, ni face aux 3 000 minutes/mois dont la
+   réserve 1 dit que le dépassement n'est documenté nulle part. **Les deux sont à mesurer sur
+   le premier déploiement réel** et à reporter ici. *(Élargi le 2026-08-11, traitement de
+   `S-08` de l'audit de la stack.)*
 
 ---
 
