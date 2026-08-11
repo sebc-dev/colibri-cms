@@ -10,14 +10,17 @@
 > fournit des contraintes de développement testables (§5). Les deux sortent des mêmes invariants :
 > si le code s'en écarte, la clause devient fausse.
 
-> ⚠️ **Restauré le 2026-08-10 depuis `archive/socle-v1/`, partiellement périmé.** La remise à
-> zéro du socle (`cf8590d`) a rouvert la phase Stack : **toute mention de D1, de Worker, de
-> dépôt Git ou d'un système de build nommé est une décision de la stack v1 et ne fait plus
-> foi** — elle est à revalider en phase Stack. Sont concernés les § 2 (conséquence pour le
-> CMS), § 3 (topologie), § 5 (contraintes C1, C6, C8), § 6 et l'annexe A. Restent valides
-> sans réserve : les **six invariants** eux-mêmes (§ 2), le **clausier** (§ 4), la **recette
-> de livraison** (§ 7) et le principe d'une **annexe datée** des paliers gratuits, dont seules
-> les valeurs se révisent. `docs/brief.md` renvoie ici pour ces quatre-là.
+> ✅ **Revalidé le 2026-08-10 par la phase Stack.** Le bandeau qui précédait marquait comme
+> périmée toute mention de D1, de Worker, de dépôt Git ou d'un système de build : ces mentions
+> ont été confrontées aux arbitrages de [`docs/stack.md`](./stack.md) et corrigées ici — § 3
+> (topologie), § 5 (`C6`), annexe A et sa réserve 1. `C1`, `C8` et le § 6 sont **confirmés
+> sans retouche** : D1 porte bien les brouillons, l'état publié et le compteur de demandes.
+>
+> **Une correction touche le clausier.** Le § 4.1 écrit que les limites du plan gratuit « se
+> traduisent […] par un refus temporaire ». C'est vrai et sourcé pour les fichiers, les
+> requêtes et le stockage ; ça ne l'est **pas** pour les quotas de build, dont le comportement
+> au dépassement n'est documenté d'aucun côté. À porter à la relecture juridique (§ « Ce qui
+> reste ouvert », n° 5).
 
 ---
 
@@ -115,11 +118,11 @@ hébergée côté Isometria ne conditionne le fonctionnement. Ce qui relève du 
 |---|---|---|---|
 | Nom de domaine | Registrar tiers (OVH) | **Client** | Facture du registrar |
 | Compte Cloudflare | Cloudflare | **Client**, seul Super Administrateur | **Facture à 0 €**, émise même en plan gratuit |
-| Site statique servi | Cloudflare, compte client | Client | — |
-| Base D1 — contenu | Cloudflare, compte client | Client | — |
-| CMS (Worker) | Cloudflare, compte client | Client | — |
-| Exécution du build | Infrastructure de build Cloudflare, compte client | Client | Journal des déploiements |
-| **Dépôt Git** — code + contenu en clair | GitHub ou GitLab | **Client**, Isometria collaborateur | Propriété du dépôt |
+| Site statique servi **et** CMS — un seul Worker | Cloudflare, compte client | Client | — |
+| Base D1 — brouillons, état publié, demandes | Cloudflare, compte client | Client | — |
+| Durable Object — compteur anti-abus | Cloudflare, compte client | Client | — |
+| Exécution du build (*Workers Builds*) | Infrastructure de build Cloudflare, compte client | Client | Journal des déploiements |
+| **Dépôt Git** — code + contenu en clair (branche `main`) et médias (branche orpheline `media`) | GitHub | **Client**, Isometria collaborateur | Propriété du dépôt |
 | Accès d'Isometria | Membre Administrateur Cloudflare + collaborateur du dépôt | Révocable par le client à tout moment | — |
 
 **Le point à ne pas rater : le dépôt.** Le système de build Cloudflare construit depuis un dépôt Git.
@@ -226,7 +229,7 @@ intentions.
 | **C3** | **Le build ne commite jamais.** Le dump vient du CMS, pas du build — un build qui écrit dans son propre dépôt boucle | I2 | Aucune écriture Git depuis l'étape de build |
 | **C4** | **Anti-rebond des publications.** La concurrence de build est de 1 : une rafale d'enregistrements doit produire un build, pas dix | I5 | Dix enregistrements en deux minutes → un seul déploiement |
 | **C5** | **Garde-fou sur le nombre de fichiers.** Le build compte les fichiers produits et **alerte au-delà du seuil d'annexe A**. C'est la seule limite qui morde en premier, et elle se mesure localement | I5 | Un build artificiellement gonflé déclenche l'alerte |
-| **C6** | **Mode de build « depuis les fichiers plats »**, sans D1 et sans accès Cloudflare, documenté dans le `README` du dépôt | I3 | Un clone nu du dépôt produit le site complet |
+| **C6** | **Mode de build « depuis les fichiers plats »**, sans D1 et sans accès Cloudflare, documenté dans le `README` du dépôt. Le contenu vit sur `main`, les médias sur la branche orpheline `media` : la procédure récupère **les deux** | I3 | **Un clone, deux branches** → le site complet, médias compris |
 | **C7** | **Aucun secret Isometria** dans les variables d'environnement ni dans les liaisons du déploiement | I4 | Inventaire au moment de la recette |
 | **C8** | **Le compteur de demandes vit dans D1**, dans le compte du client — jamais dans un service d'analytique tiers | I1, §6 | La table existe et se lit sans quitter le compte |
 | **C9** | **Rien n'exige un moyen de paiement.** Aucun service payant, aucun essai qui bascule automatiquement | I5 | Le compte reste sans moyen de paiement à la livraison |
@@ -235,9 +238,9 @@ intentions.
 ### L'épreuve de réversibilité
 
 C6 mérite d'être exécutée, pas seulement écrite. **Une fois à la livraison, puis une fois par an :**
-cloner le dépôt dans un environnement neuf, sans aucun accès, lancer le build, comparer le résultat
-au site en ligne. **La sortie de la commande est une pièce** — c'est la démonstration de la
-réversibilité, datée, et personne dans la catégorie ne peut la produire.
+cloner le dépôt dans un environnement neuf — **`main` et `media`** —, sans aucun accès, lancer le
+build, comparer le résultat au site en ligne. **La sortie de la commande est une pièce** — c'est la
+démonstration de la réversibilité, datée, et personne dans la catégorie ne peut la produire.
 
 C'est aussi, le cas échéant, un artefact que le carnet peut livrer une fois par an, à côté du relevé
 mensuel. **À arbitrer quand le périmètre du carnet sera écrit — ce n'est pas décidé ici.**
@@ -294,6 +297,11 @@ l'accès.**
 
 - [ ] I3 exécuté : clone nu → build → site complet, **sortie de commande conservée**
 - [ ] C7 : inventaire des secrets, aucun n'appartient à Isometria
+- [ ] Jeton d'écriture GitHub créé **sans expiration**, portée fine sur le seul dépôt du site,
+      permission `Contents: Read and write` **et rien d'autre**
+- [ ] Jeton de lecture de la branche `media` pour le build : `Contents: Read-only`
+- [ ] Maintien en vie du jeton d'écriture actif — GitHub retire un jeton resté un an sans
+      usage, et `FR-101` exige qu'une publication aboutisse après retrait des accès d'Isometria
 - [ ] C9 : aucun moyen de paiement sur le compte
 - [ ] C10 : révocation d'essai des accès → publication encore possible
 
@@ -321,9 +329,9 @@ l'accès.**
 
 | Limite | Valeur | Période | Au dépassement |
 |---|---|---|---|
-| **Fichiers par déploiement** | **20 000** | Par déploiement | **Déploiement refusé.** Le site en ligne continue d'être servi |
+| **Fichiers par version de Worker** | **20 000** | Par version | **Déploiement refusé.** Le site en ligne continue d'être servi |
 | Taille d'un fichier | 25 Mio | Par fichier | Fichier refusé |
-| Déploiements (système de build Pages) | 500 | Mois | Refus jusqu'à la remise à zéro |
+| Minutes de build (*Workers Builds*) | 3 000 | Mois | **Non documenté.** Un message produit rapporté en communauté annonce des builds en pause jusqu'à la remise à zéro — jamais une facturation. Voir réserve 1 |
 | Builds simultanés | 1 | — | Mise en file d'attente, sans erreur ni coût |
 | Durée d'un build | 20 min | Par build | Build interrompu |
 | D1 — lignes lues | 5 000 000 | Jour | Requêtes en erreur jusqu'à la remise à zéro |
@@ -335,16 +343,23 @@ l'accès.**
 
 **Sur le profil d'un site vitrine riche en photographies, aucune de ces limites n'est approchée :
 la marge la plus faible est d'environ 4×.** La première à mordre en cas de croissance est le nombre
-de fichiers par déploiement — soit, selon le nombre de formats responsive générés, de l'ordre de
-**1 600 à 5 000 photographies**.
+de fichiers par version — et ce nombre est **une décision de configuration, pas une propriété du
+produit** : avec la configuration d'images retenue en Stack (`layout: 'constrained'`, breakpoints
+`[640, 960, 1280]`, un seul format), une photographie produit **5 fichiers**, soit un plafond de
+l'ordre de **4 000 photographies**. Une configuration plus généreuse le ferait tomber à moins de
+1 000.
 
-**Seuil d'alerte à câbler dans le build (C5) : 15 000 fichiers**, soit 75 % du plafond.
+**Seuil d'alerte à câbler dans le build (C5) : 15 000 fichiers**, soit 75 % du plafond — atteint
+vers 3 000 photographies dans la configuration retenue.
 
 **Trois réserves à connaître, reprises de la recherche :**
 
-1. Le comportement au dépassement des minutes de build du système *Workers Builds* **n'est pas
-   documenté** pour le plan gratuit. **Ne rien contractualiser dessus** — ou rester sur le système de
-   build *Pages*, dont la limite de 500 déploiements par mois, elle, est écrite.
+1. Le comportement au dépassement des quotas de build sur le plan gratuit **n'est documenté d'aucun
+   côté** — ni les 3 000 minutes de *Workers Builds*, ni les 500 déploiements de *Pages Build*. La
+   seule preuve d'un mur (« Builds paused ») est un message produit rapporté en communauté. **Ne
+   rien contractualiser dessus**, et ne pas lui prêter le « refus temporaire » que le § 4.1 énonce
+   pour les autres limites. Ce plafond ne mord de toute façon pas au rythme de publication d'un
+   site vitrine.
 2. La « bande passante illimitée » n'est chiffrée nulle part ; elle est encadrée par les conditions
    de service (pas de vidéo, pas de proportion disproportionnée de contenu non-HTML). **Non
    chiffrable, donc non contractualisable en valeur.**
@@ -358,7 +373,8 @@ de fichiers par déploiement — soit, selon le nombre de formats responsive gé
 | # | Sujet | Où ça se tranche |
 |---|---|---|
 | 1 | **Le périmètre écrit du carnet**, dont le sort de l'épreuve annuelle de réversibilité (§5) | Décision d'exploitation, hors chaîne rampstack |
-| 2 | **Le service d'envoi du formulaire** — s'il en faut un, le compte s'ouvre au nom du client (I4). Fournisseur non choisi | Développement du CMS |
+| 2 | ~~Le service d'envoi du formulaire~~ — **tranché** le 2026-08-10 : Cloudflare Email Routing, binding `send_email` vers l'adresse de destination vérifiée, gratuit sans carte | [`docs/stack.md`](./stack.md) |
 | 3 | **La mesure réelle du nombre de fichiers par photographie**, à reporter en annexe A | Premier déploiement |
-| 4 | **Choix du système de build** — *Pages* (limite écrite) ou *Workers Builds* (comportement gratuit non documenté). Voir réserve 1 | Développement du CMS |
-| 5 | **Relecture juridique du clausier §4** | Avant la première signature |
+| 4 | ~~Choix du système de build~~ — **tranché** le 2026-08-10 : un Worker unique bâti par *Workers Builds*. La cible et le système de build ne font qu'un choix, la CI hébergée de Cloudflare étant couplée à la cible | [`docs/stack.md`](./stack.md) |
+| 5 | **Relecture juridique du clausier §4**, dont le « refus temporaire » du § 4.1 appliqué aux quotas de build, qui n'est pas sourcé (voir réserve 1) | Avant la première signature |
+| 6 | ~~Durée de vie du jeton d'écriture GitHub~~ — **tranché** le 2026-08-11, par mesure : un jeton à portée fine sur compte personnel peut n'avoir aucune expiration, et `Contents: Read and write` suffit à toute l'écriture de la publication. Reste le retrait après un an sans usage, couvert par un appel périodique depuis le compte de la cliente | [`docs/stack.md`](./stack.md) |
