@@ -34,7 +34,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
-| Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, SC-006 | |
+| Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature**, expirant à **sept jours d'inactivité et trente jours d'âge** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, FR-118, SC-006 | |
 | Moyen de reprise | Code de **128 bits** — 26 caractères base32, groupés pour la recopie — **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** ; **aucun frein par secret**, l'entropie seule rend la devinette sans objet, en ligne comme sur fuite de la base — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence par origine hachée dans un Durable Object | FR-007, FR-062 | |
@@ -251,6 +251,18 @@ compromise, sans offrir pour autant à l'éditrice la fonction que le PRD exclut
 constater ou fermer une session ouverte ailleurs. Une conséquence automatique n'est pas une
 capacité offerte. Écriture bornée en conséquence : le rafraîchissement glissant n'écrit pas à
 chaque requête, le budget d'écriture étant cinquante fois plus serré que celui de lecture.
+
+**Et une session expire** (`FR-118`) : sept jours sans usage — la durée de base que le
+rafraîchissement fait glisser, jusqu'ici écrite nulle part — et trente jours d'âge, quel que
+soit l'usage. Sans ces bornes, une session servie était perpétuelle, et l'objection qui a
+écarté la rémanence longue en `A-02` — « irrévocable en cas de vol d'appareil » — s'appliquait
+mot pour mot à la propriété que le design conservait : `FR-012` ferme bien les autres sessions,
+mais seulement si l'éditrice **sait** qu'il en survit une, et le PRD lui refuse délibérément
+tout écran pour le constater (`AU-05`). La borne absolue est celle qui arrête un attaquant qui
+entretient la session volée — le glissant l'aurait renouvelée sans fin — ; la borne
+d'inactivité éteint en une semaine la session oubliée sur un appareil partagé. Au rythme que
+les critères mesurent — `SC-015` prévoit trois mois d'absence — l'éditrice se reconnecte de
+toute façon : les bornes n'ajoutent rien au parcours courant.
 
 ### La quatrième porte : l'administration affiche du texte d'inconnus
 
@@ -654,7 +666,14 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    jour sur les 5 000 000 de l'Annexe A, l'administration lisant déjà D1 à chaque écran), elle
    retire un secret de l'inventaire et permet à `FR-012` et `FR-013` de fermer automatiquement
    les autres sessions, ce qui rend réel le remède du cas limite « boîte compromise » sans offrir
-   la fonction que le PRD exclut. **(3) Un cookie `__Host-`, `HttpOnly`, `Secure`,
+   la fonction que le PRD exclut. **Bornée à sept jours d'inactivité et trente jours d'âge**
+   (`FR-118`, ajouté le 2026-08-11 par le traitement de `AU-05`) : sans bornes la session était
+   perpétuelle tant qu'elle servait, et l'objection d'`A-02` contre la rémanence longue —
+   « irrévocable en cas de vol d'appareil » — s'appliquait à la propriété conservée, `FR-012` ne
+   révoquant que su, quand aucun écran ne montre les sessions. La borne absolue arrête
+   l'attaquant qui entretient la session, que le rafraîchissement glissant renouvellerait sans
+   fin ; l'inactivité à sept jours n'ajoute aucune reconnexion au rythme que `SC-003` et
+   `SC-015` mesurent. **(3) Un cookie `__Host-`, `HttpOnly`, `Secure`,
    `SameSite=Strict`, sans restriction de `Path`** — le préfixe est gratuit et ferme l'injection
    depuis un sous-domaine ; restreindre le `Path` casserait `FR-082`, l'aperçu vivant sur la même
    origine sous une autre route. **(4) Un jeton anti-CSRF par écriture, doublé d'un contrôle

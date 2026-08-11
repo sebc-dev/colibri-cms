@@ -363,6 +363,8 @@ l'intégrateur.
   d'administration ouverte.
 - **FR-014** : Une adresse NE DOIT devenir l'adresse autorisée qu'après que la maîtrise en a
   été prouvée.
+- **FR-118** : Le système DOIT fermer toute session d'administration restée sept jours sans
+  usage, et toute session ouverte depuis trente jours, quel qu'en soit l'usage.
 
 ### Pages et emplacements
 
@@ -717,8 +719,8 @@ lacunes ; chacune est réversible quand un client réel la demandera.
   la boîte passe par le moyen de reprise (`FR-009` à `FR-012`).
 - **Révocation d'un accès en cours.** Le produit n'offre aucun moyen de fermer une session
   ouverte ailleurs ni de constater les accès en cours. La fermeture de toute session au
-  remplacement du moyen de reprise (`FR-012`) est une conséquence automatique de ce
-  remplacement, pas une telle fonction.
+  remplacement du moyen de reprise (`FR-012`) et l'expiration d'une session par le temps
+  (`FR-118`) sont des conséquences automatiques, pas de telles fonctions.
 - **Remplacement du fichier d'une image de la bibliothèque.** Le « remplacement » de l'écran
   Médias se fait emplacement par emplacement (`FR-034`), jamais en substituant le binaire
   d'une image déjà posée : une substitution propagée devrait attendre la publication comme
