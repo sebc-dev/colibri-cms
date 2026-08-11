@@ -29,6 +29,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Base de données | Cloudflare D1 — brouillons, état publié, demandes | FR-026, FR-032, FR-044, FR-051, FR-065, FR-078, FR-092 | |
 | Contenu publié en fichiers | Un répertoire par objet dans le dépôt : `page.json` pour la structure, un `.md` par emplacement de texte riche | FR-087, FR-107, FR-109, SC-011 | |
 | Médias publiés | Même dépôt, branche orpheline `media` : dépôt **additif** à la publication, **élagage des orphelins au début de la publication suivante** | FR-037, FR-084, FR-088, FR-107, FR-108, SC-011 | |
+| Médias en brouillon | D1 : le binaire est stocké en `BLOB`, transféré sur `media` à la publication puis effacé de la base. Plafond **2 Mo par média**, imposé par D1 et non choisi | FR-027, FR-033, FR-034, FR-040, SC-010 | |
 | Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
@@ -106,6 +107,39 @@ l'instant du build.
 est le seul geste du système qui écrase (`force: true`) : la latence de réplication mesurée le
 11/08 y ferait disparaître en silence un média fraîchement déposé, là où un `force: false`
 répondrait `422`. L'inventaire des médias publiés est en D1 ; c'est lui qui décide.
+
+### Le brouillon des médias vit en D1, et c'est D1 qui fixe la borne de `FR-040`
+
+Entre le téléversement et la publication, le binaire est une ligne de D1 ; la publication le
+dépose sur `media` puis l'efface de la base. **`media` continue donc de ne recevoir que du
+publié**, et le budget de 42 médias par publication mesuré plus bas reste vrai tel quel.
+
+Deux limites officielles décident, et aucune n'est un choix
+(docs Cloudflare D1 · *Limits*, page datée du **21/04/2026**) :
+
+- `Maximum string, BLOB or table row size` = **2 000 000 octets**. C'est la borne que
+  `FR-040` réclamait au « déploiement » : elle est **documentée, pas estimée**. Un original
+  d'appareil photo la dépasse ; `FR-040` le refuse en le disant à l'éditrice. Le coût réel est
+  faible — le plus grand *breakpoint* retenu est **1280 px**, et une source de 1280 à 2000 px
+  de large passe très en dessous de 2 Mo.
+- `Maximum database size` (plan gratuit) = **500 Mo**, et non les 5 Go que l'Annexe A connaît.
+  Les 5 Go sont le total **du compte** ; la page *Pricing* ne mentionne pas le plafond par
+  base. Le magasin de brouillon partage ces 500 Mo avec les brouillons et les demandes — il ne
+  contient jamais que les téléversements non encore publiés, mais c'est ce chiffre-là, dix fois
+  plus bas, qui mord.
+
+Ce que ce choix **ne** tranche pas : les **formats** admis au téléversement, le sort du SVG et
+les en-têtes de réponse restent entiers — ils relèvent de `S-06`, pas du magasin.
+
+**Écartées.** *Déposer sur `media` dès le téléversement* — c'est la seule voie qui ferait tomber
+le budget de 42 (la publication redeviendrait constante à 4 appels), mais elle rouvre ce que la
+séquence en deux temps venait de fermer : l'élagage en `force: true` est calculé depuis D1 et
+s'exécute **sous le verrou**, quand un téléversement, lui, ne l'est pas — un média déposé pendant
+l'élagage disparaîtrait en silence, exactement le mode de défaillance que le calcul depuis D1
+servait à empêcher. Et l'aperçu de `FR-081` devrait relire les octets depuis GitHub, sollicitant
+en lecture, à chaque aperçu, un jeton d'écriture. *Une branche orpheline `media-draft`
+distincte* — mêmes coûts, plus un espace de plus à ouvrir et à vérifier sous `I1` : c'est le
+motif qui avait déjà écarté « deux dépôts distincts ».
 
 ### Une seule ligne d'état porte le verrou, son bail et l'issue
 
@@ -295,6 +329,10 @@ ils sont mesurés ci-dessus.
    et sans lui le site bâti n'a aucun média. À lever avant la mise en ligne.
 4. La délivrabilité réelle vers les boîtes françaises — Email Sending est en bêta publique
    depuis le 16/04/2026.
+5. Qu'un `BLOB` de ~2 Mo fasse l'aller-retour par un **paramètre lié**. La documentation borne
+   la ligne à 2 Mo et l'instruction SQL à 100 Ko — donc le binaire ne peut pas être inliné —,
+   mais elle ne dit **rien** de la taille maximale d'un paramètre lié. Le plafond de `FR-040`
+   en dépend : si le paramètre lié mord plus bas, c'est ce chiffre-là qui devient la borne.
 
 ## Décisions structurantes → candidats ADR
 
@@ -325,15 +363,26 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    qu'exige `FR-032` sans base dépasse le plafond de **50 sous-requêtes par requête** des
    Workers, à la lecture comme à la reconstruction.
 
-4. **Médias : même dépôt, branche orpheline `media`, additive à la publication et élaguée au
-   début de la suivante.** Retenue
+4. **Médias : deux magasins, un par état — branche orpheline `media` pour le publié, additive
+   à la publication et élaguée au début de la suivante ; D1 pour le brouillon, le binaire
+   passant de l'un à l'autre à la publication.** La branche est retenue
    car l'espace maigrit au lieu de croître sans fin, `FR-037` et `FR-084` restent vrais à
    l'écran, et `SC-011` n'exige pas l'identité binaire. Alternatives écartées : **R2** — un
    moyen de paiement est exigé au *checkout* d'activation, ce qui tombe sous `I5` (Billing
    policy, et non le témoignage Community) ; **deux dépôts distincts** — mêmes bénéfices, un
-   espace de plus à ouvrir et à vérifier sous `I1` ; **D1, KV ou Durable Objects** —
-   `FR-107` exige des **fichiers**, un clone nu n'en produirait aucun ; **un dépôt à
+   espace de plus à ouvrir et à vérifier sous `I1` ; **D1, KV ou Durable Objects pour le
+   publié** — `FR-107` exige des **fichiers**, un clone nu n'en produirait aucun ; **un dépôt à
    historique complet** — `FR-037` et `FR-084` deviendraient faux à l'écran.
+   **D1 pour le brouillon est retenu par la portée de ce même motif** : `FR-107` et `SC-011`
+   portent sur le site reconstructible, donc sur le publié — ce qui n'est pas encore publié n'a
+   pas à survivre dans un clone nu, et croire cette piste morte est ce qui laissait le brouillon
+   sans magasin. Le choix ne coûte ni espace ni secret de plus sous `I1` et `C7`, il laisse
+   intacte la séquence de publication, et il fait de `FR-040` une borne **documentée** (2 Mo,
+   limite de ligne D1) au lieu d'un chiffre d'estime. Alternatives écartées pour le brouillon :
+   **déposer sur `media` dès le téléversement** — ferait tomber le budget de 42 médias, mais un
+   téléversement hors verrou courrait contre l'élagage en `force: true`, et l'aperçu relirait
+   GitHub sous le jeton d'écriture ; **une branche `media-draft`** — même course, un espace de
+   plus sous `I1`.
 
 5. **Forge et écriture de la publication : GitHub, API REST *git data* puis
    `PATCH /git/refs` en `force: false`, sous un jeton à portée fine sans expiration portant
@@ -417,7 +466,10 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 - **`docs/socle-de-livraison.md`** : §3, `C6`, Annexe A et réserve 1 amendés le 2026-08-10
   par cette phase (le bandeau ⚠️ du document demandait cette revalidation) ; le n° 6 de « Ce
   qui reste ouvert » fermé le 2026-08-11 par la mesure du jeton d'écriture ; **réserve 3 de
-  l'Annexe A élargie à la durée du build** le 2026-08-11 par le traitement de `S-08`.
+  l'Annexe A élargie à la durée du build** le 2026-08-11 par le traitement de `S-08` ; **deux
+  lignes ajoutées au tableau de l'Annexe A** le 2026-08-11 par le traitement de `S-09` — taille
+  d'une base D1 (500 Mo, palier gratuit) et taille d'une ligne ou d'un `BLOB` (2 Mo), toutes
+  deux absentes de la page *Pricing* qui avait servi au relevé.
 - **`C4` reste à corriger au socle** : sa vérification (« dix enregistrements en deux minutes
   → un seul déploiement ») teste une architecture où enregistrer commite, ce qui n'est pas
   celle-ci. Dette portée par le traitement de `S-14`.

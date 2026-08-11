@@ -337,9 +337,17 @@ l'accès.**
 | D1 — lignes lues | 5 000 000 | Jour | Requêtes en erreur jusqu'à la remise à zéro |
 | D1 — lignes écrites | 100 000 | Jour | Idem |
 | D1 — stockage | 5 Go (compte) | Absolu | Blocage des insertions |
+| D1 — taille d'une base | **500 Mo** | Absolu | Blocage des insertions |
+| D1 — taille d'une ligne ou d'un `BLOB` | 2 Mo | Par ligne | Écriture refusée |
 | Workers — requêtes | 100 000 | Jour | Erreur |
 | Bande passante et requêtes des visiteurs | Illimitées | — | Encadré par les conditions de service |
 | Membres en rôle Administrateur | Illimité | — | — |
+
+*Les deux dernières lignes ont été ajoutées le 2026-08-11 par le traitement de `S-09` de l'audit
+de la stack. Elles viennent de la page D1 · Limits (datée du 21/04/2026), que la page Pricing —
+seule source du relevé initial — ne reprend pas : celle-ci ne connaît que les 5 Go du compte. Ce
+sont des plafonds **absolus**, sans rapport avec la marge estimée ci-dessous, qui porte sur le
+nombre de fichiers par version. La taille de ligne est ce qui borne le poids d'un média téléversé.*
 
 **Sur le profil d'un site vitrine riche en photographies, aucune de ces limites n'est approchée :
 la marge la plus faible est d'environ 4×.** La première à mordre en cas de croissance est le nombre
