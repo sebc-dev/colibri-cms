@@ -209,3 +209,23 @@ l'implémenter.
   seuil ; aucune source.
 - **Les billets tiers annonçant Pages « deprecated »** — inférences de lecteur, démenties par la
   seule parole d'éditeur datée.
+
+## Issue
+
+**Fermé le 2026-08-11, objectif atteint.** `docs/stack.md` produit : 17 domaines, dont 4 marqués
+sans objet, et 13 candidats ADR dont aucun n'est bloqué. Le dernier point ouvert — la durée de vie
+du jeton d'écriture GitHub — a été fermé par mesure et non par lecture, et l'arbitrage qui en est
+sorti a remplacé GraphQL `updateRefs` par l'API REST *git data* à une seule permission.
+
+Commits : `12c7ca1` (stack) · `14515b3` (socle de livraison revalidé) · `b325397` (journal) ·
+`0b3d7aa` (fiche).
+
+Deux choses ne sont portées par aucun fichier du dépôt et se perdraient ici :
+
+- les mesures du 11/08 ont été faites sur un dépôt jetable extérieur au projet — `docs/stack.md`
+  en porte les conclusions, jamais les traces ;
+- la détection de panne d'acheminement est retenue en Stack **sans exigence porteuse** : c'est à
+  `/scd-sdd:premortem socle` de créer le `FR` avant que le niveau specs puisse l'implémenter.
+
+Le corps de l'`## Objectif` ci-dessus est resté figé sur l'état de la veille (« reste un seul fait
+à sourcer ») ; il n'a pas été corrigé rétroactivement — c'est cette section qui fait foi.
