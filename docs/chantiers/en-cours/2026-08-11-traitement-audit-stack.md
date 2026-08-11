@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `97f559c`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `b1e0d55`
 
 ## Objectif
 
@@ -45,13 +45,21 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   elle a produit un fait que personne n'avait demandé : le HEAD lu n'est pas fiablement
   *read-your-writes* (2 × `422` sur 10 publications), **le réessai est obligatoire**, et ce fait
   **entre dans S-07**. La borne de taille des médias, elle, reste à descendre en specs.
+- **L2 est clos** (`546b4d4`, `34739d0`, `b1e0d55`) : l'élagage de `media` ouvre désormais la
+  publication **suivante** (séquence à deux temps, `C3` et `C7` intacts) ; une seule ligne D1
+  porte verrou, bail et issue ; `main` seule déclenche le build. **Deux dettes en sortent** :
+  la ligne de vérification de `C4` au socle, fausse, va à **S-14** ; la ligne « Sérialisation »,
+  devenue structurante, va à **S-17** pour son candidat ADR. Et une bifurcation est écrite :
+  si le build tape le mur des 20 min, générer les variantes à la publication ferait tomber le
+  budget médias de 42 à ~8 — `archi` tranchera au premier déploiement.
 
 ## Prochaine étape
 
-**L2 — la fin de publication** : instruire S-03, S-07 et S-08 ensemble, puis les présenter un par
-un. Ils tiennent par le même bout — qui écrit quoi, sous quel verrou, et ce qui déclenche un build.
-S-07 hérite du `422` intermittent mesuré en L1 : le bail du verrou et la reprise d'un échec partiel
-se décident **avec** le réessai obligatoire, pas après lui.
+**L3 — les médias** : instruire S-09 (aucun magasin pour les médias en **brouillon** — le trou le
+plus net du tableau) et S-06 (origine commune admin/public, rien ne borne ce qui remonte), puis les
+présenter un par un. L2 a resserré leur cadre : `media` ne reçoit que du **publié**, et le budget
+de 42 médias par publication est désormais chiffré — un magasin de brouillon ne peut donc pas être
+la même branche, et sa borne de taille se lit face à ce budget.
 
 ## Écarté
 
