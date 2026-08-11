@@ -1,7 +1,8 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `d3c03c4`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `209c85f`
+Bloqué par : le chantier `audit-authentification`, dont L4 doit consommer les arbitrages
 
 ## Objectif
 
@@ -26,8 +27,11 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 à situer    `docs/research/` — les quatre sujets de S-11 ont été interrogés le 11/08, la réponse
             est dans Acquis ; ne pas relire
 à situer    `docs/audit-brief-prd.md` — le précédent de forme, déjà distillé dans Acquis
-à situer    `docs/chantiers/en-attente/2026-08-11-audit-authentification.md` — ouvert par
-            `S-05`, bloqué jusqu'à la clôture de L4 ; rien à en tirer pour le traitement
+à lire      `docs/chantiers/en-attente/2026-08-11-audit-authentification.md` — le chantier qui
+            bloque celui-ci ; son `Acquis` porte le modèle de menace du 11/08 (56 l.)
+à extraire  `docs/audit-auth.md` › § « Récapitulatif — arbitrages rendus » — **n'existera qu'à
+            la clôture du chantier ci-dessus** ; c'est ce que L4 doit consommer. Absent au
+            moment de la reprise = l'audit n'est pas fini, et ce chantier n'est pas repartable
 
 ## Acquis
 
@@ -62,6 +66,10 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 - Le traitement précède `archi` : trois candidats ADR au moins citeraient des faits invérifiables.
 
 ## Prochaine étape
+
+**À ne pas jouer avant que `docs/audit-auth.md` soit clos** — c'est le motif de la mise en
+attente : L4 touche à l'auth et aux secrets, et refaire ces arbitrages après l'audit coûterait
+deux fois. Ensuite seulement :
 
 **L4, deuxième constat : S-02** — l'« empreinte » d'origine du compteur de fréquence est un
 hachage non clété d'IP, donc réversible en secondes sur 2³² valeurs : l'empreinte **est** la
