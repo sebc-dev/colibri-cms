@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `7a743e2`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `487a915`
 
 ## Objectif
 
@@ -11,11 +11,11 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 ## Contexte à charger
 
 à extraire  `docs/audit-stack.md` › § « Récapitulatif — arbitrages rendus » (ce qui est déjà
-            tranché), puis le seul § `S-nn` du lot courant — 409 l., pas une ligne de plus
+            tranché), puis le seul § `S-nn` du lot courant — 410 l., pas une ligne de plus
 à extraire  `docs/stack.md` › § « Choix retenus » et § « Décisions structurantes → candidats ADR »
-            — 432 l., cible de la plupart des retouches
+            — 484 l., cible de la plupart des retouches
 à extraire  `docs/socle-de-livraison.md` › § « 7. La recette de livraison » et § « Annexe A »
-            — 385 l., cibles de S-01 et S-14
+            — 393 l., cibles de S-01 et S-14
 à extraire  `docs/prd.md` › les seuls `FR` nommés par le constat en cours — S-06 `FR-027` et
             `FR-040`, S-13 et S-15 la couverture du tableau — 797 l., rien d'autre
 à extraire  `docs/chantiers/archive/2026-08-10-phase-stack-faits-a-sourcer.md` › § « Écarté »
@@ -45,6 +45,9 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   ne valait que pour le magasin du **publié**, et c'est ce qui laissait le brouillon sans magasin.
 - **`docs/research/` porte les quotas de la plateforme, jamais ses limites de forme** — les
   plafonds D1 de 2 Mo par ligne et 500 Mo par base viennent de la page *Limits*, lue le 11/08.
+- **L'Annexe A du socle a été relevée depuis la seule page *Pricing*** — c'est ce qui lui a fait
+  manquer les deux plafonds trouvés par S-09. J'avais proposé de repasser ses autres lignes
+  contre leur page *Limits*, hors traitement ; ce n'est pas décidé.
 - **Acquis pour `S-11`, du dépouillement des rapports du 11/08** : R2 marqué `[À VÉRIFIER]` sur
   l'exigence de carte ; Turnstile officiel ; les Cron Triggers tenus d'une **source unique
   tierce** ; et surtout, les rapports ne parlent que d'**Astro 6** et d'une PR de décembre 2025,
