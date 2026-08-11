@@ -29,7 +29,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Base de données | Cloudflare D1 — brouillons, état publié, demandes | FR-026, FR-032, FR-044, FR-051, FR-065, FR-078, FR-092 | |
 | Contenu publié en fichiers | Un répertoire par objet dans le dépôt : `page.json` pour la structure, un `.md` par emplacement de texte riche | FR-087, FR-107, FR-109, SC-011 | |
 | Médias publiés | Même dépôt, branche orpheline `media` réécrite à chaque publication | FR-037, FR-084, FR-088, FR-107, FR-108, SC-011 | |
-| Forge et écriture de la publication | GitHub ; API REST *git data* (blob → arbre → commit) puis `PATCH /git/refs` en `force: false` — avance rapide obligatoire. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
+| Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
 | Auth | Implémentation maison sur D1 : jeton haché à usage unique et expirant, cookie de session signé | FR-001 à FR-014, SC-006, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** | FR-063, FR-064, SC-007 | |
@@ -91,6 +91,36 @@ principale → effacement des orphelins **après** le build. L'ordre est imposé
 d'abord, marquage « publié » ensuite. Il en découle que **la sérialisation des publications
 est obligatoire** (cas limite du PRD, `prd.md:640`) : un compare-and-swap sur le dernier
 geste ne protège pas les deux premiers.
+
+### Le budget de sous-requêtes d'une publication, mesuré
+
+`POST /git/trees` accepte le contenu **inliné** dans l'entrée d'arbre : le texte ne coûte
+alors aucun appel dédié, et la chaîne tient en **4 appels quel que soit le nombre de fichiers
+texte** — mesuré jusqu'à 1 000 entrées en une requête. Un blob par fichier coûtait `N + 4`,
+soit les 50 sous-requêtes franchies **au 47ᵉ fichier**.
+
+**Le contenu inliné est de l'UTF-8, et un binaire y est corrompu en silence** : un PNG de
+70 octets en ressort à 84, `0x89` devenu `0xC2 0x89`, l'arbre répondant `201` malgré tout.
+Les médias gardent donc `POST /git/blobs` en base64 — **un appel chacun, non mutualisable**.
+
+Le budget devient `M + 4` appels pour `M` médias, le nombre de fichiers texte n'y figurant
+plus. Un réessai (ci-dessous) coûte 4 appels de plus sans recréer les blobs, d'où `M + 8 ≤ 50` :
+
+| | Plafond par publication |
+|---|---|
+| Fichiers texte | **non contraint** |
+| Médias déposés | **42**, un réessai réservé — borne à descendre en specs |
+
+**Le préambule qui lit le HEAD n'est pas fiablement *read-your-writes*.** Sur dix publications
+enchaînées, deux `PATCH` ont été rejetés en `422 Update is not a fast forward` alors que rien
+d'autre n'écrivait sur la branche ; les deux voies de lecture — `git data` et REST — se sont
+montrées en retard tour à tour, et leur accord n'a rien garanti. **Le réessai est donc
+obligatoire**, et le `422` fait au passage la démonstration de ce sur quoi `FR-091` s'appuie :
+il refuse, il n'écrase pas. La fréquence réelle reste inconnue — la mesure enchaîne les gestes
+en conditions adverses, là où le verrou D1 les sérialise et les espace.
+
+Mesure du 11/08/2026, sur dépôt jetable et avec témoin :
+[relevé](./research/2026-08-11-sous-requetes-publication.md), trace brute rejouable à côté.
 
 ### `C6` change de forme
 

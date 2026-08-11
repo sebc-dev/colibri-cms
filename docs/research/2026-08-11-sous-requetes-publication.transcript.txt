@@ -1,0 +1,612 @@
+TRANSCRIPT DE MESURE — S-04, sous-requêtes de la chaîne de publication
+Mesuré le 2026-08-11 · dépôt jetable github.com/sebc-dev/colibri-mesure-s04 (privé)
+Machine : Linux 7.0.0-28-generic · Python 3.14.4
+Compte : sebc-dev · jeton gh OAuth, scopes gist/read:org/repo/workflow
+
+Ce fichier est la trace brute. Il porte les DEUX scripts émetteurs puis leur
+sortie intégrale, pour que la mesure soit rejouable sans la reconstituer.
+
+==============================================================================
+SCRIPT 1/2 — mesure-s04.py
+==============================================================================
+#!/usr/bin/env python3
+"""
+Mesure S-04 — combien d'appels HTTP (= sous-requêtes côté Worker Cloudflare)
+consomme la chaîne de publication blob -> arbre -> commit -> PATCH refs,
+en fonction du nombre de fichiers déposés.
+
+Chaque appel HTTP sortant est compté et journalisé. Rien n'est déduit :
+le compteur est incrémenté dans la fonction qui émet la requête.
+
+Scénarios :
+  P  préambule   — combien d'appels pour connaître parent + base_tree ?
+  T  témoin      — 1 fichier texte via POST /git/blobs
+  A  par blob    — N fichiers texte via POST /git/blobs (N = 1, 10, 45)
+  B  inliné      — N fichiers texte via `content` dans POST /git/trees (N = 1, 45, 100, 500, 1000)
+  C  binaire     — un PNG : inliné ? sinon blob base64
+  D  plafond     — taille du payload POST /git/trees jusqu'à l'erreur
+"""
+
+import base64
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+TOKEN = os.environ["GH_TOKEN"]
+OWNER = os.environ.get("MESURE_OWNER", "sebc-dev")
+REPO = os.environ.get("MESURE_REPO", "colibri-mesure-s04")
+BRANCH = "main"
+API = "https://api.github.com"
+
+CALLS = 0
+
+
+def call(method, path, body=None, note=""):
+    """Émet UNE requête HTTP. C'est la seule porte de sortie du script."""
+    global CALLS
+    CALLS += 1
+    n = CALLS
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(API + path, data=data, method=method)
+    req.add_header("Authorization", "Bearer " + TOKEN)
+    req.add_header("Accept", "application/vnd.github+json")
+    req.add_header("X-GitHub-Api-Version", "2022-11-28")
+    if data:
+        req.add_header("Content-Type", "application/json")
+    size = len(data) if data else 0
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            raw = r.read()
+            status = r.status
+    except urllib.error.HTTPError as e:
+        raw = e.read()
+        status = e.code
+    except Exception as e:  # noqa: BLE001 — on veut la trace, pas l'élégance
+        print("#%04d %-6s %-58s -> EXC %s" % (n, method, path, e), flush=True)
+        return 0, {"exception": str(e)}
+    try:
+        out = json.loads(raw) if raw else {}
+    except json.JSONDecodeError:
+        out = {"raw": raw[:400].decode(errors="replace")}
+    msg = out.get("message", "") if isinstance(out, dict) else ""
+    print(
+        "#%04d %-6s %-58s -> %s  (corps émis %s o) %s %s"
+        % (n, method, path[:58], status, size, note, ("« " + msg + " »") if msg else ""),
+        flush=True,
+    )
+    return status, out
+
+
+def reset(label):
+    global CALLS
+    CALLS = 0
+    print("\n" + "=" * 78)
+    print(label)
+    print("=" * 78, flush=True)
+
+
+def head_state(strategy):
+    """Récupère (parent_commit_sha, base_tree_sha). Deux stratégies, coût différent."""
+    if strategy == "ref+commit":
+        _, ref = call("GET", f"/repos/{OWNER}/{REPO}/git/ref/heads/{BRANCH}", note="[parent]")
+        parent = ref["object"]["sha"]
+        _, c = call("GET", f"/repos/{OWNER}/{REPO}/git/commits/{parent}", note="[base_tree]")
+        return parent, c["tree"]["sha"]
+    # 1 seul appel : le commit REST porte parent ET arbre
+    _, c = call("GET", f"/repos/{OWNER}/{REPO}/commits/{BRANCH}", note="[parent+base_tree]")
+    return c["sha"], c["commit"]["tree"]["sha"]
+
+
+def publish(tag, files, mode, parent=None, base_tree=None, dry_tree_only=False):
+    """
+    files : liste (chemin, contenu texte)
+    mode  : 'blob' -> un POST /git/blobs par fichier ; 'inline' -> `content` dans l'arbre
+    """
+    if parent is None:
+        parent, base_tree = head_state("commits")
+
+    entries = []
+    if mode == "blob":
+        for path, content in files:
+            st, b = call(
+                "POST",
+                f"/repos/{OWNER}/{REPO}/git/blobs",
+                {"content": content, "encoding": "utf-8"},
+                note=f"[blob {path}]" if len(files) <= 3 else "",
+            )
+            if st >= 300:
+                return None
+            entries.append({"path": path, "mode": "100644", "type": "blob", "sha": b["sha"]})
+    else:
+        for path, content in files:
+            entries.append({"path": path, "mode": "100644", "type": "blob", "content": content})
+
+    st, tree = call(
+        "POST",
+        f"/repos/{OWNER}/{REPO}/git/trees",
+        {"base_tree": base_tree, "tree": entries},
+        note=f"[arbre {len(entries)} entrées]",
+    )
+    if st >= 300:
+        print(f"    !! arbre refusé ({st}) pour {tag}", flush=True)
+        return None
+    if dry_tree_only:
+        return tree["sha"]
+
+    st, commit = call(
+        "POST",
+        f"/repos/{OWNER}/{REPO}/git/commits",
+        {"message": f"mesure {tag}", "tree": tree["sha"], "parents": [parent]},
+    )
+    if st >= 300:
+        return None
+    st, _ = call(
+        "PATCH",
+        f"/repos/{OWNER}/{REPO}/git/refs/heads/{BRANCH}",
+        {"sha": commit["sha"], "force": False},
+        note="[avance rapide]",
+    )
+    return commit["sha"] if st < 300 else None
+
+
+def txt(i, tag):
+    return (
+        f"contenu/{tag}/fichier-{i:04d}.md",
+        f"# Fichier {i} du scénario {tag}\n\nTexte de mesure, {i * 37} octets environ.\n"
+        + ("lorem ipsum dolor sit amet. " * 8),
+    )
+
+
+def main():
+    print(f"Dépôt de mesure : {OWNER}/{REPO}  (branche {BRANCH})\n")
+
+    # --- P : coût du préambule ---------------------------------------------
+    reset("P — coût du préambule : connaître le commit parent ET l'arbre de base")
+    head_state("ref+commit")
+    print(f"  => stratégie 'GET ref + GET commit'      : {CALLS} appels")
+    reset("P (bis) — même information par /repos/.../commits/{ref}")
+    head_state("commits")
+    print(f"  => stratégie 'GET commits/{{ref}}'        : {CALLS} appels")
+
+    # --- T : témoin --------------------------------------------------------
+    reset("T — témoin : 1 fichier texte via POST /git/blobs")
+    publish("T", [txt(1, "T")], "blob")
+    print(f"  => TOTAL témoin (1 fichier, par blob) : {CALLS} appels")
+
+    # --- A : N fichiers par blob -------------------------------------------
+    for n in (10, 45):
+        reset(f"A{n} — {n} fichiers texte via POST /git/blobs (un appel par fichier)")
+        publish(f"A{n}", [txt(i, f"A{n}") for i in range(n)], "blob")
+        print(f"  => TOTAL A{n} ({n} fichiers, par blob) : {CALLS} appels")
+        if CALLS > 50:
+            print(f"  !! {CALLS} > 50 : au-delà du plafond de sous-requêtes du plan gratuit")
+
+    # --- B : N fichiers inlinés dans l'arbre --------------------------------
+    for n in (1, 45, 100, 500, 1000):
+        reset(f"B{n} — {n} fichiers texte inlinés (`content`) dans UN SEUL POST /git/trees")
+        r = publish(f"B{n}", [txt(i, f"B{n}") for i in range(n)], "inline")
+        verdict = "OK" if r else "REFUSÉ"
+        print(f"  => TOTAL B{n} ({n} fichiers, inlinés) : {CALLS} appels — {verdict}")
+
+    # --- C : binaire --------------------------------------------------------
+    png = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    )
+    reset("C1 — un PNG inliné dans l'arbre (`content` est de l'UTF-8 : que se passe-t-il ?)")
+    parent, base_tree = head_state("commits")
+    st, tree = call(
+        "POST",
+        f"/repos/{OWNER}/{REPO}/git/trees",
+        {
+            "base_tree": base_tree,
+            "tree": [
+                {
+                    "path": "media/inline.png",
+                    "mode": "100644",
+                    "type": "blob",
+                    "content": png.decode("latin-1"),
+                }
+            ],
+        },
+        note="[PNG en content]",
+    )
+    print(f"  => arbre avec PNG inliné : statut {st}")
+    if st < 300:
+        st2, blob = call("GET", f"/repos/{OWNER}/{REPO}/git/trees/{tree['sha']}")
+        for e in blob.get("tree", []):
+            if e["path"] == "media/inline.png":
+                st3, b = call("GET", f"/repos/{OWNER}/{REPO}/git/blobs/{e['sha']}")
+                got = base64.b64decode(b.get("content", "").replace("\n", ""))
+                print(f"  => PNG relu : {len(got)} o contre {len(png)} o à l'origine — "
+                      f"{'IDENTIQUE' if got == png else 'CORROMPU'}")
+
+    reset("C2 — un PNG via POST /git/blobs en base64 (le chemin normal)")
+    st, b = call(
+        "POST",
+        f"/repos/{OWNER}/{REPO}/git/blobs",
+        {"content": base64.b64encode(png).decode(), "encoding": "base64"},
+        note="[PNG base64]",
+    )
+    print(f"  => statut {st} — coût d'UN média : {CALLS} appel(s), non mutualisable")
+
+    # --- D : plafond du payload de l'arbre ----------------------------------
+    reset("D — plafond du POST /git/trees : on augmente la taille jusqu'au refus")
+    parent, base_tree = head_state("commits")
+    for kib in (256, 1024, 4096, 16384):
+        big = "x" * (kib * 1024)
+        st, out = call(
+            "POST",
+            f"/repos/{OWNER}/{REPO}/git/trees",
+            {"base_tree": base_tree,
+             "tree": [{"path": f"gros/{kib}.txt", "mode": "100644", "type": "blob", "content": big}]},
+            note=f"[1 entrée de {kib} Kio]",
+        )
+        print(f"  => {kib} Kio en une entrée : statut {st}")
+        if st >= 300:
+            break
+
+    print("\n" + "=" * 78)
+    print("Fin de la mesure.")
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+==============================================================================
+SORTIE 1/2
+==============================================================================
+Dépôt de mesure : sebc-dev/colibri-mesure-s04  (branche main)
+
+
+==============================================================================
+P — coût du préambule : connaître le commit parent ET l'arbre de base
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/git/ref/heads/main      -> 200  (corps émis 0 o) [parent] 
+#0002 GET    /repos/sebc-dev/colibri-mesure-s04/git/commits/0bdcf1763f2 -> 200  (corps émis 0 o) [base_tree] « Initial commit »
+  => stratégie 'GET ref + GET commit'      : 2 appels
+
+==============================================================================
+P (bis) — même information par /repos/.../commits/{ref}
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+  => stratégie 'GET commits/{ref}'        : 1 appels
+
+==============================================================================
+T — témoin : 1 fichier texte via POST /git/blobs
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 331 o) [blob contenu/T/fichier-0001.md] 
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 191 o) [arbre 1 entrées] 
+#0004 POST   /repos/sebc-dev/colibri-mesure-s04/git/commits             -> 201  (corps émis 132 o)  « mesure T »
+#0005 PATCH  /repos/sebc-dev/colibri-mesure-s04/git/refs/heads/main     -> 200  (corps émis 67 o) [avance rapide] 
+  => TOTAL témoin (1 fichier, par blob) : 5 appels
+
+==============================================================================
+A10 — 10 fichiers texte via POST /git/blobs (un appel par fichier)
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 332 o)  
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 333 o)  
+#0004 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 333 o)  
+#0005 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0006 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0007 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0008 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0009 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0010 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0011 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0012 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 1327 o) [arbre 10 entrées] 
+#0013 POST   /repos/sebc-dev/colibri-mesure-s04/git/commits             -> 201  (corps émis 134 o)  « mesure A10 »
+#0014 PATCH  /repos/sebc-dev/colibri-mesure-s04/git/refs/heads/main     -> 422  (corps émis 67 o) [avance rapide] « Update is not a fast forward »
+  => TOTAL A10 (10 fichiers, par blob) : 14 appels
+
+==============================================================================
+A45 — 45 fichiers texte via POST /git/blobs (un appel par fichier)
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 332 o)  
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 333 o)  
+#0004 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 333 o)  
+#0005 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0006 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0007 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0008 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0009 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0010 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0011 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 334 o)  
+#0012 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0013 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0014 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0015 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0016 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0017 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0018 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0019 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0020 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0021 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0022 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0023 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0024 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0025 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0026 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0027 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0028 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0029 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 335 o)  
+#0030 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0031 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0032 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0033 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0034 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0035 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0036 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0037 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0038 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0039 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0040 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0041 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0042 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0043 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0044 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0045 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0046 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 336 o)  
+#0047 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 5737 o) [arbre 45 entrées] 
+#0048 POST   /repos/sebc-dev/colibri-mesure-s04/git/commits             -> 201  (corps émis 134 o)  « mesure A45 »
+#0049 PATCH  /repos/sebc-dev/colibri-mesure-s04/git/refs/heads/main     -> 200  (corps émis 67 o) [avance rapide] 
+  => TOTAL A45 (45 fichiers, par blob) : 49 appels
+
+==============================================================================
+B1 — 1 fichiers texte inlinés (`content`) dans UN SEUL POST /git/trees
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 451 o) [arbre 1 entrées] 
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/commits             -> 201  (corps émis 133 o)  « mesure B1 »
+#0004 PATCH  /repos/sebc-dev/colibri-mesure-s04/git/refs/heads/main     -> 422  (corps émis 67 o) [avance rapide] « Update is not a fast forward »
+  => TOTAL B1 (1 fichiers, inlinés) : 4 appels — REFUSÉ
+
+==============================================================================
+B45 — 45 fichiers texte inlinés (`content`) dans UN SEUL POST /git/trees
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 17575 o) [arbre 45 entrées] 
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/commits             -> 201  (corps émis 134 o)  « mesure B45 »
+#0004 PATCH  /repos/sebc-dev/colibri-mesure-s04/git/refs/heads/main     -> 200  (corps émis 67 o) [avance rapide] 
+  => TOTAL B45 (45 fichiers, inlinés) : 4 appels — OK
+
+==============================================================================
+B100 — 100 fichiers texte inlinés (`content`) dans UN SEUL POST /git/trees
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 39225 o) [arbre 100 entrées] 
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/commits             -> 201  (corps émis 135 o)  « mesure B100 »
+#0004 PATCH  /repos/sebc-dev/colibri-mesure-s04/git/refs/heads/main     -> 200  (corps émis 67 o) [avance rapide] 
+  => TOTAL B100 (100 fichiers, inlinés) : 4 appels — OK
+
+==============================================================================
+B500 — 500 fichiers texte inlinés (`content`) dans UN SEUL POST /git/trees
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 196654 o) [arbre 500 entrées] 
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/commits             -> 201  (corps émis 135 o)  « mesure B500 »
+#0004 PATCH  /repos/sebc-dev/colibri-mesure-s04/git/refs/heads/main     -> 200  (corps émis 67 o) [avance rapide] 
+  => TOTAL B500 (500 fichiers, inlinés) : 4 appels — OK
+
+==============================================================================
+B1000 — 1000 fichiers texte inlinés (`content`) dans UN SEUL POST /git/trees
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 395654 o) [arbre 1000 entrées] 
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/commits             -> 201  (corps émis 136 o)  « mesure B1000 »
+#0004 PATCH  /repos/sebc-dev/colibri-mesure-s04/git/refs/heads/main     -> 422  (corps émis 67 o) [avance rapide] « Update is not a fast forward »
+  => TOTAL B1000 (1000 fichiers, inlinés) : 4 appels — REFUSÉ
+
+==============================================================================
+C1 — un PNG inliné dans l'arbre (`content` est de l'UTF-8 : que se passe-t-il ?)
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 437 o) [PNG en content] 
+  => arbre avec PNG inliné : statut 201
+#0003 GET    /repos/sebc-dev/colibri-mesure-s04/git/trees/292c259be71c2 -> 200  (corps émis 0 o)  
+
+==============================================================================
+C2 — un PNG via POST /git/blobs en base64 (le chemin normal)
+==============================================================================
+#0001 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs               -> 201  (corps émis 133 o) [PNG base64] 
+  => statut 201 — coût d'UN média : 1 appel(s), non mutualisable
+
+==============================================================================
+D — plafond du POST /git/trees : on augmente la taille jusqu'au refus
+==============================================================================
+#0001 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main            -> 200  (corps émis 0 o) [parent+base_tree] 
+#0002 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 262286 o) [1 entrée de 256 Kio] 
+  => 256 Kio en une entrée : statut 201
+#0003 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 1048719 o) [1 entrée de 1024 Kio] 
+  => 1024 Kio en une entrée : statut 201
+#0004 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 4194447 o) [1 entrée de 4096 Kio] 
+  => 4096 Kio en une entrée : statut 201
+#0005 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees               -> 201  (corps émis 16777360 o) [1 entrée de 16384 Kio] 
+  => 16384 Kio en une entrée : statut 201
+
+==============================================================================
+Fin de la mesure.
+
+==============================================================================
+SCRIPT 2/2 — mesure-s04-bis.py
+==============================================================================
+#!/usr/bin/env python3
+"""
+Mesure S-04 (second tour) — refermer les deux points laissés ouverts au premier :
+
+  E — les 422 « Update is not a fast forward » du premier tour venaient-ils d'une
+      lecture PÉRIMÉE du HEAD ? On compare, juste après chaque PATCH réussi, ce que
+      répondent les deux préambules concurrents :
+        - GET /repos/{o}/{r}/commits/{ref}        (REST, 1 appel, potentiellement caché)
+        - GET /repos/{o}/{r}/git/ref/heads/{b}    (git data, 1 appel)
+      10 tours. Un désaccord = le préambule à 1 appel n'est pas read-your-writes.
+
+  F — un PNG passé en `content` dans POST /git/trees survit-il octet pour octet ?
+      Lecture RÉCURSIVE de l'arbre (l'oubli du premier tour), puis comparaison binaire.
+"""
+
+import base64
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+TOKEN = os.environ["GH_TOKEN"]
+OWNER = os.environ.get("MESURE_OWNER", "sebc-dev")
+REPO = os.environ.get("MESURE_REPO", "colibri-mesure-s04")
+BRANCH = "main"
+API = "https://api.github.com"
+
+CALLS = 0
+
+
+def call(method, path, body=None, quiet=False):
+    global CALLS
+    CALLS += 1
+    n = CALLS
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(API + path, data=data, method=method)
+    req.add_header("Authorization", "Bearer " + TOKEN)
+    req.add_header("Accept", "application/vnd.github+json")
+    req.add_header("X-GitHub-Api-Version", "2022-11-28")
+    if data:
+        req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            raw, status = r.read(), r.status
+    except urllib.error.HTTPError as e:
+        raw, status = e.read(), e.code
+    try:
+        out = json.loads(raw) if raw else {}
+    except json.JSONDecodeError:
+        out = {}
+    if not quiet:
+        msg = out.get("message", "") if isinstance(out, dict) else ""
+        print("#%04d %-6s %-56s -> %s %s"
+              % (n, method, path[:56], status, ("« " + msg + " »") if msg else ""), flush=True)
+    return status, out
+
+
+print("=" * 78)
+print("E — le préambule à 1 appel est-il read-your-writes ? (10 tours)")
+print("=" * 78, flush=True)
+
+desaccords = 0
+patch_422 = 0
+for tour in range(1, 11):
+    # ce que dit la voie git-data (2 appels, réputée autoritaire)
+    _, ref = call("GET", f"/repos/{OWNER}/{REPO}/git/ref/heads/{BRANCH}", quiet=True)
+    sha_gitdata = ref["object"]["sha"]
+    # ce que dit la voie REST courte (1 appel)
+    _, c = call("GET", f"/repos/{OWNER}/{REPO}/commits/{BRANCH}", quiet=True)
+    sha_rest, tree_rest = c["sha"], c["commit"]["tree"]["sha"]
+
+    accord = sha_gitdata == sha_rest
+    if not accord:
+        desaccords += 1
+
+    # on publie un fichier depuis le SHA rendu par la voie REST courte
+    _, tree = call("POST", f"/repos/{OWNER}/{REPO}/git/trees",
+                   {"base_tree": tree_rest,
+                    "tree": [{"path": f"tour/{tour:02d}.md", "mode": "100644",
+                              "type": "blob", "content": f"tour {tour}\n"}]}, quiet=True)
+    _, commit = call("POST", f"/repos/{OWNER}/{REPO}/git/commits",
+                     {"message": f"tour {tour}", "tree": tree["sha"],
+                      "parents": [sha_rest]}, quiet=True)
+    st, out = call("PATCH", f"/repos/{OWNER}/{REPO}/git/refs/heads/{BRANCH}",
+                   {"sha": commit["sha"], "force": False}, quiet=True)
+    if st >= 300:
+        patch_422 += 1
+
+    print("  tour %2d — git-data %s · REST court %s · %s → PATCH %s%s"
+          % (tour, sha_gitdata[:7], sha_rest[:7],
+             "ACCORD  " if accord else "DÉSACCORD",
+             st, "  (rejeté)" if st >= 300 else ""), flush=True)
+
+print(f"\n  => {desaccords}/10 désaccords entre les deux préambules")
+print(f"  => {patch_422}/10 PATCH rejetés en 422 depuis le préambule court")
+
+print("\n" + "=" * 78)
+print("F — un PNG inliné en `content` survit-il octet pour octet ?")
+print("=" * 78, flush=True)
+
+png = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+)
+print(f"  PNG de référence : {len(png)} octets, empreinte {png[:8].hex()}", flush=True)
+
+_, c = call("GET", f"/repos/{OWNER}/{REPO}/commits/{BRANCH}")
+st, tree = call("POST", f"/repos/{OWNER}/{REPO}/git/trees",
+                {"base_tree": c["commit"]["tree"]["sha"],
+                 "tree": [{"path": "media/inline.png", "mode": "100644",
+                           "type": "blob", "content": png.decode("latin-1")}]})
+print(f"  arbre avec PNG en `content` : statut {st}")
+
+# LECTURE RÉCURSIVE — l'oubli du premier tour : media/ est un sous-arbre
+st, full = call("GET", f"/repos/{OWNER}/{REPO}/git/trees/{tree['sha']}?recursive=1")
+entry = next((e for e in full.get("tree", []) if e["path"] == "media/inline.png"), None)
+if entry is None:
+    print("  !! entrée introuvable même en récursif")
+else:
+    print(f"  entrée trouvée : blob {entry['sha'][:7]}, taille annoncée {entry.get('size')} o")
+    _, b = call("GET", f"/repos/{OWNER}/{REPO}/git/blobs/{entry['sha']}")
+    got = base64.b64decode(b.get("content", "").replace("\n", ""))
+    print(f"  relu : {len(got)} o contre {len(png)} o — "
+          f"{'IDENTIQUE' if got == png else 'CORROMPU'}")
+    if got != png:
+        print(f"    référence : {png[:16].hex()}")
+        print(f"    relu      : {got[:16].hex()}")
+
+# et le chemin normal, pour comparaison
+st, b64 = call("POST", f"/repos/{OWNER}/{REPO}/git/blobs",
+               {"content": base64.b64encode(png).decode(), "encoding": "base64"})
+_, back = call("GET", f"/repos/{OWNER}/{REPO}/git/blobs/{b64['sha']}")
+got2 = base64.b64decode(back.get("content", "").replace("\n", ""))
+print(f"  témoin POST /git/blobs base64 : {len(got2)} o — "
+      f"{'IDENTIQUE' if got2 == png else 'CORROMPU'}")
+
+print("\nFin du second tour.")
+
+==============================================================================
+SORTIE 2/2
+==============================================================================
+==============================================================================
+E — le préambule à 1 appel est-il read-your-writes ? (10 tours)
+==============================================================================
+  tour  1 — git-data 95f58d5 · REST court 95f58d5 · ACCORD   → PATCH 200
+  tour  2 — git-data bb6e463 · REST court 95f58d5 · DÉSACCORD → PATCH 422  (rejeté)
+  tour  3 — git-data bb6e463 · REST court bb6e463 · ACCORD   → PATCH 200
+  tour  4 — git-data bb6e463 · REST court d3ffb67 · DÉSACCORD → PATCH 200
+  tour  5 — git-data bf0dc91 · REST court bf0dc91 · ACCORD   → PATCH 200
+  tour  6 — git-data bf0dc91 · REST court bf0dc91 · ACCORD   → PATCH 422  (rejeté)
+  tour  7 — git-data dfbc93c · REST court dfbc93c · ACCORD   → PATCH 200
+  tour  8 — git-data 78091c4 · REST court 78091c4 · ACCORD   → PATCH 200
+  tour  9 — git-data 347e7ea · REST court 347e7ea · ACCORD   → PATCH 200
+  tour 10 — git-data b8aff81 · REST court b8aff81 · ACCORD   → PATCH 200
+
+  => 2/10 désaccords entre les deux préambules
+  => 2/10 PATCH rejetés en 422 depuis le préambule court
+
+==============================================================================
+F — un PNG inliné en `content` survit-il octet pour octet ?
+==============================================================================
+  PNG de référence : 70 octets, empreinte 89504e470d0a1a0a
+#0051 GET    /repos/sebc-dev/colibri-mesure-s04/commits/main          -> 200 
+#0052 POST   /repos/sebc-dev/colibri-mesure-s04/git/trees             -> 201 
+  arbre avec PNG en `content` : statut 201
+#0053 GET    /repos/sebc-dev/colibri-mesure-s04/git/trees/0f8b9cdf9ea -> 200 
+  entrée trouvée : blob 43c1233, taille annoncée 84 o
+#0054 GET    /repos/sebc-dev/colibri-mesure-s04/git/blobs/43c1233c41b -> 200 
+  relu : 84 o contre 70 o — CORROMPU
+    référence : 89504e470d0a1a0a0000000d49484452
+    relu      : c289504e470d0a1a0a0000000d494844
+#0055 POST   /repos/sebc-dev/colibri-mesure-s04/git/blobs             -> 201 
+#0056 GET    /repos/sebc-dev/colibri-mesure-s04/git/blobs/f37764b1f76 -> 200 
+  témoin POST /git/blobs base64 : 70 o — IDENTIQUE
+
+Fin du second tour.

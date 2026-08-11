@@ -392,3 +392,15 @@ soit le point de recette cite le mauvais produit.
 | S-18 | Mineur | Keep-alive : « usage » non vérifié, compromis sécurité tacite | stack (recette + ADR 5) |
 | S-19 | Mineur | « L'espace maigrit » non sourcé côté GitHub | stack (reformuler) |
 | S-20 | Mineur | Recette n° 4 : « Email Sending » nommé pour le chemin Email Routing | stack (libellé) |
+
+---
+
+## Récapitulatif — arbitrages rendus
+
+Les constats ci-dessus sont **figés** : ils sont datés, et les réécrire les rendrait
+invérifiables. Cette section est le seul endroit à jour du document. Elle se remplit lot par
+lot, sur feu vert de l'humain ; un `ID` absent n'a pas encore été arbitré.
+
+| ID | Sévérité | Arbitrage rendu |
+|---|---|---|
+| S-04 | Majeur | **Confirmé, puis refermé par une parade mesurée.** La chaîne naïve coûte bien `N + 4` appels et franchit les 50 sous-requêtes au **47ᵉ** fichier (mesuré : 45 fichiers = 49 appels) — l'audit annonçait « ~45 », à un fichier près. Le **choix est amendé** plutôt qu'assorti d'une simple borne : le contenu textuel est **inliné dans `POST /git/trees`**, ce qui rend le coût **constant à 4 appels** quel que soit le nombre de fichiers texte (mesuré jusqu'à 1 000 entrées). La borne subsistante ne porte plus que sur les **médias**, qui ne peuvent pas être inlinés — `content` est de l'UTF-8 et **corrompt un binaire en silence** (PNG 70 o → 84 o, `0x89` → `0xC2 0x89`, arbre répondant `201`) : **42 médias par publication**, un réessai réservé. Deux faits sont sortis **au-delà** de la question posée : le préambule de lecture du HEAD **n'est pas fiablement *read-your-writes*** (2 rejets `422` sur 10 publications enchaînées, les deux voies de lecture en retard tour à tour, leur accord ne garantissant rien), d'où un **réessai obligatoire** porté en contrainte transverse ; et le plafond réel de `POST /git/trees` **n'a pas été atteint** (1 000 entrées, 16 Mio par entrée). Portés dans `stack.md` : ligne « Forge et écriture », et § « Le budget de sous-requêtes d'une publication, mesuré ». Mesure versée : [`research/2026-08-11-sous-requetes-publication.md`](./research/2026-08-11-sous-requetes-publication.md) + trace brute rejouable. **Le `422` intermittent mord sur `S-07`** (verrou, échec partiel, reprise) et y est renvoyé, la cadence « un lot à la fois » étant tenue. |
