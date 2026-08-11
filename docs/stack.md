@@ -28,8 +28,8 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Cible de déploiement et système de build | Un Worker Cloudflare unique — assets statiques + routes serveur —, bâti par Workers Builds | FR-087, FR-089, FR-096, FR-097, SC-001, SC-004 | |
 | Base de données | Cloudflare D1 — brouillons, état publié, demandes | FR-026, FR-032, FR-044, FR-051, FR-065, FR-078, FR-092 | |
 | Contenu publié en fichiers | Un répertoire par objet dans le dépôt : `page.json` pour la structure, un `.md` par emplacement de texte riche | FR-087, FR-107, FR-109, SC-011 | |
-| Médias publiés | Même dépôt, branche orpheline `media` réécrite à chaque publication | FR-037, FR-084, FR-088, FR-107, FR-108, SC-011 | |
-| Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
+| Médias publiés | Même dépôt, branche orpheline `media` : dépôt **additif** à la publication, **élagage des orphelins au début de la publication suivante** | FR-037, FR-084, FR-088, FR-107, FR-108, SC-011 | |
+| Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
 | Auth | Implémentation maison sur D1 : jeton haché à usage unique et expirant, cookie de session signé | FR-001 à FR-014, SC-006, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** | FR-063, FR-064, SC-007 | |
@@ -84,13 +84,26 @@ Deux contraintes convergent et il n'y a rien à arbitrer : `send_email` exige qu
 soit servi par le DNS Cloudflare (`FR-063`), et un Worker n'accepte aucun domaine dont les
 serveurs de noms sont gérés ailleurs. C'est une ligne de la recette de livraison.
 
-### La publication est une séquence en trois temps
+### La publication est une séquence en deux temps
 
-Dépôt additif des médias sur la branche `media` → commit du contenu sur la branche
-principale → effacement des orphelins **après** le build. L'ordre est imposé : commit
-d'abord, marquage « publié » ensuite. Il en découle que **la sérialisation des publications
-est obligatoire** (cas limite du PRD, `prd.md:640`) : un compare-and-swap sur le dernier
-geste ne protège pas les deux premiers.
+Dépôt **additif** des médias sur la branche `media` → commit du contenu sur la branche
+principale. L'ordre est imposé : commit d'abord, marquage « publié » ensuite. Il en découle
+que **la sérialisation des publications est obligatoire** (cas limite du PRD, `prd.md:640`) :
+un compare-and-swap sur le dernier geste ne protège pas le premier.
+
+**L'élagage des orphelins de `media` n'est pas un troisième temps : il ouvre la publication
+suivante.** Le faire après le build supposerait un signal de fin de build que rien ne
+produit — le tenir du build lui-même ferait tomber `C3` (« le build ne commite jamais »), le
+tenir de l'API Cloudflare imposerait un secret de plus dans le Worker, contre `C7`. La
+publication N+1 est déjà sous le verrou et déjà en train d'écrire sur `media` : elle élague
+ce que N a laissé, sans acteur ni secret supplémentaire. Conséquence assumée : les orphelins
+survivent d'une publication à l'autre — l'espace ne croît pas sans fin, il ne maigrit pas à
+l'instant du build.
+
+**Ce qu'il faut garder se calcule depuis D1, jamais depuis l'état lu de la branche.** L'élagage
+est le seul geste du système qui écrase (`force: true`) : la latence de réplication mesurée le
+11/08 y ferait disparaître en silence un média fraîchement déposé, là où un `force: false`
+répondrait `422`. L'inventaire des médias publiés est en D1 ; c'est lui qui décide.
 
 ### Le budget de sous-requêtes d'une publication, mesuré
 
@@ -249,7 +262,8 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    qu'exige `FR-032` sans base dépasse le plafond de **50 sous-requêtes par requête** des
    Workers, à la lecture comme à la reconstruction.
 
-4. **Médias : même dépôt, branche orpheline `media` réécrite à chaque publication.** Retenue
+4. **Médias : même dépôt, branche orpheline `media`, additive à la publication et élaguée au
+   début de la suivante.** Retenue
    car l'espace maigrit au lieu de croître sans fin, `FR-037` et `FR-084` restent vrais à
    l'écran, et `SC-011` n'exige pas l'identité binaire. Alternatives écartées : **R2** — un
    moyen de paiement est exigé au *checkout* d'activation, ce qui tombe sous `I5` (Billing
@@ -269,9 +283,9 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    (mesuré par différence), c'est-à-dire le droit de réécrire le pipeline qui bâtit le site,
    accordé à un jeton qui vit dans un Worker. Les deux « manques » de la voie retenue ne
    coûtent rien : l'atomicité multi-refs n'était de toute façon pas atteignable — la
-   publication est une séquence en trois temps — et le seul geste non-avance-rapide, la
-   réécriture finale de `media` après le build, se déroule sous le verrou conditionnel en D1
-   retenu au tableau des choix.
+   publication est une séquence en deux temps — et le seul geste non-avance-rapide, l'élagage
+   de `media` qui ouvre la publication suivante, se déroule sous le verrou conditionnel en D1
+   retenu au tableau des choix, et se calcule depuis D1 et non depuis l'état lu de la branche.
    Alternatives écartées plus tôt : **`git push --force-with-lease`** — même contrôle avec la
    même permission (mesuré), mais un Worker n'a ni sous-processus ni système de fichiers, donc
    il ne peut pas lancer `git` ; **GitLab** — aucun des faits sourcés ne porte sur lui.
