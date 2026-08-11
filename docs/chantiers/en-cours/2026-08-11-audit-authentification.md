@@ -1,7 +1,7 @@
 # Audit de l'authentification, sur les seules pièces déjà au dépôt
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `4e631d1`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `7a33a0b`
 
 ## Objectif
 
@@ -14,7 +14,7 @@ Passer l'authentification au crible qui a servi au Brief↔PRD puis à la stack.
 à extraire  `docs/audit-auth.md` › le constat `AU-nn` en cours, ses lignes des deux
             récapitulatifs, et la colonne « Où ça se répare » qui nomme les pièces à ouvrir —
             un constat à la fois, jamais le document entier
-à extraire  `docs/audit-auth.md` › lignes `AU-01` et `AU-02` des « arbitrages rendus » — les
+à extraire  `docs/audit-auth.md` › lignes `AU-01` à `AU-03` des « arbitrages rendus » — les
             gabarits, et les conclusions d'instruction déjà rendues
 à situer    `docs/research/` — aucun rapport ne porte sur l'auth ; ne pas y chercher
 
