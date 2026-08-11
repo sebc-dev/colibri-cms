@@ -287,6 +287,19 @@ porteur d'en-têtes que `S-06` vient de créer. Le **sous-domaine d'administrati
 la parade de repli du candidat n° 15 ; cette quatrième porte lui donne un second motif, sans
 rendre le premier caduc.
 
+**« Stricte » se définit par ses interdits, pas par sa chaîne complète** : aucun
+`unsafe-inline`, aucun `unsafe-eval`, aucune source tierce — hors `challenges.cloudflare.com`,
+déjà exigé plus haut pour Turnstile. Tout script ou style en ligne porte donc un nonce engendré
+à chaque réponse, ou une empreinte ; le porteur du nonce est le second porteur d'en-têtes
+lui-même — le code qui génère la réponse d'administration pose la même valeur dans l'en-tête et
+dans le balisage. Le coût est réel et porte sur la manière dont l'administration est bâtie —
+l'hydratation des îlots Svelte produit du script en ligne — et c'est à `archi` de l'instruire :
+l'invariant déposé plus bas l'y oblige. Enfin, il n'existe pas de repli pour cette porte : un
+script stocké dans la liste des demandes s'exécute dans l'administration quel que soit son
+domaine — le sous-domaine dédié ne vaut que contre le XSS venu des pages publiques. Si la CSP
+tombait, l'invariant d'échappement resterait seul ; ce renoncement serait un arbitrage à
+écrire, jamais une économie d'implémentation.
+
 ### La cinquième porte : l'e-mail acheminé vise le facteur d'authentification
 
 `AU-01` l'a nommée : `FR-063` achemine chaque demande **dans la boîte qui reçoit les codes de
@@ -505,11 +518,17 @@ tiennent.
 - **Aucune donnée fournie par un visiteur n'atteint un rendu HTML brut.** Svelte échappe par
   défaut ; seul `{@html}` casse cette propriété. L'invariant est falsifiable et se lit dans les
   sources — c'est la première des deux parades qui tiennent la quatrième porte.
+- **Aucun script ni style en ligne sans nonce ou empreinte dans l'administration.** C'est la
+  contrainte d'écriture que la CSP stricte impose ; l'hydratation des îlots Svelte en produit,
+  et `archi` doit instruire ce coût — mécanisme du nonce ou de l'empreinte compris — avant de
+  figer la manière dont l'administration est bâtie. L'invariant se lit dans les réponses et
+  dans les sources — c'est la seconde des deux parades qui tiennent la quatrième porte ; la
+  première est l'invariant qui précède.
 
 ### Vérification mécanique obligatoire
 
 Le Brief pose que « le code entrant n'est pas relu ligne à ligne » et que la confiance doit
-venir de vérifications mécaniques. Six choix de cette page en dépendent explicitement et la
+venir de vérifications mécaniques. Sept choix de cette page en dépendent explicitement et la
 phase `ci` doit les rendre bloquants :
 
 - l'**aller-retour de sérialisation Markdown** de l'éditeur — une marque autorisée qui ne se
@@ -525,7 +544,11 @@ phase `ci` doit les rendre bloquants :
   l'internet public, sur la même origine que l'administration ;
 - la **composition inerte de l'e-mail acheminé** — texte seul, objet fixe, chaque donnée du
   visiteur derrière son étiquette : un gabarit qui redevient HTML, ou laisse une saisie en
-  position de phrase du produit, rouvre en silence la cinquième porte.
+  position de phrase du produit, rouvre en silence la cinquième porte ;
+- la **CSP stricte sur toute réponse d'administration** — l'en-tête est présent **et** ne porte
+  ni `unsafe-inline`, ni `unsafe-eval`, ni source tierce hors Turnstile : la présence seule ne
+  prouve rien, ce sont les interdits qui se vérifient ; une directive qui se relâche rouvre en
+  silence la seconde parade de la quatrième porte.
 
 ## Le jeton d'écriture — mesuré, et non déduit
 
@@ -798,6 +821,14 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     motif** : `S-06` concluait que les trois portes se fermaient sans toucher à l'origine
     commune ; il en existe une quatrième, la liste des demandes, où du texte d'inconnus atteint
     un écran d'administration. Le premier motif n'est pas caduc, la prémisse du compte l'est.
+    **Amendé le 2026-08-11 par le traitement de `AU-06`.** La CSP stricte cesse d'être un
+    membre de phrase : définie par ses interdits (`unsafe-inline`, `unsafe-eval`, sources
+    tierces hors Turnstile), porteur du nonce nommé — le second porteur d'en-têtes —, septième
+    contrôle bloquant de `ci` et second invariant déposé pour `archi`. Et une limite du repli
+    est consignée : le sous-domaine dédié ne reprend **pas** la charge de la quatrième porte —
+    un script stocké dans la liste des demandes s'exécute dans l'administration quelle que soit
+    son origine ; le repli ne vaut que contre le XSS venu des pages publiques. Pour cette
+    porte, il n'existe que deux parades, et toutes deux sont désormais falsifiables.
 
 16. **Moyen de reprise : un code de 128 bits haché en D1, remis sur papier à la
     livraison, à usage unique et réémis à l'emploi — sans frein par secret.** Retenu parce que
