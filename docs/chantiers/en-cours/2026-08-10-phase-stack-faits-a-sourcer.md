@@ -1,30 +1,23 @@
 # Phase stack — les faits datés à sourcer avant d'arbitrer
 
 Portée : socle
-Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `ccb410e`
+Ouvert le 2026-08-10 · Actualisé le 2026-08-10 · branche `work/reprise-socle-v2` · HEAD `4180e00`
 
 ## Objectif
 
-Refermer les 14 domaines de la phase stack, aucun n'étant arbitré tant que le fait dont il
-dépend n'est pas sourcé et daté.
+Refermer les domaines de la phase stack, aucun n'étant arbitré tant que le fait dont il
+dépend n'est pas sourcé et daté. **La phase est jouée** — `docs/stack.md` existe, 13 décisions
+sont prêtes pour `adr`. Reste **un seul fait à sourcer**, qui bloque le candidat ADR n° 5.
 
 ## Contexte à charger
 
-à extraire  `docs/prd.md` › `FR-083`–`FR-091`, `FR-107`, `FR-108`, `SC-010`, `SC-011` — le contrat
-            que les arbitrages tranchés doivent tenir sans retouche (797 l.)
-à extraire  `docs/socle-de-livraison.md` › § 5 « Les contraintes de développement du CMS » (C1–C10),
-            § « Annexe A » et § « Ce qui reste ouvert » n° 4 — C6 est à amender, le seuil d'alerte
-            de C5 est à 15 000 (364 l.)
-à extraire  `docs/brief.md` › § « Questions ouvertes » — **5** renvois Stack, pas 4 (376 l.)
-à extraire  `docs/research/2026-08-10-gating-paiement-r2-email-cloudflare.md` › § « Tableau de
-            gating » — verbatims, URL et dates citables dans un ADR (77 l.)
-à extraire  `docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md` › § « Détail par
-            composant » — les chiffres destinés à l'annexe datée (178 l.)
-à extraire  `docs/research/2026-08-10-pages-ou-workers-static-assets.md` › § « Key Findings » n° 1
-            et § « Tableau 2 » — la citation datée et les valeurs comparées, citables (96 l.)
-à situer    `docs/research/2026-08-10-acheminement-demandes-envoi-email.md` — son § C ne sert que
-            si la voie Cloudflare tombe
-à situer    `docs/research/2026-08-10-api-github-commit-atomique.md` — conclusion déjà dans Acquis
+à lire      `docs/stack.md` › § « Point ouvert » et § « Décisions structurantes → candidats ADR »
+            — la question à poser au lookup, et la ligne qu'elle débloque
+à extraire  `docs/research/2026-08-10-api-github-commit-atomique.md` › ce qui est établi sur les
+            permissions, pour ne pas re-sourcer ce qui l'est déjà
+à situer    `docs/prd.md` › `FR-098`, `FR-101`, `FR-105`, `SC-006`, `SC-012` — les exigences que
+            l'échéance d'un jeton met en tension
+à situer    `docs/socle-de-livraison.md` › `C10`, `I6` et § « Ce qui reste ouvert » n° 6
 
 ## Acquis
 
@@ -125,11 +118,56 @@ dépend n'est pas sourcé et daté.
   Pages n'a pas été constaté — le dashboard est derrière une connexion, et C3 réclame désormais
   `--platform=pages`.
 
+- **Phase stack jouée le 2026-08-10.** `docs/stack.md` écrit : 17 domaines, dont 4 marqués sans
+  objet, 13 candidats ADR. Arbitrages humains : Astro 7 · Worker unique bâti par Workers Builds ·
+  TypeScript strict · GitHub · auth maison sur D1 · Turnstile + compteur en Durable Object · état
+  d'acheminement dans la liste · un répertoire par objet · TipTap → Markdown restreint · îlots
+  Svelte 5 · verrou D1 · `constrained` + breakpoints `[640,960,1280]` · D1 natif · Vitest dans
+  `workerd` + Playwright.
+- **Un fait de l'Acquis était faux et a été corrigé sur pièces.** Le support de Pages n'est pas
+  tombé à l'adapter **v14** mais à la **v13** (10/03/2026) : README v12 « Cloudflare Pages
+  Functions targets », README v13 « Cloudflare Workers targets », zéro occurrence de `pages` dans
+  le `dist` de v13, `peerDeps` v13 `{ astro: ^6.3.0 }` et v12 `{ astro: ^5.7.0 }`. La voie Pages
+  coûtait donc **Astro 5**, pas Astro 6 — deux majors en arrière.
+- **Un troisième levier sur `C5` a été trouvé dans le paquet publié** : `image.breakpoints`
+  (`astro@7.2.0`, `dist/assets/internal.js:121`), à côté de `layout` et du nombre de `formats`.
+  Le plafond réel va de 950 à 20 000 photographies **selon la configuration**, pas selon le
+  produit — l'Annexe A annonçait « 1 600 à 5 000 ».
+- **`docs/socle-de-livraison.md` amendé** : bandeau ⚠️ remplacé par le constat de revalidation,
+  §3 (un seul Worker, branche `media`, Durable Object), `C6` (« un clone, deux branches »),
+  Annexe A (minutes de build, dépassement non documenté, plafond dérivé de la config), réserve 1,
+  et « Ce qui reste ouvert » (n° 2 et 4 fermés, n° 6 ouvert).
+- **Une dette est ouverte sur le PRD, et elle n'est pas payable ici** : l'état d'acheminement
+  affiché dans la liste des demandes ne sert **aucun `FR`**. Il faut que
+  `/scd-sdd:premortem socle` crée l'exigence porteuse avant que le niveau specs puisse
+  l'implémenter.
+
+- **Le dernier point ouvert est fermé le 2026-08-11, par mesure et non par lecture.** Lookup
+  joué, puis six essais sur un dépôt jetable (`sebc-dev/colibri-jeton-essai`), chacun avec son
+  témoin : jeton à portée fine sans expiration possible sur compte personnel · `Contents:
+  Read and write` **seule** suffit à toute la chaîne d'écriture REST · `PATCH /git/refs` en
+  `force: false` refuse un déplacement non-avance-rapide (`422`) · `updateRefs` et
+  `createCommitOnBranch` exigent en plus `Workflows: write` (obtenu par différence) ·
+  `git push --force-with-lease` fait le même contrôle avec `Contents` seule.
+- **Deux arbitrages en sont sortis** : la voie REST à une seule permission remplace GraphQL
+  `updateRefs` au candidat ADR n° 5, et le retrait d'un jeton resté un an sans usage est couvert
+  par un Cron de maintien en vie dans le compte de la cliente (`FR-101`).
+- **Une erreur de cadrage de ma part, corrigée en cours de route** : j'avais proposé
+  `git push --force-with-lease` comme voie à moindre privilège sans voir qu'un Worker n'a ni
+  sous-processus ni système de fichiers. Le test a quand même servi — il a fermé la portée du
+  jeton de lecture de `media`.
+- **`docs/socle-de-livraison.md` complété** : n° 6 de « Ce qui reste ouvert » fermé, et trois
+  lignes ajoutées à la recette de livraison (portée de chaque jeton, maintien en vie).
+
 ## Prochaine étape
 
-Lancer `/scd-sdd:stack`. Plus aucune recherche ni aucun lookup en attente. Deux points se
-tranchent pendant la phase et pas avant : l'arbitrage Pages ou Workers lui-même, et le
-comportement non sourcé que l'Annexe A prête aux 500 déploiements.
+**L'objectif du chantier est atteint** — plus aucun fait à sourcer, `docs/stack.md` complet,
+13 candidats ADR dont aucun n'est bloqué. La fiche peut être archivée par `/scd-sdd:resume`.
+
+Ensuite : `/scd-sdd:archi`. À ne pas perdre en chemin, parce que ça ne se dérive d'aucun
+fichier — la détection de panne d'acheminement est retenue en Stack **sans exigence porteuse**,
+et il faut que `/scd-sdd:premortem socle` crée le `FR` avant que le niveau specs puisse
+l'implémenter.
 
 ## Écarté
 
