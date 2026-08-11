@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `da0945c`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `d3c03c4`
 
 ## Objectif
 
@@ -16,8 +16,8 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
             — 484 l., cible de la plupart des retouches
 à extraire  `docs/socle-de-livraison.md` › § « 7. La recette de livraison » et § « Annexe A »
             — 393 l., cibles de S-01 et S-14
-à extraire  `docs/prd.md` › les seuls `FR` nommés par le constat en cours — S-05 `FR-001` à
-            `FR-014`, S-13 et S-15 la couverture du tableau — 797 l., rien d'autre
+à extraire  `docs/prd.md` › les seuls `FR` nommés par le constat en cours — S-02 `FR-007` et
+            `FR-062`, S-13 et S-15 la couverture du tableau — 797 l., rien d'autre
 à extraire  `docs/chantiers/archive/2026-08-10-phase-stack-faits-a-sourcer.md` › § « Écarté »
             — les pistes déjà mortes de la phase stack, dont S-09 a montré qu'il faut vérifier
             la portée avant de s'y fier
@@ -26,6 +26,8 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 à situer    `docs/research/` — les quatre sujets de S-11 ont été interrogés le 11/08, la réponse
             est dans Acquis ; ne pas relire
 à situer    `docs/audit-brief-prd.md` — le précédent de forme, déjà distillé dans Acquis
+à situer    `docs/chantiers/en-attente/2026-08-11-audit-authentification.md` — ouvert par
+            `S-05`, bloqué jusqu'à la clôture de L4 ; rien à en tirer pour le traitement
 
 ## Acquis
 
@@ -37,10 +39,13 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   L4 accès et secrets (S-05, S-02, S-01) · L5 niveau de preuve (S-10, S-11, S-18, S-19) ·
   L6 couverture du tableau (S-13, S-15, S-17) · L7 socle et hygiène (S-14, S-16, S-20 ; S-12
   arbitré ici, mais exécuté par `/scd-sdd:premortem socle`).
-- **Ce qui est arbitré ne se relit pas ici.** L1, L2 et **L3** sont clos ; leurs arbitrages — y
-  compris les deux dettes reportées sur `S-14` et `S-17` — sont écrits en entier au
-  § « Récapitulatif — arbitrages rendus ». Les recopier mettrait le même fait à deux endroits,
-  dont un vieillirait.
+- **Ce qui est arbitré ne se relit pas ici.** L1, L2 et **L3** sont clos, et **L4 est entamé :
+  `S-05` est rendu**. Tous les arbitrages — y compris les dettes reportées sur `S-14`, `S-17`
+  et, depuis `S-05`, sur `S-01` — sont écrits en entier au § « Récapitulatif — arbitrages
+  rendus ». Les recopier mettrait le même fait à deux endroits, dont un vieillirait.
+- **Un arbitrage peut compléter un arbitrage antérieur sans le défaire.** `S-05` a montré que
+  le compte de trois portes de `S-06` était incomplet ; la ligne `S-06` du récapitulatif a reçu
+  un **complément daté**, et le constat lui-même n'a pas bougé. C'est la forme à réutiliser.
 - **Avant d'écarter par précédent, vérifier la portée du motif d'origine** : l'écarté « D1/KV/DO »
   ne valait que pour le magasin du **publié**, et c'est ce qui laissait le brouillon sans magasin.
 - **`docs/research/` porte les quotas de la plateforme, jamais ses limites de forme** — les
@@ -58,16 +63,15 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 
 ## Prochaine étape
 
-**L4, premier constat : S-05** — l'auth « maison » couvre `FR-001` à `FR-014` en bloc, mais le
-choix écrit ne décrit que la connexion nominale. Sans porteur : le **moyen de reprise non
-e-mail** (`FR-009` à `FR-012`, rangé chez la cliente — quel objet ?), la nature des sessions
-(signées sans état ? révocables ?), la **protection CSRF** des actions d'admin, la rotation de
-la clé de signature. `S-06` y a renvoyé en plus les **attributs du cookie de session**. À savoir
-avant d'instruire : `A-02` de l'audit Brief↔PRD a établi que la connexion dépend du même canal
-e-mail que les demandes, et la stack retient ce canal sans un mot sur ce couplage. La piste de
-l'audit offre deux issues — compléter la ligne Auth par mécanisme, ou déclarer explicitement
-que ces points descendent en specs avec la liste des décisions attendues. Instruire, puis
-présenter.
+**L4, deuxième constat : S-02** — l'« empreinte » d'origine du compteur de fréquence est un
+hachage non clété d'IP, donc réversible en secondes sur 2³² valeurs : l'empreinte **est** la
+donnée personnelle. La piste est courte — écrire « empreinte HMAC sous clé secrète, à
+rotation » au tableau des choix, ajouter la clé à l'inventaire, renvoyer la **période** de
+rotation au chantier `cadrage-donnees-personnelles`, qui est en attente et que j'ai relu le
+11/08. Deux points à savoir avant d'instruire : `S-05` vient de **retirer** la clé de signature
+de l'inventaire, donc S-02 y ajoute la première clé depuis, et c'est `S-01` qui arbitrera
+l'inventaire complet ; et le compteur vit dans un Durable Object, pas en D1 — la rotation n'y a
+pas le même coût. Instruire, puis présenter.
 
 ## Écarté
 
