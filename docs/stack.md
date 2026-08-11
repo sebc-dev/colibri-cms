@@ -34,14 +34,15 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
-| Auth | Implémentation maison sur D1 : jeton haché à usage unique et expirant, cookie de session signé | FR-001 à FR-014, SC-006, SC-020 | |
+| Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, SC-006 | |
+| Moyen de reprise | Code de haute entropie **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence par origine hachée dans un Durable Object | FR-007, FR-062 | |
 | Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue de la publication** | FR-090, FR-091 | |
 | Constat de la mise en ligne | Le site publié expose l'empreinte du commit dont il est né ; l'administration la lit par une requête **publique** et la compare | FR-090 | |
 | Interface d'administration | Îlots Svelte 5 dans Astro | FR-017, FR-054, FR-117, SC-003, SC-005, SC-015 | |
 | Texte riche | Éditeur TipTap, sérialisation en **Markdown restreint** aux marques testées ; au rendu, **liste blanche de schémas d'URL** (`https`, `mailto`, `tel`, relatif) et **aucun HTML brut** | FR-018, FR-117, SC-011 | |
-| En-têtes de réponse | **Deux porteurs, imposés par la plateforme** : un fichier `_headers` pour les pages publiques, servies en assets statiques ; les mêmes en-têtes posés **dans le code** pour l'administration, l'aperçu et les médias servis depuis D1 | FR-082, FR-095, FR-096 | |
+| En-têtes de réponse | **Deux porteurs, imposés par la plateforme** : un fichier `_headers` pour les pages publiques, servies en assets statiques ; les mêmes en-têtes posés **dans le code** pour l'administration, l'aperçu et les médias servis depuis D1, **dont une CSP stricte propre à l'administration** — seule parade qui subsiste au XSS same-origin tant que l'origine reste commune | FR-082, FR-095, FR-096 | |
 | Pipeline d'images | `image.layout: 'constrained'`, `image.breakpoints: [640, 960, 1280]`, `<Image>` à un seul format | SC-005, SC-001 (par `C5`) | |
 | Accès aux données | API D1 native, migrations `wrangler d1 migrations` | FR-105, FR-106, SC-008 | |
 | Tests | Vitest dans `workerd` via `@cloudflare/vitest-pool-workers`, Playwright pour les parcours, épreuve de réversibilité scriptée | (tous) ; SC-003, SC-009, SC-011, SC-016 | |
@@ -221,6 +222,90 @@ repli si un jour un contenu tiers doit être servi.
 **Hors périmètre de ce paragraphe** : les attributs du cookie de session lui-même relèvent de
 la ligne « Auth », sous-spécifiée par ailleurs (`S-05`).
 
+### Pourquoi un code à saisir, et pourquoi une session opaque
+
+Les deux formes sont possibles ; ce sont les modes de panne qui les départagent, et non le
+confort.
+
+**Un code plutôt qu'un lien.** Un lien à usage unique est **consommé par les scanners de
+messagerie** qui préchargent les URL, avant même le clic : l'éditrice ne peut plus entrer, les
+envois sont bornés par `FR-006`, et elle finit par brûler son moyen de reprise à cause d'un
+antivirus. Le code n'offre rien à précharger, ne met pas le secret dans une URL — donc ni dans
+l'historique, ni dans un `Referer`, ni dans les journaux de la plateforme —, et il rend
+**gratuite** la liaison au navigateur demandeur : elle lit sur le téléphone et saisit sur
+l'ordinateur, alors que lier un lien interdirait le multi-appareil. Cette liaison ne protège
+pas d'un lecteur de sa boîte — le formulaire de connexion est public, quiconque peut déclencher
+son propre envoi — mais elle ferme l'ingénierie sociale du « lisez-moi le code que vous venez
+de recevoir », qui est le vecteur réaliste sur un profil non technique. L'entropie est portée à
+**40 bits** : six chiffres est une convention héritée du SMS, deux caractères de plus rendent la
+question de la force brute sans objet.
+
+**Une session opaque plutôt qu'un cookie signé.** L'économie invoquée par un cookie signé
+n'existe pas : l'administration lit déjà D1 à chaque écran, et une lecture de session par
+requête pèse de l'ordre de **500 lignes par jour sur les 5 000 000** de l'Annexe A. En
+échange, la session opaque **retire un secret de l'inventaire** — il n'y a plus de clé de
+signature à ouvrir, à ranger ni à faire tourner, au moment où `S-02` et `S-06` en ajoutent —,
+et surtout elle permet à `FR-012` et `FR-013` de **fermer les autres sessions** au moment du
+remplacement. C'est ce qui rend réel le remède que le PRD décrit au cas limite de la boîte
+compromise, sans offrir pour autant à l'éditrice la fonction que le PRD exclut explicitement :
+constater ou fermer une session ouverte ailleurs. Une conséquence automatique n'est pas une
+capacité offerte. Écriture bornée en conséquence : le rafraîchissement glissant n'écrit pas à
+chaque requête, le budget d'écriture étant cinquante fois plus serré que celui de lecture.
+
+### La quatrième porte : l'administration affiche du texte d'inconnus
+
+`S-06` a compté trois portes vers l'origine commune et conclu qu'elles se fermaient sans y
+toucher. Il en existe une quatrième, que le constat ne pouvait pas voir : **la liste des
+demandes**. `FR-064` y porte « les coordonnées du visiteur », `FR-065` enregistre la demande et
+`FR-069` à `FR-074` la présentent — le chemin va donc d'un **inconnu de l'internet public**
+jusqu'à un écran d'administration, et `FR-061` (aucun fichier téléversé) confirme que c'est du
+texte, soit exactement le vecteur d'un XSS stocké. Le filtre de `S-06` ne le couvre pas : il vit
+dans le **rendu partagé**, qui sert le publié et l'aperçu, pas l'administration.
+
+Sur une origine commune, un script injecté dans l'administration **est** l'administration : il
+n'a pas besoin du cookie, que `HttpOnly` lui cache, puisqu'il émet des requêtes déjà
+authentifiées et en lit les réponses. Ni `SameSite`, ni un jeton anti-CSRF — lisible dans le DOM
+— n'y opposent quoi que ce soit. **La CSRF est le petit problème ; le XSS est tout le jeu**, et
+la protection anti-CSRF retenue au tableau ne vise que la forgerie venue d'un autre site, que
+`SameSite=Strict` et le contrôle d'`Origin` referment en une ligne.
+
+Deux parades tiennent l'origine commune, et elles sont cumulatives : l'**invariant
+d'échappement** ci-dessous, et la **CSP stricte de l'administration** portée par le second
+porteur d'en-têtes que `S-06` vient de créer. Le **sous-domaine d'administration dédié** reste
+la parade de repli du candidat n° 15 ; cette quatrième porte lui donne un second motif, sans
+rendre le premier caduc.
+
+### `FR-013` et `FR-014` n'ont aucun porteur, et c'est délibéré
+
+La ligne Auth ne couvre plus que `FR-001` à `FR-008`, et le moyen de reprise `FR-009` à
+`FR-012`. Le remplacement de l'adresse autorisée reste **sans choix technique**, parce qu'il est
+aujourd'hui **impossible à honorer**, pour deux raisons indépendantes.
+
+1. **`FR-005` verrouille `FR-014`.** Prouver la maîtrise d'une adresse candidate suppose de lui
+   écrire ; `FR-005` interdit tout message de preuve « à une adresse autre que l'adresse
+   autorisée », et le glossaire du PRD réserve ce titre à celle qui ouvre déjà l'administration.
+   L'intention de `A-01` visait l'énumération par balayage, pas un envoi demandé depuis une
+   session ouverte : c'est un défaut de rédaction, mais il n'en est pas moins bloquant tel quel.
+2. **`FR-013` casse les deux canaux à la fois.** Le glossaire fond en une seule adresse celle
+   qui ouvre l'administration et celle où les demandes sont acheminées ; `send_email` n'écrit
+   qu'à une **destination vérifiée**. Remplacer l'adresse depuis l'administration coupe donc
+   l'acheminement **et** la connexion, jusqu'à une vérification qui se fait dans le compte
+   Cloudflare — que `SC-006` interdit précisément de faire visiter à l'éditrice.
+
+Une issue existe et elle est **écartée sur le fond** : appeler l'API Email Routing depuis le
+Worker ferait envoyer par Cloudflare lui-même le courrier de vérification, dont le clic vaudrait
+la preuve de maîtrise de `FR-014`, refermant les deux points d'un seul geste. Elle exige un
+jeton capable de **réécrire le routage du courrier de la cliente**, déposé dans un Worker exposé
+à l'internet : une compromission de l'administration cesserait alors d'emporter le contenu du
+site pour emporter l'interception permanente de son courrier, donc la récupération de tous ses
+comptes. Le correctif élégant aggrave le sinistre ; il n'est pas retenu, et sa disponibilité n'a
+même pas à être sourcée.
+
+Les autres issues — épingler la destination des demandes à l'adresse de livraison, assister le
+remplacement hors produit, ou renvoyer `FR-013` à la reprise sur pièces de `SC-014` — **amendent
+toutes le PRD**. Aucune n'est du ressort de cette phase. En attendant, la Stack refuse de porter
+`FR-013` et `FR-014` plutôt que de laisser le niveau specs en inventer une.
+
 ### Une seule ligne d'état porte le verrou, son bail et l'issue
 
 Le verrou conditionnel en D1 ne suffit pas seul : un Worker tué net — déploiement, limite
@@ -336,14 +421,19 @@ Le cadrage complet appartient au chantier `docs/chantiers/en-attente/2026-08-10-
 
 ### Secrets à ouvrir au nom de la cliente (`I4`, `C7`)
 
-Trois, et aucun n'appartient à l'intégrateur. Le dossier d'instance dit où chacun est rangé,
+Deux, et aucun n'appartient à l'intégrateur. Le dossier d'instance dit où chacun est rangé,
 jamais sa valeur (`FR-112`).
 
 | Secret | Portée mesurée le 11/08/2026 |
 |---|---|
 | Jeton d'écriture de la publication | Portée fine, dépôt unique, **sans expiration**, `Contents: Read and write` **seule** |
 | Jeton de lecture du *fetch* de `media` pendant le build | Portée fine, dépôt unique, `Contents: Read-only` |
-| Clé de signature des cookies de session | Générée dans le compte de la cliente |
+
+*La **clé de signature des cookies de session** a été retirée de cet inventaire le 2026-08-11
+par le traitement de `S-05` : la session est opaque en D1, il n'y a plus rien à signer. Cet
+inventaire est celui de la phase Stack, et non l'inventaire de livraison — c'est le traitement
+de `S-01` qui l'établit, et il devra y intégrer ce retrait, le **moyen de reprise** remis à la
+livraison, et les secrets ajoutés par `S-02` et `S-06`.*
 
 **Le jeton d'écriture n'expire pas, mais il peut disparaître.** GitHub documente qu'il
 « removes personal access tokens that haven't been used in a year ». Comme `FR-101` exige
@@ -359,11 +449,14 @@ tiennent.
   qui divergerait.
 - La logique métier n'importe pas le framework web : sans cela, `C6` — le mode de build
   depuis les fichiers plats, sans D1 — n'est pas atteignable.
+- **Aucune donnée fournie par un visiteur n'atteint un rendu HTML brut.** Svelte échappe par
+  défaut ; seul `{@html}` casse cette propriété. L'invariant est falsifiable et se lit dans les
+  sources — c'est la première des deux parades qui tiennent la quatrième porte.
 
 ### Vérification mécanique obligatoire
 
 Le Brief pose que « le code entrant n'est pas relu ligne à ligne » et que la confiance doit
-venir de vérifications mécaniques. Quatre choix de cette page en dépendent explicitement et la
+venir de vérifications mécaniques. Cinq choix de cette page en dépendent explicitement et la
 phase `ci` doit les rendre bloquants :
 
 - l'**aller-retour de sérialisation Markdown** de l'éditeur — une marque autorisée qui ne se
@@ -373,7 +466,10 @@ phase `ci` doit les rendre bloquants :
 - le **garde-fou `C5`** sur le nombre de fichiers produits ;
 - la **liste `run_worker_first` bornée** — un contrôle de configuration, lu dans le fichier de
   déploiement : elle passe globale et le fichier `_headers` cesse silencieusement de s'appliquer
-  aux pages publiques.
+  aux pages publiques ;
+- l'**absence de `{@html}` sur toute donnée fournie par un visiteur** — l'invariant ci-dessus, qui
+  se vérifie dans les sources. Sans lui, la liste des demandes est un XSS stocké ouvert à
+  l'internet public, sur la même origine que l'administration.
 
 ## Le jeton d'écriture — mesuré, et non déduit
 
@@ -501,6 +597,35 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    à écrire par-dessus ; **Cloudflare Access one-time PIN** — son palier gratuit n'a **aucune
    source primaire**, donc invérifiable face à `I5` et `FR-103`, et l'éditrice se
    connecterait à une couche d'identité tierce, ce que `FR-004` et `SC-006` interdisent.
+   **Complété le 2026-08-11 par le traitement de `S-05`, qui reprochait à cette décision de ne
+   décrire que la connexion nominale.** Quatre mécanismes la composent désormais, et chacun
+   porte son motif. **(1) Un code à saisir, jamais un lien** — un lien à usage unique se fait
+   consommer par les scanners de messagerie avant le clic, met le secret dans une URL donc dans
+   les journaux, et ne peut être lié au navigateur demandeur qu'en interdisant le multi-appareil ;
+   le code ferme les trois, et sa seule faiblesse propre — l'entropie — se paie de deux
+   caractères, à **40 bits** plutôt que les 20 bits hérités du SMS. La liaison au navigateur
+   demandeur ne protège pas d'un lecteur de la boîte, le formulaire de connexion étant public :
+   elle ferme l'ingénierie sociale du « lisez-moi le code », qui est le vecteur réaliste ici.
+   **(2) Une session opaque en D1, non un cookie signé** — à coût identique (500 lectures par
+   jour sur les 5 000 000 de l'Annexe A, l'administration lisant déjà D1 à chaque écran), elle
+   retire un secret de l'inventaire et permet à `FR-012` et `FR-013` de fermer automatiquement
+   les autres sessions, ce qui rend réel le remède du cas limite « boîte compromise » sans offrir
+   la fonction que le PRD exclut. **(3) Un cookie `__Host-`, `HttpOnly`, `Secure`,
+   `SameSite=Strict`, sans restriction de `Path`** — le préfixe est gratuit et ferme l'injection
+   depuis un sous-domaine ; restreindre le `Path` casserait `FR-082`, l'aperçu vivant sur la même
+   origine sous une autre route. **(4) Un jeton anti-CSRF par écriture, doublé d'un contrôle
+   d'en-tête `Origin`** — il ne vise que la forgerie venue d'un autre site ; contre le XSS
+   same-origin, ni lui ni `SameSite` ne peuvent rien, et ce sont l'invariant d'échappement et la
+   CSP de l'administration qui répondent. **Alternative écartée en propre : la passkey WebAuthn
+   en facteur primaire.** C'est la seule forme qui survivrait à un lecteur de la boîte — le
+   scénario le plus probable — et elle *serait* le moyen de reprise ; mais `FR-009` et le
+   glossaire du PRD disent « secret **remis** à la livraison », quand une passkey naît sur
+   l'appareil de l'éditrice et suppose une session déjà ouverte, et sa récupération pend au
+   trousseau d'un tiers — le motif même du rejet d'Access OTP. Elle demande d'amender le PRD :
+   c'est un arbitrage de `/scd-sdd:premortem socle`, pas de cette phase. **Ce que `FR-005` doit à
+   la plateforme** : l'interdiction d'écrire à une adresse non autorisée n'est pas seulement
+   programmée, `send_email` ne sait écrire qu'à une destination vérifiée — mais c'est aussi ce
+   qui bloque `FR-013` et `FR-014`, voir la section dédiée.
 
 7. **Format du contenu déposé : un répertoire par objet.** Retenu car le §4.3 du clausier
    promet des fichiers « exploitables par n'importe quel professionnel, avec ou sans
@@ -583,6 +708,29 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     public ; il coûte une entrée DNS et une route de plus, le §3 du socle à amender et `FR-081`
     à revérifier sur les URL relatives de l'aperçu. C'est la parade de repli le jour où du
     contenu tiers devra être servi.
+    **Amendé le 2026-08-11 par le traitement de `S-05`.** Le porteur « dans le code » gagne un
+    en-tête nommé : une **CSP stricte propre à l'administration**, qui est — avec l'invariant
+    d'échappement — l'une des deux seules parades au XSS same-origin, contre lequel ni
+    `SameSite` ni un jeton anti-CSRF ne peuvent rien. Et le sous-domaine dédié gagne un **second
+    motif** : `S-06` concluait que les trois portes se fermaient sans toucher à l'origine
+    commune ; il en existe une quatrième, la liste des demandes, où du texte d'inconnus atteint
+    un écran d'administration. Le premier motif n'est pas caduc, la prémisse du compte l'est.
+
+16. **Moyen de reprise : un code de haute entropie haché en D1, remis sur papier à la
+    livraison, à usage unique et réémis à l'emploi.** Retenu parce que c'est la seule forme que
+    le PRD laisse ouverte sans être amendé — « secret non e-mail **remis** à la livraison »
+    (glossaire), rien en configuration qui le reconstitue (`FR-011`), remplaçable depuis une
+    session ouverte avec cessation de l'ancien (`FR-012`), ce qui impose un magasin mutable,
+    donc D1 — et parce qu'il n'ajoute ni dépendance, ni mécanisme neuf : c'est le patron déjà
+    retenu pour le code de connexion. L'usage unique est ce qui le départage : un code à usage
+    multiple serait une porte dérobée permanente sur papier, et un usage unique sans réémission
+    laisserait l'éditrice sans filet au sortir de la panne même qui l'a fait servir — `FR-012`
+    fournit déjà le geste de réémission. Alternatives écartées : **la passkey** (voir n° 6, elle
+    demande d'amender le glossaire) ; **la rémanence de session longue**, déjà écartée par `A-02`
+    au motif qu'elle est irrévocable en cas de vol d'appareil — l'objection perd de sa force avec
+    la session opaque du n° 6, mais une session n'est pas un secret remis à la livraison et ne
+    répond pas à `FR-009` ; **une seconde adresse e-mail**, écartée par `A-02` et `A-09` (deux
+    boîtes valent un second compte contre `SC-006`, et leurs pannes sont corrélées).
 
 ## Ce que cette phase dépose sur les autres documents
 
@@ -600,10 +748,18 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   le jeton d'écriture créé **sans expiration** et portant `Contents: Read and write` seule,
   le jeton de lecture de `media` en `Contents: Read-only`, et le Cron de maintien en vie
   actif avant la livraison.
-- **`docs/prd.md`** : non modifié, et il ne doit pas l'être ici. Une seule dette y est
-  ouverte — le `FR` qui porterait la détection de panne d'acheminement, à créer par
-  `/scd-sdd:premortem socle`.
-- **`docs/ci.md`** (phase 6) : **quatre** contrôles nommés ci-dessus doivent y devenir
+- **`docs/prd.md`** : non modifié, et il ne doit pas l'être ici. **Trois** dettes y sont
+  ouvertes, toutes pour `/scd-sdd:premortem socle` : le `FR` qui porterait la détection de panne
+  d'acheminement ; la qualification de `FR-005`, qui verrouille `FR-014` tel qu'il est rédigé ;
+  et le sort de `FR-013`, dont le glossaire fond l'adresse de connexion et la destination des
+  demandes en un seul objet que `send_email` ne sait pas déplacer. Les deux dernières datent du
+  2026-08-11, par le traitement de `S-05`.
+- **La recette de livraison et l'inventaire de livraison** gagnent le **moyen de reprise** —
+  code remis sur papier, rangé dans un espace de la cliente, son emplacement noté au dossier
+  d'instance et jamais sa valeur (`FR-112`). Renvoyé au traitement de `S-01`, à qui revient
+  l'inventaire des secrets, et qui devra aussi y porter le **retrait de la clé de signature**.
+- **`docs/ci.md`** (phase 6) : **cinq** contrôles nommés ci-dessus doivent y devenir
   bloquants — l'aller-retour Markdown de l'éditeur, le rejet des URL de schéma non autorisé,
-  le garde-fou `C5`, et la liste `run_worker_first` bornée. Les deux derniers ajouts datent du
-  2026-08-11, par le traitement de `S-06`.
+  le garde-fou `C5`, la liste `run_worker_first` bornée, et l'absence de `{@html}` sur toute
+  donnée fournie par un visiteur. Les deux du milieu datent du 2026-08-11 par le traitement de
+  `S-06`, le dernier du même jour par celui de `S-05`.
