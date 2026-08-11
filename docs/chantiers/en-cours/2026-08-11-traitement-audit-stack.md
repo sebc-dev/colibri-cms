@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `560ed1a`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `7a743e2`
 
 ## Objectif
 
@@ -16,14 +16,15 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
             — 432 l., cible de la plupart des retouches
 à extraire  `docs/socle-de-livraison.md` › § « 7. La recette de livraison » et § « Annexe A »
             — 385 l., cibles de S-01 et S-14
-à extraire  `docs/prd.md` › les seuls `FR` nommés par le constat en cours — S-09 les images en
-            brouillon, S-13 et S-15 la couverture du tableau — 797 l., rien d'autre
+à extraire  `docs/prd.md` › les seuls `FR` nommés par le constat en cours — S-06 `FR-027` et
+            `FR-040`, S-13 et S-15 la couverture du tableau — 797 l., rien d'autre
 à extraire  `docs/chantiers/archive/2026-08-10-phase-stack-faits-a-sourcer.md` › § « Écarté »
-            — les pistes déjà mortes de la phase stack, à ne pas rouvrir
+            — les pistes déjà mortes de la phase stack, dont S-09 a montré qu'il faut vérifier
+            la portée avant de s'y fier
 à lire      `docs/chantiers/en-attente/2026-08-10-cadrage-donnees-personnelles.md` — S-02 y
             renvoie la période de rotation (48 l.)
-à déléguer  `docs/research/` — « que disent exactement les rapports sur R2, Turnstile, les Cron
-            Triggers et la version d'Astro, et avec quel niveau de preuve ? » (S-11)
+à situer    `docs/research/` — les quatre sujets de S-11 ont été interrogés le 11/08, la réponse
+            est dans Acquis ; ne pas relire
 à situer    `docs/audit-brief-prd.md` — le précédent de forme, déjà distillé dans Acquis
 
 ## Acquis
@@ -36,20 +37,30 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   L4 accès et secrets (S-05, S-02, S-01) · L5 niveau de preuve (S-10, S-11, S-18, S-19) ·
   L6 couverture du tableau (S-13, S-15, S-17) · L7 socle et hygiène (S-14, S-16, S-20 ; S-12
   arbitré ici, mais exécuté par `/scd-sdd:premortem socle`).
-- **Ce qui est arbitré ne se relit pas ici.** L1 et L2 sont clos ; leurs arbitrages — y compris
-  les deux dettes qu'ils reportent sur `S-14` et `S-17` — sont écrits en entier au
+- **Ce qui est arbitré ne se relit pas ici.** L1, L2 et `S-09` sont clos ; leurs arbitrages — y
+  compris les deux dettes reportées sur `S-14` et `S-17` — sont écrits en entier au
   § « Récapitulatif — arbitrages rendus ». Les recopier mettrait le même fait à deux endroits,
   dont un vieillirait.
+- **Avant d'écarter par précédent, vérifier la portée du motif d'origine** : l'écarté « D1/KV/DO »
+  ne valait que pour le magasin du **publié**, et c'est ce qui laissait le brouillon sans magasin.
+- **`docs/research/` porte les quotas de la plateforme, jamais ses limites de forme** — les
+  plafonds D1 de 2 Mo par ligne et 500 Mo par base viennent de la page *Limits*, lue le 11/08.
+- **Acquis pour `S-11`, du dépouillement des rapports du 11/08** : R2 marqué `[À VÉRIFIER]` sur
+  l'exigence de carte ; Turnstile officiel ; les Cron Triggers tenus d'une **source unique
+  tierce** ; et surtout, les rapports ne parlent que d'**Astro 6** et d'une PR de décembre 2025,
+  quand `stack.md` retient Astro 7 et date le retrait du support Pages de la **v13, 10/03/2026**
+  — un écart à trancher, pas à reporter.
 - **S-01 ferme L4** : S-02 (clé HMAC) et S-06 y ajoutent chacun un secret à inventorier.
 - Le traitement précède `archi` : trois candidats ADR au moins citeraient des faits invérifiables.
 
 ## Prochaine étape
 
-**L3 — les médias** : instruire S-09 (aucun magasin pour les médias en **brouillon** — le trou le
-plus net du tableau) et S-06 (origine commune admin/public, rien ne borne ce qui remonte), puis les
-présenter un par un. L2 a resserré leur cadre : `media` ne reçoit que du **publié**, et le budget
-de 42 médias par publication est chiffré — un magasin de brouillon ne peut donc pas être la même
-branche, et sa borne de taille se lit face à ce budget.
+**L3, second constat : S-06** — origine commune admin/public, et rien ne borne ce qui remonte
+vers elle. Trois portes, dont une seule est fermée (Markdown restreint) : les **formats** admis au
+téléversement et le sort du **SVG** (`FR-040`, un SVG accepté comme image est un XSS stocké servi
+par l'origine commune), les **URL de schéma non autorisé** dans le Markdown rendu, et l'absence
+de tout **en-tête de réponse** (CSP, `X-Content-Type-Options`). S-09 a déjà fermé le volet
+**poids** — 2 Mo, borne D1 — et lui seul ; S-06 hérite du reste. Instruire, puis présenter.
 
 ## Écarté
 
