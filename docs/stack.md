@@ -30,6 +30,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Contenu publié en fichiers | Un répertoire par objet dans le dépôt : `page.json` pour la structure, un `.md` par emplacement de texte riche | FR-087, FR-107, FR-109, SC-011 | |
 | Médias publiés | Même dépôt, branche orpheline `media` : dépôt **additif** à la publication, **élagage des orphelins au début de la publication suivante** | FR-037, FR-084, FR-088, FR-107, FR-108, SC-011 | |
 | Médias en brouillon | D1 : le binaire est stocké en `BLOB`, transféré sur `media` à la publication puis effacé de la base. Plafond **2 Mo par média**, imposé par D1 et non choisi | FR-027, FR-033, FR-034, FR-040, SC-010 | |
+| Ingestion des médias | Liste blanche fermée — **JPEG, PNG, WebP**, **SVG refusé** — reconnue sur les **octets d'en-tête** du fichier, jamais sur l'extension ni sur le `Content-Type` du téléversement ; le `Content-Type` servi est déduit de cette liste | FR-027, FR-040, FR-108 | |
 | Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
@@ -39,7 +40,8 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue de la publication** | FR-090, FR-091 | |
 | Constat de la mise en ligne | Le site publié expose l'empreinte du commit dont il est né ; l'administration la lit par une requête **publique** et la compare | FR-090 | |
 | Interface d'administration | Îlots Svelte 5 dans Astro | FR-017, FR-054, FR-117, SC-003, SC-005, SC-015 | |
-| Texte riche | Éditeur TipTap, sérialisation en **Markdown restreint** aux marques testées | FR-018, FR-117, SC-011 | |
+| Texte riche | Éditeur TipTap, sérialisation en **Markdown restreint** aux marques testées ; au rendu, **liste blanche de schémas d'URL** (`https`, `mailto`, `tel`, relatif) et **aucun HTML brut** | FR-018, FR-117, SC-011 | |
+| En-têtes de réponse | **Deux porteurs, imposés par la plateforme** : un fichier `_headers` pour les pages publiques, servies en assets statiques ; les mêmes en-têtes posés **dans le code** pour l'administration, l'aperçu et les médias servis depuis D1 | FR-082, FR-095, FR-096 | |
 | Pipeline d'images | `image.layout: 'constrained'`, `image.breakpoints: [640, 960, 1280]`, `<Image>` à un seul format | SC-005, SC-001 (par `C5`) | |
 | Accès aux données | API D1 native, migrations `wrangler d1 migrations` | FR-105, FR-106, SC-008 | |
 | Tests | Vitest dans `workerd` via `@cloudflare/vitest-pool-workers`, Playwright pour les parcours, épreuve de réversibilité scriptée | (tous) ; SC-003, SC-009, SC-011, SC-016 | |
@@ -128,8 +130,9 @@ Deux limites officielles décident, et aucune n'est un choix
   contient jamais que les téléversements non encore publiés, mais c'est ce chiffre-là, dix fois
   plus bas, qui mord.
 
-Ce que ce choix **ne** tranche pas : les **formats** admis au téléversement, le sort du SVG et
-les en-têtes de réponse restent entiers — ils relèvent de `S-06`, pas du magasin.
+Ce que ce choix ne tranchait pas — les **formats** admis, le sort du SVG et les en-têtes de
+réponse — est tranché au paragraphe suivant : le magasin ne dit rien de ce qui a le droit d'y
+entrer.
 
 **Écartées.** *Déposer sur `media` dès le téléversement* — c'est la seule voie qui ferait tomber
 le budget de 42 (la publication redeviendrait constante à 4 appels), mais elle rouvre ce que la
@@ -140,6 +143,83 @@ servait à empêcher. Et l'aperçu de `FR-081` devrait relire les octets depuis 
 en lecture, à chaque aperçu, un jeton d'écriture. *Une branche orpheline `media-draft`
 distincte* — mêmes coûts, plus un espace de plus à ouvrir et à vérifier sous `I1` : c'est le
 motif qui avait déjà écarté « deux dépôts distincts ».
+
+### Trois portes remontent vers l'origine commune, et chacune se ferme à un endroit différent
+
+Le site public et l'administration sont servis par **un même Worker**, donc par une même
+origine : tout contenu tiers exécuté côté public vaut vol du cookie de session de l'éditrice.
+Le choix du Markdown restreint (n° 8) ferme le vecteur du texte riche, et lui seul. Trois
+portes restaient ouvertes ; aucune ne se ferme au même endroit.
+
+**1. Ce qui entre — une liste blanche reconnue sur les octets.** Les formats admis au
+téléversement sont **JPEG, PNG et WebP**, et le format est reconnu sur les **octets d'en-tête**
+du fichier : ni l'extension du nom d'origine, ni le `Content-Type` du téléversement ne sont
+crus, et le `Content-Type` renvoyé plus tard est déduit de la liste, jamais recopié. Le geste
+est **gratuit** parce qu'il est déjà obligatoire : `FR-108` exige que les fichiers déposés
+portent les **dimensions** de chaque média, donc l'en-tête du fichier est lu de toute façon.
+`FR-040` — « refuser un téléversement dont le **format** ou le poids sort des bornes » — reçoit
+ici son volet manquant ; `S-09` lui avait donné son volet poids (2 Mo, borne D1).
+
+**Le SVG est refusé**, et c'est le même arbitrage que le n° 8 rendu dans l'autre sens : un SVG
+est un document exécutable, l'assainir demanderait de prouver une absence, et la stack a déjà
+refusé ce pari sur le HTML restreint. Deux conséquences en découlent, toutes deux favorables :
+le comportement du pipeline d'images face à un SVG n'a plus besoin d'être établi, et `FR-108`
+tient sans règle supplémentaire — un SVG n'a pas de dimensions en pixels fiables. Coût assumé,
+et il est réel : un logo vectoriel devra être fourni en PNG, et un téléversement direct depuis
+un téléphone en HEIC est refusé — en le disant à l'éditrice, comme `FR-040` l'exige.
+
+**Écartées.** *Le SVG assaini* — une bibliothèque de plus sous le plafond de 3 Mo gzip, pour un
+risque dont on ne prouve jamais l'absence. *Le SVG servi depuis une origine distincte* — ferme
+le vol de session, mais ouvre un espace de plus à vérifier sous `I1` pour un format dont le
+produit n'a pas besoin.
+
+**2. Ce qui est rendu — la liste blanche de marques s'étend aux URL.** Le Markdown restreint
+borne les **marques** ; il ne disait rien des **URL**. Sont admis `https`, `mailto`, `tel` et
+les chemins relatifs ; tout autre schéma est rejeté, et le rendu n'accepte **aucun HTML brut**.
+Le filtre vit dans le **rendu partagé** — l'invariant que `archi` doit reprendre (« l'aperçu et
+le publié partagent les mêmes composants ») le fait couvrir d'un seul geste le site bâti et
+l'aperçu de `FR-081`. Aucun mécanisme neuf : c'est le contrôle bloquant déjà prévu en `ci` pour
+l'aller-retour de sérialisation qui gagne un second volet.
+
+**3. Ce qui est renvoyé — les en-têtes ont deux porteurs, et la plateforme l'impose.**
+Docs Cloudflare · *Workers · Static Assets · Headers*, page datée du **23/04/2026** :
+
+> « Custom headers defined in the `_headers` file are **not applied to responses generated by
+> your Worker code**, even if the request URL matches a rule defined in `_headers`. »
+
+Or `FR-095` et `FR-096` font des pages publiques des **assets statiques** : `_headers` s'y
+applique, et sans rien coûter — « Requests to static assets are free and unlimited » (page
+*Pricing*, datée du 07/07/2026), donc hors du quota de 100 000 requêtes par jour. Mais
+l'administration, l'aperçu et la route qui sert un média en brouillon depuis D1 sont
+**générés par le code** : leurs en-têtes s'y écrivent. C'est la même figure que `FR-090` — un
+seul porteur ne couvre pas le cas. Les limites du fichier ne mordent pas : 100 règles, 2 000
+caractères par ligne.
+
+À poser des deux côtés : une CSP — qui doit prévoir `challenges.cloudflare.com`, Turnstile
+étant retenu —, `X-Content-Type-Options: nosniff`, `Referrer-Policy` et le refus d'être mis en
+cadre. `nosniff` est ce qui rattrape la porte n° 1 : un fichier hostile passé pour une image
+n'est pas réinterprété par le navigateur.
+
+**Une contrainte de conception en découle, et elle est vérifiable mécaniquement** : si
+`run_worker_first` devenait global, **toutes** les réponses seraient générées par le code et
+`_headers` ne s'appliquerait plus nulle part. Il reste donc une liste **bornée** de chemins
+(`/api/*`, l'administration), jamais un fourre-tout. Le routage est déjà le point n° 2 de la
+recette ; il y gagne cette exigence plutôt qu'un point à lui.
+
+**Ce que S-06 ne voyait pas, parce qu'il est daté d'avant l'arbitrage de `S-09`.** Le constat
+ne parlait que du **publié**. Depuis que le brouillon vit en D1, un média téléversé est servi
+par une **route du Worker**, sur l'origine commune, avec un `Content-Type` que le code choisit
+— **avant toute publication**. C'est pour cela que la liste blanche est posée au
+**téléversement** et non à la publication.
+
+**L'origine commune est conservée.** Un sous-domaine d'administration dédié mettrait le cookie
+de session hors de portée d'un XSS public, mais les trois portes se ferment sans lui, et il
+coûterait une entrée DNS et une route de plus, le §3 du socle à amender, et `FR-081` à
+revérifier sur les URL relatives de l'aperçu. **Non écarté sur le fond** : c'est la parade de
+repli si un jour un contenu tiers doit être servi.
+
+**Hors périmètre de ce paragraphe** : les attributs du cookie de session lui-même relèvent de
+la ligne « Auth », sous-spécifiée par ailleurs (`S-05`).
 
 ### Une seule ligne d'état porte le verrou, son bail et l'issue
 
@@ -283,10 +363,17 @@ tiennent.
 ### Vérification mécanique obligatoire
 
 Le Brief pose que « le code entrant n'est pas relu ligne à ligne » et que la confiance doit
-venir de vérifications mécaniques. Deux choix de cette page en dépendent explicitement et la
-phase `ci` doit les rendre bloquants : l'**aller-retour de sérialisation Markdown** de
-l'éditeur (une marque autorisée qui ne se sérialise pas disparaît en silence à la
-publication), et le **garde-fou `C5`** sur le nombre de fichiers produits.
+venir de vérifications mécaniques. Quatre choix de cette page en dépendent explicitement et la
+phase `ci` doit les rendre bloquants :
+
+- l'**aller-retour de sérialisation Markdown** de l'éditeur — une marque autorisée qui ne se
+  sérialise pas disparaît en silence à la publication ;
+- le **rejet d'une URL de schéma non autorisé** dans le Markdown rendu, sur le même chemin de
+  vérification que le précédent ;
+- le **garde-fou `C5`** sur le nombre de fichiers produits ;
+- la **liste `run_worker_first` bornée** — un contrôle de configuration, lu dans le fichier de
+  déploiement : elle passe globale et le fichier `_headers` cesse silencieusement de s'appliquer
+  aux pages publiques.
 
 ## Le jeton d'écriture — mesuré, et non déduit
 
@@ -322,7 +409,10 @@ ils sont mesurés ci-dessus.
 1. `DELETE … RETURNING` sur D1 — la page SQL n'énumère que FTS5, JSON et math, et renvoie au
    code source.
 2. Le routage `/api/*` vers le code du Worker — `run_worker_first` et `not_found_handling` ne
-   sont tenus que d'un billet personnel, pas de la documentation.
+   sont tenus que d'un billet personnel, pas de la documentation. **Le traitement de `S-06` y
+   ajoute une exigence** : la liste de `run_worker_first` doit rester **bornée** aux chemins de
+   l'administration et de l'API, faute de quoi les pages publiques cessent d'être des assets
+   statiques et le fichier `_headers` ne s'applique plus à rien.
 3. **Bloquant.** Le *checkout* Cloudflare atteint-il la branche `media` sans jeton fourni —
    ni documenté ni infirmé. Le build ne déclenche que sur `main` : si la réponse est non, le
    jeton de lecture `Contents: Read-only` déjà prévu au §7 du socle devient **obligatoire**,
@@ -420,12 +510,14 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    page porte plusieurs emplacements de texte riche (`FR-017`, `FR-018`) là où un fichier
    Markdown n'a qu'un corps.
 
-8. **Texte riche : Markdown restreint aux marques testées.** Retenu car le risque résiduel —
-   la perte silencieuse d'une marque à la sérialisation — est **testable**, donc fermable par
-   la phase `ci`. Alternative écartée : **HTML restreint** — plus fidèle, mais il faudrait
-   assainir sur deux chemins, et le PRD envisage explicitement le cas où l'administration est
-   compromise, où du HTML stocké deviendrait du contenu tiers servi à chaque visiteuse. Un
-   assainissement raté est un risque dont on ne prouve jamais l'absence.
+8. **Texte riche : Markdown restreint aux marques testées, et aux schémas d'URL autorisés.**
+   Retenu car le risque résiduel — la perte silencieuse d'une marque à la sérialisation — est
+   **testable**, donc fermable par la phase `ci`. La restriction porte sur deux axes et non un :
+   les marques, et les **URL** (`https`, `mailto`, `tel`, relatif ; aucun HTML brut) — une marque
+   autorisée peut porter une cible qui ne l'est pas. Alternative écartée : **HTML restreint** —
+   plus fidèle, mais il faudrait assainir sur deux chemins, et le PRD envisage explicitement le
+   cas où l'administration est compromise, où du HTML stocké deviendrait du contenu tiers servi
+   à chaque visiteuse. Un assainissement raté est un risque dont on ne prouve jamais l'absence.
 
 9. **Acheminement : Email Routing et `send_email` vers l'adresse de destination vérifiée.**
    Retenu car c'est gratuit sur tout plan, sans carte, et c'est exactement ce que `FR-063`
@@ -461,6 +553,37 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     rejouable. Alternative écartée : **Vitest sous Node avec liaisons simulées** — l'oracle
     devient faux, les tests attestant du comportement des simulacres.
 
+14. **Ingestion des médias : liste blanche fermée JPEG / PNG / WebP, reconnue sur les octets
+    d'en-tête, SVG refusé.** Retenue car elle donne à `FR-040` son volet « format » — `S-09` lui
+    avait donné son volet « poids » — et parce qu'elle ne coûte rien : `FR-108` exige les
+    **dimensions** de chaque média déposé, donc l'en-tête du fichier est lu de toute façon, et
+    la signature s'y lit dans le même geste. Reconnaître sur les octets plutôt que sur
+    l'extension ou sur le `Content-Type` déclaré est ce qui rend la liste opposable : l'un
+    comme l'autre sont choisis par celui qui téléverse. Alternatives écartées : **le SVG
+    assaini** — c'est le motif du n° 8 dans l'autre sens, un assainissement raté est un risque
+    dont on ne prouve jamais l'absence, et il faudrait embarquer la bibliothèque sous le
+    plafond de 3 Mo gzip ; **le SVG servi depuis une origine distincte** — ferme le vol de
+    session, mais ouvre un espace de plus à vérifier sous `I1` pour un format dont le produit
+    n'a pas besoin ; **admettre le HEIC** — couvrirait le téléversement direct depuis un
+    téléphone, mais sa lecture par le pipeline n'est pas établie et deviendrait un point de
+    recette bloquant de plus. Coût assumé : un logo vectoriel est fourni en PNG.
+
+15. **En-têtes de réponse : deux porteurs — `_headers` pour le public, le code pour tout ce que
+    le Worker génère —, sur une origine qui reste commune.** La forme n'est pas un choix, la
+    plateforme l'impose : les en-têtes du fichier `_headers` « are not applied to responses
+    generated by your Worker code » (docs Cloudflare · *Workers · Static Assets · Headers*, page
+    datée du **23/04/2026**). Comme `FR-095` et `FR-096` font des pages publiques des assets
+    statiques, le fichier les couvre sans coût — « Requests to static assets are free and
+    unlimited » (page *Pricing*, datée du 07/07/2026) —, tandis que l'administration, l'aperçu
+    et les médias servis depuis D1 portent les leurs dans le code. Il en découle une contrainte
+    vérifiable : `run_worker_first` reste une liste **bornée**, sans quoi le fichier ne
+    s'applique plus à rien. **L'origine commune est conservée** parce que les trois portes de
+    `S-06` se ferment sans y toucher. Alternative écartée, mais **pas sur le fond** : un
+    **sous-domaine d'administration dédié** met le cookie de session hors de portée d'un XSS
+    public ; il coûte une entrée DNS et une route de plus, le §3 du socle à amender et `FR-081`
+    à revérifier sur les URL relatives de l'aperçu. C'est la parade de repli le jour où du
+    contenu tiers devra être servi.
+
 ## Ce que cette phase dépose sur les autres documents
 
 - **`docs/socle-de-livraison.md`** : §3, `C6`, Annexe A et réserve 1 amendés le 2026-08-10
@@ -480,5 +603,7 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 - **`docs/prd.md`** : non modifié, et il ne doit pas l'être ici. Une seule dette y est
   ouverte — le `FR` qui porterait la détection de panne d'acheminement, à créer par
   `/scd-sdd:premortem socle`.
-- **`docs/ci.md`** (phase 6) : deux contrôles nommés ci-dessus doivent y devenir bloquants —
-  l'aller-retour Markdown de l'éditeur et le garde-fou `C5`.
+- **`docs/ci.md`** (phase 6) : **quatre** contrôles nommés ci-dessus doivent y devenir
+  bloquants — l'aller-retour Markdown de l'éditeur, le rejet des URL de schéma non autorisé,
+  le garde-fou `C5`, et la liste `run_worker_first` bornée. Les deux derniers ajouts datent du
+  2026-08-11, par le traitement de `S-06`.
