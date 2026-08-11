@@ -36,7 +36,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
 | Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, SC-006 | |
 | Moyen de reprise | Code de haute entropie **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
-| Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** | FR-063, FR-064, SC-007 | |
+| Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence par origine hachée dans un Durable Object | FR-007, FR-062 | |
 | Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue de la publication** | FR-090, FR-091 | |
 | Constat de la mise en ligne | Le site publié expose l'empreinte du commit dont il est né ; l'administration la lit par une requête **publique** et la compare | FR-090 | |
@@ -275,6 +275,47 @@ porteur d'en-têtes que `S-06` vient de créer. Le **sous-domaine d'administrati
 la parade de repli du candidat n° 15 ; cette quatrième porte lui donne un second motif, sans
 rendre le premier caduc.
 
+### La cinquième porte : l'e-mail acheminé vise le facteur d'authentification
+
+`AU-01` l'a nommée : `FR-063` achemine chaque demande **dans la boîte qui reçoit les codes de
+connexion**, et le formulaire de devis est ouvert à l'internet anonyme (`FR-057`), borné en
+fréquence seulement (`FR-062`). Un inconnu peut donc déposer du texte à côté des vrais messages
+du produit, déclencher lui-même l'envoi d'un code depuis l'écran public, et maquiller sa
+demande en message de service pour récolter le code — l'ingénierie sociale que la liaison au
+navigateur fermait au téléphone se rouvrait par écrit.
+
+La parade est une propriété du **gabarit d'acheminement**, et c'est pourquoi elle vit ici et
+non au PRD : l'e-mail est **inerte et étiqueté**. Texte seul — jamais de HTML —, objet fixe
+posé par le produit, et chaque donnée du visiteur rendue derrière son étiquette (« Nom : »,
+« Téléphone : »…), jamais en position de titre ni de phrase du produit. La surface s'y prête :
+une demande ne porte **aucun texte libre** — les sélections viennent du catalogue, le total est
+calculé, le visiteur n'écrit que ses coordonnées (`FR-057`, `FR-058`), sans fichier (`FR-061`).
+L'imitation d'un message de service doit alors tenir dans une ligne « Nom : … » d'un e-mail
+dont le cadre entier dit « demande de devis » — le constat perd ce qui faisait sa force,
+« avec la mise en forme et le vocabulaire du produit ».
+
+Deux limites, assumées. Un client de messagerie peut rendre cliquable une URL collée dans un
+champ — elle reste derrière son étiquette, le produit n'y peut rien de plus. Et le canal reste
+ouvert en écriture : un texte marqué atteint toujours les yeux de l'éditrice. Ce résidu part au
+dossier de `/scd-sdd:premortem socle`, où les deux failles de la même racine sont déjà.
+
+**La dissociation des deux adresses au PRD est écartée, sur rejeu de l'écarté de `A-02`.** La
+seule forme qui ferme la porte est une adresse d'authentification **dédiée**, ne recevant que
+les codes — tout alias ou renvoi remélange les flux, et détourner les demandes hors de la boîte
+de la cliente casse « la demande survit : elle arrive dans la boîte e-mail de la cliente »
+(Brief). Or une boîte dédiée est un compte ouvert par l'intégrateur que l'éditrice visiterait à
+chaque connexion — contre la lettre de `SC-006` (« jamais visités par elle ») et contre
+`FR-004` —, avec son mot de passe au dossier d'instance (`AU-11` s'aggrave), le réapprentissage
+que `SC-003`/`SC-015` interdisent, et une **compromission silencieuse** : une boîte regardée
+seulement à la connexion, l'attaquant s'y installe sans que rien ne se voie, là où la boîte de
+vie est au moins surveillée — le cas limite « boîte compromise » s'aggrave au lieu de se
+refermer. Enfin elle ne lève pas le verrou qu'on lui prêtait : `send_email` n'écrit qu'à une
+destination **vérifiée**, la vérification passe par le compte Cloudflare que `SC-006` interdit
+de faire visiter — remplacer une adresse reste un geste de livraison, dissociées ou non, et les
+dettes `FR-005`/`FR-014` et `FR-013` restent au dépôt de `S-05` pour le premortem. `AU-12`
+(l'adresse se divulgue à l'usage) reste donc ouvert et se requalifie en **constat accepté** —
+d'impact « faible en soi », par son propre constat.
+
 ### `FR-013` et `FR-014` n'ont aucun porteur, et c'est délibéré
 
 La ligne Auth ne couvre plus que `FR-001` à `FR-008`, et le moyen de reprise `FR-009` à
@@ -456,7 +497,7 @@ tiennent.
 ### Vérification mécanique obligatoire
 
 Le Brief pose que « le code entrant n'est pas relu ligne à ligne » et que la confiance doit
-venir de vérifications mécaniques. Cinq choix de cette page en dépendent explicitement et la
+venir de vérifications mécaniques. Six choix de cette page en dépendent explicitement et la
 phase `ci` doit les rendre bloquants :
 
 - l'**aller-retour de sérialisation Markdown** de l'éditeur — une marque autorisée qui ne se
@@ -469,7 +510,10 @@ phase `ci` doit les rendre bloquants :
   aux pages publiques ;
 - l'**absence de `{@html}` sur toute donnée fournie par un visiteur** — l'invariant ci-dessus, qui
   se vérifie dans les sources. Sans lui, la liste des demandes est un XSS stocké ouvert à
-  l'internet public, sur la même origine que l'administration.
+  l'internet public, sur la même origine que l'administration ;
+- la **composition inerte de l'e-mail acheminé** — texte seul, objet fixe, chaque donnée du
+  visiteur derrière son étiquette : un gabarit qui redevient HTML, ou laisse une saisie en
+  position de phrase du produit, rouvre en silence la cinquième porte.
 
 ## Le jeton d'écriture — mesuré, et non déduit
 
@@ -652,6 +696,12 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    Alternatives écartées plus tôt : **SendGrid, SES, MailerSend, ZeptoMail** — échouent sur
    « permanent » ou sur « sans carte » ; **le SMTP de la boîte de la cliente** — suspendu à
    un fournisseur grand public acceptant un envoi depuis une IP Cloudflare partagée.
+   **Amendé le 2026-08-11 par le traitement de `AU-01`.** La forme de l'e-mail devient une
+   décision : **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque
+   donnée du visiteur derrière son étiquette — parce que la destination est la boîte même qui
+   reçoit les codes de connexion et que le formulaire est public ; voir § « La cinquième
+   porte ». La **dissociation des deux adresses** y est écartée sur rejeu de l'écarté de
+   `A-02`.
 
 10. **Langage : TypeScript strict.** Retenu car le Brief exige que la confiance vienne de
     vérifications mécaniques, le code n'étant pas relu ligne à ligne. Alternative écartée :
@@ -758,8 +808,9 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   code remis sur papier, rangé dans un espace de la cliente, son emplacement noté au dossier
   d'instance et jamais sa valeur (`FR-112`). Renvoyé au traitement de `S-01`, à qui revient
   l'inventaire des secrets, et qui devra aussi y porter le **retrait de la clé de signature**.
-- **`docs/ci.md`** (phase 6) : **cinq** contrôles nommés ci-dessus doivent y devenir
+- **`docs/ci.md`** (phase 6) : **six** contrôles nommés ci-dessus doivent y devenir
   bloquants — l'aller-retour Markdown de l'éditeur, le rejet des URL de schéma non autorisé,
-  le garde-fou `C5`, la liste `run_worker_first` bornée, et l'absence de `{@html}` sur toute
-  donnée fournie par un visiteur. Les deux du milieu datent du 2026-08-11 par le traitement de
-  `S-06`, le dernier du même jour par celui de `S-05`.
+  le garde-fou `C5`, la liste `run_worker_first` bornée, l'absence de `{@html}` sur toute
+  donnée fournie par un visiteur, et la composition inerte de l'e-mail acheminé. Les deux du
+  milieu datent du 2026-08-11 par le traitement de `S-06`, le cinquième du même jour par celui
+  de `S-05`, le sixième du même jour par le traitement de `AU-01`.
