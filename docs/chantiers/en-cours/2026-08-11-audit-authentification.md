@@ -58,18 +58,12 @@ Stack ou à un candidat ADR, et par sa ligne au récapitulatif de `docs/audit-au
 
 - **L'audit est rendu le 11/08 — `docs/audit-auth.md`, 12 constats, 10 majeurs.** La demande a
   été élargie en cours de route : remonter aux **choix fondateurs**, pas seulement auditer les
-  mécanismes nommés par `S-05`. L'autre borne tient — les seules pièces au dépôt.
-- **Le soupçon de départ est confirmé, et sa source nommée** : un seul choix du Brief — la
-  fusion de l'adresse qui authentifie et de celle qui reçoit les demandes — produit quatre des
-  douze constats, chaque fois découvert une phase plus bas et par un chemin indépendant.
-- **Il y a une cinquième porte** (`AU-01`), et elle ne mène pas à l'origine commune : `FR-063`
-  ouvre en écriture, à l'internet anonyme, la boîte qui **est** le facteur d'authentification.
-  La méthode de `S-06` a payé pour la troisième fois.
-- **Deux gisements annoncés ont rendu**, un a rendu autrement : la CSP stricte est la seule des
-  parades sans définition ni contrôle bloquant (`AU-06`) ; le rayon d'action d'une session
-  compromise atteint le registre durable, pas un rendu (`AU-07`) ; et `I3` face aux sessions
-  s'est déplacé en `AU-08` — ce n'est pas la reconstruction qui souffre, c'est la **durabilité**
-  de l'état d'authentification, que `FR-011` empêche de rattraper.
+  mécanismes nommés par `S-05`. L'autre borne tient — les seules pièces au dépôt. Les constats
+  sont dans le document ; ils n'ont pas à être redits ici.
+- **Le soupçon de départ est confirmé, et sa source nommée** : la fusion, au glossaire du Brief,
+  de l'adresse qui authentifie et de celle qui reçoit les demandes produit quatre des douze
+  constats, chaque fois découverte une phase plus bas et par un chemin indépendant. C'est cette
+  racine qui commande l'ordre du traitement.
 
 ## Écarté
 
