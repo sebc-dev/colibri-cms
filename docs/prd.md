@@ -357,7 +357,8 @@ l'intégrateur.
 - **FR-011** : Le système NE DOIT conserver, dans la configuration du déploiement, aucune
   donnée permettant de reconstituer le moyen de reprise.
 - **FR-012** : L'éditrice DOIT pouvoir remplacer le moyen de reprise depuis une session
-  d'administration ouverte, l'ancien cessant alors d'ouvrir une session.
+  d'administration ouverte ; l'ancien cesse alors d'ouvrir une session, et toute session
+  ouverte autre que celle du remplacement est fermée.
 - **FR-013** : L'éditrice DOIT pouvoir remplacer l'adresse autorisée depuis une session
   d'administration ouverte.
 - **FR-014** : Une adresse NE DOIT devenir l'adresse autorisée qu'après que la maîtrise en a
@@ -652,9 +653,11 @@ l'exigence qui la porte.
   nouvelle dont elle prouve la maîtrise (`FR-013`, `FR-014`). Le dossier d'instance dit où le
   moyen de reprise est rangé, jamais sa valeur (`FR-112`).
 - **La boîte e-mail de l'éditrice est compromise.** Le moyen de reprise n'y peut rien :
-  l'attaquant ouvre l'administration comme elle. Le remède est de retirer l'adresse compromise
-  en la remplaçant (`FR-013`), ce qui suppose d'entrer dans l'administration avant lui — par le
-  moyen de reprise s'il a déjà changé l'adresse.
+  l'attaquant ouvre l'administration comme elle. Remplacer le moyen de reprise (`FR-012`)
+  l'évince des sessions déjà ouvertes, et rien de plus : tant que la boîte est tenue,
+  l'écran de connexion public le laisse revenir au code suivant. Le remède durable est de
+  retirer l'adresse compromise en la remplaçant (`FR-013`), ce qui suppose d'entrer dans
+  l'administration avant lui — par le moyen de reprise s'il a déjà changé l'adresse.
 - **Quelqu'un entre dans l'administration et en ferme la porte derrière lui**, en remplaçant
   l'adresse autorisée et le moyen de reprise. Le produit ne prévoit rien : l'administration est
   auto-administrable, et cette propriété se paie. Le dernier recours est hors du produit — la
@@ -713,7 +716,9 @@ lacunes ; chacune est réversible quand un client réel la demandera.
   n'existe ni adresse de secours, ni récupération par un tiers. La reprise en cas de perte de
   la boîte passe par le moyen de reprise (`FR-009` à `FR-012`).
 - **Révocation d'un accès en cours.** Le produit n'offre aucun moyen de fermer une session
-  ouverte ailleurs ni de constater les accès en cours.
+  ouverte ailleurs ni de constater les accès en cours. La fermeture de toute session au
+  remplacement du moyen de reprise (`FR-012`) est une conséquence automatique de ce
+  remplacement, pas une telle fonction.
 - **Remplacement du fichier d'une image de la bibliothèque.** Le « remplacement » de l'écran
   Médias se fait emplacement par emplacement (`FR-034`), jamais en substituant le binaire
   d'une image déjà posée : une substitution propagée devrait attendre la publication comme
