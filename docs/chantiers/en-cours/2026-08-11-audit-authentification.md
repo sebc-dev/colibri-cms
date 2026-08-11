@@ -1,7 +1,7 @@
 # Audit de l'authentification, sur les seules pièces déjà au dépôt
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `4be3ce8`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `6d89954`
 
 ## Objectif
 
@@ -20,22 +20,24 @@ Passer l'authentification au crible qui a servi au Brief↔PRD puis à la stack.
 
 ## Acquis
 
-- **Cinq constats arbitrés le 11/08** — `AU-01` à `AU-05`, plus `AU-12` requalifié en constat
-  accepté (commits `b6b47c8` → `da6d140`). Le détail de chacun — texte porté, écartés, motifs —
+- **Six constats arbitrés le 11/08** — `AU-01` à `AU-06`, plus `AU-12` requalifié en constat
+  accepté (commits `b6b47c8` → `6d89954`). Le détail de chacun — texte porté, écartés, motifs —
   vit à sa ligne des « arbitrages rendus » ; y renvoyer plutôt que refaire.
 - **Conclusions d'instruction à ne pas refaire** : une demande ne porte aucun texte libre ; le
   verrou `FR-005`/`FR-014` tient au binding `send_email` (destination vérifiée), indépendant du
   nombre d'adresses ; le moyen de reprise est à 128 bits, l'entropie porte tout ; la session
-  expire à 7 j / 30 j (`FR-118`), l'expiration est une conséquence automatique, pas une fonction.
+  expire à 7 j / 30 j (`FR-118`), l'expiration est une conséquence automatique, pas une fonction ;
+  le sous-domaine dédié n'est pas un repli pour la quatrième porte — un script stocké dans la
+  liste des demandes s'exécute dans l'administration quel que soit son domaine.
 - **L'ordre a été inversé le 11/08** : L4 consommera ces arbitrages, et non l'inverse.
 
 ## Prochaine étape
 
-Choisir le prochain constat parmi les six restants (`AU-06` à `AU-11`), puis l'arbitrer :
+Choisir le prochain constat parmi les cinq restants (`AU-07` à `AU-11`), puis l'arbitrer :
 instruction sur pièces, options matérialisées avec rejeu adverse, texte porté, ligne aux
-« arbitrages rendus ». `AU-06` ouvre la liste — la CSP stricte de l'administration est nommée
-parade, jamais définie, seule des cinq mécaniques de sécurité sans contrôle bloquant
-(« Où ça se répare » : stack + ci, 6ᵉ contrôle + archi).
+« arbitrages rendus ». `AU-07` ouvre la liste — le rayon d'action d'une session compromise
+n'a jamais été énuméré, et il porte sur le registre durable du contenu
+(« Où ça se répare » : stack, § nouveau + premortem).
 
 ## Écarté
 
@@ -44,5 +46,6 @@ parade, jamais définie, seule des cinq mécaniques de sécurité sans contrôle
 - **Ouvrir une feature** — aucun constat ne descend en code.
 - **Rouvrir un point tranché aux « arbitrages rendus »** — dissociation des deux adresses
   (`AU-01`), frein par secret du moyen de reprise (`AU-03`), TOTP et unicité de la passkey
-  (`AU-04`), bornes de session et leurs valeurs 7 j / 30 j (`AU-05`) : chaque ligne porte ses
-  écartés et leurs motifs, ne pas rouvrir.
+  (`AU-04`), bornes de session et leurs valeurs 7 j / 30 j (`AU-05`), définition de la CSP par
+  ses interdits et absence de repli (`AU-06`) : chaque ligne porte ses écartés et leurs motifs,
+  ne pas rouvrir.
