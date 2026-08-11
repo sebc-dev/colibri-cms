@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `12b1897`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `97f559c`
 
 ## Objectif
 
@@ -10,8 +10,8 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 
 ## Contexte à charger
 
-à extraire  `docs/audit-stack.md` › § « Récapitulatif pour le traitement », puis le seul § `S-nn`
-            du lot courant — 394 l., un constat traité est un constat qu'on ne relit plus
+à extraire  `docs/audit-stack.md` › § « Récapitulatif — arbitrages rendus » (ce qui est déjà
+            tranché), puis le seul § `S-nn` du lot courant — 406 l., pas une ligne de plus
 à extraire  `docs/stack.md` › § « Choix retenus » et § « Décisions structurantes → candidats ADR »
             — 321 l., cible de la plupart des retouches
 à extraire  `docs/socle-de-livraison.md` › § « 7. La recette de livraison » et § « Annexe A »
@@ -40,12 +40,18 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   séquence de publication et la borne de taille des médias.
 - **S-01 ferme L4** : S-02 (clé HMAC) et S-06 y ajoutent chacun un secret à inventorier.
 - Le traitement précède `archi` : trois candidats ADR au moins citeraient des faits invérifiables.
+- **L1 est clos** (commit `97f559c`) : la mesure n'a pas changé L2 ni L3 comme redouté — le texte
+  inliné rend le coût constant, seuls les médias restent comptés (**42 par publication**). Mais
+  elle a produit un fait que personne n'avait demandé : le HEAD lu n'est pas fiablement
+  *read-your-writes* (2 × `422` sur 10 publications), **le réessai est obligatoire**, et ce fait
+  **entre dans S-07**. La borne de taille des médias, elle, reste à descendre en specs.
 
 ## Prochaine étape
 
-**L1** — instruire S-04 : compter les appels que consomme la chaîne blob → arbre → commit face au
-plafond de 50 sous-requêtes, **par mesure sur un dépôt jetable et non par lecture**, avec témoin,
-et verser le transcript dans `docs/research/` (c'est aussi ce que S-10 exige des mesures du 11/08).
+**L2 — la fin de publication** : instruire S-03, S-07 et S-08 ensemble, puis les présenter un par
+un. Ils tiennent par le même bout — qui écrit quoi, sous quel verrou, et ce qui déclenche un build.
+S-07 hérite du `422` intermittent mesuré en L1 : le bail du verrou et la reprise d'un échec partiel
+se décident **avec** le réessai obligatoire, pas après lui.
 
 ## Écarté
 
