@@ -660,13 +660,27 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    origine sous une autre route. **(4) Un jeton anti-CSRF par écriture, doublé d'un contrôle
    d'en-tête `Origin`** — il ne vise que la forgerie venue d'un autre site ; contre le XSS
    same-origin, ni lui ni `SameSite` ne peuvent rien, et ce sont l'invariant d'échappement et la
-   CSP de l'administration qui répondent. **Alternative écartée en propre : la passkey WebAuthn
-   en facteur primaire.** C'est la seule forme qui survivrait à un lecteur de la boîte — le
-   scénario le plus probable — et elle *serait* le moyen de reprise ; mais `FR-009` et le
-   glossaire du PRD disent « secret **remis** à la livraison », quand une passkey naît sur
-   l'appareil de l'éditrice et suppose une session déjà ouverte, et sa récupération pend au
-   trousseau d'un tiers — le motif même du rejet d'Access OTP. Elle demande d'amender le PRD :
-   c'est un arbitrage de `/scd-sdd:premortem socle`, pas de cette phase. **Ce que `FR-005` doit à
+   CSP de l'administration qui répondent. **Alternatives écartées en propre : la passkey
+   WebAuthn en facteur primaire — et le secret TOTP remis à la livraison, ajouté le 2026-08-11
+   par le traitement de `AU-04`, qui a montré que l'unicité affirmée ici était fausse.** Deux
+   formes survivent à un lecteur de la boîte — le scénario le plus probable —, non une seule.
+   La **passkey** *serait* le moyen de reprise ; mais `FR-009` et le glossaire du PRD disent
+   « secret **remis** à la livraison », quand une passkey naît sur l'appareil de l'éditrice et
+   suppose une session déjà ouverte, et sa récupération pend au trousseau d'un tiers — le motif
+   même du rejet d'Access OTP. Elle demande d'amender le PRD : c'est un arbitrage de
+   `/scd-sdd:premortem socle`, pas de cette phase. Une graine **TOTP** engendrée par
+   l'intégrateur et remise sur papier à la livraison ne heurte, elle, aucun de ces quatre
+   motifs — ni `SC-006`, ni `FR-004` — et s'écarte sur ses coûts propres, jamais plus sur
+   l'unicité : elle n'est vérifiable qu'en **clair** côté serveur, une lecture de la base la
+   livrerait telle quelle — le régime hors ligne instruit au n° 16, que le moyen de reprise ne
+   concède qu'en hachage à 128 bits — et l'inventaire se rallonge au moment où la session
+   opaque le raccourcissait ; un outil à provisionner et une saisie de plus à chaque connexion
+   pèsent sur le parcours courant que `SC-003` et `SC-015` mesurent et que le glossaire promet
+   « par sa seule adresse e-mail » ; et le gain serait partiel, la boîte restant la clé de
+   voûte de l'instance — sa lecture porte la récupération des comptes tiers. Le lecteur de la
+   boîte reste donc une impasse, désormais tenue sur un choix motivé et non plus forcé ; résidu
+   au dépôt de `S-05` : la connexion en lecture seule est le chemin le plus discret, et le TOTP
+   l'aurait fermé. **Ce que `FR-005` doit à
    la plateforme** : l'interdiction d'écrire à une adresse non autorisée n'est pas seulement
    programmée, `send_email` ne sait écrire qu'à une destination vérifiée — mais c'est aussi ce
    qui bloque `FR-013` et `FR-014`, voir la section dédiée.
