@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `487a915`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-11 · branche `work/reprise-socle-v2` · HEAD `da0945c`
 
 ## Objectif
 
@@ -16,8 +16,8 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
             — 484 l., cible de la plupart des retouches
 à extraire  `docs/socle-de-livraison.md` › § « 7. La recette de livraison » et § « Annexe A »
             — 393 l., cibles de S-01 et S-14
-à extraire  `docs/prd.md` › les seuls `FR` nommés par le constat en cours — S-06 `FR-027` et
-            `FR-040`, S-13 et S-15 la couverture du tableau — 797 l., rien d'autre
+à extraire  `docs/prd.md` › les seuls `FR` nommés par le constat en cours — S-05 `FR-001` à
+            `FR-014`, S-13 et S-15 la couverture du tableau — 797 l., rien d'autre
 à extraire  `docs/chantiers/archive/2026-08-10-phase-stack-faits-a-sourcer.md` › § « Écarté »
             — les pistes déjà mortes de la phase stack, dont S-09 a montré qu'il faut vérifier
             la portée avant de s'y fier
@@ -37,7 +37,7 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   L4 accès et secrets (S-05, S-02, S-01) · L5 niveau de preuve (S-10, S-11, S-18, S-19) ·
   L6 couverture du tableau (S-13, S-15, S-17) · L7 socle et hygiène (S-14, S-16, S-20 ; S-12
   arbitré ici, mais exécuté par `/scd-sdd:premortem socle`).
-- **Ce qui est arbitré ne se relit pas ici.** L1, L2 et `S-09` sont clos ; leurs arbitrages — y
+- **Ce qui est arbitré ne se relit pas ici.** L1, L2 et **L3** sont clos ; leurs arbitrages — y
   compris les deux dettes reportées sur `S-14` et `S-17` — sont écrits en entier au
   § « Récapitulatif — arbitrages rendus ». Les recopier mettrait le même fait à deux endroits,
   dont un vieillirait.
@@ -58,12 +58,16 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 
 ## Prochaine étape
 
-**L3, second constat : S-06** — origine commune admin/public, et rien ne borne ce qui remonte
-vers elle. Trois portes, dont une seule est fermée (Markdown restreint) : les **formats** admis au
-téléversement et le sort du **SVG** (`FR-040`, un SVG accepté comme image est un XSS stocké servi
-par l'origine commune), les **URL de schéma non autorisé** dans le Markdown rendu, et l'absence
-de tout **en-tête de réponse** (CSP, `X-Content-Type-Options`). S-09 a déjà fermé le volet
-**poids** — 2 Mo, borne D1 — et lui seul ; S-06 hérite du reste. Instruire, puis présenter.
+**L4, premier constat : S-05** — l'auth « maison » couvre `FR-001` à `FR-014` en bloc, mais le
+choix écrit ne décrit que la connexion nominale. Sans porteur : le **moyen de reprise non
+e-mail** (`FR-009` à `FR-012`, rangé chez la cliente — quel objet ?), la nature des sessions
+(signées sans état ? révocables ?), la **protection CSRF** des actions d'admin, la rotation de
+la clé de signature. `S-06` y a renvoyé en plus les **attributs du cookie de session**. À savoir
+avant d'instruire : `A-02` de l'audit Brief↔PRD a établi que la connexion dépend du même canal
+e-mail que les demandes, et la stack retient ce canal sans un mot sur ce couplage. La piste de
+l'audit offre deux issues — compléter la ligne Auth par mécanisme, ou déclarer explicitement
+que ces points descendent en specs avec la liste des décisions attendues. Instruire, puis
+présenter.
 
 ## Écarté
 
