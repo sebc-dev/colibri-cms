@@ -79,7 +79,10 @@ rotation au chantier `cadrage-donnees-personnelles`, qui est en attente et que j
 11/08. Deux points à savoir avant d'instruire : `S-05` vient de **retirer** la clé de signature
 de l'inventaire, donc S-02 y ajoute la première clé depuis, et c'est `S-01` qui arbitrera
 l'inventaire complet ; et le compteur vit dans un Durable Object, pas en D1 — la rotation n'y a
-pas le même coût. Instruire, puis présenter.
+pas le même coût. Troisième point, depuis l'arbitrage d'`AU-03` (11/08) : l'empreinte ne porte
+**plus** la protection du moyen de reprise — il a été chiffré à 128 bits précisément pour ne pas
+pendre à ce mécanisme ; `FR-007` n'est qu'un frein anti-bruit, l'arbitrage de S-02 n'a pas cette
+charge-là. Instruire, puis présenter.
 
 ## Écarté
 

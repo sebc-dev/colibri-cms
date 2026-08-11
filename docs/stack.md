@@ -35,7 +35,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
 | Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, SC-006 | |
-| Moyen de reprise | Code de haute entropie **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
+| Moyen de reprise | Code de **128 bits** — 26 caractères base32, groupés pour la recopie — **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** ; **aucun frein par secret**, l'entropie seule rend la devinette sans objet, en ligne comme sur fuite de la base — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence par origine hachée dans un Durable Object | FR-007, FR-062 | |
 | Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue de la publication** | FR-090, FR-091 | |
@@ -766,8 +766,9 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     commune ; il en existe une quatrième, la liste des demandes, où du texte d'inconnus atteint
     un écran d'administration. Le premier motif n'est pas caduc, la prémisse du compte l'est.
 
-16. **Moyen de reprise : un code de haute entropie haché en D1, remis sur papier à la
-    livraison, à usage unique et réémis à l'emploi.** Retenu parce que c'est la seule forme que
+16. **Moyen de reprise : un code de 128 bits haché en D1, remis sur papier à la
+    livraison, à usage unique et réémis à l'emploi — sans frein par secret.** Retenu parce que
+    c'est la seule forme que
     le PRD laisse ouverte sans être amendé — « secret non e-mail **remis** à la livraison »
     (glossaire), rien en configuration qui le reconstitue (`FR-011`), remplaçable depuis une
     session ouverte avec cessation de l'ancien (`FR-012`), ce qui impose un magasin mutable,
@@ -775,12 +776,27 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     retenu pour le code de connexion. L'usage unique est ce qui le départage : un code à usage
     multiple serait une porte dérobée permanente sur papier, et un usage unique sans réémission
     laisserait l'éditrice sans filet au sortir de la panne même qui l'a fait servir — `FR-012`
-    fournit déjà le geste de réémission. Alternatives écartées : **la passkey** (voir n° 6, elle
+    fournit déjà le geste de réémission. L'entropie est **chiffrée à 128 bits** — 26 caractères
+    base32, groupés pour la recopie, le coût d'une clé produit une fois par incident — parce que
+    ce secret n'a ni l'expiration ni le brûlage qui rendent 40 bits suffisants au code de
+    connexion : permanent, il doit tenir aussi **hors ligne** — une lecture de la base livre son
+    hachage, jamais algorithmé ailleurs qu'ici, et 40 bits y tombent en secondes quel que soit
+    le KDF — quand 128 bits rendent la devinette sans objet par arithmétique seule, en ligne
+    comme hors ligne, indépendamment de `FR-007` et du sort de l'empreinte d'origine (`S-02`) :
+    le dernier recours de l'instance ne pend plus à un mécanisme non arbitré (`AU-03`). Pour la
+    même raison, **aucun frein par secret** ne s'ajoute au seuil par origine — à cette entropie
+    il n'ajoute rien contre la devinette, et Turnstile plus `FR-007` restent devant l'écran pour
+    le bruit. Alternatives écartées : **la passkey** (voir n° 6, elle
     demande d'amender le glossaire) ; **la rémanence de session longue**, déjà écartée par `A-02`
     au motif qu'elle est irrévocable en cas de vol d'appareil — l'objection perd de sa force avec
     la session opaque du n° 6, mais une session n'est pas un secret remis à la livraison et ne
     répond pas à `FR-009` ; **une seconde adresse e-mail**, écartée par `A-02` et `A-09` (deux
-    boîtes valent un second compte contre `SC-006`, et leurs pannes sont corrélées).
+    boîtes valent un second compte contre `SC-006`, et leurs pannes sont corrélées) ; **le refus
+    temporisé après N échecs sur le moyen de reprise** — un attaquant qui entretient les échecs
+    à bas coût ferait heurter le refus à l'éditrice pendant son urgence : le déni de service sur
+    le dernier recours, celui-là même qui interdit le brûlage, en version adoucie ; **la
+    temporisation par tentative (~1/s par secret)** — saine, mais redondante à cette entropie :
+    un mécanisme et un état de plus pour rien.
 
 ## Ce que cette phase dépose sur les autres documents
 
