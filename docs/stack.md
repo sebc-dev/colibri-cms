@@ -34,7 +34,8 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Auth | Implémentation maison sur D1 : jeton haché à usage unique et expirant, cookie de session signé | FR-001 à FR-014, SC-006, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence par origine hachée dans un Durable Object | FR-007, FR-062 | |
-| Sérialisation des publications | Verrou conditionnel sur une ligne d'état en D1 | FR-090, FR-091 | |
+| Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue de la publication** | FR-090, FR-091 | |
+| Constat de la mise en ligne | Le site publié expose l'empreinte du commit dont il est né ; l'administration la lit par une requête **publique** et la compare | FR-090 | |
 | Interface d'administration | Îlots Svelte 5 dans Astro | FR-017, FR-054, FR-117, SC-003, SC-005, SC-015 | |
 | Texte riche | Éditeur TipTap, sérialisation en **Markdown restreint** aux marques testées | FR-018, FR-117, SC-011 | |
 | Pipeline d'images | `image.layout: 'constrained'`, `image.breakpoints: [640, 960, 1280]`, `<Image>` à un seul format | SC-005, SC-001 (par `C5`) | |
@@ -104,6 +105,33 @@ l'instant du build.
 est le seul geste du système qui écrase (`force: true`) : la latence de réplication mesurée le
 11/08 y ferait disparaître en silence un média fraîchement déposé, là où un `force: false`
 répondrait `422`. L'inventaire des médias publiés est en D1 ; c'est lui qui décide.
+
+### Une seule ligne d'état porte le verrou, son bail et l'issue
+
+Le verrou conditionnel en D1 ne suffit pas seul : un Worker tué net — déploiement, limite
+atteinte — n'exécute pas sa sortie, et le verrou resterait posé, refusant toute publication
+ultérieure. La ligne porte donc **l'instant de pose et une durée de bail**, et une publication
+qui trouve un verrou **expiré** le reprend au lieu de renoncer. La valeur du bail se borne par
+ce que dure la séquence — 4 + `M` appels GitHub — et **se mesure en recette** : le chiffre
+descend en specs, il ne se décide pas ici.
+
+Reprendre est légitime parce que **la séquence est rejouable telle quelle**. Le dépôt sur
+`media` est additif et adressé par contenu : le rejouer redépose les mêmes blobs, sans effet
+de bord. L'arbre et le commit se recalculent depuis le HEAD courant — c'est déjà ce
+qu'impose le réessai obligatoire du `422`.
+
+Le seul cas qui résiste est **la réponse perdue** : le `PATCH` a abouti, le Worker ne l'a pas
+vu, le réessai repart. Il le reconnaît **en comparant l'oid de l'arbre qu'il s'apprête à
+pousser à celui du HEAD** — le même contenu produit déterministement le même oid — et rapporte
+un succès au lieu d'empiler un doublon. Aucun marqueur à maintenir.
+
+**`FR-090` — « informer l'éditrice de l'issue de sa publication » — est porté par deux gestes
+et non un.** La ligne d'état rapporte l'issue du **dépôt**. Mais le dépôt n'est que le
+déclencheur (`FR-089`) : un build peut échouer après lui — mur des 20 minutes, quota —, et
+l'éditrice verrait l'ancien site avec un succès affiché. Le site publié expose donc
+**l'empreinte du commit dont il est né**, à un chemin connu, et l'administration la lit par une
+requête **publique**. Aucun jeton d'API Cloudflare, aucun webhook : rien qui morde sur `C7`
+ni sur l'inventaire des secrets.
 
 ### Le budget de sous-requêtes d'une publication, mesuré
 
