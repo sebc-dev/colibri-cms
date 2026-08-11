@@ -341,6 +341,42 @@ dettes `FR-005`/`FR-014` et `FR-013` restent au dépôt de `S-05` pour le premor
 (l'adresse se divulgue à l'usage) reste donc ouvert et se requalifie en **constat accepté** —
 d'impact « faible en soi », par son propre constat.
 
+### Le rayon d'une session compromise, et où il s'arrête
+
+Tout ce qui précède ferme les portes d'**entrée**. Reste à écrire ce qu'une session volée permet
+une fois **entré** — c'est ce qui dit où la frontière est déjà posée. Une session
+d'administration compromise fait tout ce que l'éditrice fait : elle déclenche une publication qui
+écrit dans le dépôt de contenu (`FR-089`, jeton `Contents: Read and write` du Worker), et elle lit
+l'intégralité des demandes reçues (`FR-065` à `FR-079`), qui sont des données personnelles de
+tiers.
+
+**La borne du registre durable est déjà tenue par `S-03`, lue ici sous un autre angle.** La
+publication écrit en `force: false` : on ne peut qu'**ajouter** des commits, jamais réécrire ni
+effacer. Une session compromise peut donc **enterrer** le contenu de référence — publier du
+contenu hostile par-dessus le bon — mais pas le **détruire** : le bon reste dans l'historique git,
+et `I3` garantit qu'un développeur tiers reconstruit le site sain à partir du dépôt. Le sinistre
+est réversible **hors du produit**, sans perte. C'est un vrai coût — la restauration offerte par
+l'admin ne tient qu'un cran (`FR-092`/`FR-094`), donc deux publications hostiles la débordent et le
+retour à l'état sain devient une reprise git, pas un geste d'administration — mais un coût de
+reprise, non une perte. Le `force: false` posé par `S-03` pour la concurrence est ainsi, pour une
+seconde raison, ce qui borne une session volée.
+
+**Ce que la session ne prend pas** : le jeton d'écriture lui-même, secret du Worker jamais exposé
+au navigateur ; une session compromise ne fait que **demander** au Worker de publier, et son rayon
+reste borné par ce que les portes de l'administration acceptent de faire — rien qui excède ce que
+l'éditrice fait légitimement. Réduire la portée du jeton ne bornerait donc pas la session (le
+Worker a besoin d'écrire pour publier), et exiger une confirmation hors-session à la publication
+combattrait `FR-003` sans fermer la lecture des demandes, qui n'exige aucune publication : les deux
+sont écartés sur leurs coûts propres, contre un rayon déjà borné.
+
+**Trois résidus qu'aucune borne d'authentification ne ferme**, versés à qui de droit : la
+**lecture des demandes** (confidentialité de données de tiers — la session *doit* pouvoir les lire)
+rejoint le cadrage des données personnelles ; la **branche `media`**, seule exception au
+`force: false` par son élagage en `force: true`, laisse une session compromise détruire des médias
+publiés là où le contenu est indestructible — asymétrie portée à `/scd-sdd:premortem socle` ; et la
+**fenêtre de réputation** entre une publication hostile et son `git revert`, réversible mais non
+instantanée, au même dossier.
+
 ### `FR-013` et `FR-014` n'ont aucun porteur, et c'est délibéré
 
 La ligne Auth ne couvre plus que `FR-001` à `FR-008`, et le moyen de reprise `FR-009` à
