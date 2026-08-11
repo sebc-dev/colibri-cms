@@ -53,4 +53,6 @@ reports/
 
 # Copie locale de l'ancien socle, conservée hors du dépôt : git en garde déjà
 # l'historique, et sans cette ligne un `git add -A` la réintroduirait.
-archive/
+# Ancré à la racine : sans la barre oblique, le motif matchait aussi
+# `docs/chantiers/archive/`, et toute fiche fermée en sortait du dépôt.
+/archive/
