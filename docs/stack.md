@@ -581,12 +581,20 @@ n'entre pas dans ce tableau** — le produit le fabrique et l'imprime, il n'est 
 compte, exactement la forme qui avait laissé la clé d'empreinte de `S-02` hors inventaire. Il
 est porté par le §7 du socle, où `SC-013` et `FR-112` le réclament.*
 
-**Le jeton d'écriture n'expire pas, mais il peut disparaître.** GitHub documente qu'il
-« removes personal access tokens that haven't been used in a year ». Comme `FR-101` exige
-qu'une publication aboutisse après retrait de tous les accès de l'intégrateur, et que
-`SC-006` interdit d'envoyer la cliente sur GitHub, un **Cron Trigger dans son propre compte**
-fait périodiquement un appel anodin avec ce jeton. Il vit chez elle, donc `I6` et `C10`
-tiennent.
+**Le jeton d'écriture n'expire pas, mais il peut disparaître.** La documentation de GitHub
+énonce, pour un jeton **à portée fine** — celui-ci —, qu'il est « **revoked automatically** if
+pushed to a public repository or gist, or **if unused for one year** » (docs GitHub ·
+*GitHub credential types reference*, § « Credential revocation », ligne *Fine-grained personal
+access token* ; fichier source `github/docs` au commit `6f9f6f89` du **23/06/2026**). Comme
+`FR-101` exige qu'une publication aboutisse après retrait de tous les accès de l'intégrateur,
+et que `SC-006` interdit d'envoyer la cliente sur GitHub, un **Cron Trigger dans son propre
+compte** fait périodiquement un appel anodin avec ce jeton. Il vit chez elle, donc `I6` et
+`C10` tiennent.
+
+*Cette parade repose sur une **lecture**, et non sur une phrase de GitHub : « unused for one
+year » est une fenêtre glissante, mais la documentation n'écrit nulle part que le compteur
+**repart à zéro** à chaque usage, ni ce qui compte comme usage. Relevé versé :
+[`research/2026-08-12-jeton-github-desuetude.md`](./research/2026-08-12-jeton-github-desuetude.md).*
 
 ### Ce que `archi` devra reprendre en invariants
 
@@ -646,12 +654,16 @@ phase `ci` doit les rendre bloquants :
   registre qui puisse la porter : une entrée qui survit à sa fenêtre ne casse aucun écran et ne
   se voit qu'en ouvrant la base.
 
-## Le jeton d'écriture — mesuré, et non déduit
+## Le jeton d'écriture — mesuré ou cité, jamais déduit
 
 Ce point était ouvert. Il a été fermé le **11/08/2026** par une série de mesures sur un dépôt
 jetable (`sebc-dev/colibri-jeton-essai`), avec témoin positif à chaque fois. Ce qui suit est
-citable dans un ADR au niveau de preuve **mesuré** ; la documentation de GitHub ne porte
-aucune de ces trois premières lignes.
+citable dans un ADR : les **cinq premières** lignes au niveau de preuve **mesuré** — la
+documentation de GitHub ne porte aucune des trois premières —, les **deux dernières** au niveau
+**officiel cité**, chacune avec son emplacement. Le 12/08/2026, le traitement de `S-10` a
+substitué à une phrase portée aux jetons **classiques** la ligne qui parle du jeton **à portée
+fine**, et la documentation s'est trouvée corroborer, au passage, le fait mesuré de la première
+ligne.
 
 | Fait | Comment il a été obtenu |
 |---|---|
@@ -660,7 +672,8 @@ aucune de ces trois premières lignes.
 | `PATCH /git/refs` en `force: false` **refuse** un déplacement qui n'est pas en avance rapide | Commit bâti sur un parent périmé → `422 Update is not a fast forward` ; commit bâti sur la tête courante → accepté |
 | Les mutations GraphQL `updateRefs` et `createCommitOnBranch` exigent **`Contents` + `Workflows`** | `Contents` seul → `FORBIDDEN` ; `Contents` + `Workflows` → `UNPROCESSABLE` sur l'oid attendu, puis commit créé |
 | Le `git push --force-with-lease` fait le même contrôle, avec `Contents` seule | Oid attendu faux → `stale info` ; oid attendu juste → accepté |
-| Un jeton inutilisé pendant un an est retiré | [officiel · rapporté] *« GitHub automatically removes personal access tokens that haven't been used in a year »* |
+| Un jeton **à portée fine** inutilisé pendant un an est révoqué — comme il l'est s'il est poussé dans un dépôt ou un gist public | [officiel · cité] *« **Revoked automatically** if pushed to a public repository or gist, or if unused for one year »* — docs GitHub · *GitHub credential types reference*, § « Credential revocation », ligne *Fine-grained personal access token* ; source `github/docs` au commit `6f9f6f89` du 23/06/2026 |
+| Un jeton à portée fine peut avoir une durée de vie **infinie** — le même fait que la première ligne, ici par la documentation et non par le témoin | [officiel · cité] *« Configurable (up to 1 year, or no expiration) »* — même page, tableau d'ensemble, colonne *Lifespan* |
 
 **Ce qui reste une inférence, à écrire comme telle** : la *nécessité* de `Workflows` pour les
 mutations GraphQL est obtenue par différence — un seul facteur a changé entre les deux jetons —
@@ -1060,12 +1073,17 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 - **`docs/prd.md`** : non modifié **par la phase Stack elle-même**, et il ne doit pas l'être
   ici — les exigences ajoutées depuis le 2026-08-11 (`FR-118` à `FR-122`, `SC-021`, `FR-012`
   amendée) le sont par les traitements de l'audit de l'authentification, chacune consignée à
-  sa ligne des « arbitrages rendus ». **Trois** dettes y restent ouvertes, toutes pour
+  sa ligne des « arbitrages rendus ». **Quatre** dettes y restent ouvertes, toutes pour
   `/scd-sdd:premortem socle` : le `FR` qui porterait la détection de panne d'acheminement ; la
-  qualification de `FR-005`, qui verrouille `FR-014` tel qu'il est rédigé ; et le sort de
+  qualification de `FR-005`, qui verrouille `FR-014` tel qu'il est rédigé ; le sort de
   `FR-013`, dont le glossaire fond l'adresse de connexion et la destination des demandes en un
-  seul objet que `send_email` ne sait pas déplacer. Les deux dernières datent du 2026-08-11,
-  par le traitement de `S-05`.
+  seul objet que `send_email` ne sait pas déplacer ; et, **depuis le 2026-08-12 par le
+  traitement de `S-10`**, l'**absence d'observabilité du Cron de maintien en vie** — s'il cesse
+  de tourner, rien ne le signale, et la panne ne se manifeste que par une publication qui
+  échoue, **jusqu'à un an plus tard**, ce que `FR-101` interdit. C'est le même angle mort que
+  `S-07` a fermé pour la publication en faisant exposer l'empreinte du commit par le site
+  publié ; ici il n'a pas de porteur, et il ne se referme par aucune citation. Les deux du
+  milieu datent du 2026-08-11, par le traitement de `S-05`.
 - **La recette de livraison et l'inventaire de livraison** gagnent le **moyen de reprise** —
   code remis sur papier, rangé dans un espace de la cliente, son emplacement noté au dossier
   d'instance et jamais sa valeur (`FR-112`). *Renvoi **fermé** le 2026-08-12 par le traitement
