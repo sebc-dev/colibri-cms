@@ -791,8 +791,10 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 4. **Médias : deux magasins, un par état — branche orpheline `media` pour le publié, additive
    à la publication et élaguée au début de la suivante ; D1 pour le brouillon, le binaire
    passant de l'un à l'autre à la publication.** La branche est retenue
-   car l'espace maigrit au lieu de croître sans fin, `FR-037` et `FR-084` restent vrais à
-   l'écran, et `SC-011` n'exige pas l'identité binaire. Alternatives écartées : **R2** — tout
+   car l'espace occupé est **borné par le jeu courant des médias publiés** au lieu de croître
+   sans fin — un dépôt à historique complet, lui, garde chaque version de chaque média pour
+   toujours —, `FR-037` et `FR-084` restent vrais à l'écran, et `SC-011` n'exige pas l'identité
+   binaire. Alternatives écartées : **R2** — tout
    usage, même gratuit, passe par un *checkout* d'activation obligatoire (doc R2 « Get
    started », MAJ 21/04/2026) qui **souscrit un service facturé à l'usage sur le moyen de
    paiement du compte** (Billing policy) ; `I5` tenant à l'**absence** de moyen de paiement
@@ -811,6 +813,17 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    téléversement hors verrou courrait contre l'élagage en `force: true`, et l'aperçu relirait
    GitHub sous le jeton d'écriture ; **une branche `media-draft`** — même course, un espace de
    plus sous `I1`.
+
+   *Requalifié le 2026-08-12 par le traitement de `S-19`, qui reprochait à cette ligne d'écrire
+   « l'espace maigrit » — plus fort que ce qui est su, et en contradiction avec le corps de ce
+   document. La borne est **logique** et tient par construction : ce que la branche porte à tout
+   instant est le **jeu courant** des médias publiés, et c'est ce plafond-là, non une
+   décroissance, qui écarte le dépôt à historique complet. La récupération de l'espace
+   **physique** dépend, elle, d'un ramasse-miettes GitHub que rien ne documente et qu'aucune
+   recette ne peut constater — il n'est ni déclenchable ni daté —, et elle n'a jamais porté
+   l'arbitrage. Le § sur l'élagage le disait déjà — « les orphelins survivent d'une publication
+   à l'autre — l'espace ne croît pas sans fin, il ne maigrit pas à l'instant du build » : c'est
+   le candidat qui avait dérivé, pas le corps.*
 
 5. **Forge et écriture de la publication : GitHub, API REST *git data* puis
    `PATCH /git/refs` en `force: false`, sous un jeton à portée fine sans expiration portant
