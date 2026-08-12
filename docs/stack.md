@@ -843,6 +843,20 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    workflows, quand REST ne l'exige que **sous condition**. Ce fait-là reste `[mesuré · trace non
    versée]` et le restera — GitHub ne publie aucune permission pour ses mutations GraphQL.*
 
+   *Complété le 2026-08-12 par le traitement de `S-18`. Ce candidat ne portait **ni la
+   désuétude du jeton ni sa parade** : le motif du Cron de maintien en vie, instruit plus haut,
+   ne descendait pas jusqu'ici. Il y entre, et avec lui le compromis qu'il engage — jusque-là
+   tacite. **Ce qu'on paie :** un jeton d'écriture **permanent**, maintenu vivant par un appel
+   hebdomadaire, **sans rotation et sans détection de compromission**, sur un dépôt qui **est**
+   le site publié. La révocation à un an était une sécurité **passive** — un jeton oublié meurt
+   — et le Cron la neutralise sciemment. **Pourquoi c'est néanmoins le seul point tenable :**
+   la rotation n'a **aucun porteur possible**, `I6` ayant fait partir l'intégrateur et `SC-006`
+   interdisant d'envoyer la cliente sur GitHub — le motif même qui a fait écarter la clé HMAC à
+   rotation au candidat n° 12, sur le constat `S-02`. Sans keep-alive, c'est `FR-101` qui tombe
+   à un an. **Ce qui borne le coût :** une seule permission, `Contents: Read and write`, jamais
+   `Workflows` — la contrainte `.github/` du paragraphe précédent —, et un jeton qui vit dans un
+   Worker du compte de la cliente (`I4`, `I6`, `C10`).*
+
 6. **Auth : implémentation maison sur D1.** Retenue car la surface est exactement le besoin —
    une adresse, un jeton, une session — et parce que `FR-005` (ne rien envoyer à une adresse
    non autorisée) y est tenu par la plateforme elle-même, `send_email` n'écrivant qu'à une
