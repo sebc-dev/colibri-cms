@@ -33,7 +33,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Ingestion des médias | Liste blanche fermée — **JPEG, PNG, WebP**, **SVG refusé** — reconnue sur les **octets d'en-tête** du fichier, jamais sur l'extension ni sur le `Content-Type` du téléversement ; le `Content-Type` servi est déduit de cette liste | FR-027, FR-040, FR-108 | |
 | Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
-| Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
+| Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin **hebdomadaire** — la cadence *est* la parade : le Cron du palier gratuit n'a **pas de retry**, un appel sauté n'est jamais réémis, et 52 passages par an laissent la marge que la fenêtre glissante d'un an de GitHub absorbe | FR-101, SC-012 | |
 | Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature**, expirant à **sept jours d'inactivité et trente jours d'âge** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, FR-118, FR-120 à FR-122, SC-006, SC-021 | |
 | Moyen de reprise | Code de **128 bits** — 26 caractères base32, groupés pour la recopie — **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** ; **aucun frein par secret**, l'entropie seule rend la devinette sans objet, en ligne comme sur fuite de la base — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
@@ -733,6 +733,13 @@ ils sont mesurés ci-dessus.
    et qu'aucun des trois secrets inventoriés ne couvre. À constater par un appel réel, et non
    par recherche : le durcissement de `C10` au §7 du socle donne la manière de le voir.
    *(Ajouté le 2026-08-12 par le traitement de `S-01`.)*
+7. **La disponibilité des Cron Triggers sur le palier gratuit, et leurs limites** — 5
+   déclencheurs par compte, 3 par Worker, minimum d'une minute, UTC seulement. Le rapport du
+   palier gratuit, qui inventorie composant par composant, **ne les mentionne pas** : elles ne
+   sont tenues que de blogs tiers, comme au point 2. Le §7 du socle fait déjà constater le Cron
+   de maintien en vie actif avant la livraison — c'est là que ça se voit, et c'est la même
+   observation qui vérifiera que la cadence hebdomadaire du tableau est tenable.
+   *(Ajouté le 2026-08-12 par le traitement de `S-11`.)*
 
 ## Décisions structurantes → candidats ADR
 
@@ -785,9 +792,12 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    à la publication et élaguée au début de la suivante ; D1 pour le brouillon, le binaire
    passant de l'un à l'autre à la publication.** La branche est retenue
    car l'espace maigrit au lieu de croître sans fin, `FR-037` et `FR-084` restent vrais à
-   l'écran, et `SC-011` n'exige pas l'identité binaire. Alternatives écartées : **R2** — un
-   moyen de paiement est exigé au *checkout* d'activation, ce qui tombe sous `I5` (Billing
-   policy, et non le témoignage Community) ; **deux dépôts distincts** — mêmes bénéfices, un
+   l'écran, et `SC-011` n'exige pas l'identité binaire. Alternatives écartées : **R2** — tout
+   usage, même gratuit, passe par un *checkout* d'activation obligatoire (doc R2 « Get
+   started », MAJ 21/04/2026) qui **souscrit un service facturé à l'usage sur le moyen de
+   paiement du compte** (Billing policy) ; `I5` tenant à l'**absence** de moyen de paiement
+   enregistré, il tombe là — sans qu'il soit besoin du dialogue de carte, lui seulement
+   rapporté ; **deux dépôts distincts** — mêmes bénéfices, un
    espace de plus à ouvrir et à vérifier sous `I1` ; **D1, KV ou Durable Objects pour le
    publié** — `FR-107` exige des **fichiers**, un clone nu n'en produirait aucun ; **un dépôt à
    historique complet** — `FR-037` et `FR-084` deviendraient faux à l'écran.
@@ -975,8 +985,9 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 12. **Anti-abus : Turnstile *managed* devant, compteur de fréquence dans un objet unique, à
     empreintes de fenêtre.** Retenu car `FR-062` et `FR-007` demandent littéralement un
     **seuil de fréquence** — un compteur, pas une preuve d'humanité — et parce que l'ordre
-    décide : Turnstile est gratuit et illimité en mode *managed*, il absorbe le volume avant
-    que le compteur, plafonné à 100 000 requêtes par jour, ne soit sollicité. La **forme du
+    décide : Turnstile est gratuit et ses vérifications sont données pour **illimitées en mode
+    *managed*** (docs Turnstile *Plans*, 16/04/2026, « Unlimited challenges »), il absorbe le
+    volume avant que le compteur, plafonné à 100 000 requêtes par jour, ne soit sollicité. La **forme du
     compteur** est arbitrée avec le reste (2026-08-12, traitement de `S-02`) parce qu'elle
     porte, seule, la seule rétention de donnée personnelle du produit : une **table dans un
     objet unique** — un objet par visiteur aurait fait du nom de l'objet l'empreinte d'une
@@ -996,6 +1007,20 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     qui ne persiste rien mais rend le seuil gratuit à qui provoque le recyclage de l'objet ;
     **la troncature de l'adresse**, sans aucun effet sur l'attaque par confirmation, qui ne
     balaie pas l'espace mais teste un candidat connu.
+
+    *Réserve rétablie le 2026-08-12 par le traitement de `S-11`, qui reprochait à cette ligne
+    d'avoir promu « incertain » en « acquis » : deux pages officielles de Cloudflare divergent
+    — le blog GA annonce un plafond de « 1 million siteverify », la page **Plans** écrit
+    « Unlimited challenges » —, et la conciliation qui réserve ce plafond aux widgets
+    **invisibles** est tenue d'une **analyse tierce**, marquée `[INCERTAIN]` par*
+    [le rapport](./research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md)*. **L'ordre
+    décide dans les deux lectures** : sous l'hypothèse basse, ce plafond reste un **mur** — un
+    refus, jamais un compteur facturé, donc `I5` tient — et reste **devant** le compteur qu'il
+    protège. L'incertitude ne déplace que la **hauteur** de ce mur : le rapport ne lui donne
+    même pas de période, aucun calcul ne la fixerait sans refaire l'erreur écartée le 10/08
+    (diviser un quota par trente pour en tirer un seuil), et aucune recette ne peut la
+    constater. Elle est donc **assumée marquée**, la troisième des trois issues posées par le
+    traitement de `S-10`.*
 
 13. **Tests : Vitest dans `workerd`, Playwright, épreuve de réversibilité scriptée.** Retenue
     car `@cloudflare/vitest-pool-workers` (famille `0.21.x`) exécute les tests **dans
