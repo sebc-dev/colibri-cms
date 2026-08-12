@@ -327,7 +327,8 @@ l'intégrateur.
   2. **Given** le dossier d'instance, **When** on y cherche un identifiant, **Then** on y
      lit où il est rangé et jamais sa valeur.
   3. **Given** le dossier d'instance, **When** on cherche l'emplacement où il vit, **Then**
-     il est dans un espace appartenant à la cliente et connu d'elle.
+     il est dans un espace appartenant à la cliente et connu d'elle, ouvert à personne de
+     plus que les comptes et les rangements qu'il décrit.
 
 ---
 
@@ -583,7 +584,8 @@ l'intégrateur.
 ### Dossier d'instance
 
 - **FR-110** : Chaque instance DOIT être accompagnée d'un dossier d'instance déposé dans un
-  espace appartenant au client et connu de lui.
+  espace appartenant au client et connu de lui, dont l'accès n'est pas ouvert plus largement
+  que celui des comptes et des rangements qu'il décrit.
 - **FR-111** : Le dossier d'instance DOIT recenser les comptes ouverts pour l'instance et le
   nom au titre duquel chacun l'est.
 - **FR-112** : Le dossier d'instance DOIT indiquer, pour chaque identifiant nécessaire — le
