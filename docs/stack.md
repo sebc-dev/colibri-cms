@@ -244,7 +244,9 @@ question de la force brute sans objet.
 n'existe pas : l'administration lit déjà D1 à chaque écran, et une lecture de session par
 requête pèse de l'ordre de **500 lignes par jour sur les 5 000 000** de l'Annexe A. En
 échange, la session opaque **retire un secret de l'inventaire** — il n'y a plus de clé de
-signature à ouvrir, à ranger ni à faire tourner, au moment où `S-02` et `S-06` en ajoutent —,
+signature à ouvrir, à ranger ni à faire tourner *(cette phrase annonçait, le 2026-08-11, des
+secrets ajoutés par `S-02` et `S-06` ; les arbitrages rendus n'en ont apporté aucun — celui que
+`S-01` aura à inventorier est la clé de vérification Turnstile, que son propre constat nomme)* —,
 et surtout elle permet à `FR-012` et `FR-013` de **fermer les autres sessions** au moment du
 remplacement. C'est ce qui rend réel le remède que le PRD décrit au cas limite de la boîte
 compromise, sans offrir pour autant à l'éditrice la fonction que le PRD exclut explicitement :
@@ -569,9 +571,11 @@ jamais sa valeur (`FR-112`).
 par le traitement de `S-05` : la session est opaque en D1, il n'y a plus rien à signer. Cet
 inventaire est celui de la phase Stack, et non l'inventaire de livraison — c'est le traitement
 de `S-01` qui l'établit, et il devra y intégrer ce retrait, le **moyen de reprise** remis à la
-livraison, et le secret ajouté par `S-06`. **`S-02` n'en ajoute aucun** : arbitré le
-2026-08-12, il s'est refermé sur une clé d'empreinte que le produit tire lui-même pour la
-seule fenêtre de comptage, et qui n'est donc ouverte au nom de personne.*
+livraison, et la **clé de vérification Turnstile** que son propre constat nomme. **Ni `S-02`
+ni `S-06` n'ajoutent de secret** — contrairement à ce que le traitement de `S-05` annonçait le
+2026-08-11 : `S-06` s'est refermé sur les médias, les URL et les en-têtes, et `S-02`, arbitré
+le 2026-08-12, sur une clé d'empreinte que le produit tire lui-même pour la seule fenêtre de
+comptage, ouverte au nom de personne.*
 
 **Le jeton d'écriture n'expire pas, mais il peut disparaître.** GitHub documente qu'il
 « removes personal access tokens that haven't been used in a year ». Comme `FR-101` exige
