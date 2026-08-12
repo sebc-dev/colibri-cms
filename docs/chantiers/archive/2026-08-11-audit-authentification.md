@@ -41,6 +41,18 @@ trousseau, et rien ne dit qui peut le lire ; Mineur, « Où ça se répare » : 
 forme : instruction sur pièces, options matérialisées avec rejeu adverse, texte porté, ligne
 aux « arbitrages rendus ». L'audit sera clos ensuite, et la fiche fermée par `/scd-sdd:resume`.
 
+## Issue
+
+Audit clos le 2026-08-12. Les douze constats sont arbitrés — `AU-01` à `AU-11` instruits un par
+un, `AU-12` requalifié en constat accepté par l'arbitrage d'`AU-01` —, et le § « arbitrages
+rendus » de `docs/audit-auth.md` ne laisse plus aucun `ID` absent : c'est lui, et lui seul, qui
+porte le détail de chaque décision, ses écartés et leurs motifs. Commits `b6b47c8` → `3e9e2d8`.
+
+Le dernier, `AU-11`, s'est refermé au PRD seul : `FR-110` amendée — l'espace du dossier
+d'instance n'est pas ouvert plus largement que les comptes et les rangements qu'il décrit — et
+`US14` scénario 3 aligné. Un résidu part au dossier de `/scd-sdd:premortem socle` : la dérive de
+cet espace **après** la livraison, qu'aucune exigence du produit n'atteint.
+
 ## Écarté
 
 - **Refaire l'étude des six décisions D1-D6** — rendue le 11/08 et portée dans `stack.md`.
