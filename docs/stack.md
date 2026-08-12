@@ -37,7 +37,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature**, expirant à **sept jours d'inactivité et trente jours d'âge** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, FR-118, FR-120 à FR-122, SC-006, SC-021 | |
 | Moyen de reprise | Code de **128 bits** — 26 caractères base32, groupés pour la recopie — **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** ; **aucun frein par secret**, l'entropie seule rend la devinette sans objet, en ligne comme sur fuite de la base — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
-| Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence par origine hachée dans un Durable Object | FR-007, FR-062 | |
+| Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence dans un Durable Object **unique**, qui porte une **table d'origines** — jamais un objet par visiteur. Chaque origine y entre sous une empreinte **HMAC, sous une clé tirée au hasard par le produit pour la seule fenêtre de comptage en cours** ; clé et entrées **effacées ensemble** à la fin de la fenêtre | FR-007, FR-062 | |
 | Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue de la publication** | FR-090, FR-091 | |
 | Constat de la mise en ligne | Le site publié expose l'empreinte du commit dont il est né ; l'administration la lit par une requête **publique** et la compare | FR-090 | |
 | Interface d'administration | Îlots Svelte 5 dans Astro | FR-017, FR-054, FR-117, SC-003, SC-005, SC-015 | |
@@ -518,8 +518,42 @@ premier déploiement et se reporte en Annexe A (réserve 3).
 ### Données personnelles
 
 « Une même origine » au sens de `FR-007` et `FR-062` est une adresse IP, donc une donnée
-personnelle. Le compteur de fréquence stocke une **empreinte**, jamais l'adresse en clair.
-Le cadrage complet appartient au chantier `docs/chantiers/en-attente/2026-08-10-cadrage-donnees-personnelles.md`.
+personnelle. **Un hachage simple n'en fait pas une pseudonymisation**, et cette page l'a
+prétendu jusqu'ici : la recette d'un hachage est publique, si bien qu'on ne *renverse* pas une
+empreinte — on hache un candidat et on compare. Vérifier qu'une personne dont on connaît
+l'adresse est passée coûte donc **une** opération ; et balayer l'espace IPv4 entier a été
+**mesuré à ~110 s** sur un poste à douze cœurs, moins d'une seconde sur une carte graphique.
+La taille de l'espace n'y change rien : l'attaque par confirmation vaut identiquement en IPv6,
+et une adresse tronquée se confirme comme une adresse entière.
+
+**Forme retenue.** Le compteur vit dans un **objet unique** qui porte une table d'origines —
+jamais un objet par visiteur, dont le nom serait lui-même l'empreinte d'une adresse et
+créerait, dans l'infrastructure de la plateforme, un identifiant qu'aucune reprise ne retire.
+Chaque origine entre dans cette table sous une empreinte **HMAC**, sous une clé que le produit
+**tire au hasard au début de chaque fenêtre de comptage** ; à la fin de la fenêtre, la clé et
+les entrées sont **effacées ensemble**. La durée de la fenêtre et la valeur du seuil ne sont
+pas fixées ici — ni `FR-007` ni `FR-062` ne les chiffrent, c'est au niveau specs de le faire —
+mais la propriété tient quelle que soit leur valeur : **rien de dérivé d'une origine ne survit
+à la fenêtre qui l'a fait naître**.
+
+**Ce que cette clé est, et ce qu'elle n'est pas.** Elle n'est **pas** un secret ouvert au nom
+de la cliente : personne ne la crée, ne la range ni ne la remet — le produit la fabrique et la
+jette. Elle n'entre donc pas à l'inventaire ci-dessous, et il n'y a aucune rotation à tenir à
+la main, celle-ci étant automatique par construction. Contre qui lit à la fois la table et la
+clé, elle ne protège rien ; mais ce lecteur-là dispose déjà, dans la même base, des
+coordonnées en clair de tout visiteur ayant envoyé une demande (`FR-057`). Elle vaut contre la
+fuite partielle — une table lue sans sa clé, une sauvegarde ancienne — et, surtout, contre la
+conservation qui n'a pas lieu d'être.
+
+**Ce compteur est le seul endroit du produit qui retienne quoi que ce soit tiré d'une adresse
+IP** : une demande enregistrée ne porte que sa date, son formulaire et sa page d'origine
+(`FR-067`), et ses coordonnées sont saisies par le visiteur lui-même. Il n'y a donc rien
+d'autre à assainir ailleurs.
+
+Ce qui reste au chantier `docs/chantiers/en-attente/2026-08-10-cadrage-donnees-personnelles.md`
+est l'**information du visiteur** — dire qu'une adresse est traitée, et à quelle fin —,
+question juridique et non technique. La **période de rotation** ne lui est pas renvoyée : la
+forme retenue n'en a pas. *(§ réécrit le 2026-08-12 par le traitement de `S-02`.)*
 
 ### Secrets à ouvrir au nom de la cliente (`I4`, `C7`)
 
@@ -535,7 +569,9 @@ jamais sa valeur (`FR-112`).
 par le traitement de `S-05` : la session est opaque en D1, il n'y a plus rien à signer. Cet
 inventaire est celui de la phase Stack, et non l'inventaire de livraison — c'est le traitement
 de `S-01` qui l'établit, et il devra y intégrer ce retrait, le **moyen de reprise** remis à la
-livraison, et les secrets ajoutés par `S-02` et `S-06`.*
+livraison, et le secret ajouté par `S-06`. **`S-02` n'en ajoute aucun** : arbitré le
+2026-08-12, il s'est refermé sur une clé d'empreinte que le produit tire lui-même pour la
+seule fenêtre de comptage, et qui n'est donc ouverte au nom de personne.*
 
 **Le jeton d'écriture n'expire pas, mais il peut disparaître.** GitHub documente qu'il
 « removes personal access tokens that haven't been used in a year ». Comme `FR-101` exige
@@ -560,11 +596,16 @@ tiennent.
   figer la manière dont l'administration est bâtie. L'invariant se lit dans les réponses et
   dans les sources — c'est la seconde des deux parades qui tiennent la quatrième porte ; la
   première est l'invariant qui précède.
+- **Rien de dérivé d'une origine ne survit à la fenêtre de comptage qui l'a fait naître.** Le
+  compteur de fréquence tient dans un objet unique et n'y écrit que des empreintes HMAC sous
+  une clé propre à la fenêtre ; clé et entrées s'effacent ensemble. Trois manières de le
+  casser, toutes lisibles dans les sources : un objet nommé d'après une origine, une entrée
+  qui franchit sa fenêtre, une clé qui ne change pas d'une fenêtre à l'autre.
 
 ### Vérification mécanique obligatoire
 
 Le Brief pose que « le code entrant n'est pas relu ligne à ligne » et que la confiance doit
-venir de vérifications mécaniques. Huit choix de cette page en dépendent explicitement et la
+venir de vérifications mécaniques. Neuf choix de cette page en dépendent explicitement et la
 phase `ci` doit les rendre bloquants :
 
 - l'**aller-retour de sérialisation Markdown** de l'éditeur — une marque autorisée qui ne se
@@ -591,6 +632,11 @@ phase `ci` doit les rendre bloquants :
   gestes dont l'absence ne casse aucun écran — elle ne se voit qu'à l'attaque. Ils sont
   statiques, donc lisibles dans les sources ; les deux mécanismes de comportement de la même
   ligne relèvent, eux, de `FR-120` à `FR-122` et de l'épreuve `SC-021`.
+- l'**effacement conjoint de la clé de fenêtre et des entrées du compteur de fréquence**, et
+  l'**absence de tout objet nommé d'après une origine** — la promesse du § « Données
+  personnelles » est une propriété statique, donc lisible dans les sources, et c'est le seul
+  registre qui puisse la porter : une entrée qui survit à sa fenêtre ne casse aucun écran et ne
+  se voit qu'en ouvrant la base.
 
 ## Le jeton d'écriture — mesuré, et non déduit
 
@@ -828,13 +874,30 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     écartée : **React 19** — écosystème plus large, mais le coût est payé par la visiteuse,
     là où le critère se mesure.
 
-12. **Anti-abus : Turnstile *managed* devant, compteur par origine hachée dans un Durable
-    Object.** Retenu car `FR-062` et `FR-007` demandent littéralement un **seuil de
-    fréquence** — un compteur, pas une preuve d'humanité — et parce que l'ordre décide :
-    Turnstile est gratuit et illimité en mode *managed*, il absorbe le volume avant que le
-    compteur, plafonné à 100 000 requêtes par jour, ne soit sollicité. Alternative écartée :
-    **une règle Cloudflare Rate Limiting** — sa disponibilité et ses limites sur le palier
-    gratuit ne sont pas sourcées, elle ne peut donc pas descendre en ADR.
+12. **Anti-abus : Turnstile *managed* devant, compteur de fréquence dans un objet unique, à
+    empreintes de fenêtre.** Retenu car `FR-062` et `FR-007` demandent littéralement un
+    **seuil de fréquence** — un compteur, pas une preuve d'humanité — et parce que l'ordre
+    décide : Turnstile est gratuit et illimité en mode *managed*, il absorbe le volume avant
+    que le compteur, plafonné à 100 000 requêtes par jour, ne soit sollicité. La **forme du
+    compteur** est arbitrée avec le reste (2026-08-12, traitement de `S-02`) parce qu'elle
+    porte, seule, la seule rétention de donnée personnelle du produit : une **table dans un
+    objet unique** — un objet par visiteur aurait fait du nom de l'objet l'empreinte d'une
+    adresse, créée dans l'infrastructure de la plateforme et hors de portée de toute reprise —
+    et des empreintes **HMAC sous une clé de fenêtre**, tirée par le produit et effacée avec
+    les entrées qu'elle protège. Ce que ce choix achète : aucun secret à l'inventaire, aucune
+    rotation à tenir à la main, et une promesse **statique** — rien de dérivé d'une origine ne
+    survit à sa fenêtre — donc portable par un contrôle bloquant plutôt que par une exigence,
+    selon la doctrine d'`AU-10`. Alternatives écartées : **une règle Cloudflare Rate
+    Limiting** — sa disponibilité et ses limites sur le palier gratuit ne sont pas sourcées,
+    elle ne peut donc pas descendre en ADR ; **une clé HMAC ouverte à la livraison, à
+    rotation** (la piste du constat `S-02`) — elle remet le troisième secret que `S-05` venait
+    de retirer, sa rotation n'a **aucun porteur** — ni ligne de recette §7, ni exigence, ni
+    contrôle —, et elle protège moins qu'il n'y paraît, la clé vivant dans le compte qui
+    héberge déjà la table *et* les coordonnées en clair des visiteurs (`FR-057`) ; **la même
+    sans rotation**, qui garde le coût en perdant le motif ; **le comptage en mémoire seule**,
+    qui ne persiste rien mais rend le seuil gratuit à qui provoque le recyclage de l'objet ;
+    **la troncature de l'adresse**, sans aucun effet sur l'attaque par confirmation, qui ne
+    balaie pas l'espace mais teste un candidat connu.
 
 13. **Tests : Vitest dans `workerd`, Playwright, épreuve de réversibilité scriptée.** Retenue
     car `@cloudflare/vitest-pool-workers@0.21.0` exécute les tests avec les liaisons réelles
@@ -949,12 +1012,18 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   code remis sur papier, rangé dans un espace de la cliente, son emplacement noté au dossier
   d'instance et jamais sa valeur (`FR-112`). Renvoyé au traitement de `S-01`, à qui revient
   l'inventaire des secrets, et qui devra aussi y porter le **retrait de la clé de signature**.
-- **`docs/ci.md`** (phase 6) : **huit** contrôles nommés ci-dessus doivent y devenir
+- **`docs/ci.md`** (phase 6) : **neuf** contrôles nommés ci-dessus doivent y devenir
   bloquants — l'aller-retour Markdown de l'éditeur, le rejet des URL de schéma non autorisé,
   le garde-fou `C5`, la liste `run_worker_first` bornée, l'absence de `{@html}` sur toute
   donnée fournie par un visiteur, la composition inerte de l'e-mail acheminé, la CSP stricte
-  sur toute réponse d'administration, et les attributs du cookie d'administration avec le
-  jeton anti-CSRF. Les deux du milieu datent du 2026-08-11 par le traitement de `S-06`, le
+  sur toute réponse d'administration, les attributs du cookie d'administration avec le
+  jeton anti-CSRF, et l'effacement conjoint de la clé de fenêtre et des entrées du compteur de
+  fréquence. Les deux du milieu datent du 2026-08-11 par le traitement de `S-06`, le
   cinquième du même jour par celui de `S-05`, le sixième du même jour par le traitement de
-  `AU-01`, le septième du même jour par celui de `AU-06`, et le huitième du 2026-08-12 par le
-  traitement de `AU-10`.
+  `AU-01`, le septième du même jour par celui de `AU-06`, le huitième du 2026-08-12 par le
+  traitement de `AU-10`, et le neuvième du même jour par celui de `S-02`.
+- **Le chantier `cadrage-donnees-personnelles`** reçoit du traitement de `S-02` (2026-08-12)
+  la seule **information du visiteur** — dire qu'une adresse est traitée, et à quelle fin. Il
+  ne reçoit **pas** de période de rotation, ni de durée de rétention à décider : la forme
+  retenue au § « Données personnelles » borne d'elle-même la conservation à la fenêtre de
+  comptage, et le produit ne retient rien d'autre qui soit tiré d'une adresse.
