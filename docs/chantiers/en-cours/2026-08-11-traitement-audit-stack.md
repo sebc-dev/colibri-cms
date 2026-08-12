@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-12 · branche `work/reprise-socle-v2` · HEAD `8a4d277`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-12 · branche `work/reprise-socle-v2` · HEAD `a98843c`
 
 ## Objectif
 
@@ -57,13 +57,24 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   ventilation par mode, Cron Triggers tenus d'une source unique tierce. Son quatrième écart est
   rendu.
 
+- **« Aucune citation ne le comble » était faux, et l'instruction l'a montré en la cherchant.**
+  Deux des quatre lignes sans trace se citaient : GitHub publie ses permissions par point d'entrée
+  REST en **donnée lisible à la machine** dans `github/docs`, préférée à la page rendue dont deux
+  lectures se contredisaient. **Quand une page se contredit, descendre à la donnée qui la génère.**
+- **Une mesure ne voit que ce que son témoin peut lever.** Le dépôt d'essai du 11/08 n'avait aucun
+  fichier de workflow, donc la seconde permission du déplacement de ref ne pouvait pas apparaître —
+  la mesure a conclu « une seule permission » de bonne foi. **Le fait à écrire n'était pas
+  l'argument mais sa condition** : la publication n'écrit jamais sous `.github/`.
+- **La règle du préambule peut être écartée, pas contournée.** L'humain a gardé la ligne GraphQL
+  sans trace, marquée, et elle continue de porter l'écartement : la tension avec « un fait non
+  sourcé ne descend pas dans un ADR » est écrite en clair pour que la phase `adr` la voie.
+
 ## Prochaine étape
 
-**Arbitrer le cinquième grief de `S-10`** — les mesures du 11/08 vivent sur un dépôt jetable
-externe, sans transcript versionné, et ça vaut encore pour quatre lignes du tableau du jeton
-d'écriture. J'allais le poser en sachant qu'aucune citation ne le comble : soit on rejoue les
-mesures pour verser la trace, soit on rétrograde ces quatre lignes. Puis la ligne de `S-10` au
-récapitulatif, les cinq griefs d'un coup, puis `S-11`.
+**Écrire la ligne de `S-10` au récapitulatif**, les cinq griefs d'un coup — les cinq sont arbitrés,
+rien n'attend plus. J'allais y porter les trois formes qu'a prises la fermeture : mesurer (faits 1
+et 2), citer (fait 3 et deux lignes du cinquième grief), et assumer marqué (la ligne GraphQL). Puis
+`S-11` — restent R2, Turnstile et Cron Triggers, son quatrième écart étant rendu.
 
 ## Écarté
 
@@ -87,3 +98,7 @@ récapitulatif, les cinq griefs d'un coup, puis `S-11`.
   archivée ne se récrit pas ; c'est le relevé du 12/08 qui porte la valeur exacte.
 - **Garder trois preuves faibles en les rendant exactes** (README « à partir de la 13.1.3 », « pas
   d'occurrence de *Cloudflare Pages* ») — allonge la ligne sans mieux établir l'écartement.
+- **Rejouer les mesures du jeton d'écriture** — il faudrait créer à la main des jetons à portée
+  fine ; le jeton `gh` de la machine est un OAuth `repo`+`workflow`, exactement la mauvaise forme.
+- **Rétrograder la ligne GraphQL** — arbitré le 12/08 : elle est le seul motif écrit de
+  l'écartement, et les motifs de repli (« les deux manques ne coûtent rien ») n'écartent rien.
