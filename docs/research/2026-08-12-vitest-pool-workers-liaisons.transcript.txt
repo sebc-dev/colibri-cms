@@ -1,0 +1,94 @@
+Trace brute rejouable — version et capacite de @cloudflare/vitest-pool-workers
+Mesure du 2026-08-12. Registre registry.npmjs.org. Node v24.18.1, npm 11.16.0.
+Machine : Linux 7.0.0-28-generic, 12 coeurs.
+
+############################################################
+# 1. La version epinglee par le candidat ADR n 13 existe-t-elle ?
+############################################################
+
+$ npm view @cloudflare/vitest-pool-workers@0.21.0 version dist.unpackedSize dist.fileCount
+version = '0.21.0'
+dist.unpackedSize = 7403271
+dist.fileCount = 23
+
+$ npm view @cloudflare/vitest-pool-workers version   (courante au 12/08/2026)
+0.21.2
+
+$ npm view @cloudflare/vitest-pool-workers versions --json   (total et 6 dernieres)
+total : 319
+6 dernieres : ['0.20.1', '0.20.2', '0.20.3', '0.21.0', '0.21.1', '0.21.2']
+
+$ npm view @cloudflare/vitest-pool-workers time --json   (extrait)
+created   : 2024-03-14T10:55:13.136Z
+0.21.0    : 2026-08-10T17:05:59.360Z
+0.21.1    : 2026-08-11T19:27:17.171Z
+0.21.2    : 2026-08-12T14:25:39.747Z
+modified  : 2026-08-12T14:25:40.292Z
+
+############################################################
+# 2. Ce que le paquet tire avec lui
+############################################################
+
+$ npm install @cloudflare/vitest-pool-workers@0.21.0   (dans un projet vide)
+  -> added 79 packages in 5s
+
+$ (package.json) dependencies et peerDependencies
+version : 0.21.0
+dependencies  : {
+  "cjs-module-lexer": "1.2.3",
+  "esbuild": "0.28.1",
+  "zod": "4.4.3",
+  "miniflare": "5.20260804.0-alpha",
+  "wrangler": "4.120.1"
+}
+peerDependencies : {
+  "@vitest/runner": "^4.1.0",
+  "@vitest/snapshot": "^4.1.0",
+  "vitest": "^4.1.0"
+}
+
+$ versions reellement installees des briques de moteur
+miniflare : 5.20260804.0-alpha
+wrangler  : 4.120.1
+workerd   : 1.20260804.1
+
+$ du -sb node_modules
+266265268	(266.3 Mo)
+
+############################################################
+# 3. La capacite annoncee : liaisons D1 et Durable Objects
+############################################################
+
+$ aides propres a D1 et aux Durable Objects, lues dans types/cloudflare-test.d.ts
+abortAllDurableObjects
+applyD1Migrations
+createExecutionContext
+evictAllDurableObjects
+evictDurableObject
+listDurableObjectIds
+readD1Migrations
+runDurableObjectAlarm
+runInDurableObject
+SELF
+waitOnExecutionContext
+
+$ ce que le README du paquet affirme (extrait integral des puces)
+- ✅ Supports both **unit tests** and **integration tests**
+- 📚 Provides direct access to Workers runtime APIs and bindings
+- 📦 Implements isolated per-test storage
+- 🔥 Runs tests fully-locally using [Miniflare](https://miniflare.dev/)
+- ⚡️ Leverages Vitest's hot-module reloading for near instant reruns
+- ↩️ Provides a declarative interface for mocking outbound requests
+- 🧩 Supports projects with multiple Workers
+
+$ option remoteBindings et son defaut, dans dist/pool/index.mjs
+remoteBindings: z.boolean().default(true)
+
+$ declaration du schema d options du pool (dist/pool/index.d.mts)
+8:declare const WorkersPoolOptionsSchema: z.ZodObject<{
+9-  main: z.ZodOptional<z.ZodString>;
+10-  remoteBindings: z.ZodDefault<z.ZodBoolean>;
+11-  verbose: z.ZodOptional<z.ZodBoolean>;
+12-  additionalExports: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnion<readonly [z.ZodLiteral<"WorkerEntrypoint">, z.ZodLiteral<"DurableObject">, z.ZodLiteral<"WorkflowEntrypoint">]>>>;
+
+=== fin de trace ===

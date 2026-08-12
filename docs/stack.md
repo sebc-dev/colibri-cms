@@ -936,10 +936,26 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     balaie pas l'espace mais teste un candidat connu.
 
 13. **Tests : Vitest dans `workerd`, Playwright, épreuve de réversibilité scriptée.** Retenue
-    car `@cloudflare/vitest-pool-workers@0.21.0` exécute les tests avec les liaisons réelles
-    D1 et Durable Objects, et parce que `SC-011` demande une pièce datée, donc un script
-    rejouable. Alternative écartée : **Vitest sous Node avec liaisons simulées** — l'oracle
-    devient faux, les tests attestant du comportement des simulacres.
+    car `@cloudflare/vitest-pool-workers` (famille `0.21.x`) exécute les tests **dans
+    `workerd` lui-même**, l'exécutable qui fait tourner les Workers en production, contre les
+    **implémentations** de D1 et du stockage des Durable Objects, avec un stockage isolé par
+    test ; et parce que `SC-011` demande une pièce datée, donc un script rejouable.
+    **Ce qui est réel ici est le moteur, non la connexion** : les liaisons sont **locales**,
+    servies par Miniflare, et rien ne part vers la base D1 d'un compte Cloudflare — l'outil
+    expose bien une option `remoteBindings`, mais « réel » et « distant » y sont deux réglages
+    distincts, à ne pas confondre en recette. Deux contraintes que le choix emporte : le pair
+    **`vitest ^4.1.0`**, donc une version majeure imposée, et une chaîne de moteur épinglée au
+    correctif près dont `miniflare` est en version **alpha** (`5.20260804.0-alpha`) — c'est la
+    façon dont Cloudflare publie, mais la brique qui sert d'oracle au projet repose dessus.
+    Alternative écartée : **Vitest sous Node avec liaisons simulées** — l'oracle devient faux,
+    les tests attestant du comportement des simulacres. *Amendé le 2026-08-12 par le
+    traitement de `S-10` : la version était épinglée à `0.21.0` et sa capacité dite « liaisons
+    réelles », deux formulations qu'aucun rapport ne portait. La mesure confirme la capacité
+    et corrige les deux — `0.21.0` a été publiée le 10/08 et dépassée deux fois en moins de
+    48 h (`0.21.2` le 12/08), si bien qu'un numéro de correctif n'a pas sa place dans un
+    document immuable.* Relevé versé :
+    [`research/2026-08-12-vitest-pool-workers-liaisons.md`](./research/2026-08-12-vitest-pool-workers-liaisons.md)
+    + trace brute rejouable.
 
 14. **Ingestion des médias : liste blanche fermée JPEG / PNG / WebP, reconnue sur les octets
     d'en-tête, SVG refusé.** Retenue car elle donne à `FR-040` son volet « format » — `S-09` lui
