@@ -587,6 +587,9 @@ l'intégrateur.
   l'instance.
 - **FR-115** : Le dossier d'instance DOIT porter la procédure de publication.
 - **FR-116** : Le dossier d'instance DOIT porter la procédure de reconstruction.
+- **FR-119** : Le dossier d'instance DOIT porter la procédure permettant de réétablir
+  l'adresse autorisée et le moyen de reprise à partir des seuls accès du client, sans
+  reconstituer l'ancien moyen de reprise.
 
 ### Langage de l'interface
 
@@ -664,6 +667,13 @@ l'exigence qui la porte.
   l'adresse autorisée et le moyen de reprise. Le produit ne prévoit rien : l'administration est
   auto-administrable, et cette propriété se paie. Le dernier recours est hors du produit — la
   configuration du déploiement appartient à la cliente et se reprend sur pièces (`SC-014`).
+- **La base de l'instance est perdue** (incident de plateforme, sans attaquant). L'adresse
+  autorisée, l'empreinte du moyen de reprise et les sessions vivent en base et n'existent nulle
+  part ailleurs ; aucune n'est du contenu, donc `I2`/`I3` ne les reconstruisent pas. Les
+  sessions sont sans enjeu — elles expirent de toute façon (`FR-118`). L'adresse autorisée et le
+  moyen de reprise se réétablissent par le réamorçage au dossier d'instance (`FR-119`) :
+  redéployer, réensemencer l'adresse et engendrer un nouveau moyen de reprise (nouveau papier),
+  depuis les seuls accès du client — le geste de livraison (`FR-009`) rejoué après l'incident.
 
 ---
 

@@ -292,6 +292,10 @@ l'accès.**
 - [ ] **Envoi des factures à 0 € activé** dans les préférences de facturation
 - [ ] Dossier d'instance déposé dans un espace appartenant au client, atteignable par lui sans
       Isometria — emplacement montré au client à la livraison
+- [ ] **Réamorçage de l'état d'authentification documenté au dossier d'instance** : depuis les
+      seuls accès du client, réétablir l'adresse autorisée et engendrer un nouveau moyen de
+      reprise, sans reconstituer l'ancien — le geste de livraison (`FR-009`) rejoué après perte
+      de la base
 
 **Invariants**
 
