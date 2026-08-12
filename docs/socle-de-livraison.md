@@ -296,18 +296,32 @@ l'accès.**
       seuls accès du client, réétablir l'adresse autorisée et engendrer un nouveau moyen de
       reprise, sans reconstituer l'ancien — le geste de livraison (`FR-009`) rejoué après perte
       de la base
+- [ ] **Moyen de reprise engendré et remis sur papier**, en main propre à la livraison ; la base
+      n'en garde que l'empreinte, et rien d'autre nulle part
+- [ ] **Emplacement du papier noté au dossier d'instance, jamais sa valeur** (`FR-112`) — et
+      l'espace qui porte le dossier n'est pas ouvert plus largement que les comptes et les
+      rangements qu'il décrit (`FR-110`)
 
 **Invariants**
 
 - [ ] I3 exécuté : clone nu → build → site complet, **sortie de commande conservée**
-- [ ] C7 : inventaire des secrets, aucun n'appartient à Isometria
+- [ ] C7 : inventaire des secrets **et des liaisons du déploiement** — aucun n'appartient à
+      Isometria, et rien de ce qu'il contient ne permet de reconstituer le moyen de reprise
+      (`SC-013`). Une liaison n'est pas un secret : c'est une autorisation entre deux comptes,
+      et elle se compte ici comme le reste
 - [ ] Jeton d'écriture GitHub créé **sans expiration**, portée fine sur le seul dépôt du site,
       permission `Contents: Read and write` **et rien d'autre**
 - [ ] Jeton de lecture de la branche `media` pour le build : `Contents: Read-only`
+- [ ] **Clé de vérification Turnstile créée dans le compte Cloudflare du client**, avec son
+      widget — seule la clé de vérification est un secret, la clé publique vit dans la page
 - [ ] Maintien en vie du jeton d'écriture actif — GitHub retire un jeton resté un an sans
       usage, et `FR-101` exige qu'une publication aboutisse après retrait des accès d'Isometria
 - [ ] C9 : aucun moyen de paiement sur le compte
-- [ ] C10 : révocation d'essai des accès → publication encore possible
+- [ ] C10 : révocation d'essai des accès → une publication aboutit encore, **constatée sur le
+      site en ligne** — il porte l'empreinte du commit qu'on vient de pousser, et pas seulement
+      un `git push` qui a réussi. La connexion entre le système de build et le dépôt est une
+      autorisation portée par un compte GitHub : si c'est celui d'Isometria, le push passe et le
+      build ne repart pas. C'est le seul moment où ça se voit
 
 **Instrument**
 

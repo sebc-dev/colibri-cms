@@ -559,23 +559,27 @@ forme retenue n'en a pas. *(§ réécrit le 2026-08-12 par le traitement de `S-0
 
 ### Secrets à ouvrir au nom de la cliente (`I4`, `C7`)
 
-Deux, et aucun n'appartient à l'intégrateur. Le dossier d'instance dit où chacun est rangé,
+**Trois**, et aucun n'appartient à l'intégrateur. Le dossier d'instance dit où chacun est rangé,
 jamais sa valeur (`FR-112`).
 
-| Secret | Portée mesurée le 11/08/2026 |
+| Secret | Portée |
 |---|---|
-| Jeton d'écriture de la publication | Portée fine, dépôt unique, **sans expiration**, `Contents: Read and write` **seule** |
-| Jeton de lecture du *fetch* de `media` pendant le build | Portée fine, dépôt unique, `Contents: Read-only` |
+| Jeton d'écriture de la publication | Portée fine, dépôt unique, **sans expiration**, `Contents: Read and write` **seule** — mesurée le 11/08/2026 |
+| Jeton de lecture du *fetch* de `media` pendant le build | Portée fine, dépôt unique, `Contents: Read-only` — mesurée le 11/08/2026 |
+| **Clé de vérification Turnstile** | Le widget est créé dans le compte Cloudflare de la cliente ; sa clé **publique** vit dans la page, seule la clé de vérification est un secret, et elle ne sert qu'à l'appel serveur qui valide le jeton du visiteur — portée close par construction, rien à borner. Ajoutée le 2026-08-12 par le traitement de `S-01` |
 
 *La **clé de signature des cookies de session** a été retirée de cet inventaire le 2026-08-11
 par le traitement de `S-05` : la session est opaque en D1, il n'y a plus rien à signer. Cet
 inventaire est celui de la phase Stack, et non l'inventaire de livraison — c'est le traitement
-de `S-01` qui l'établit, et il devra y intégrer ce retrait, le **moyen de reprise** remis à la
-livraison, et la **clé de vérification Turnstile** que son propre constat nomme. **Ni `S-02`
-ni `S-06` n'ajoutent de secret** — contrairement à ce que le traitement de `S-05` annonçait le
-2026-08-11 : `S-06` s'est refermé sur les médias, les URL et les en-têtes, et `S-02`, arbitré
-le 2026-08-12, sur une clé d'empreinte que le produit tire lui-même pour la seule fenêtre de
-comptage, ouverte au nom de personne.*
+de `S-01` qui l'établit. **Ni `S-02` ni `S-06` n'ajoutent de secret** — contrairement à ce que
+le traitement de `S-05` annonçait le 2026-08-11 : `S-06` s'est refermé sur les médias, les URL
+et les en-têtes, et `S-02`, arbitré le 2026-08-12, sur une clé d'empreinte que le produit tire
+lui-même pour la seule fenêtre de comptage, ouverte au nom de personne. **`S-01`, rendu le
+2026-08-12, a fermé les trois renvois** : le Turnstile entre ci-dessus ; le retrait de la clé
+de signature était sans objet au socle, où elle n'a jamais figuré ; et le **moyen de reprise
+n'entre pas dans ce tableau** — le produit le fabrique et l'imprime, il n'est ouvert dans aucun
+compte, exactement la forme qui avait laissé la clé d'empreinte de `S-02` hors inventaire. Il
+est porté par le §7 du socle, où `SC-013` et `FR-112` le réclament.*
 
 **Le jeton d'écriture n'expire pas, mais il peut disparaître.** GitHub documente qu'il
 « removes personal access tokens that haven't been used in a year ». Comme `FR-101` exige
@@ -690,6 +694,14 @@ ils sont mesurés ci-dessus.
    la ligne à 2 Mo et l'instruction SQL à 100 Ko — donc le binaire ne peut pas être inliné —,
    mais elle ne dit **rien** de la taille maximale d'un paramètre lié. Le plafond de `FR-040`
    en dépend : si le paramètre lié mord plus bas, c'est ce chiffre-là qui devient la borne.
+6. **Au nom de qui la connexion entre Workers Builds et GitHub est-elle posée.** C'est le seul
+   endroit de la chaîne où deux comptes se parlent, et ce n'est **pas un jeton** : c'est une
+   autorisation, donnée par un compte GitHub, que ni le tableau ci-dessus ni la topologie du
+   §3 ne nomment. Si elle porte le compte de l'intégrateur, le retrait des accès laisse le
+   `git push` passer et **le build ne part plus** — la dépendance invisible que `I4` décrit,
+   et qu'aucun des trois secrets inventoriés ne couvre. À constater par un appel réel, et non
+   par recherche : le durcissement de `C10` au §7 du socle donne la manière de le voir.
+   *(Ajouté le 2026-08-12 par le traitement de `S-01`.)*
 
 ## Décisions structurantes → candidats ADR
 
@@ -1002,7 +1014,13 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 - **La recette de livraison** (§7 du socle) gagne trois lignes que cette phase impose :
   le jeton d'écriture créé **sans expiration** et portant `Contents: Read and write` seule,
   le jeton de lecture de `media` en `Contents: Read-only`, et le Cron de maintien en vie
-  actif avant la livraison.
+  actif avant la livraison. **Le traitement de `S-01` en a ajouté cinq le 2026-08-12** : la
+  clé de vérification Turnstile créée dans le compte de la cliente, le moyen de reprise
+  engendré et remis sur papier, son emplacement noté au dossier d'instance, la ligne `C7`
+  élargie **aux liaisons du déploiement** — comme `C7` et `SC-013` l'exigeaient déjà, là où
+  la recette ne parlait que de secrets — et la ligne `C10` durcie : une publication ne
+  compte pour aboutie que si le **site en ligne porte la nouvelle empreinte de commit**, le
+  mécanisme acquis par `S-07`. Un `git push` réussi devant un build mort ne prouve rien.
 - **`docs/prd.md`** : non modifié **par la phase Stack elle-même**, et il ne doit pas l'être
   ici — les exigences ajoutées depuis le 2026-08-11 (`FR-118` à `FR-122`, `SC-021`, `FR-012`
   amendée) le sont par les traitements de l'audit de l'authentification, chacune consignée à
@@ -1014,8 +1032,10 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   par le traitement de `S-05`.
 - **La recette de livraison et l'inventaire de livraison** gagnent le **moyen de reprise** —
   code remis sur papier, rangé dans un espace de la cliente, son emplacement noté au dossier
-  d'instance et jamais sa valeur (`FR-112`). Renvoyé au traitement de `S-01`, à qui revient
-  l'inventaire des secrets, et qui devra aussi y porter le **retrait de la clé de signature**.
+  d'instance et jamais sa valeur (`FR-112`). *Renvoi **fermé** le 2026-08-12 par le traitement
+  de `S-01` : les deux lignes sont au §7. Le **retrait de la clé de signature**, renvoyé au
+  même endroit, s'est révélé sans objet — elle n'a jamais figuré au socle, seulement au
+  tableau de la phase Stack, d'où `S-05` l'avait déjà retirée.*
 - **`docs/ci.md`** (phase 6) : **neuf** contrôles nommés ci-dessus doivent y devenir
   bloquants — l'aller-retour Markdown de l'éditeur, le rejet des URL de schéma non autorisé,
   le garde-fou `C5`, la liste `run_worker_first` bornée, l'absence de `{@html}` sur toute
