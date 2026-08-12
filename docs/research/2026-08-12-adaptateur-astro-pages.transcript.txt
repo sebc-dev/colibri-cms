@@ -1,0 +1,186 @@
+Trace brute rejouable — quand l'adaptateur @astrojs/cloudflare a retiré Cloudflare Pages
+Mesure du 2026-08-12. Registre registry.npmjs.org, paquets publiés dépaquetés localement.
+Node v24.18.1, npm 11.16.0. Machine : Linux 7.0.0-28-generic, 12 coeurs.
+Conclusions : docs/research/2026-08-12-adaptateur-astro-pages.md
+
+Instruit le fait 4 de S-10 et le quatrième écart de S-11 (docs/audit-stack.md) : la stack
+date la rupture de « v13, 10/03/2026 », son rapport de « Astro 6, déc. 2025 », et aucune
+trace ne vit dans le dépôt (ni package.json, ni node_modules).
+
+AVERTISSEMENT DE MÉTHODE
+Tout ce qui suit est MESURÉ sur les paquets publiés, pas lu dans une documentation.
+Aucune page web n'est citée ici. Les tarballs ont été récupérés par `npm pack` et
+dépaquetés hors du dépôt ; les commandes se rejouent à l'identique dans n'importe quel
+répertoire vide connecté au registre public.
+
+
+############################################################
+# 1. DATES DE PUBLICATION — l'adaptateur et le générateur
+############################################################
+
+$ npm view @astrojs/cloudflare time --json    (extrait autour de la bascule)
+  "12.6.11": "2025-11-17T19:27:30.687Z",
+  "12.6.12": "2025-11-26T10:31:28.867Z",
+  "13.0.0":  "2026-03-10T09:48:45.825Z",
+  "12.6.13": "2026-03-10T15:03:15.661Z",
+  "13.7.0":  "2026-06-09T12:45:49.833Z",
+  "14.0.0":  "2026-06-22T10:10:04.889Z",
+  "14.2.1":  "2026-08-11T16:43:56.057Z"
+
+$ npm view astro time --json    (extrait)
+  "6.0.0-alpha.0": "2025-11-10T15:48:39.969Z",
+  "6.0.0-beta.0":  "2026-01-13T12:46:43.416Z",
+  "6.0.0":         "2026-03-10T09:48:48.781Z",
+  "7.0.0":         "2026-06-22T10:10:07.490Z",
+  "7.2.0":         "2026-08-06T10:48:55.757Z",
+  "7.2.1":         "2026-08-11T16:49:05.450Z"
+
+>>> @astrojs/cloudflare@13.0.0 et astro@6.0.0 sont publiés à TROIS SECONDES d'écart,
+>>> le 2026-03-10. La major 13 de l'adaptateur EST celle d'Astro 6 : « v13 » et
+>>> « Astro 6 » nomment le même événement.
+>>> 12.6.13 est publié le même jour, APRÈS la 13.0.0 : la branche 12 a reçu un
+>>> dernier correctif de maintenance, elle n'a pas continué.
+
+
+############################################################
+# 2. peerDependencies — quelle version d'Astro chaque major exige
+############################################################
+
+$ npm view @astrojs/cloudflare@<v> peerDependencies --json
+12.6.12    {"astro":"^5.7.0"}
+12.6.13    {"astro":"^5.7.0"}
+13.0.0     {"astro":"^6.0.0-alpha.0","wrangler":"^4.61.1"}
+13.7.0     {"astro":"^6.3.0","wrangler":"^4.83.0"}
+14.0.0     {"astro":"^7.0.0-alpha.2","wrangler":"^4.83.0"}
+14.2.1     {"astro":"^7.2.0","wrangler":"^4.83.0"}
+
+$ npm view 'astro@^5.7.0' version    → dernier de la branche : 5.18.2
+$ npm view 'astro@^6.0.0' version    → dernier de la branche : 6.4.8
+$ npm view astro dist-tags --json    → "latest": "7.2.1"
+
+>>> Le dernier adaptateur qui accepte Pages (12.6.13) épingle astro ^5.7.0, donc
+>>> plafonne à astro@5.18.2 — deux majors sous le 7.2.1 courant.
+>>> NOTE : le « peerDeps v13 { astro: ^6.3.0 } » consigné par la fiche du 10/08 est
+>>> celui de la 13.7.0, pas celui de la 13.0.0.
+
+
+############################################################
+# 3. LE FICHIER _routes.json — la preuve qui tient
+############################################################
+
+_routes.json est le plan de routage propre à Cloudflare Pages : il dit quelles URL
+invoquent la Function et lesquelles sont servies en statique. Il n'existe sur aucune
+autre cible. Si l'adaptateur cesse de l'écrire, la voie Pages est fermée dans le code.
+
+$ npm pack @astrojs/cloudflare@12.6.13 @astrojs/cloudflare@13.0.0
+$ tar xzf astrojs-cloudflare-12.6.13.tgz -C v12
+$ tar xzf astrojs-cloudflare-13.0.0.tgz  -C v13
+
+$ grep -rn "_routes.json" v12/package/dist
+dist/index.js:245:          const routesStat = await stat(new URL("./_routes.json", _config.outDir));
+dist/utils/generate-routes-json.js:33:      new URL("./_routes.json", _config.outDir),
+dist/utils/generate-routes-json.js:46:    logger.error("There was an error writing the '_routes.json' file to the output directory.");
+dist/utils/generate-routes-json.js:149:      if (["_headers", "_redirects", "_routes.json"].includes(staticFile)) continue;
+dist/index.d.ts:8:    /** Configuration for `_routes.json` generation. A _routes.json file controls when your Function is invoked. …
+dist/index.d.ts:18:        /** Extend `_routes.json` */
+
+$ grep -rn "_routes.json" v13/package/dist | wc -l
+0
+
+>>> ZÉRO occurrence dans la 13.0.0, sur l'ensemble du dist.
+
+Le module n'a pas été supprimé — il a été VIDÉ :
+
+$ wc -l v12/package/dist/utils/generate-routes-json.js   → 225
+$ wc -l v13/package/dist/utils/generate-routes-json.js   →  22
+
+$ grep -n "^export" (les deux fichiers)
+v12 → export { createRoutesFile, getParts }
+v13 → export { getParts }
+
+$ grep -n "createRoutesFile" v12/package/dist/index.js
+19:import { createRoutesFile, getParts } from "./utils/generate-routes-json.js";
+253:          await createRoutesFile(
+
+$ cat v13/package/dist/utils/generate-routes-json.js    (intégral, 22 l.)
+const ROUTE_DYNAMIC_SPLIT = /\[(.+?\(.+?\)|.+?)\]/;
+const ROUTE_SPREAD = /^\.{3}.+$/;
+function getParts(part) {
+  const result = [];
+  part.split(ROUTE_DYNAMIC_SPLIT).map((str, i) => {
+    if (!str) return;
+    const dynamic = i % 2 === 1;
+    const [, content] = dynamic ? /([^(]+)$/.exec(str) || [null, null] : [null, str];
+    if (!content || dynamic && !/^(?:\.\.\.)?[\w$]+$/.test(content)) {
+      throw new Error("Parameter name must match /^[a-zA-Z0-9_$]+$/");
+    }
+    result.push({ content, dynamic, spread: dynamic && ROUTE_SPREAD.test(content) });
+  });
+  return result;
+}
+export {
+  getParts
+};
+
+>>> Il ne reste qu'un utilitaire de découpage de chemin. Le nom du fichier est un
+>>> vestige : plus rien n'écrit _routes.json.
+
+Deuxième disparition, dans le même passage de major :
+
+$ ls v12/package/dist/utils/ | grep cloudflare
+cloudflare-module-loader.d.ts
+cloudflare-module-loader.js
+$ ls v13/package/dist/utils/ | grep cloudflare
+(rien)
+
+
+############################################################
+# 4. CONTRE-VÉRIFICATION DES PREUVES CITÉES PAR docs/stack.md
+############################################################
+
+La stack écrit : « README v12 "Cloudflare Pages Functions targets", README v13
+"Cloudflare Workers targets", zéro occurrence de `pages` dans son dist ».
+
+$ sed -n '3p' <version>/package/README.md
+12.6.13  An SSR adapter for use with Cloudflare Pages Functions targets. Write your code in Astro/Javascript and deploy to Cloudflare Pages.
+13.0.0   An SSR adapter for use with Cloudflare Pages Functions targets. Write your code in Astro/JavaScript and deploy to Cloudflare Pages.
+13.7.0   An SSR adapter for use with Cloudflare Workers targets. Write your code in Astro/JavaScript and deploy to Cloudflare Workers.
+14.0.0   An SSR adapter for use with Cloudflare Workers targets. Write your code in Astro/JavaScript and deploy to Cloudflare Workers.
+
+>>> Le README de la 13.0.0 dit ENCORE « Cloudflare Pages Functions targets ».
+>>> La phrase citée par la stack n'est donc pas celle de la version qu'elle nomme.
+
+Bascule du README, cherchée sur les 29 versions de la branche 13 :
+
+$ pour chaque 13.x : npm pack, tar xzf, sed -n '3p' package/README.md
+13.0.0 → 13.1.2   « Cloudflare Pages Functions targets »
+13.1.3 → 13.7.0   « Cloudflare Workers targets »
+
+$ npm view @astrojs/cloudflare@13.1.2 time --json | grep '"13.1.2"'
+  "13.1.2": "2026-03-16T13:38:35.793Z",
+$ npm view @astrojs/cloudflare@13.1.3 time --json | grep '"13.1.3"'
+  "13.1.3": "2026-03-20T17:35:33.811Z",
+
+>>> Le README bascule à la 13.1.3, le 2026-03-20 — dix jours APRÈS le retrait réel.
+
+$ grep -rin "pages" v13/package/dist
+prerenderer.d.ts:14: * This allows prerendering to happen in the same runtime that will serve the pages.
+utils/prerender.d.ts:4: * During the build process, Astro prerenders pages by making requests to internal endpoints
+utils/prerender.d.ts:8: *   The prerenderer calls this to discover which routes/pages need to be generated.
+
+>>> TROIS occurrences, pas zéro — mais toutes au sens « les pages du site », dans le
+>>> prérendu. Aucune ne vise Cloudflare Pages. Le « zéro occurrence » était faux dans
+>>> la lettre et juste dans l'esprit ; c'est _routes.json qui porte la preuve.
+
+
+############################################################
+# 5. CE QUI N'A PAS ÉTÉ MESURÉ
+############################################################
+
+- La PR withastro/docs #12981, citée par le rapport du 10/08 comme datant de déc. 2025 :
+  non consultée ici. Rien dans cette trace ne l'infirme ; la mesure établit seulement
+  que la PUBLICATION est du 10/03/2026, ce qui est une autre grandeur.
+- Aucun déploiement réel n'a été tenté, ni sur Pages ni sur Workers. La conclusion
+  porte sur ce que le paquet publié contient, pas sur ce qu'une plateforme accepte.
+
+=== fin de trace ===

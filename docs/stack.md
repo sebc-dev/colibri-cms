@@ -725,12 +725,30 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    Retenue car `FR-081` exige un aperçu rendu serveur avec les mêmes composants que le site
    publié, ce qui impose un adaptateur, et parce que la CI hébergée de Cloudflare est couplée
    à la cible. Alternative écartée : **projet Pages + Pages Build** — `@astrojs/cloudflare`
-   a retiré le support de Pages à la **v13** (publiée le 10/03/2026 ; README v12 « Cloudflare
-   Pages Functions targets », README v13 « Cloudflare Workers targets », zéro occurrence de
-   `pages` dans son `dist`), donc l'aperçu rendu serveur y imposerait `astro@5.18.2` contre
-   `astro@7.2.0` — deux majors en arrière, sur une branche que l'adaptateur a quittée, et
-   `FR-105`/`SC-008` font porter cette dette par toute la flotte. Les plafonds, eux, sont
-   **égaux** des deux côtés et n'ont rien départagé.
+   a retiré le support de Pages à la **v13.0.0, publiée le 10/03/2026** : le plan de routage
+   `_routes.json`, propre à Pages et à aucune autre cible, est écrit par la v12.6.13 et
+   n'apparaît plus **une seule fois** dans le `dist` de la v13.0.0, dont le module
+   `generate-routes-json.js` tombe de 225 à 22 lignes et perd son `createRoutesFile`. L'aperçu
+   rendu serveur y imposerait donc `astro@5.18.2` — dernier de la branche que la v12.6.13
+   épingle (`astro ^5.7.0`) — contre `astro@7.2.1` : deux majors en arrière, sur une branche
+   que l'adaptateur a quittée, et `FR-105`/`SC-008` font porter cette dette par toute la
+   flotte. Les plafonds, eux, sont **égaux** des deux côtés et n'ont rien départagé.
+
+   *Complété le 2026-08-12 par le traitement de `S-10` et de `S-11`, qui reprochaient à cette
+   ligne un fait sans trace et une correction tue. **« v13 » et « Astro 6 » nomment le même
+   événement** : `@astrojs/cloudflare@13.0.0` et `astro@6.0.0` ont été publiés le 10/03/2026 à
+   trois secondes d'intervalle. Ce document ne corrige donc pas
+   [son rapport](./research/2026-08-10-pages-ou-workers-static-assets.md), qui date la rupture
+   d'« Astro 6, déc. 2025 » : il substitue une **date de publication** à une **date
+   d'annonce** — la PR de documentation que le rapport cite est passée pendant l'alpha d'Astro
+   6 (`6.0.0-alpha.0`, 10/11/2025). Les deux dates coexistent, et un lecteur qui remonte au
+   rapport doit le savoir. La mesure a par ailleurs invalidé deux des preuves écrites ici : le
+   README de la 13.0.0 dit **encore** « Cloudflare Pages Functions targets » — il ne bascule
+   qu'à la 13.1.3, le 20/03/2026 —, et le mot `pages` figure bien trois fois dans son `dist`,
+   au sens des pages du site. Elles ont cédé la place à `_routes.json`, qui se vérifie d'une
+   commande.* Relevé versé :
+   [`research/2026-08-12-adaptateur-astro-pages.md`](./research/2026-08-12-adaptateur-astro-pages.md)
+   + trace brute rejouable.
 
 2. **Générateur : Astro 7.** Retenu car il produit un site statique par défaut (`FR-095`,
    `FR-096`) *et* sait rendre les mêmes composants côté serveur pour l'aperçu (`FR-081`).
