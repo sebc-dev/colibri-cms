@@ -34,7 +34,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin périodique | FR-101, SC-012 | |
-| Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature**, expirant à **sept jours d'inactivité et trente jours d'âge** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, FR-118, SC-006 | |
+| Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature**, expirant à **sept jours d'inactivité et trente jours d'âge** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, FR-118, FR-120 à FR-122, SC-006, SC-021 | |
 | Moyen de reprise | Code de **128 bits** — 26 caractères base32, groupés pour la recopie — **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** ; **aucun frein par secret**, l'entropie seule rend la devinette sans objet, en ligne comme sur fuite de la base — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence par origine hachée dans un Durable Object | FR-007, FR-062 | |
@@ -564,7 +564,7 @@ tiennent.
 ### Vérification mécanique obligatoire
 
 Le Brief pose que « le code entrant n'est pas relu ligne à ligne » et que la confiance doit
-venir de vérifications mécaniques. Sept choix de cette page en dépendent explicitement et la
+venir de vérifications mécaniques. Huit choix de cette page en dépendent explicitement et la
 phase `ci` doit les rendre bloquants :
 
 - l'**aller-retour de sérialisation Markdown** de l'éditeur — une marque autorisée qui ne se
@@ -584,7 +584,13 @@ phase `ci` doit les rendre bloquants :
 - la **CSP stricte sur toute réponse d'administration** — l'en-tête est présent **et** ne porte
   ni `unsafe-inline`, ni `unsafe-eval`, ni source tierce hors Turnstile : la présence seule ne
   prouve rien, ce sont les interdits qui se vérifient ; une directive qui se relâche rouvre en
-  silence la seconde parade de la quatrième porte.
+  silence la seconde parade de la quatrième porte ;
+- les **attributs du cookie d'administration et le jeton anti-CSRF** — préfixe `__Host-`,
+  `HttpOnly`, `Secure`, `SameSite=Strict` sur le cookie qui porte la session, et jeton vérifié
+  sur **chaque** écriture, doublé du contrôle d'en-tête `Origin` : quatre attributs et deux
+  gestes dont l'absence ne casse aucun écran — elle ne se voit qu'à l'attaque. Ils sont
+  statiques, donc lisibles dans les sources ; les deux mécanismes de comportement de la même
+  ligne relèvent, eux, de `FR-120` à `FR-122` et de l'épreuve `SC-021`.
 
 ## Le jeton d'écriture — mesuré, et non déduit
 
@@ -705,7 +711,12 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 
 6. **Auth : implémentation maison sur D1.** Retenue car la surface est exactement le besoin —
    une adresse, un jeton, une session — et parce que `FR-005` (ne rien envoyer à une adresse
-   non autorisée) et `FR-008` (aucune réponse ne distingue) y sont tenus par construction.
+   non autorisée) y est tenu par la plateforme elle-même, `send_email` n'écrivant qu'à une
+   destination vérifiée. `FR-008`, en revanche, **n'est pas tenu par construction** : le
+   traitement de `AU-09` (2026-08-12) a montré que le plafond de `FR-006` n'est atteignable
+   que pour l'adresse autorisée, et que le chemin qui envoie un message n'a aucune raison de
+   répondre dans le même délai que celui qui n'en envoie pas ; l'exigence a été rédigée à
+   nouveau et bornée, et c'est elle qui doit être tenue, non une propriété supposée acquise.
    Alternatives écartées : **Better Auth 1.6.26** — 3,2 Mo dépaquetés, 17 dépendances et 19
    pairs pour six piles de base de données dont une seule sert, sous un plafond de Worker de
    3 Mo gzip, et `FR-005`, `FR-008` et le moyen de reprise (`FR-009` à `FR-012`) resteraient
@@ -762,6 +773,17 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    la plateforme** : l'interdiction d'écrire à une adresse non autorisée n'est pas seulement
    programmée, `send_email` ne sait écrire qu'à une destination vérifiée — mais c'est aussi ce
    qui bloque `FR-013` et `FR-014`, voir la section dédiée.
+   **Chaque mécanisme porte désormais son exigence, ajouté le 2026-08-12 par le traitement de
+   `AU-10`**, qui reprochait aux quatre de n'être portés par aucune et mesurés par aucun
+   critère — un mécanisme qu'un lot pouvait donc omettre sans qu'aucun contrôle échoue. Les
+   deux qui sont des **comportements** descendent en exigences : la liaison à l'appareil
+   demandeur par `FR-120`, l'usage unique et l'expiration du code — orphelins eux aussi, que
+   le constat n'avait pas comptés — par `FR-121`, le brûlage par `FR-122`. Les deux qui sont
+   des **propriétés statiques** — attributs du cookie, jeton anti-CSRF doublé d'`Origin` —
+   rejoignent le § « Vérification mécanique obligatoire » en 8ᵉ contrôle bloquant, sur le
+   modèle retenu pour la CSP au traitement de `AU-06` : ce qui se lit dans les sources se
+   vérifie mécaniquement plutôt que de s'exiger en prose. L'ensemble se mesure par l'épreuve
+   `SC-021`, qui manquait côté abus quand `SC-014` et `SC-020` existaient déjà côté reprise.
 
 7. **Format du contenu déposé : un répertoire par objet.** Retenu car le §4.3 du clausier
    promet des fichiers « exploitables par n'importe quel professionnel, avec ou sans
@@ -914,19 +936,25 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   le jeton d'écriture créé **sans expiration** et portant `Contents: Read and write` seule,
   le jeton de lecture de `media` en `Contents: Read-only`, et le Cron de maintien en vie
   actif avant la livraison.
-- **`docs/prd.md`** : non modifié, et il ne doit pas l'être ici. **Trois** dettes y sont
-  ouvertes, toutes pour `/scd-sdd:premortem socle` : le `FR` qui porterait la détection de panne
-  d'acheminement ; la qualification de `FR-005`, qui verrouille `FR-014` tel qu'il est rédigé ;
-  et le sort de `FR-013`, dont le glossaire fond l'adresse de connexion et la destination des
-  demandes en un seul objet que `send_email` ne sait pas déplacer. Les deux dernières datent du
-  2026-08-11, par le traitement de `S-05`.
+- **`docs/prd.md`** : non modifié **par la phase Stack elle-même**, et il ne doit pas l'être
+  ici — les exigences ajoutées depuis le 2026-08-11 (`FR-118` à `FR-122`, `SC-021`, `FR-012`
+  amendée) le sont par les traitements de l'audit de l'authentification, chacune consignée à
+  sa ligne des « arbitrages rendus ». **Trois** dettes y restent ouvertes, toutes pour
+  `/scd-sdd:premortem socle` : le `FR` qui porterait la détection de panne d'acheminement ; la
+  qualification de `FR-005`, qui verrouille `FR-014` tel qu'il est rédigé ; et le sort de
+  `FR-013`, dont le glossaire fond l'adresse de connexion et la destination des demandes en un
+  seul objet que `send_email` ne sait pas déplacer. Les deux dernières datent du 2026-08-11,
+  par le traitement de `S-05`.
 - **La recette de livraison et l'inventaire de livraison** gagnent le **moyen de reprise** —
   code remis sur papier, rangé dans un espace de la cliente, son emplacement noté au dossier
   d'instance et jamais sa valeur (`FR-112`). Renvoyé au traitement de `S-01`, à qui revient
   l'inventaire des secrets, et qui devra aussi y porter le **retrait de la clé de signature**.
-- **`docs/ci.md`** (phase 6) : **six** contrôles nommés ci-dessus doivent y devenir
+- **`docs/ci.md`** (phase 6) : **huit** contrôles nommés ci-dessus doivent y devenir
   bloquants — l'aller-retour Markdown de l'éditeur, le rejet des URL de schéma non autorisé,
   le garde-fou `C5`, la liste `run_worker_first` bornée, l'absence de `{@html}` sur toute
-  donnée fournie par un visiteur, et la composition inerte de l'e-mail acheminé. Les deux du
-  milieu datent du 2026-08-11 par le traitement de `S-06`, le cinquième du même jour par celui
-  de `S-05`, le sixième du même jour par le traitement de `AU-01`.
+  donnée fournie par un visiteur, la composition inerte de l'e-mail acheminé, la CSP stricte
+  sur toute réponse d'administration, et les attributs du cookie d'administration avec le
+  jeton anti-CSRF. Les deux du milieu datent du 2026-08-11 par le traitement de `S-06`, le
+  cinquième du même jour par celui de `S-05`, le sixième du même jour par le traitement de
+  `AU-01`, le septième du même jour par celui de `AU-06`, et le huitième du 2026-08-12 par le
+  traitement de `AU-10`.

@@ -366,6 +366,12 @@ l'intégrateur.
   été prouvée.
 - **FR-118** : Le système DOIT fermer toute session d'administration restée sept jours sans
   usage, et toute session ouverte depuis trente jours, quel qu'en soit l'usage.
+- **FR-120** : Une preuve de maîtrise NE DOIT ouvrir de session que sur l'appareil depuis
+  lequel elle a été demandée.
+- **FR-121** : Une preuve de maîtrise NE DOIT ouvrir qu'une seule session, et DOIT cesser
+  d'en ouvrir au-delà d'une durée bornée après son émission.
+- **FR-122** : Le système DOIT rendre inutilisable une preuve de maîtrise après un nombre
+  borné de présentations erronées.
 
 ### Pages et emplacements
 
@@ -821,3 +827,10 @@ des arbitrages de ce PRD.
   au total du site.
 - **SC-020** : Boîte e-mail de l'éditrice rendue inaccessible, l'éditrice **ouvre seule son
   administration par le moyen de reprise** et consulte la liste des demandes.
+- **SC-021** : **Épreuve de résistance de la connexion** : une campagne de sollicitations de
+  l'écran de connexion — adresses balayées une à une, même adresse répétée jusqu'au plafond,
+  preuves de maîtrise erronées présentées en série, preuve valide rejouée une seconde fois
+  puis présentée depuis un autre appareil que celui qui l'a demandée — n'ouvre **aucune
+  session**, n'envoie **aucun message vers une adresse non autorisée**, et ne produit, tant
+  que le plafond n'est pas atteint, **aucune différence de réponse ni de délai** entre
+  l'adresse autorisée et une autre. La sortie est conservée comme pièce, datée.
