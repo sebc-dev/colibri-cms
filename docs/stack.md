@@ -38,9 +38,9 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Moyen de reprise | Code de **128 bits** — 26 caractères base32, groupés pour la recopie — **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** ; **aucun frein par secret**, l'entropie seule rend la devinette sans objet, en ligne comme sur fuite de la base — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence dans un Durable Object **unique**, qui porte une **table d'origines** — jamais un objet par visiteur. Chaque origine y entre sous une empreinte **HMAC, sous une clé tirée au hasard par le produit pour la seule fenêtre de comptage en cours** ; clé et entrées **effacées ensemble** à la fin de la fenêtre | FR-007, FR-062 | |
-| Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue de la publication** | FR-090, FR-091 | |
+| Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue du dépôt** | FR-090, FR-091 | |
 | Constat de la mise en ligne | Le site publié expose l'empreinte du commit dont il est né ; l'administration la lit par une requête **publique** et la compare | FR-090 | |
-| Interface d'administration | Îlots Svelte 5 dans Astro | FR-017, FR-054, FR-117, SC-003, SC-005, SC-015 | |
+| Framework d'îlots — administration et pages publiques | Îlots Svelte 5 dans Astro | FR-017, FR-054, FR-117, SC-003, SC-005, SC-015 | |
 | Texte riche | Éditeur TipTap, sérialisation en **Markdown restreint** aux marques testées ; au rendu, **liste blanche de schémas d'URL** (`https`, `mailto`, `tel`, relatif) et **aucun HTML brut** | FR-018, FR-117, SC-011 | |
 | En-têtes de réponse | **Deux porteurs, imposés par la plateforme** : un fichier `_headers` pour les pages publiques, servies en assets statiques ; les mêmes en-têtes posés **dans le code** pour l'administration, l'aperçu et les médias servis depuis D1, **dont une CSP stricte propre à l'administration** — seule parade qui subsiste au XSS same-origin tant que l'origine reste commune | FR-082, FR-095, FR-096 | |
 | Pipeline d'images | `image.layout: 'constrained'`, `image.breakpoints: [640, 960, 1280]`, `<Image>` à un seul format | SC-005, SC-001 (par `C5`) | |
@@ -51,12 +51,13 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 ### Domaines sans objet
 
 - **Authentification du visiteur** — non applicable : `FR-062` exige le seuil de fréquence
-  « sans exiger de compte du visiteur », et le multi-éditeur est exclu par le PRD.
+  « sans exiger de compte du visiteur ».
 - **File d'attente / traitement asynchrone** — non applicable : `FR-097` fait de l'envoi
-  d'une demande le seul traitement serveur, et la publication est un geste synchrone
-  sérialisé.
-- **Analytique** — non applicable : exclue par le PRD, et `FR-075` à `FR-078` portent
-  l'instrument dans D1.
+  d'une demande le seul traitement serveur déclenché par un **visiteur**, et les gestes de
+  l'éditrice — édition, aperçu, publication — sont synchrones, la publication étant en outre
+  sérialisée.
+- **Analytique tierce** — non applicable : exclue par le PRD, qui n'exclut qu'elle ;
+  l'instrument exigé par `FR-075` à `FR-078` est porté par D1, déjà retenu.
 - **Cache / CDN applicatif** — non applicable : les assets statiques sont servis
   gratuitement et sans quota, sans configuration propre au projet.
 
