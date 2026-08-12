@@ -776,6 +776,22 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    [`research/2026-08-12-adaptateur-astro-pages.md`](./research/2026-08-12-adaptateur-astro-pages.md)
    + trace brute rejouable.
 
+   *Étendue le 2026-08-12 par le traitement de `S-17`, qui a trouvé la ligne « Déclenchement du
+   build » sans candidat : née le 11/08 du traitement de `S-08`, elle est postérieure au constat,
+   et le système de build qu'elle configure est le sujet de cette ligne-ci.* **Workers Builds
+   surveille la branche `main` seule ; le build récupère `media` pendant son exécution.** Retenu
+   car `FR-089` réserve le déclenchement au dépôt du **contenu** : `media` ne déclenche donc rien,
+   et une publication ne produit **qu'un** build — l'élagage ayant quitté l'après-build par `S-03`,
+   il n'y a pas de troisième build. `C4` en découle par construction : dix enregistrements vont en
+   D1 et produisent **zéro** déploiement, seule une publication commite. Alternative écartée :
+   **surveiller les deux branches** — le dépôt sur `media` rebâtirait le site sur un contenu
+   inchangé et doublerait une consommation de minutes que l'Annexe A ne sait pas encore chiffrer.
+   Résidu assumé : dix *publications* en deux minutes font dix builds, mis en file sans erreur ni
+   coût par la concurrence de 1. **Ce que la configuration suppose et qui n'est pas acquis** : que
+   le *checkout* de Cloudflare atteigne `media` sans jeton fourni — sinon le jeton de lecture
+   `Read-only` du §7 devient obligatoire, faute de quoi le site bâti n'a aucun média ; c'est le
+   point 3 de « À constater en recette », promu bloquant.
+
 2. **Générateur : Astro 7.** Retenu car il produit un site statique par défaut (`FR-095`,
    `FR-096`) *et* sait rendre les mêmes composants côté serveur pour l'aperçu (`FR-081`).
    Alternative écartée : **Eleventy ou Hugo** — un générateur purement statique n'a pas de
@@ -1149,6 +1165,61 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     le dernier recours, celui-là même qui interdit le brûlage, en version adoucie ; **la
     temporisation par tentative (~1/s par secret)** — saine, mais redondante à cette entropie :
     un mécanisme et un état de plus pour rien.
+
+17. **Sérialisation des publications et constat de la mise en ligne : une seule ligne d'état en
+    D1 — verrou, bail horodaté, issue du dépôt —, et l'empreinte du commit exposée par le site
+    publié.** Retenue car les trois manques qu'elle referme n'en font qu'un : un Worker tué net
+    n'exécute pas sa sortie, si bien qu'un verrou **sans bail** laisse le site bloqué pour
+    toujours, quand un bail expiré se reprend. La reprise est sûre parce que la séquence est
+    **rejouable telle quelle** — le dépôt sur `media` est additif et adressé par contenu, l'arbre
+    et le commit se recalculent depuis le HEAD (mesure de `S-04`) —, et le seul cas qui y
+    résistait, la **réponse perdue**, se ferme en comparant l'oid de l'arbre à pousser à celui du
+    HEAD : le même contenu donne le même oid, donc le réessai reconnaît son propre commit. **Le
+    second geste tient à ce que `FR-090` demande vraiment** : le dépôt n'est qu'un déclencheur
+    (`FR-089`) et un build peut échouer après lui — l'éditrice verrait l'ancien site avec un
+    succès affiché. Le site publié expose donc l'empreinte du commit dont il est né, et
+    l'administration la lit par une requête **publique**. Alternatives écartées : **lire l'issue
+    du build par un webhook ou par l'API Cloudflare** — l'un et l'autre exigent un jeton d'API
+    dans le compte de la cliente, ce qui mord sur `C7` et rallonge l'inventaire de `S-01`, quand
+    la requête publique ne coûte rien ; **tenir l'issue du dépôt pour l'issue de la publication**
+    — c'est exactement le succès affiché à tort ; **maintenir un marqueur d'idempotence à part**
+    pour reconnaître un réessai — l'oid de l'arbre le donne gratuitement, sans état de plus à
+    tenir à jour. La **valeur du bail** n'est pas arbitrée ici : elle se borne par la durée de la
+    séquence (4 + `M` appels), se mesure en recette et descend en specs.
+
+18. **Accès aux données : l'API D1 native du Worker et les migrations `wrangler d1 migrations`,
+    sans couche intermédiaire.** Retenue car `FR-105`, `FR-106` et `SC-008` exigent qu'une
+    nouvelle version se déploie sur une instance existante **sans perte du contenu**, ce qui
+    demande des migrations **versionnées et rejouables** : `wrangler d1 migrations` est le
+    mécanisme que la plateforme fournit, déjà présent dans l'outil de déploiement retenu, et il
+    n'ajoute ni dépendance sous le plafond de **3 Mo gzip** ni dialecte tiers sur le chemin
+    d'accès à la seule base du produit — le motif même qui a fait écarter `kysely-d1` au n° 6.
+
+    *Réserve posée le 2026-08-12 par le traitement de `S-17` — la troisième des trois issues de
+    `S-10`, **assumer marqué**. Cette ligne du tableau n'avait aucun candidat, et l'instruction a
+    trouvé pourquoi : **aucune alternative n'a jamais été instruite par la phase**. Ni Drizzle, ni
+    Kysely, ni aucune couche de requête ne figure nulle part dans ce document comme option pesée
+    — `kysely-d1` n'y paraît qu'en **argument contre Better Auth**, jamais comme choix d'accès aux
+    données du produit. Le motif ci-dessus est donc **reconstruit depuis les contraintes déjà
+    écrites**, non rendu par un arbitrage. `/scd-sdd:adr` ne doit pas fabriquer un « écarté » pour
+    cet ADR : il n'y en a pas eu.*
+
+19. **Pipeline d'images : les variantes sont produites au build, et leur nombre par photographie
+    est ce qui chiffre `C5`.** `image.layout: 'constrained'`, breakpoints `[640, 960, 1280]`,
+    `<Image>` à un seul format. Retenu car `SC-005` mesure Lighthouse ≥ 95 en mobile sur les pages
+    publiques — le même critère qui a départagé le n° 11 —, et parce que produire au build est ce
+    qui laisse la publication constante : le budget de **42 médias** mesuré en `S-04` compte un
+    fichier par média, non ses variantes. **Ce que la configuration décide au-delà d'elle-même** :
+    une photographie produit **5 fichiers** de sortie, soit un mur vers **4 000 photographies** et
+    l'alerte `C5` (15 000 fichiers) vers 3 000 — le plafond du produit est donc fixé ici, et
+    chaque breakpoint ou format ajouté le rapproche. Alternative écartée : **générer les variantes
+    à la publication** — elle est la parade si la durée du build croît jusqu'aux 20 minutes, mais
+    elle fait tomber le budget médias de **42 à ~8** (5 fichiers par photographie au lieu d'un)
+    dans la séquence mesurée en `S-04`. **Condition de révision, posée par le traitement de
+    `S-08`** : la durée du build ne peut pas être mesurée aujourd'hui — le dépôt n'a pas une ligne
+    de code, et un chiffre obtenu en local ne dirait rien du matériel de Workers Builds. Elle est
+    en réserve 3 de l'Annexe A, et c'est `archi` qui tranchera la bifurcation, le chiffre en main.
+    La valeur des 5 fichiers, elle, se mesure au premier déploiement et se reporte en Annexe A.
 
 ## Ce que cette phase dépose sur les autres documents
 
