@@ -1,0 +1,153 @@
+Trace brute rejouable — permissions exigées par les points d'entrée REST git data
+Relevé du 2026-08-12, instruisant le cinquième grief de S-10 (docs/audit-stack.md).
+Conclusions : docs/research/2026-08-12-permissions-rest-git-data.md
+
+AVERTISSEMENT DE MÉTHODE
+Rien n'est MESURÉ ici : aucun appel n'a été fait contre l'API GitHub, aucun jeton
+n'a été créé. Tout ce qui suit est LU dans la donnée source de la documentation,
+publiée par GitHub dans le dépôt public github/docs et interrogée par `gh api`.
+C'est la même forme que le fait 3 — citer plutôt que mesurer — mais sur une donnée
+lisible à la machine plutôt que sur une page rendue.
+
+Pourquoi la donnée source et non la page : deux lectures successives de
+https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-
+personal-access-tokens ont rendu des réponses CONTRADICTOIRES sur la colonne
+« Additional Permissions » (vide, puis ✓ pour PATCH /git/refs). Une page rendue qui
+se contredit ne fait pas une source. La donnée qui la génère, si.
+
+Outils : gh 2.x authentifié sur github.com (jeton OAuth, portées 'gist, read:org,
+repo, workflow'), node v24.18.1.
+
+
+############################################################
+# 1. OÙ VIT LA DONNÉE
+############################################################
+
+$ gh api "repos/github/docs/contents/src/rest/data" --jq '.[].name'
+client-side-rest-api-redirects.json
+fpt-2022-11-28
+fpt-2026-03-10
+ghec-2022-11-28
+ghec-2026-03-10
+ghes-3.17-2022-11-28
+… (une entrée par produit × version d'API)
+
+fpt = free/pro/team, le produit qui nous concerne.
+Deux versions d'API coexistent : 2022-11-28 et 2026-03-10. Les DEUX ont été lues,
+pour qu'un changement de version ne puisse pas invalider la citation en silence.
+
+
+############################################################
+# 2. LES POINTS D'ENTRÉE DE LA CHAÎNE DE PUBLICATION
+############################################################
+
+$ gh api "repos/github/docs/contents/src/rest/data/fpt-2026-03-10/git.json" \
+    -H "Accept: application/vnd.github.raw" > git.json
+$ node -e '<extraction de verb, requestPath et progAccess.permissions>'
+
+POST   /repos/{owner}/{repo}/git/blobs
+       [{"\"Contents\" repository permissions":"write"}]
+POST   /repos/{owner}/{repo}/git/commits
+       [{"\"Contents\" repository permissions":"write"}]
+POST   /repos/{owner}/{repo}/git/trees
+       [{"\"Contents\" repository permissions":"write"}]
+DELETE /repos/{owner}/{repo}/git/refs/{ref}
+       [{"\"Contents\" repository permissions":"write"}]
+
+POST   /repos/{owner}/{repo}/git/refs
+       [{"\"Contents\" repository permissions":"write"},
+        {"\"Contents\" repository permissions":"write",
+         "\"Workflows\" repository permissions":"write"}]
+PATCH  /repos/{owner}/{repo}/git/refs/{ref}
+       [{"\"Contents\" repository permissions":"write"},
+        {"\"Contents\" repository permissions":"write",
+         "\"Workflows\" repository permissions":"write"}]
+
+>>> Le champ `permissions` est une LISTE DE JEUX SUFFISANTS, pas une liste de
+>>> permissions. Blob, arbre et commit n'en ont qu'un. Les deux points d'entrée qui
+>>> DÉPLACENT une ref en ont DEUX — c'est ce que la page rendue affiche par un ✓
+>>> dans sa colonne « Additional Permissions ».
+
+Contre-vérification sur l'autre version d'API :
+
+$ gh api "repos/github/docs/contents/src/rest/data/fpt-2022-11-28/git.json" …
+POST   /repos/{owner}/{repo}/git/blobs    [{"\"Contents\"…":"write"}]
+POST   /repos/{owner}/{repo}/git/commits  [{"\"Contents\"…":"write"}]
+POST   /repos/{owner}/{repo}/git/trees    [{"\"Contents\"…":"write"}]
+POST   /repos/{owner}/{repo}/git/refs     [{…"write"},{…"write","\"Workflows\"…":"write"}]
+PATCH  /repos/{owner}/{repo}/git/refs/{ref} [{…"write"},{…"write","\"Workflows\"…":"write"}]
+DELETE /repos/{owner}/{repo}/git/refs/{ref} [{"\"Contents\"…":"write"}]
+
+>>> IDENTIQUE. Les deux versions d'API disent la même chose.
+
+Datation, à la manière du fait 3 — GitHub n'imprimant aucune date de mise à jour,
+c'est le dernier commit du fichier source qui fait foi :
+
+$ gh api "repos/github/docs/commits?path=src/rest/data/fpt-2026-03-10/git.json&per_page=1"
+  sha 0b2db291, 2026-06-23T07:04:25Z
+$ gh api "repos/github/docs/commits?path=src/rest/data/fpt-2022-11-28/git.json&per_page=1"
+  sha 0b2db291, 2026-06-23T07:04:25Z   (le même commit touche les deux)
+
+
+############################################################
+# 3. CE QUE LA PAGE REST DIT DU PARAMÈTRE force
+############################################################
+
+Page : https://docs.github.com/en/rest/git/refs — « Update a reference »
+
+Description du paramètre `force`, verbatim :
+  « Indicates whether to force the update or to make sure the update is a
+    fast-forward update. Leaving this out or setting it to false will make sure
+    you're not overwriting work. »
+
+>>> L'INTENTION de force: false est documentée. La réponse exacte au refus —
+>>> « 422 Update is not a fast forward » — ne l'est nulle part sur cette page.
+>>> Elle reste un fait mesuré le 11/08.
+
+
+############################################################
+# 4. CÔTÉ GRAPHQL — L'ABSENCE, VÉRIFIÉE STRUCTURELLEMENT
+############################################################
+
+La stack affirme que « GitHub ne publie aucune table de permissions GraphQL ».
+Vérifié non par absence de page, mais sur la donnée elle-même.
+
+$ gh api "repos/github/docs/contents/src/graphql/data/fpt/schema-commits.json" \
+    -H "Accept: application/vnd.github.raw" > gql-schema-commits.json
+$ node -e '<recherche de l entree createCommitOnBranch et liste de ses cles>'
+
+CHEMIN : .mutations[0]
+CLÉS   : name, id, href, description, isDeprecated, inputFields, returnFields, category
+
+>>> AUCUNE clé de permission. Là où une opération REST porte un objet
+>>> `progAccess.permissions`, une mutation GraphQL n'en a pas l'équivalent.
+>>> L'affirmation de la stack est donc exacte, et vérifiable.
+
+$ gh api "repos/github/docs/commits?path=src/graphql/data/fpt/schema-commits.json&per_page=1"
+  sha fb07809a, 2026-06-11T17:44:11Z
+
+Description de la mutation, verbatim (utile à la lecture du § 5 des conclusions) :
+  « Appends a commit to the given branch as the authenticated user. »
+  « This mutation creates a commit whose parent is the HEAD of the provided
+    branch and also updates that branch to point to the new commit.
+    It can be thought of as similar to `git commit`. »
+
+$ recherche de "updateRefs" dans schema-commits.json, schema-repos.json,
+  schema-branches.json → absent des trois.
+
+
+############################################################
+# 5. CE QUI N'A PAS ÉTÉ FAIT
+############################################################
+
+- AUCUN jeton à portée fine n'a été créé, aucun appel réel n'a été passé. Les
+  quatre lignes mesurées le 11/08 ne sont NI rejouées NI infirmées ici.
+- La CONDITION qui déclenche le second jeu de permissions n'est écrite nulle part
+  dans cette donnée. Que ce soit « le commit touche un fichier sous
+  .github/workflows/ » est une LECTURE, appuyée sur la règle connue des jetons à
+  portée fine, pas une citation.
+- Le jeton dont dispose gh sur cette machine est un OAuth de portées 'gist,
+  read:org, repo, workflow' : il ne peut pas servir de témoin, puisque la mesure
+  porte précisément sur ce qu'une permission UNIQUE autorise.
+
+=== fin de trace ===

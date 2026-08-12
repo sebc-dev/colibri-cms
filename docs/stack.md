@@ -657,21 +657,39 @@ phase `ci` doit les rendre bloquants :
 ## Le jeton d'écriture — mesuré ou cité, jamais déduit
 
 Ce point était ouvert. Il a été fermé le **11/08/2026** par une série de mesures sur un dépôt
-jetable (`sebc-dev/colibri-jeton-essai`), avec témoin positif à chaque fois. Ce qui suit est
-citable dans un ADR : les **cinq premières** lignes au niveau de preuve **mesuré** — la
-documentation de GitHub ne porte aucune des trois premières —, les **deux dernières** au niveau
-**officiel cité**, chacune avec son emplacement. Le 12/08/2026, le traitement de `S-10` a
-substitué à une phrase portée aux jetons **classiques** la ligne qui parle du jeton **à portée
-fine**, et la documentation s'est trouvée corroborer, au passage, le fait mesuré de la première
-ligne.
+jetable (`sebc-dev/colibri-jeton-essai`), avec témoin positif à chaque fois. **Chaque ligne porte
+désormais son propre niveau de preuve**, dans la colonne de droite, plutôt qu'un découpage annoncé
+en tête : le 12/08/2026, le traitement de `S-10` a montré qu'un même fait pouvait être mesuré ici
+et cité là.
+
+Deux passages de ce traitement l'ont remanié. Le fait 3 a substitué à une phrase portée aux jetons
+**classiques** la ligne qui parle du jeton **à portée fine**, et la documentation s'est trouvée
+corroborer, au passage, le fait mesuré de la première ligne. Le cinquième grief a montré que **deux
+lignes n'avaient pas besoin d'être mesurées** : GitHub publie les permissions exigées de chaque
+point d'entrée REST sous forme de donnée lisible à la machine, et cette donnée dit en outre ce que
+la mesure ne pouvait pas voir — le déplacement de ref admet un **second** jeu de permissions.
+Relevé versé :
+[`research/2026-08-12-permissions-rest-git-data.md`](./research/2026-08-12-permissions-rest-git-data.md)
++ trace brute rejouable.
+
+**Ce qui reste sans trace, et qui est assumé.** Le dépôt jetable a disparu et la trace des appels
+du 11/08 n'a jamais été versée ici ; **quatre** lignes portent donc `[mesuré · trace non versée]`,
+dont une pour sa seule moitié mesurée. Trois ne coûtent rien — la première est corroborée par la
+documentation, l'avance rapide l'est pour son intention, celle du `git push` ne porte aucun
+argument. **La quatrième, si** : la double permission exigée par GraphQL est le seul motif
+écrit de son écartement au candidat ADR n° 5, et elle ne se citera jamais. **Arbitré le 12/08/2026
+par le traitement de `S-10` : elle est conservée telle quelle, marquée.** Rejouer la mesure
+supposerait de créer à la main des jetons à portée fine — un jeton `gh` ordinaire ne peut pas en
+tenir lieu, puisque c'est précisément ce qu'une permission *unique* autorise qui est en jeu.
 
 | Fait | Comment il a été obtenu |
 |---|---|
-| Un jeton à portée fine sur compte personnel peut n'avoir **aucune expiration** | Témoin à 7 j → en-tête `github-authentication-token-expiration` daté ; jeton sans expiration → aucun en-tête |
-| L'écriture complète de la publication passe avec **`Contents: write` seule** — blob, arbre, commit, déplacement de ref | Aucun refus sur la chaîne REST *git data* |
-| `PATCH /git/refs` en `force: false` **refuse** un déplacement qui n'est pas en avance rapide | Commit bâti sur un parent périmé → `422 Update is not a fast forward` ; commit bâti sur la tête courante → accepté |
-| Les mutations GraphQL `updateRefs` et `createCommitOnBranch` exigent **`Contents` + `Workflows`** | `Contents` seul → `FORBIDDEN` ; `Contents` + `Workflows` → `UNPROCESSABLE` sur l'oid attendu, puis commit créé |
-| Le `git push --force-with-lease` fait le même contrôle, avec `Contents` seule | Oid attendu faux → `stale info` ; oid attendu juste → accepté |
+| Un jeton à portée fine sur compte personnel peut n'avoir **aucune expiration** | [mesuré · trace non versée] Témoin à 7 j → en-tête `github-authentication-token-expiration` daté ; jeton sans expiration → aucun en-tête. **Corroboré par la dernière ligne**, qui le dit par la documentation |
+| `POST /git/blobs`, `/git/trees` et `/git/commits` n'exigent que **`Contents: write`** | [officiel · cité] `progAccess.permissions` vaut `{"Contents": "write"}` pour les trois — donnée source de la doc GitHub, `github/docs` › `src/rest/data/fpt-2026-03-10/git.json`, commit `0b2db291` du 23/06/2026, identique en version d'API `2022-11-28`. Corrobore la mesure du 11/08 (aucun refus sur la chaîne) |
+| **Le déplacement de ref, lui, a *deux* jeux de permissions suffisants** : `Contents: write`, **ou** `Contents: write` + `Workflows: write` | [officiel · cité] même source, `POST /git/refs` et `PATCH /git/refs/{ref}`. La mesure du 11/08 ne pouvait pas le voir : le dépôt d'essai n'avait aucun fichier de workflow. *Lecture, non citée : le second jeu se lève quand le commit visé touche `.github/workflows/`* — voir la contrainte au candidat ADR n° 5 |
+| `PATCH /git/refs` en `force: false` **refuse** un déplacement qui n'est pas en avance rapide | [officiel · cité] pour l'intention — *« Indicates whether to force the update or to make sure the update is a fast-forward update. Leaving this out or setting it to false will make sure you're not overwriting work. »*, REST · *Update a reference*. [mesuré · trace non versée] pour la réponse exacte : commit bâti sur un parent périmé → `422 Update is not a fast forward` ; sur la tête courante → accepté |
+| Les mutations GraphQL `updateRefs` et `createCommitOnBranch` exigent **`Contents` + `Workflows`** | [mesuré · trace non versée] `Contents` seul → `FORBIDDEN` ; `Contents` + `Workflows` → `UNPROCESSABLE` sur l'oid attendu, puis commit créé. Ne se citera jamais : l'entrée `createCommitOnBranch` de la donnée GraphQL de `github/docs` ne porte **aucune** clé de permission, là où une opération REST porte la sienne |
+| Le `git push --force-with-lease` fait le même contrôle, avec `Contents` seule | [mesuré · trace non versée] Oid attendu faux → `stale info` ; oid attendu juste → accepté. Rien ne repose dessus : `git push` est écarté parce qu'un Worker n'a ni sous-processus ni système de fichiers |
 | Un jeton **à portée fine** inutilisé pendant un an est révoqué — comme il l'est s'il est poussé dans un dépôt ou un gist public | [officiel · cité] *« **Revoked automatically** if pushed to a public repository or gist, or if unused for one year »* — docs GitHub · *GitHub credential types reference*, § « Credential revocation », ligne *Fine-grained personal access token* ; source `github/docs` au commit `6f9f6f89` du 23/06/2026 |
 | Un jeton à portée fine peut avoir une durée de vie **infinie** — le même fait que la première ligne, ici par la documentation et non par le témoin | [officiel · cité] *« Configurable (up to 1 year, or no expiration) »* — même page, tableau d'ensemble, colonne *Lifespan* |
 
@@ -801,6 +819,19 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    Alternatives écartées plus tôt : **`git push --force-with-lease`** — même contrôle avec la
    même permission (mesuré), mais un Worker n'a ni sous-processus ni système de fichiers, donc
    il ne peut pas lancer `git` ; **GitLab** — aucun des faits sourcés ne porte sur lui.
+
+   *Complété le 2026-08-12 par le cinquième grief de `S-10`. L'argument « une seule permission »
+   est vrai **sous une condition que personne n'avait écrite**. La donnée source de la
+   documentation GitHub donne au déplacement de ref **deux** jeux de permissions suffisants —
+   `Contents: write`, ou `Contents: write` + `Workflows: write` — là où blob, arbre et commit
+   n'en ont qu'un. La mesure du 11/08 ne pouvait pas le voir : le dépôt d'essai n'avait aucun
+   fichier de workflow. **Contrainte posée, à rendre falsifiable en `archi` : la publication
+   n'écrit jamais sous `.github/`.** Tant qu'elle tient, le jeton à une seule permission suffit ;
+   si elle tombe, le jeton se fait refuser au dernier geste de la publication — celui qui rend le
+   contenu visible —, et rien dans le code ne relierait la panne à cette ligne. L'écartement de
+   GraphQL, lui, n'est pas entamé : il exige `Workflows` **toujours**, y compris sur un dépôt sans
+   workflows, quand REST ne l'exige que **sous condition**. Ce fait-là reste `[mesuré · trace non
+   versée]` et le restera — GitHub ne publie aucune permission pour ses mutations GraphQL.*
 
 6. **Auth : implémentation maison sur D1.** Retenue car la surface est exactement le besoin —
    une adresse, un jeton, une session — et parce que `FR-005` (ne rien envoyer à une adresse
