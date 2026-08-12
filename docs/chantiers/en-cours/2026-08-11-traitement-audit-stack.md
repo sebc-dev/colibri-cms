@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-12 · branche `work/reprise-socle-v2` · HEAD `16355bd`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-12 · branche `work/reprise-socle-v2` · HEAD `8a4d277`
 
 ## Objectif
 
@@ -46,17 +46,24 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   sur un dépôt jetable externe, **sans transcript versionné** — vaut encore pour quatre lignes du
   tableau du jeton d'écriture. Aucune citation ne le comble, et la ligne de `S-10` au récapitulatif
   se refermerait dessus si personne ne l'arbitre.
-- **Pour `S-11`** : R2 marqué `[À VÉRIFIER]`, Turnstile officiel, Cron Triggers tenus d'une source
-  unique tierce ; son quatrième écart **est** le fait 4 de `S-10` — les deux se rendent d'affilée.
+- **Deux constats peuvent se partager un fait sans le dédoubler.** Le fait 4 s'est rendu en deux
+  moitiés — la mesure et son transcript pour `S-10`, la phrase qui déclare la substitution de date
+  pour `S-11` —, dans le **même** paragraphe de `stack.md`. Deux griefs réels, deux remèdes.
+- **Une contradiction apparente peut n'être qu'un désaccord d'unité.** « v13 » et « Astro 6 »
+  nommaient le même jour ; ce n'était pas une correction tue mais une date de sortie mise à la
+  place d'une date d'annonce. **Troisième fois que mesurer un fait juste invalide les preuves
+  écrites à son appui** — vérifier avant de citer, même ce qu'on a soi-même mesuré la veille.
+- **Pour `S-11`** : restent R2 marqué `[À VÉRIFIER]`, Turnstile officiel mais `[INCERTAIN]` sur la
+  ventilation par mode, Cron Triggers tenus d'une source unique tierce. Son quatrième écart est
+  rendu.
 
 ## Prochaine étape
 
-**Rendre le fait 4 de `S-10`** — l'écart Astro : la stack dit adaptateur v13 au 10/03/2026 quand
-son propre rapport date la rupture de « Astro 6, déc. 2025 », à
-`docs/research/2026-08-10-pages-ou-workers-static-assets.md:27`. J'allais le traiter en sachant
-qu'il est **aussi** le quatrième écart de `S-11`, donc que l'arbitrage doit dire lequel des deux
-constats le porte plutôt que de l'écrire deux fois. Puis la ligne de `S-10` au récapitulatif,
-cinquième grief compris, puis `S-11`.
+**Arbitrer le cinquième grief de `S-10`** — les mesures du 11/08 vivent sur un dépôt jetable
+externe, sans transcript versionné, et ça vaut encore pour quatre lignes du tableau du jeton
+d'écriture. J'allais le poser en sachant qu'aucune citation ne le comble : soit on rejoue les
+mesures pour verser la trace, soit on rétrograde ces quatre lignes. Puis la ligne de `S-10` au
+récapitulatif, les cinq griefs d'un coup, puis `S-11`.
 
 ## Écarté
 
@@ -76,3 +83,7 @@ cinquième grief compris, puis `S-11`.
   le jeton intouché pendant un an ; les six points de la recette se lèvent, eux, d'un appel.
 - **Marquer non sourcé un fait dont la source vient d'être lue** — le candidat ADR n° 5 perdrait le
   motif du Cron de maintien en vie, et `FR-101` sa seule parade écrite.
+- **Corriger la fiche archivée du 10/08** dont le `peerDeps` v13 est celui de la 13.7.0 — une fiche
+  archivée ne se récrit pas ; c'est le relevé du 12/08 qui porte la valeur exacte.
+- **Garder trois preuves faibles en les rendant exactes** (README « à partir de la 13.1.3 », « pas
+  d'occurrence de *Cloudflare Pages* ») — allonge la ligne sans mieux établir l'écartement.
