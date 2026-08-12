@@ -779,11 +779,31 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    que pour l'adresse autorisée, et que le chemin qui envoie un message n'a aucune raison de
    répondre dans le même délai que celui qui n'en envoie pas ; l'exigence a été rédigée à
    nouveau et bornée, et c'est elle qui doit être tenue, non une propriété supposée acquise.
-   Alternatives écartées : **Better Auth 1.6.26** — 3,2 Mo dépaquetés, 17 dépendances et 19
-   pairs pour six piles de base de données dont une seule sert, sous un plafond de Worker de
-   3 Mo gzip, et `FR-005`, `FR-008` et le moyen de reprise (`FR-009` à `FR-012`) resteraient
-   à écrire par-dessus ; **Cloudflare Access one-time PIN** — son palier gratuit n'a **aucune
-   source primaire**, donc invérifiable face à `I5` et `FR-103`, et l'éditrice se
+   Alternatives écartées : **Better Auth 1.6.26** — **17 dépendances et 19 pairs**, dont six
+   piles de base de données pour une seule qui sert (cinq adaptateurs plus `kysely` en
+   dépendances, sept pilotes de base en pairs) ; l'éditeur **ne publie aucun point d'entrée
+   Cloudflare ni D1** — huit cibles de framework sur cinquante-six exports, pas une pour la
+   plateforme retenue —, si bien que le branchement de la seule porte du CMS passerait par un
+   **dialecte tiers**, `kysely-d1@0.4.0`, écrit ni par Better Auth ni par Cloudflare ; le
+   paquet **exige `nodejs_compat`**, important `node:crypto` ; son installation ajoute
+   **22 paquets** et sa version bouge à la semaine (`1.6.26` le 04/08/2026, `1.6.27` le
+   11/08/2026), sur le chemin d'accès unique à l'administration ; et le **moyen de reprise**
+   (`FR-009` à `FR-012`) resterait entièrement à écrire par-dessus, ses codes de secours
+   naissant dans une session déjà ouverte quand le glossaire exige un secret **remis** à la
+   livraison, `FR-008` restant à écrire des deux côtés. **L'argument de poids qui portait cet
+   écarté est retiré le 2026-08-12 par le traitement de `S-10`, et c'est une mesure qui le
+   retire** : « 3,2 Mo dépaquetés » ne se rejoue
+   sur aucune grandeur — le registre donne 2,07 Mo pour cette version —, et surtout ce n'était
+   pas l'unité du plafond invoqué, qui porte sur le paquet déployé **gzippé** ; un Worker réel
+   important `betterAuth` et son plugin de code à usage unique pèse **0,19 Mo gzip, soit 6,1 %
+   des 3 Mio** du plan gratuit. Ce que ce même relevé a montré des quatre mécanismes de
+   `S-05` est également porté ici : `otpLength`, `expiresIn`, `allowedAttempts`, `storeOTP`,
+   le préfixe `__Host-`, `originCheck` et les sessions opaques en table existent tous dans le
+   paquet — **la surface restant à écrire par-dessus est donc bien plus étroite qu'annoncé**,
+   et l'écarté ne tient plus que sur les motifs d'intégration et d'approvisionnement ci-dessus.
+   Relevé versé : [`research/2026-08-12-better-auth-poids.md`](./research/2026-08-12-better-auth-poids.md)
+   + trace brute rejouable ; **Cloudflare Access one-time PIN** — son palier gratuit n'a
+   **aucune source primaire**, donc invérifiable face à `I5` et `FR-103`, et l'éditrice se
    connecterait à une couche d'identité tierce, ce que `FR-004` et `SC-006` interdisent.
    **Complété le 2026-08-11 par le traitement de `S-05`, qui reprochait à cette décision de ne
    décrire que la connexion nominale.** Quatre mécanismes la composent désormais, et chacun
