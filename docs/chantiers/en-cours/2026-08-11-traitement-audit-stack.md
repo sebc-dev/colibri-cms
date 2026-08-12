@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-12 · branche `work/reprise-socle-v2` · HEAD `9d6d103`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-12 · branche `work/reprise-socle-v2` · HEAD `936e804`
 
 ## Objectif
 
@@ -13,50 +13,52 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 à extraire  `docs/audit-stack.md` › § « Récapitulatif — arbitrages rendus », puis le seul
             § `S-nn` en cours — 414 l., pas une ligne de plus
 à extraire  `docs/stack.md` › § « Décisions structurantes → candidats ADR » et la seule ligne
-            de tableau nommée par le constat en cours — 1053 l. ; jamais en entier
+            de tableau nommée par le constat en cours — 1089 l. ; jamais en entier
 à extraire  `docs/socle-de-livraison.md` › Annexe A et ses réserves — 411 l. ; c'est là que les
             chiffres de plateforme sont relevés, datés et bornés
 à extraire  `docs/prd.md` › les seuls `FR`/`SC` nommés par le constat en cours — 838 l.
 à extraire  `docs/chantiers/archive/2026-08-10-phase-stack-faits-a-sourcer.md` › § « Écarté »
-            — 231 l. ; il porte les sources déjà rejetées et le motif de chacune, que L5 recroise
-à déléguer  `docs/research/` — 1677 l. sur 11 fichiers ; demander quel rapport, à quelle ligne
-            et sur quelle source porte le fait que le constat en cours dit non sourcé
-à situer    `docs/audit-brief-prd.md` et `docs/audit-auth.md` — clos tous les deux, leurs
-            arbitrages consommés ; ne pas relire
+            — 231 l. ; les sources déjà rejetées et le motif de chacune, que L5 recroise
+à situer    les deux relevés versés le 12/08 dans `docs/research/` — leurs conclusions sont
+            déjà portées dans `stack.md` ; ne pas les relire pour arbitrer
+à situer    `docs/audit-brief-prd.md` et `docs/audit-auth.md` — clos, arbitrages consommés
 
 ## Acquis
 
 - **Méthode calquée sur `audit-brief-prd`** : chaque constat arbitré par l'humain ; les constats
   restent **figés**, seul le récapitulatif est à jour, et un arbitrage **complète** une ligne
   antérieure par un ajout daté sans la défaire. Ce qui est arbitré **ne se relit pas**.
-- **Découpage par dépendance, non dans l'ordre du document** : L1 (S-04) · L2 (S-03, S-07, S-08) ·
-  L3 (S-09, S-06) · **L4 (S-05, S-02, S-01) fermé le 12/08** · L5 (S-10, S-11, S-18, S-19) ·
+- **Découpage par dépendance** : L1 (S-04) · L2 (S-03, S-07, S-08) · L3 (S-09, S-06) ·
+  L4 (S-05, S-02, S-01) fermé · **L5 (S-10, S-11, S-18, S-19) ouvert le 12/08** ·
   L6 (S-13, S-15, S-17) · L7 (S-14, S-16, S-20 ; S-12 arbitré ici, exécuté par `premortem socle`).
-- **Une annonce laissée par un lot antérieur peut être fausse — la vérifier avant de s'y appuyer.**
-  Trois cas en deux jours, tous venus de `S-05` : il annonçait des secrets ajoutés par `S-02` et
-  `S-06`, aucun des deux n'en a apporté ; et le retrait de clé de signature qu'il renvoyait au
-  socle était sans objet, elle n'y avait jamais figuré. Un renvoi se ferme parfois sans rien écrire.
-- **Un texte de vérification couvre parfois moins que la contrainte qu'il porte** : la ligne `C7`
-  de la recette ne parlait que de secrets quand `C7` et `SC-013` disent « secrets **et liaisons** »
-  — c'est ce qui laissait la connexion Workers Builds↔GitHub sans propriétaire écrit (`S-01`).
-- **Doctrine de porteur, héritée d'`AU-10` et rejouée par `S-02`** : une promesse de
-  **comportement** prend une exigence au PRD, une **propriété statique** lisible dans les sources
-  prend un contrôle bloquant de `ci`. Elle évite d'inventer un `FR` pour tout.
-- **Une piste écrite au constat n'oblige à rien** : `S-02` a été refermé contre la sienne, après
-  mesure — elle ajoutait un secret et une rotation que personne n'aurait tenue.
-- **Pour `S-11`** (dépouillement du 11/08) : R2 marqué `[À VÉRIFIER]` sur l'exigence de carte ;
-  Turnstile officiel ; Cron Triggers tenus d'une **source unique tierce** ; les rapports ne parlent
-  que d'**Astro 6** quand `stack.md` retient Astro 7 et date le retrait de Pages de la **v13,
-  10/03/2026** — écart à trancher, et c'est le même que le quatrième fait de `S-10`. Et
-  `docs/research/` porte les quotas de la plateforme, jamais ses limites de forme.
+- **Une annonce laissée par un lot antérieur peut être fausse — la vérifier avant de s'y
+  appuyer.** Trois cas venus de `S-05`, tous refermés sans avoir rien à écrire.
+- **Un fait « non sourcé » se referme souvent en le mesurant, pas en le cherchant.** Les deux
+  premiers faits de `S-10` ont été rendus par relevé npm et paquet réellement bâti sur cette
+  machine, versés avec transcript rejouable — c'est la forme qui satisfait « la vérification doit
+  laisser une trace citable », que la fiche du 10/08 opposait au sourçage maison.
+- **Un chiffre est parfois faux d'unité avant d'être faux de valeur** : « 3,2 Mo dépaquetés »
+  invoqué sous un plafond **gzip**. Remis dans la bonne unité, il s'inversait. J'ai donc retiré
+  l'argument **et écrit ce qui le remplace** — sans quoi l'audit repose la question au même
+  endroit, ce que l'humain a d'ailleurs fait à voix haute avant que ce soit écrit.
+- **Un numéro de correctif n'a pas sa place dans un document immuable** : `0.21.0` → `0.21.2` en
+  moins de 48 h, la version courante ayant changé pendant la mesure elle-même.
+- **Les faits 3 et 4 de `S-10` ont déjà leur porteur dans `docs/research/`, trouvé par
+  délégation** : le jeton GitHub n'en a qu'un, `2026-08-10-api-github-commit-atomique.md:149-151`,
+  où l'auteur du rapport l'a lui-même marqué « Lookup à jouer » ; l'écart Astro est
+  `2026-08-10-pages-ou-workers-static-assets.md:27`, qui date le retrait de Pages de **déc. 2025
+  avec Astro 6** quand la stack dit v13 au 10/03/2026.
+- **Pour `S-11`** : R2 marqué `[À VÉRIFIER]`, Turnstile officiel, Cron Triggers tenus d'une source
+  unique tierce ; son quatrième écart **est** le fait 4 de `S-10` — les deux se rendent d'affilée.
 
 ## Prochaine étape
 
-**Ouvrir L5 par `S-10`** — les quatre faits que la méthode annoncée dit sourcés et qui ne le sont
-nulle part : Better Auth, vitest, « GitHub retire un jeton resté un an sans usage », Astro v13.
-J'allais instruire par délégation sur `docs/research/`, fait par fait, puis trancher pour chacun
-entre le **sourcer**, le **marquer** non sourcé, ou le **renvoyer en recette**. Le quatrième est le
-même écart que le dépouillement de `S-11` a relevé : les deux se rendent d'affilée, `S-10` d'abord.
+**Rendre le fait 3 de `S-10`** — la phrase GitHub « removes personal access tokens… », étiquetée
+« [officiel · rapporté] » sans emplacement citable. J'allais le traiter en sachant qu'il est d'une
+autre nature que les deux premiers : rien ne se mesure sur cette machine, c'est une politique de
+plateforme, et la fiche du 10/08 a écarté de sourcer soi-même un fait de plateforme pour trancher.
+Les trois issues — sourcer, marquer non sourcé, renvoyer en recette — s'y affrontent vraiment.
+Puis le fait 4, puis la ligne de `S-10` au récapitulatif, puis `S-11`.
 
 ## Écarté
 
@@ -65,6 +67,9 @@ même écart que le dépouillement de `S-11` a relevé : les deux se rendent d'a
 - **Réécrire les constats à mesure** — un constat d'audit est daté ; seul le récapitulatif bouge.
 - **Ouvrir une feature** (`kickoff-feature`) — aucun de ces constats ne descend en code.
 - **Trancher `S-04` par recherche** — la phase stack a déjà établi que ce plafond se mesure.
-- **Sourcer soi-même un fait de plateforme pour trancher** — ça se constate en recette (`S-09`,
-  puis `S-02` sur le recyclage d'un objet, puis `S-01` sur le compte qui porte la connexion de
-  build entre Cloudflare et GitHub).
+- **Sourcer soi-même un fait de plateforme pour trancher** — ça se constate en recette.
+- **Rouvrir le choix Better Auth** — arbitré le 12/08, la question ayant été posée : la mesure
+  retire l'argument de poids, pas la décision ; rouvrir ferait relire les quatre mécanismes de
+  `S-05` et le candidat ADR n° 16, pour un gain qui restait à démontrer.
+- **Épingler un numéro de correctif dans un candidat ADR** — c'est fabriquer le défaut que
+  `S-10` relève.
