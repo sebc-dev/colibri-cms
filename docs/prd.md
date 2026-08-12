@@ -46,7 +46,7 @@ quand même son administration.
      **Then** une session d'administration s'ouvre.
   2. **Given** `inconnu@example.com` n'est pas l'adresse autorisée, **When** elle est saisie
      sur l'écran de connexion, **Then** aucune session ne s'ouvre, **aucun message ne part
-     vers cette adresse**, et rien ne révèle quelle adresse est autorisée.
+     vers cette adresse**, et **la réponse est la même que pour l'adresse autorisée**.
   3. **Given** la boîte e-mail de l'éditrice est devenue inaccessible, **When** elle présente
      le moyen de reprise remis à la livraison, **Then** une session d'administration s'ouvre
      sans qu'aucun message ait été envoyé.
@@ -349,8 +349,9 @@ l'intégrateur.
   preuve de maîtrise envoyés à l'adresse autorisée.
 - **FR-007** : Le système DOIT rejeter les tentatives d'ouverture de session émises depuis
   une même origine au-delà d'un seuil de fréquence.
-- **FR-008** : Aucune réponse de l'écran de connexion NE DOIT permettre de distinguer
-  l'adresse autorisée d'une adresse qui ne l'est pas.
+- **FR-008** : L'écran de connexion DOIT rendre la même réponse à toute adresse saisie,
+  qu'elle soit ou non l'adresse autorisée ; ni le texte de cette réponse, ni son délai,
+  NE DOIVENT dépendre de l'envoi effectif d'un message.
 - **FR-009** : Le système DOIT remettre un moyen de reprise à la livraison de l'instance.
 - **FR-010** : Le système DOIT ouvrir une session d'administration sur présentation du moyen
   de reprise, sans envoi d'aucun message.
@@ -727,6 +728,14 @@ lacunes ; chacune est réversible quand un client réel la demandera.
 - **Seconde adresse d'administration.** L'adresse autorisée est unique et se remplace ; il
   n'existe ni adresse de secours, ni récupération par un tiers. La reprise en cas de perte de
   la boîte passe par le moyen de reprise (`FR-009` à `FR-012`).
+- **Secret de l'adresse autorisée.** `FR-008` rend l'écran de connexion muet sur une
+  soumission — même réponse, même délai, indépendants de l'envoi — et ferme ainsi
+  l'énumération par balayage. Elle ne promet rien au-delà : le plafond de `FR-006`, une fois
+  atteint, a le droit de se manifester, et le produit ne traite pas l'adresse autorisée comme
+  un secret — répondre à une demande la fait connaître de son auteur. Fermer ce résidu
+  supposerait soit de taire à l'éditrice qu'aucun message n'est parti, soit de compter les
+  sollicitations adresse par adresse ; ni l'un ni l'autre ne se paie pour une adresse que la
+  cliente publie elle-même.
 - **Révocation d'un accès en cours.** Le produit n'offre aucun moyen de fermer une session
   ouverte ailleurs ni de constater les accès en cours. La fermeture de toute session au
   remplacement du moyen de reprise (`FR-012`) et l'expiration d'une session par le temps
