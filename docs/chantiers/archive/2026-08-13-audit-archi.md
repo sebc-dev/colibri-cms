@@ -58,3 +58,21 @@ l'appariement fera le reste.
   partition en quatre lieux appartient à `docs/stack.md:51`, qui en est la source unique ; la
   recopier ici créerait deux vérités à maintenir en phase — le défaut même que les passes 4 et 5 ont
   corrigé deux fois. Le renvoi est délibéré.
+
+## Issue
+
+**Fermée le 2026-08-13 sans que le lot A soit appliqué** — `docs/archi.md:103` range toujours la
+clé **publique** Turnstile dans `instance.json`. Le Critical n'est pas résolu : il **change de
+porteur**.
+
+Le Major du lot C a été instruit le jour même par `/scd-sdd:audit stack`, qui en a fait un
+**Critical de la Stack** (fiche `2026-08-13-audit-stack.md`) : le widget naît dans le compte de
+chaque cliente, donc la clé publique **est** une valeur d'instance — aucun des quatre lieux de
+`docs/stack.md:51` ne l'accueille, et les cinq valeurs du candidat n° 20 ne la comptent pas.
+L'amont dit désormais l'inverse de ce que le lot A prescrivait : retirer la clé d'`I8` serait
+corriger d'après une source qu'on sait fausse, et la remettre dès que la Stack lui aura donné son
+lieu — une sixième passe consécutive sur `I8`.
+
+`I8` se corrigera donc **après** la Stack, en une passe, dans le sillage de
+`/scd-sdd:resume audit-stack`, puis d'un `/scd-sdd:audit archi` de contrôle. Rien d'autre n'est en
+attente ici : les deux Major arbitrés ci-dessus restent assumés tels quels.
