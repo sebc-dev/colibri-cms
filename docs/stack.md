@@ -34,7 +34,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | Forge et écriture de la publication | GitHub ; API REST *git data* — **contenu textuel inliné** dans les entrées de `POST /git/trees`, **médias déposés par `POST /git/blobs` en base64** — puis `PATCH /git/refs` en `force: false`, avance rapide obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le verrou et calculé depuis D1. Jeton à portée fine, sans expiration, permission `Contents: Read and write` **seule** | FR-086, FR-089, FR-091 | |
 | Déclenchement du build | Workers Builds surveille la branche `main` **seule** ; le build récupère `media` pendant son exécution | FR-089, FR-107, SC-011 | |
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin **hebdomadaire** — la cadence *est* la parade : le Cron du palier gratuit n'a **pas de retry**, un appel sauté n'est jamais réémis, et 52 passages par an laissent la marge que la fenêtre glissante d'un an de GitHub absorbe | FR-101, SC-012 | |
-| Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature**, expirant à **sept jours d'inactivité et trente jours d'âge** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, FR-118, FR-120 à FR-122, SC-006, SC-021 | |
+| Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature**, expirant à **sept jours d'inactivité et trente jours d'âge** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, FR-082, FR-118, FR-120 à FR-122, SC-006, SC-021 | |
 | Moyen de reprise | Code de **128 bits** — 26 caractères base32, groupés pour la recopie — **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** ; **aucun frein par secret**, l'entropie seule rend la devinette sans objet, en ligne comme sur fuite de la base — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
 | Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence dans un Durable Object **unique**, qui porte une **table d'origines** — jamais un objet par visiteur. Chaque origine y entre sous une empreinte **HMAC, sous une clé tirée au hasard par le produit pour la seule fenêtre de comptage en cours** ; clé et entrées **effacées ensemble** à la fin de la fenêtre | FR-007, FR-062 | |
@@ -45,6 +45,7 @@ La forme de la solution — style macro et micro, invariants — est dans `docs/
 | En-têtes de réponse | **Deux porteurs, imposés par la plateforme** : un fichier `_headers` pour les pages publiques, servies en assets statiques ; les mêmes en-têtes posés **dans le code** pour l'administration, l'aperçu et les médias servis depuis D1, **dont une CSP stricte propre à l'administration** — seule parade qui subsiste au XSS same-origin tant que l'origine reste commune | FR-082, FR-095, FR-096 | |
 | Pipeline d'images | `image.layout: 'constrained'`, `image.breakpoints: [640, 960, 1280]`, `<Image>` à un seul format | SC-005, SC-001 (par `C5`) | |
 | Accès aux données | API D1 native, migrations `wrangler d1 migrations` | FR-105, FR-106, SC-008 | |
+| Configuration d'instance | **Quatre lieux, un par nature de valeur.** Les **liaisons de plateforme** — rattachement D1, `send_email`, Durable Object, Cron — dans la configuration du déploiement, seul endroit possible : un rattachement ne peut pas vivre dans la base qu'il ouvre. Les **secrets** dans le compte Cloudflare de la cliente, comme la clé Turnstile. Ce qui doit **changer sans redéploiement** — l'adresse autorisée — en D1. Tout le reste, **domaine compris**, dans un **fichier d'instance unique et versionné** qu'aucune montée de version ne touche : `C6` exige qu'un clone nu, sans D1 ni accès Cloudflare, trouve le domaine dans les fichiers. **Aucun secret n'y entre** — le dépôt est ouvert à l'intégrateur comme collaborateur | FR-104, FR-105, SC-008 | |
 | Tests | Vitest dans `workerd` via `@cloudflare/vitest-pool-workers`, Playwright pour les parcours, épreuve de réversibilité scriptée | (tous) ; SC-003, SC-009, SC-011, SC-016 | |
 | Détection de panne d'acheminement | État d'acheminement porté par chaque demande et affiché dans la liste | **— exigence à créer**, voir ci-dessous | |
 
@@ -382,8 +383,9 @@ instantanée, au même dossier.
 
 ### `FR-013` et `FR-014` n'ont aucun porteur, et c'est délibéré
 
-La ligne Auth ne couvre plus que `FR-001` à `FR-008`, et le moyen de reprise `FR-009` à
-`FR-012`. Le remplacement de l'adresse autorisée reste **sans choix technique**, parce qu'il est
+Des exigences de connexion, la ligne Auth ne couvre plus que `FR-001` à `FR-008` — auxquelles
+`S-13` a joint `FR-082`, l'aperçu vivant sous la même session —, et le moyen de reprise a la
+sienne, `FR-009` à `FR-012`. Le remplacement de l'adresse autorisée reste **sans choix technique**, parce qu'il est
 aujourd'hui **impossible à honorer**, pour deux raisons indépendantes.
 
 1. **`FR-005` verrouille `FR-014`.** Prouver la maîtrise d'une adresse candidate suppose de lui
@@ -410,6 +412,35 @@ Les autres issues — épingler la destination des demandes à l'adresse de livr
 remplacement hors produit, ou renvoyer `FR-013` à la reprise sur pièces de `SC-014` — **amendent
 toutes le PRD**. Aucune n'est du ressort de cette phase. En attendant, la Stack refuse de porter
 `FR-013` et `FR-014` plutôt que de laisser le niveau specs en inventer une.
+
+### Quatre exigences descendent en specs sans choix de fondation
+
+Le tableau n'a pas à porter tout ce qui est exigé — seulement ce qui demande un choix que specs
+ne peut pas faire seul. Ces quatre-là n'en demandent pas, et le dire ici évite qu'elles soient
+rouvertes en aval faute de trace. Une seule emporte une décision, et cette décision revient à
+une ligne qui existe déjà.
+
+- **`FR-029` — recherche d'images.** `FTS5` n'a pas à être instruit : le plafond du produit est
+  d'environ **4 000 photographies**, chiffré par `C5` et la configuration d'images retenue. Une
+  recherche par `LIKE` sur cette échelle ne se discute pas. À toutes fins utiles, la
+  disponibilité de `FTS5` sur D1 n'est **pas** un point ouvert — c'est la page SQL de D1 qui
+  l'énumère, et c'est cette énumération qui sert d'argument au point 1 de « À constater en
+  recette », lequel porte sur `DELETE … RETURNING` et sur rien d'autre.
+- **`FR-039` et `SC-018` — la description d'une image jusqu'au rendu.** La donnée est acquise en
+  amont : `FR-108` fait porter à chaque média déposé « son identité, son nom d'origine, ses
+  dimensions et sa description ». Servir cette description avec l'image est un contrat de rendu
+  sur une donnée qui est déjà dans les fichiers.
+- **`FR-069` à `FR-074` et `SC-019` — l'écran des demandes.** `S-15` a établi que `FR-078` —
+  continuer de compter une demande retirée après effacement de son contenu — est le seul des
+  quatre compteurs qui contraigne le magasin, et il est porté par la ligne « Base de données ».
+  Tri, filtre, suite donnée, retrait groupé et ventilation par formulaire sont du comportement
+  sur un magasin déjà choisi. Le texte qu'ils affichent, lui, est la **quatrième porte**, traitée
+  plus haut.
+- **`FR-022` — vidéo par lien externe, la seule qui emporte une décision.** Le coût Lighthouse
+  face à `SC-005` se mesure en specs. Mais un lecteur tiers encadré dans une page publique force
+  une ouverture de `frame-src`, et la politique de sécurité de contenu est décidée par la ligne
+  « En-têtes de réponse ». La décision attendue se nomme : **quelle liste d'hôtes est admise en
+  `frame-src`, et sur quelles pages**. Elle appartient à cette ligne, pas à une ligne de plus.
 
 ### Une seule ligne d'état porte le verrou, son bail et l'issue
 
@@ -618,6 +649,19 @@ year » est une fenêtre glissante, mais la documentation n'écrit nulle part qu
   une clé propre à la fenêtre ; clé et entrées s'effacent ensemble. Trois manières de le
   casser, toutes lisibles dans les sources : un objet nommé d'après une origine, une entrée
   qui franchit sa fenêtre, une clé qui ne change pas d'une fenêtre à l'autre.
+- **Toute route qui ne sert pas une page publiée exige une session valide.** `FR-082` réserve
+  l'aperçu à une session ouverte, et l'aperçu est la seule route serveur qui rend du contenu non
+  publié. Le cookie est déjà posé sans restriction de `Path` **pour cette raison** — candidat
+  n° 6 —, mais rien ne dit encore quelles routes vérifient la session. L'invariant se lit dans
+  les sources : une route hors des pages publiées sans contrôle de session le casse.
+- **Aucune route publique n'accepte de corps `multipart`.** `FR-061` interdit tout fichier
+  téléversé par un visiteur. Le document l'invoquait jusqu'ici comme un fait acquis — « le
+  visiteur n'écrit que ses coordonnées, sans fichier » —, ce qui décrit l'intention sans la
+  tenir : un refus ne se tient qu'en interdisant. Falsifiable dans les sources.
+- **Hors le fichier d'instance et le contenu, deux instances ont le même dépôt.** C'est la forme
+  vérifiable de `SC-008` (« sans modification de code spécifique à ce client ») : le diff entre
+  les dépôts de deux clientes doit être vide partout ailleurs. Sans cet invariant, la divergence
+  ne se découvre qu'à une montée de version, en production.
 
 ### Vérification mécanique obligatoire
 
@@ -1221,6 +1265,36 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     en réserve 3 de l'Annexe A, et c'est `archi` qui tranchera la bifurcation, le chiffre en main.
     La valeur des 5 fichiers, elle, se mesure au premier déploiement et se reporte en Annexe A.
 
+20. **Configuration d'instance : quatre lieux, un par nature de valeur, et un fichier d'instance
+    unique pour le reste.** Cinq valeurs distinguent une instance d'une autre — le domaine,
+    l'identifiant de la base D1, l'adresse autorisée, la destination d'acheminement vérifiée, la
+    clé de vérification Turnstile — et le dépôt de chaque cliente porte le **code** autant que le
+    contenu (topologie du §3 du socle). Monter une version est donc une fusion dans son dépôt :
+    si ses valeurs sont éparpillées dans les fichiers du produit, `SC-008` — « sans modification
+    de code spécifique à ce client » — tombe à la deuxième instance. **Trois des quatre lieux
+    sont imposés et n'ont pas été arbitrés ici** : les liaisons de plateforme dans la
+    configuration du déploiement, par amorçage — un rattachement ne peut pas vivre dans la base
+    qu'il ouvre —, et `C7` les fait déjà inventorier à la recette ; les secrets dans le compte de
+    la cliente, forme retenue par `S-01` pour la clé Turnstile ; l'adresse autorisée en D1, parce
+    que le § « `FR-013` et `FR-014` n'ont aucun porteur » montre que son remplacement est
+    aujourd'hui impossible à honorer et que les seules issues futures passent par un geste depuis
+    l'administration — la figer en configuration de déploiement fermerait cette porte
+    définitivement. **Le quatrième est le seul choix rendu** : un fichier d'instance unique et
+    versionné, hors du code, jamais touché par une montée de version. Il est imposé par `C6`, qui
+    exige un build « depuis les fichiers plats, sans D1 et sans accès Cloudflare » : un clone nu
+    a besoin du domaine pour ses URL canoniques et son sitemap, donc le domaine doit se trouver
+    dans les fichiers. Ce que le choix achète : `SC-008` cesse d'être une intention et devient un
+    diff, d'où l'invariant versé à `archi`. Ce qu'il coûte : **aucun secret n'a le droit d'entrer
+    dans ce fichier**, le dépôt étant ouvert à l'intégrateur comme collaborateur — contrainte
+    écrite, et non espérée. Alternative écartée : **répartir chaque valeur là où son outil
+    l'attend** — le domaine dans la configuration Astro, le rattachement D1 dans celle du Worker.
+    C'est la pente naturelle des outils, et elle ne laisse aucune frontière vérifiable entre les
+    fichiers du produit et ceux de la cliente. **Réserve — la forme exacte reste à `archi`** :
+    nom, format et mécanisme de lecture du fichier par les deux configurations qui en dépendent
+    ne sont pas tranchés ici, et l'injection par variables de build de Workers Builds n'a pas été
+    instruite, faute d'un fait de plateforme constaté. Ce qui est décidé, c'est **un fichier
+    unique et versionné plutôt qu'une dispersion**, pas sa syntaxe.
+
 ## Ce que cette phase dépose sur les autres documents
 
 - **`docs/socle-de-livraison.md`** : §3, `C6`, Annexe A et réserve 1 amendés le 2026-08-10
@@ -1233,6 +1307,15 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 - **`C4` reste à corriger au socle** : sa vérification (« dix enregistrements en deux minutes
   → un seul déploiement ») teste une architecture où enregistrer commite, ce qui n'est pas
   celle-ci. Dette portée par le traitement de `S-14`.
+- **Le contenu du dossier d'instance reste à vérifier au socle** : le §7 coche le dossier
+  déposé chez la cliente (`FR-110`), l'emplacement du moyen de reprise (`FR-112`) et le
+  réamorçage documenté (`FR-119`), mais **rien de ce que le dossier doit contenir** — le
+  recensement des comptes et du nom au titre duquel chacun est ouvert (`FR-111`), ceux dont la
+  récupération pend à la boîte e-mail de l'éditrice (`FR-113`), et les trois procédures :
+  redéploiement (`FR-114`), publication (`FR-115`), reconstruction (`FR-116`). Aucun choix
+  technique n'est en jeu — un dossier d'instance est un livrable de livraison, pas une
+  fondation. Dette relevée le 2026-08-13 par le traitement de `S-13`, **portée par celui de
+  `S-14`**, qui traite les dettes déjà déposées sur le socle.
 - **La recette de livraison** (§7 du socle) gagne trois lignes que cette phase impose :
   le jeton d'écriture créé **sans expiration** et portant `Contents: Read and write` seule,
   le jeton de lecture de `media` en `Contents: Read-only`, et le Cron de maintien en vie
