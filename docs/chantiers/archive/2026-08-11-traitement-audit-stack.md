@@ -70,3 +70,20 @@ socle`**, à qui la phase dépose déjà cinq dettes. Il ferme `L7` et l'audit.
 - **Compter ou dater, dans un préambule, ce qui bouge** — écarté en `S-16` ; assumé à l'inverse
   pour le `Statut`, où le coût d'entretien est payé sciemment.
 - **Les écartés propres à chaque constat** sont dans leur ligne du récapitulatif, avec leur motif.
+
+## Issue
+
+**Les vingt constats sont arbitrés ; `L7` et l'audit sont clos.** Chacun porte sa ligne au
+récapitulatif de `docs/audit-stack.md`, seul endroit à jour du document, dans l'ordre où il a
+été traité. Le `Statut` de l'audit passe à « traité », celui de `docs/stack.md` à `accepted`
+sec — la réserve posée par `S-16` est consommée, comme elle l'annonçait.
+
+Dernier arbitrage, `S-12` (commit `52cb231`) : confirmé, mais sur un périmètre trois fois plus
+étroit que sa rédaction — l'état publié, les demandes et `FR-106` avaient déjà leur porteur —
+et élargi sur un objet qu'il ne nommait pas, les médias en brouillon. Portés dans la stack :
+réserve marquée au candidat ADR n° 3, renvoi jusqu'à la ligne « Base de données », point 8 de
+« À constater en recette ».
+
+**Ce qui sort d'ici et attend ailleurs** : **six** dettes au dossier de `/scd-sdd:premortem
+socle`, toutes sur `docs/prd.md`, et **huit** points à constater en recette, dont un bloquant
+avant mise en ligne. La stack peut descendre en `archi` puis en `adr`.
