@@ -19,8 +19,8 @@
 
 ColibriCMS est un CMS déployé en une instance par site, servant un site statique et une
 administration depuis un même Worker Cloudflare, dans les comptes du client.
-La forme de la solution — style macro et micro, invariants — sera arrêtée en phase 4, dans
-`docs/archi.md`, qui n'est pas encore écrit.
+La forme de la solution — style macro et micro, invariants — est dans `docs/archi.md`
+(phase 4).
 
 ## Choix retenus
 
@@ -48,7 +48,7 @@ La forme de la solution — style macro et micro, invariants — sera arrêtée 
 | En-têtes de réponse | **Deux porteurs, imposés par la plateforme** : un fichier `_headers` pour les pages publiques, servies en assets statiques ; les mêmes en-têtes posés **dans le code** pour l'administration, l'aperçu et les médias servis depuis D1, **dont une CSP stricte propre à l'administration** — seule parade qui subsiste au XSS same-origin tant que l'origine reste commune | FR-082, FR-095, FR-096 | |
 | Pipeline d'images | `image.layout: 'constrained'`, `image.breakpoints: [640, 960, 1280]`, `<Image>` à un seul format | SC-005, SC-001 (par `C5`) | |
 | Accès aux données | API D1 native, migrations `wrangler d1 migrations` | FR-105, FR-106, SC-008 | |
-| Configuration d'instance | **Quatre lieux, un par nature de valeur.** Les **liaisons de plateforme** — rattachement D1, `send_email`, Durable Object, Cron — dans la configuration du déploiement, seul endroit possible : un rattachement ne peut pas vivre dans la base qu'il ouvre. Les **secrets** dans le compte Cloudflare de la cliente, comme la clé Turnstile. Ce qui doit **changer sans redéploiement** — l'adresse autorisée — en D1. Tout le reste, **domaine compris**, dans un **fichier d'instance unique et versionné** qu'aucune montée de version ne touche : `C6` exige qu'un clone nu, sans D1 ni accès Cloudflare, trouve le domaine dans les fichiers. **Aucun secret n'y entre** — le dépôt est ouvert à l'intégrateur comme collaborateur | FR-104, FR-105, SC-008 | |
+| Configuration d'instance | **Quatre lieux, un par nature de valeur.** Les **liaisons de plateforme** — rattachement D1, `send_email`, Durable Object, Cron — dans la configuration du déploiement, seul endroit possible : un rattachement ne peut pas vivre dans la base qu'il ouvre. Les **secrets** dans le compte Cloudflare de la cliente, comme la clé **de vérification** Turnstile. Ce qui doit **changer sans redéploiement** — l'adresse autorisée — en D1. Tout le reste, **domaine et clé publique Turnstile compris**, dans un **fichier d'instance unique et versionné** qu'aucune montée de version ne touche : `C6` exige qu'un clone nu, sans D1 ni accès Cloudflare, trouve dans les fichiers de quoi bâtir le site — le domaine pour ses URL canoniques, la clé publique pour le widget que porte toute page à formulaire. **Aucun secret n'y entre** — le dépôt est ouvert à l'intégrateur comme collaborateur, et la clé publique n'en est pas un : c'est le widget lui-même qui la publie au visiteur | FR-104, FR-105, SC-008 | |
 | Tests | Vitest dans `workerd` via `@cloudflare/vitest-pool-workers`, Playwright pour les parcours, épreuve de réversibilité scriptée | (tous) ; SC-003, SC-009, SC-011, SC-016 | |
 | Détection de panne d'acheminement | État d'acheminement porté par chaque demande et affiché dans la liste | **— exigence à créer**, voir ci-dessous | |
 
@@ -99,8 +99,9 @@ serveurs de noms sont gérés ailleurs. C'est une ligne de la recette de livrais
 
 Dépôt **additif** des médias sur la branche `media` → commit du contenu sur la branche
 principale. L'ordre est imposé : commit d'abord, marquage « publié » ensuite. Il en découle
-que **la sérialisation des publications est obligatoire** (cas limite du PRD, `prd.md:640`) :
-un compare-and-swap sur le dernier geste ne protège pas le premier.
+que **la sérialisation des publications est obligatoire** (cas limite du PRD, « Une publication
+est déclenchée alors qu'une précédente n'est pas terminée ») : un compare-and-swap sur le
+dernier geste ne protège pas le premier.
 
 **L'élagage des orphelins de `media` n'est pas un troisième temps : il ouvre la publication
 suivante.** Le faire après le build supposerait un signal de fin de build que rien ne
@@ -547,10 +548,19 @@ les refs récupérées. C'est un secret de plus à ouvrir sous `I4` et à invent
 Le plafond de 20 000 fichiers porte sur la **sortie du build**, jamais sur les sources du
 dépôt. Avec `constrained` + breakpoints `[640, 960, 1280]` + `<Image>` à un format, une
 photographie produit **5 fichiers** — soit un mur vers 4 000 photographies et l'alerte `C5`
-(15 000 fichiers) vers 3 000. Calcul dérivé de `astro@7.2.0`,
+(15 000 fichiers) vers 3 000. Calcul dérivé de `astro@7.2.1`,
 `package/dist/assets/layout.js` (`getWidths`) et `internal.js:121` (sélection de
 `LIMITED_RESOLUTIONS` dès que le service d'images est local). La valeur réelle se mesure au
 premier déploiement et se reporte en Annexe A (réserve 3).
+
+*Aligné sur `astro@7.2.1` le 2026-08-13 par l'audit de la stack, qui lisait ici `7.2.0` quand le
+candidat n° 1 opposait déjà `7.2.1` à la branche 5. **Le chiffre ne bouge pas, et c'est mesuré et
+non supposé** : les deux fichiers dont ce calcul dépend sont **identiques octet pour octet**
+entre les deux versions — `dist/assets/layout.js` `sha256:c1b9b456…76ebfd8b` et
+`dist/assets/internal.js` `sha256:c4e3b538…37074c3b` des deux côtés. [mesuré · rejouable en une
+commande] `npm pack astro@7.2.0 astro@7.2.1`, puis `sha256sum` sur les deux chemins. Le mur de
+4 000 et l'alerte à 3 000 tiennent donc tels quels ; ce qui reste à mesurer au premier
+déploiement est ce qui l'était déjà — le nombre réel de fichiers par photographie.*
 
 ### Données personnelles
 
@@ -601,7 +611,7 @@ jamais sa valeur (`FR-112`).
 |---|---|
 | Jeton d'écriture de la publication | Portée fine, dépôt unique, **sans expiration**, `Contents: Read and write` **seule** — mesurée le 2026-08-11 |
 | Jeton de lecture du *fetch* de `media` pendant le build | Portée fine, dépôt unique, `Contents: Read-only` — mesurée le 2026-08-11 |
-| **Clé de vérification Turnstile** | Le widget est créé dans le compte Cloudflare de la cliente ; sa clé **publique** vit dans la page, seule la clé de vérification est un secret, et elle ne sert qu'à l'appel serveur qui valide le jeton du visiteur — portée close par construction, rien à borner. Ajoutée le 2026-08-12 par le traitement de `S-01` |
+| **Clé de vérification Turnstile** | Le widget est créé dans le compte Cloudflare de la cliente ; sa clé **publique** est donc une valeur d'instance, **lue dans le fichier d'instance** (ligne « Configuration d'instance ») et rendue de là dans la page. Seule la clé de vérification est un secret, et elle ne sert qu'à l'appel serveur qui valide le jeton du visiteur — portée close par construction, rien à borner. Ajoutée le 2026-08-12 par le traitement de `S-01` ; **le lieu de la clé publique nommé le 2026-08-13**, cette ligne ne disant jusque-là que son *exposition* |
 
 *La **clé de signature des cookies de session** a été retirée de cet inventaire le 2026-08-11
 par le traitement de `S-05` : la session est opaque en D1, il n'y a plus rien à signer. Cet
@@ -1284,6 +1294,23 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     mécanisme que la plateforme fournit, déjà présent dans l'outil de déploiement retenu, et il
     n'ajoute ni dépendance sous le plafond de **3 Mo gzip** ni dialecte tiers sur le chemin
     d'accès à la seule base du produit — le motif même qui a fait écarter `kysely-d1` au n° 6.
+    Alternatives écartées : **Kysely** — il n'atteint D1 que par un dialecte **tiers**,
+    `kysely-d1@0.4.0`, écrit ni par Kysely ni par Cloudflare ; [officiel · cité] registre npm, lu
+    le 2026-08-13 : `kysely@0.29.5` n'expose **aucun** point d'entrée D1, et `kysely-d1` porte un
+    mainteneur unique, dépôt `aidenwallis/kysely-d1`. Le retenir retournerait contre le produit
+    l'argument qui a servi à écarter Better Auth au n° 6, et cette fois sur le chemin d'accès à la
+    **seule** base du produit. **Drizzle** — l'approvisionnement, lui, ne l'écarte pas : son pilote
+    D1 est de première main ([officiel · cité] même source, même date : `drizzle-orm@0.45.2` expose
+    `./d1`, `./d1/driver` et `./d1/session`). Il s'écarte sur les **migrations**, seule propriété
+    qui décide ici : Drizzle apporte les siennes — `./d1/migrator` et `drizzle-kit@0.31.10`, « CLI
+    migrator tool … automatically generate SQL migrations » —, donc un **second porteur** pour ce
+    dont `FR-106` et `SC-008` dépendent. Le mécanisme de la plateforme, déjà présent dans l'outil de
+    déploiement et rejoué à chaque déploiement, deviendrait un outil de plus à tenir en phase avec
+    `wrangler` **sur toute la flotte**, et le jour où les deux divergent la panne se manifeste au
+    pire endroit : une montée de version sur une instance en production (`FR-105`). Ce que les deux
+    achètent est réel — des requêtes typées, un schéma en un seul endroit —, mais TypeScript strict
+    en couvre une part, et une base unique à une poignée de tables ne fait pas de l'ergonomie de
+    requête un critère qui pèse contre la propriété que le produit ne peut pas perdre.
 
     *Réserve posée le 2026-08-12 par le traitement de `S-17` — la troisième des trois issues de
     `S-10`, **assumer marqué**. Cette ligne du tableau n'avait aucun candidat, et l'instruction a
@@ -1291,8 +1318,10 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     Kysely, ni aucune couche de requête ne figure nulle part dans ce document comme option pesée
     — `kysely-d1` n'y paraît qu'en **argument contre Better Auth**, jamais comme choix d'accès aux
     données du produit. Le motif ci-dessus est donc **reconstruit depuis les contraintes déjà
-    écrites**, non rendu par un arbitrage. `/scd-sdd:adr` ne doit pas fabriquer un « écarté » pour
-    cet ADR : il n'y en a pas eu.*
+    écrites**, non rendu par un arbitrage. **Réserve consommée le 2026-08-13 par l'audit de la
+    stack** : les deux alternatives sont pesées ci-dessus, sur des faits de registre datés, la
+    Stack étant le lieu de l'arbitrage et l'ADR celui de sa consignation. La consigne que cette
+    réserve portait — « `/scd-sdd:adr` ne doit pas fabriquer un “écarté” » — tombe avec elle.*
 
 19. **Pipeline d'images : les variantes sont produites au build, et leur nombre par photographie
     est ce qui chiffre `C5`.** `image.layout: 'constrained'`, breakpoints `[640, 960, 1280]`,
@@ -1312,27 +1341,29 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     La valeur des 5 fichiers, elle, se mesure au premier déploiement et se reporte en Annexe A.
 
 20. **Configuration d'instance : quatre lieux, un par nature de valeur, et un fichier d'instance
-    unique pour le reste.** Cinq valeurs distinguent une instance d'une autre — le domaine,
+    unique pour le reste.** **Six** valeurs distinguent une instance d'une autre — le domaine,
     l'identifiant de la base D1, l'adresse autorisée, la destination d'acheminement vérifiée, la
-    clé de vérification Turnstile — et le dépôt de chaque cliente porte le **code** autant que le
-    contenu (topologie du §3 du socle). Monter une version est donc une fusion dans son dépôt :
-    si ses valeurs sont éparpillées dans les fichiers du produit, `SC-008` — « sans modification
-    de code spécifique à ce client » — tombe à la deuxième instance. **Trois des quatre lieux
-    sont imposés et n'ont pas été arbitrés ici** : les liaisons de plateforme dans la
-    configuration du déploiement, par amorçage — un rattachement ne peut pas vivre dans la base
-    qu'il ouvre —, et `C7` les fait déjà inventorier à la recette ; les secrets dans le compte de
-    la cliente, forme retenue par `S-01` pour la clé Turnstile ; l'adresse autorisée en D1, parce
-    que le § « `FR-013` et `FR-014` n'ont aucun porteur » montre que son remplacement est
-    aujourd'hui impossible à honorer et que les seules issues futures passent par un geste depuis
-    l'administration — la figer en configuration de déploiement fermerait cette porte
-    définitivement. **Le quatrième est le seul choix rendu** : un fichier d'instance unique et
-    versionné, hors du code, jamais touché par une montée de version. Il est imposé par `C6`, qui
-    exige un build « depuis les fichiers plats, sans D1 et sans accès Cloudflare » : un clone nu
-    a besoin du domaine pour ses URL canoniques et son sitemap, donc le domaine doit se trouver
-    dans les fichiers. Ce que le choix achète : `SC-008` cesse d'être une intention et devient un
-    diff, d'où l'invariant versé à `archi`. Ce qu'il coûte : **aucun secret n'a le droit d'entrer
-    dans ce fichier**, le dépôt étant ouvert à l'intégrateur comme collaborateur — contrainte
-    écrite, et non espérée. Alternative écartée : **répartir chaque valeur là où son outil
+    clé de vérification Turnstile et la clé **publique** Turnstile — et le dépôt de chaque cliente
+    porte le **code** autant que le contenu (topologie du §3 du socle). Monter une version est
+    donc une fusion dans son dépôt : si ses valeurs sont éparpillées dans les fichiers du produit,
+    `SC-008` — « sans modification de code spécifique à ce client » — tombe à la deuxième
+    instance. **Trois des quatre lieux sont imposés et n'ont pas été arbitrés ici** : les liaisons
+    de plateforme dans la configuration du déploiement, par amorçage — un rattachement ne peut pas
+    vivre dans la base qu'il ouvre —, et `C7` les fait déjà inventorier à la recette ; les secrets
+    dans le compte de la cliente, forme retenue par `S-01` pour la clé **de vérification**
+    Turnstile ; l'adresse autorisée en D1, parce que le § « `FR-013` et `FR-014` n'ont aucun
+    porteur » montre que son remplacement est aujourd'hui impossible à honorer et que les seules
+    issues futures passent par un geste depuis l'administration — la figer en configuration de
+    déploiement fermerait cette porte définitivement. **Le quatrième est le seul choix rendu** :
+    un fichier d'instance unique et versionné, hors du code, jamais touché par une montée de
+    version. Il est imposé par `C6`, qui exige un build « depuis les fichiers plats, sans D1 et
+    sans accès Cloudflare » : un clone nu a besoin du domaine pour ses URL canoniques et son
+    sitemap, et de la clé **publique** Turnstile pour le widget que porte toute page à formulaire
+    (`FR-062`), donc les deux doivent se trouver dans les fichiers. Ce que le choix achète :
+    `SC-008` cesse d'être une intention et devient un diff, d'où l'invariant versé à `archi`. Ce
+    qu'il coûte : **aucun secret n'a le droit d'entrer dans ce fichier**, le dépôt étant ouvert à
+    l'intégrateur comme collaborateur — contrainte écrite, et non espérée. Alternative écartée :
+    **répartir chaque valeur là où son outil
     l'attend** — le domaine dans la configuration Astro, le rattachement D1 dans celle du Worker.
     C'est la pente naturelle des outils, et elle ne laisse aucune frontière vérifiable entre les
     fichiers du produit et ceux de la cliente. **Réserve — la forme exacte reste à `archi`** :
@@ -1340,6 +1371,17 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
     ne sont pas tranchés ici, et l'injection par variables de build de Workers Builds n'a pas été
     instruite, faute d'un fait de plateforme constaté. Ce qui est décidé, c'est **un fichier
     unique et versionné plutôt qu'une dispersion**, pas sa syntaxe.
+
+    *Complété le 2026-08-13 par l'audit de la stack. La clé **publique** Turnstile manquait à ces
+    valeurs comme à la partition des quatre lieux, et c'était un trou et non un oubli de forme :
+    le widget naît dans le compte de **chaque** cliente, donc sa clé publique distingue une
+    instance d'une autre, exactement comme le domaine. Le § « Secrets à ouvrir » n'en disait que
+    l'**exposition** — « sa clé publique vit dans la page » —, jamais le lieu d'où elle est
+    **lue**. Elle rejoint donc le fichier d'instance, sous le motif `C6` déjà écrit ici : un clone
+    nu bâtit les pages à formulaire. **Aucun cinquième lieu n'est ouvert**, et l'interdit « aucun
+    secret n'entre dans ce fichier » n'est pas entamé — une clé qu'un widget publie au visiteur
+    n'est pas un secret. C'est ce trou qui a fait dériver `I8` de `docs/archi.md` quatre passes de
+    suite, chacune corrigeant d'après un amont muet ; l'invariant a désormais sur quoi s'appuyer.*
 
 ## Ce que cette phase dépose sur les autres documents
 
