@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Statut** | accepted — deux constats d'audit restent à arbitrer, voir Documents liés |
+| **Statut** | accepted — un constat d'audit reste à arbitrer, voir Documents liés |
 | **Date** | 2026-08-10 |
 | **Amendé** | 2026-08-11 → 2026-08-13 — traitements des audits [Stack](./audit-stack.md) et [Authentification](./audit-auth.md) |
 | **Trace vers** | [PRD](./prd.md) |
@@ -39,7 +39,7 @@ La forme de la solution — style macro et micro, invariants — sera arrêtée 
 | Maintien en vie du jeton d'écriture | Cron Trigger dans le compte de la cliente, appel anodin **hebdomadaire** — la cadence *est* la parade : le Cron du palier gratuit n'a **pas de retry**, un appel sauté n'est jamais réémis, et 52 passages par an laissent la marge que la fenêtre glissante d'un an de GitHub absorbe | FR-101, SC-012 | |
 | Auth | Implémentation maison sur D1, mécanisme par mécanisme : **code à saisir** — 40 bits, haché, usage unique, expirant, **lié au navigateur demandeur**, brûlé au 5ᵉ essai — et **jamais un lien** ; **session opaque en D1**, donc **sans clé de signature**, expirant à **sept jours d'inactivité et trente jours d'âge** ; cookie `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; **jeton anti-CSRF sur chaque écriture**, doublé d'un contrôle d'en-tête `Origin` | FR-001 à FR-008, FR-082, FR-118, FR-120 à FR-122, SC-006, SC-021 | |
 | Moyen de reprise | Code de **128 bits** — 26 caractères base32, groupés pour la recopie — **haché en D1**, remis sur papier à la livraison, **à usage unique et réémis à l'emploi** ; **aucun frein par secret**, l'entropie seule rend la devinette sans objet, en ligne comme sur fuite de la base — rien en configuration du déploiement (`FR-011`), aucune dépendance à un tiers | FR-009 à FR-012, SC-020 | |
-| Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie | FR-063, FR-064, SC-007 | |
+| Acheminement des demandes | Cloudflare Email Routing, binding `send_email` vers l'adresse de destination **vérifiée** ; e-mail **inerte et étiqueté** — texte seul, objet fixe posé par le produit, chaque donnée du visiteur rendue derrière son étiquette, aucun lien ni mise en forme construits depuis sa saisie — **produit en bêta publique, réserve au candidat n° 9** | FR-063, FR-064, SC-007 | |
 | Moyen anti-abus | Turnstile en mode *managed* devant, puis compteur de fréquence dans un Durable Object **unique**, qui porte une **table d'origines** — jamais un objet par visiteur. Chaque origine y entre sous une empreinte **HMAC, sous une clé tirée au hasard par le produit pour la seule fenêtre de comptage en cours** ; clé et entrées **effacées ensemble** à la fin de la fenêtre | FR-007, FR-062 | |
 | Sérialisation et suivi des publications | Une **seule** ligne d'état en D1 : verrou conditionnel, **bail horodaté** repris à l'expiration, et **issue du dépôt** | FR-090, FR-091 | |
 | Constat de la mise en ligne | Le site publié expose l'empreinte du commit dont il est né ; l'administration la lit par une requête **publique** et la compare | FR-090 | |
@@ -767,8 +767,13 @@ ils sont mesurés ci-dessus.
    ni documenté ni infirmé. Le build ne déclenche que sur `main` : si la réponse est non, le
    jeton de lecture `Contents: Read-only` déjà prévu au §7 du socle devient **obligatoire**,
    et sans lui le site bâti n'a aucun média. À lever avant la mise en ligne.
-4. La délivrabilité réelle vers les boîtes françaises — Email Sending est en bêta publique
-   depuis le 2026-04-16.
+4. **La délivrabilité réelle vers les boîtes françaises.** Une demande déposée sur le site
+   publié arrive dans la boîte de l'éditrice, et le compte reste **sans moyen de paiement** à
+   l'issue — un même envoi observe l'acheminement et `C9`. Le chemin observé est celui qui est
+   retenu : `send_email` vers l'adresse de destination **vérifiée**, jamais Email Sending vers
+   un destinataire arbitraire. Le **statut bêta** du produit, lui, ne se constate par aucun
+   appel réel et ne se ferme pas ici : réserve au candidat ADR n° 9.
+   *(Reformulé le 2026-08-13 par le traitement de `S-20`.)*
 5. Qu'un `BLOB` de ~2 Mo fasse l'aller-retour par un **paramètre lié**. La documentation borne
    la ligne à 2 Mo et l'instruction SQL à 100 Ko — donc le binaire ne peut pas être inliné —,
    mais elle ne dit **rien** de la taille maximale d'un paramètre lié. Le plafond de `FR-040`
@@ -1061,6 +1066,19 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    reçoit les codes de connexion et que le formulaire est public ; voir § « La cinquième
    porte ». La **dissociation des deux adresses** y est écartée sur rejeu de l'écarté de
    `A-02`.
+   **Réserve assumée marquée, posée le 2026-08-13 par le traitement de `S-20`.** Le produit
+   est en **bêta publique depuis le 2026-04-16** — le blog cité annonce « Cloudflare **Email
+   Service** is entering public beta », nom générique qui coiffe Email Routing autant qu'Email
+   Sending. Le dossier **ne dit pas** si le chemin retenu, la destination vérifiée, partage ce
+   statut ; mais la phrase de tarification qui le rend gratuit et la contrainte DNS qui le
+   conditionne sont toutes deux servies par les pages du produit en bêta, et la fiche archivée
+   du 2026-08-10 rangeait déjà la bêta dans les réserves du **chemin retenu**, non de
+   l'alternative. Ce que ça coûte si la GA change le packaging : l'envoi vers une adresse
+   vérifiée devient payant, `I5` et `C9` tombent, et **aucun repli ne tient** — le SMTP de la
+   boîte de la cliente et les quatre prestataires tiers sont écartés ci-dessus, et le SMTP
+   authentifié de Cloudflare est lui-même en bêta. Aucun appel réel ne ferme cette réserve :
+   c'est la **troisième issue posée par `S-10`** — assumer marqué —, dans son deuxième emploi
+   après la hauteur du mur Turnstile de `S-11`.
 
 10. **Langage : TypeScript strict.** Retenu car le Brief exige que la confiance vienne de
     vérifications mécaniques, le code n'étant pas relu ligne à ligne. Alternative écartée :
@@ -1341,7 +1359,7 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 - **`docs/prd.md`** : non modifié **par la phase Stack elle-même**, et il ne doit pas l'être
   ici — les exigences ajoutées depuis le 2026-08-11 (`FR-118` à `FR-122`, `SC-021`, `FR-012`
   amendée) le sont par les traitements de l'audit de l'authentification, chacune consignée à
-  sa ligne des « arbitrages rendus ». **Quatre** dettes y restent ouvertes, toutes pour
+  sa ligne des « arbitrages rendus ». **Cinq** dettes y restent ouvertes, toutes pour
   `/scd-sdd:premortem socle` : le `FR` qui porterait la détection de panne d'acheminement ; la
   qualification de `FR-005`, qui verrouille `FR-014` tel qu'il est rédigé ; le sort de
   `FR-013`, dont le glossaire fond l'adresse de connexion et la destination des demandes en un
@@ -1351,7 +1369,14 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   échoue, **jusqu'à un an plus tard**, ce que `FR-101` interdit. C'est le même angle mort que
   `S-07` a fermé pour la publication en faisant exposer l'empreinte du commit par le site
   publié ; ici il n'a pas de porteur, et il ne se referme par aucune citation. Les deux du
-  milieu datent du 2026-08-11, par le traitement de `S-05`.
+  milieu datent du 2026-08-11, par le traitement de `S-05`. La cinquième est du **2026-08-13,
+  par le traitement de `S-20`** : le **seul canal de sortie du produit** repose sur un produit
+  en bêta publique dont le packaging peut changer à la GA (réserve au candidat n° 9). Aucune
+  exigence ne porte le constat périodique que l'envoi vers l'adresse vérifiée reste gratuit ;
+  après le retrait des accès d'Isometria, **personne ne regarde**, et un changement se
+  manifesterait par des demandes qui cessent d'arriver, en silence. Même angle mort que la
+  quatrième, sur un autre canal — et il se recoupe avec elle : la détection de panne
+  d'acheminement, si `premortem` la crée, verrait passer ce cas-là aussi.
 - **La recette de livraison et l'inventaire de livraison** gagnent le **moyen de reprise** —
   code remis sur papier, rangé dans un espace de la cliente, son emplacement noté au dossier
   d'instance et jamais sa valeur (`FR-112`). *Renvoi **fermé** le 2026-08-12 par le traitement
