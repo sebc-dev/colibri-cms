@@ -14,7 +14,7 @@
 > rationale de chaque invariant part dans un ADR, écrit par la phase suivante.
 >
 > **Homonymie à ne pas confondre.** Les `I1`–`I6` du [socle de livraison](./socle-de-livraison.md)
-> sont les invariants **commerciaux** du studio ; les `I1`–`I9` de **ce** document sont les
+> sont les invariants **commerciaux** du studio ; les `I1`–`I10` de **ce** document sont les
 > invariants **de structure** du code. Aucun rapport de numérotation entre les deux. Ce document
 > écrit toujours « socle `I3` » quand il désigne les premiers.
 
@@ -98,10 +98,11 @@ question — *le framework échouerait-il sans cette règle ?* Si oui, c'est une
 | **I3** | `src/render/index.ts` est le seul chemin de `src/render/` importé depuis l'extérieur de la zone, et le gabarit de page publiée `src/site/page.astro` en est l'unique importateur ; ce gabarit est lui-même importé par la route publiée `src/pages/[...slug].astro` **comme** par la route d'aperçu `src/pages/admin/apercu/[...slug].astro` | 4 — frontières de modules | chemin importé, dans un fichier hors de `src/render/` ; l'absence de l'import de `src/site/page.astro` dans l'une des deux routes | C3, FR-081, SC-016 | |
 | **I4** | Aucun fichier `.astro` sous `src/admin/` ne porte de directive `client:*` | 9 — API prohibée | la directive, dans un gabarit sous `src/admin/` | C2, FR-082, SC-021 | |
 | **I5** | `{@html}` et `set:html` n'apparaissent que sous `src/render/markdown/` ; aucune occurrence ailleurs dans les sources | 9 — API prohibée | l'occurrence, hors du chemin autorisé | C2, FR-018, FR-069 | |
-| **I6** | Tout fichier de route sous `src/pages/api/` ou `src/pages/admin/`, hors du sous-arbre `src/pages/api/public/`, importe le garde de session `src/platform/session/index.ts` ; aucun fichier de `src/pages/api/public/` ne lit un corps `multipart` | 5 — placement | l'absence de cet import, dans un fichier de route concerné ; l'appel de lecture de corps, dans un fichier de `src/pages/api/public/` | C2, FR-061, FR-082, FR-097 | |
+| **I6** | Tout fichier de route sous `src/pages/api/` ou `src/pages/admin/`, hors du sous-arbre `src/pages/api/public/`, importe le garde de session `src/platform/session/index.ts` ; aucun fichier de `src/pages/api/public/` ne lit un corps `multipart` | 5 — placement | l'absence de cet import, dans un fichier de route concerné ; l'appel de `request.formData()`, dans un fichier de `src/pages/api/public/` | C2, FR-061, FR-082, FR-097 | |
 | **I7** | L'identifiant de l'objet qui porte le compteur de fréquence est dérivé d'une constante littérale du code ; aucun appel à `idFromName`, dans `src/platform/frequence/`, ne prend une valeur issue d'une requête | 9 — API prohibée | l'argument de `idFromName`, dans `src/platform/frequence/` | C2, FR-007, FR-062 | |
 | **I8** | Les cinq valeurs propres à une instance — domaine, identifiant de base, adresse autorisée, destination d'acheminement, clé publique Turnstile — ne figurent que dans le fichier d'instance `instance.json`, à la racine du dépôt ; aucun autre fichier versionné hors contenu ne les porte | 5 — placement | l'occurrence d'une de ces valeurs hors de `instance.json` | C4, FR-104, FR-105, SC-008 | |
-| **I9** | Les préfixes que la publication a le droit d'écrire sont déclarés dans une constante littérale unique de `src/core/publication/`, et `.github/` n'y figure pas | 9 — API prohibée | la constante, dans le module de publication | FR-101, FR-086, FR-089 | |
+| **I9** | Les préfixes que la publication a le droit d'écrire sont déclarés dans la constante littérale `PREFIXES_AUTORISES` de `src/core/publication/prefixes.ts`, seul porteur de cette liste, et `.github/` n'y figure pas | 9 — API prohibée | la valeur de `PREFIXES_AUTORISES`, dans `src/core/publication/prefixes.ts` | FR-101, FR-086, FR-089 | |
+| **I10** | La configuration Astro et celle du Worker lisent leurs valeurs d'instance dans `instance.json` ; aucune des cinq valeurs n'y est écrite en dur | 5 — placement | la lecture d'`instance.json`, dans chacun des deux fichiers de configuration | C4, FR-104, FR-105, SC-008 | |
 
 **Quatre de ces invariants viennent de `docs/stack.md` sous une forme resserrée**, et la
 transformation se déclare ici plutôt que de se découvrir à la lecture :
@@ -126,6 +127,12 @@ transformation se déclare ici plutôt que de se découvrir à la lecture :
   impose déjà par ailleurs, `/api/*` et l'administration. Il s'ensuit que **la route d'aperçu vit
   sous `src/pages/admin/`** ; l'ajouter ailleurs demanderait un troisième préfixe servi par le code,
   donc une révision de la Stack.
+
+**`I10` referme la réserve que la Stack déposait sur cette phase** (`docs/stack.md:1338`, candidat
+n° 20) : « nom, format et mécanisme de lecture du fichier par les deux configurations qui en
+dépendent ». `I8` en rend le nom et le format — `instance.json`, à la racine —, `I10` le mécanisme
+de lecture. Les deux se complètent sans se recouvrir : `I8` interdit qu'une valeur d'instance vive
+ailleurs, `I10` impose que les deux configurations aillent l'y chercher plutôt que de la redire.
 
 **Ce que l'arbitrage de la CSP de l'administration a rendu, et pourquoi `I4` prend cette forme.**
 Astro sait poser une politique de sécurité depuis `astro@6.0.0` et calcule lui-même les empreintes
