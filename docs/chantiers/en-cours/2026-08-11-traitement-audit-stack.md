@@ -1,7 +1,7 @@
 # Traitement de l'audit de la stack
 
 Portée : socle
-Ouvert le 2026-08-11 · Actualisé le 2026-08-12 · branche `work/reprise-socle-v2` · HEAD `12fb583`
+Ouvert le 2026-08-11 · Actualisé le 2026-08-12 · branche `work/reprise-socle-v2` · HEAD `0731b6b`
 
 ## Objectif
 
@@ -10,10 +10,10 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
 
 ## Contexte à charger
 
-à extraire  `docs/audit-stack.md` › § « Récapitulatif — arbitrages rendus », puis le seul § `S-nn` en cours — 419 l.
-à extraire  `docs/stack.md` › le tableau des choix + § « Décisions structurantes → candidats ADR » — 1209 l. ; les deux surfaces que vise `S-17`
-à extraire  `docs/prd.md` › les seuls `FR`/`SC` nommés par le constat, ou par la ligne de `stack.md` qu'il soutient — 838 l.
-à situer    `docs/socle-de-livraison.md` › §7 et Annexe A — à remonter pour `S-14` ; aucun constat de `L5` ni de `L6` n'en a eu besoin jusqu'ici
+à extraire  `docs/audit-stack.md` › § « Récapitulatif — arbitrages rendus », puis le seul § `S-nn` en cours — 420 l.
+à extraire  `docs/stack.md` › le tableau des choix, « Domaines sans objet », « Le seul choix qui ne sert aujourd'hui aucune exigence », « Décisions structurantes → candidats ADR » — 1280 l. ; les quatre surfaces que vise `S-13`
+à extraire  `docs/prd.md` › les seuls `FR`/`SC` nommés par le constat — 838 l. ; `S-13` en nomme neuf groupes, dont `FR-099`-`FR-104` et `FR-110`-`FR-116`
+à extraire  `docs/socle-de-livraison.md` › §7 et Annexe A — 411 l. ; le dossier d'instance de `FR-110`-`FR-116` y touche, et `S-14` en aura besoin ensuite
 à situer    `docs/research/2026-08-10-gating-paiement-r2-email-cloudflare.md` — servira à `S-20` (`L7`), pas avant
 à situer    `docs/chantiers/archive/2026-08-10-phase-stack-faits-a-sourcer.md` › § « Écarté » — a servi à `S-10`/`S-11`, sans emploi depuis
 à situer    les cinq relevés du 12/08 de `docs/research/`, `docs/audit-brief-prd.md`, `docs/audit-auth.md` — conclusions déjà portées, ou arbitrages consommés
@@ -31,15 +31,19 @@ Arbitrer les 20 constats de `docs/audit-stack.md`, un par un et sur feu vert, po
   deux sens : en `L5` la piste s'est révélée tour à tour fausse, molle et déjà écartée alors que le
   constat, lui, tenait ; en `S-15` elle avait raison, mais pour un motif qu'elle n'avançait pas —
   et suivre le constat à la lettre aurait abîmé le document.
-- **Un grief arrive parfois déjà refermé par un arbitrage antérieur** — trois fois (`S-11`, `S-18`,
-  `S-15`) : je vérifiais l'état réel de la ligne visée avant d'instruire le grief qui la vise.
+- **Un grief arrive parfois déjà refermé par un arbitrage antérieur** — quatre fois (`S-11`,
+  `S-18`, `S-15`, `S-17`) : je vérifiais l'état réel de la ligne visée avant d'instruire le grief.
+- **Et je la vérifiais dans le corps du document, pas seulement dans la section que le constat
+  nomme** — sur `S-17`, c'est un § situé ailleurs qui a retourné une proposition déjà approuvée en
+  séance. J'en avais tiré une règle pour la suite : **toute ligne neuve au tableau doit naître avec
+  son candidat ADR**, faute de quoi elle devient le trou que `S-17` a dû combler.
 
 ## Prochaine étape
 
-**Clore `L6`** — `S-17` (quatre lignes sans candidat ADR nommé), puis `S-13` (exigences techniques
-sans porteur, le plus lourd des trois) —, un constat à la fois sur feu vert, puis écrire leurs
-lignes au récapitulatif. J'allais prendre `S-17` d'abord : `S-15` venait de lui laisser un tableau
-aux libellés exacts et le candidat ADR n° 11 intact.
+**Clore `L6` avec `S-13`** — les exigences à forte teneur technique sans porteur au tableau, le
+plus lourd des trois. Il nomme neuf groupes de `FR`/`SC`, et sa piste demande de trancher pour
+chacun entre une ligne de tableau (vrai domaine, donc candidat ADR) et une mention « descend en
+specs avec la décision X attendue ». Puis écrire sa ligne au récapitulatif.
 
 ## Écarté
 
@@ -53,5 +57,5 @@ aux libellés exacts et le candidat ADR n° 11 intact.
 - **Renvoyer en recette ce qu'aucun appel réel ne tranche** — écarté deux fois le 12/08 (`S-10`,
   `S-18`) : la section n'admet pas ce qui se lèverait par une attente d'un an, ni par un
   ramasse-miettes non daté (`S-19`).
-- **Les écartés propres à chaque constat** — `S-10`, `S-11`, `S-15`, `S-18`, `S-19` — sont **écrits
-  dans leur ligne du récapitulatif**, avec leur motif. Ils n'ont plus à vivre ici.
+- **Les écartés propres à chaque constat** — `S-10`, `S-11`, `S-15`, `S-17`, `S-18`, `S-19` — sont
+  **écrits dans leur ligne du récapitulatif**, avec leur motif. Ils n'ont plus à vivre ici.
