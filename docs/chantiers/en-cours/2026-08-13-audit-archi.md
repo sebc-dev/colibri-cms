@@ -1,7 +1,7 @@
-# Audit archi — 1 Critical · 3 Major
+# Audit archi — 1 Critical · 1 Major
 
 Portée : socle · audit
-Ouvert le 2026-08-13 · Actualisé le 2026-08-13 · branche `work/reprise-socle-v2` · HEAD `7e63c6e`
+Ouvert le 2026-08-13 · Actualisé le 2026-08-13 · branche `work/reprise-socle-v2` · HEAD `998d1d4`
 
 ## Objectif
 
@@ -9,34 +9,28 @@ Rendre `docs/archi.md` conforme : zéro Critical.
 
 ## Contexte à charger
 
-à lire      `docs/archi.md` — le document jugé (163 l.)
-à extraire  `docs/stack.md` › § « Ce que `archi` devra reprendre en invariants » (l. 634-667)
-            — le dépôt d'invariants dont le Critical constate qu'il n'a pas de forme vérifiable
-à situer    `docs/prd.md` › `FR-081`, `FR-082`, `FR-061` — les exigences que `I3` et `I6` servent
+à lire      `docs/archi.md` — le document jugé (196 l.)
+à extraire  `docs/stack.md` › § « Configuration d'instance » (l. 1314-1342) — la réserve qui
+            laissait à `archi` le nom, le format et le mécanisme de lecture du fichier d'instance
+à extraire  `docs/stack.md` › puce « Rien de dérivé d'une origine… » (l. 650-654) — les trois
+            falsifications du compteur, dont `I7` ne retient que la seule statique
 
 ## À corriger
 
 ### Lot A — éditions dans `docs/archi.md`
 
-- **[I6] Critical** — « les routes serveur **ouvertes au visiteur anonyme** résident sous
-  `src/pages/api/public/` » repose sur une propriété qu'aucun contrôle ne peut lire ; le garde de
-  session que `C2` déclare (l. 52) et que `docs/stack.md:658` renvoyait à cette phase n'a donc
-  aucune trace observable → retourner la polarité : « tout fichier de route sous `src/pages/api/`
-  hors de `src/pages/api/public/` importe le garde de session de `<chemin à nommer>` », trace =
-  l'absence de cet import.
-- **[I1] Major** — la matrice fait intervenir six nœuds (`pages/` compris) là où la Vue d'ensemble
-  déclare cinq zones, et `site/` comme `platform/` n'apparaissent avec un chemin nulle part
-  (`src/site/` zéro occurrence ; `src/platform/` seulement dans l'exemple de la Légende) → ajouter
-  la correspondance zone → chemin, et dire si `pages/` est une sixième zone ou la surface de
-  routage imposée par Astro.
-- **[I3] Major** — le second membre (« importé par le gabarit de page publiée **comme** par la
-  route d'aperçu ») ne nomme aucun des deux fichiers, et la colonne « Trace observable » ne décrit
-  que le premier membre ; c'est pourtant lui qui porte `C3` et `FR-081` → nommer les deux chemins.
-- **[CSP admin] Major** — l'arbitrage des l. 110-120 repose sur un fait daté sans source citable
-  (Astro pose sa CSP en `<meta>`, sans nonce, depuis `astro@6.0.0`) : absent de `docs/stack.md` et
-  des douze rapports de `docs/research/`, alors que `docs/stack.md:646` demandait à cette phase
-  d'instruire ce coût → `/scd-sdd:lookup` sur la fonctionnalité CSP d'Astro, puis citer la source
-  en note l. 111.
+- **[I8] Critical** — la trace « l'occurrence d'une de ces valeurs hors du chemin du **fichier
+  d'instance** » (l. 103) désigne un fichier que le document ne nomme nulle part ; l'exclusion
+  est donc inécrivable, et un contrôle dérivé de `I8` signalerait le fichier légitime avec les
+  fautifs. `docs/stack.md:1338` réservait « nom, format et mécanisme de lecture » à cette phase
+  → nommer le chemin dans l'énoncé **et** dans la trace, comme `I6` l'a fait pour son garde de
+  session.
+- **[I7] Major** — la trace « l'argument de **l'appel de nommage**, dans les sources » (l. 102)
+  n'a aucun token cherchable : `I7` et `I8` sont les deux seuls invariants sur neuf dont ni
+  l'énoncé ni la trace ne portent de backtick. `ci` devrait deviner l'API, et une devinette à
+  côté rend un contrôle bloquant **vert sur du code fautif** — indétectable tant que le dépôt
+  n'a aucun fichier de source → écrire « l'argument de `idFromName`, dans
+  `src/platform/<module du compteur>/` », le module restant à nommer.
 
 ## Prochaine étape
 
