@@ -100,7 +100,7 @@ question — *le framework échouerait-il sans cette règle ?* Si oui, c'est une
 | **I5** | `{@html}` et `set:html` n'apparaissent que sous `src/render/markdown/` ; aucune occurrence ailleurs dans les sources | 9 — API prohibée | l'occurrence, hors du chemin autorisé | C2, FR-018, FR-069 | |
 | **I6** | Tout fichier de route sous `src/pages/api/` ou `src/pages/admin/`, hors du sous-arbre `src/pages/api/public/`, importe le garde de session `src/platform/session/index.ts` ; aucun fichier de `src/pages/api/public/` ne lit un corps `multipart` | 5 — placement | l'absence de cet import, dans un fichier de route concerné ; l'appel de `request.formData()`, dans un fichier de `src/pages/api/public/` | C2, FR-061, FR-082, FR-097 | |
 | **I7** | L'identifiant de l'objet qui porte le compteur de fréquence est dérivé d'une constante littérale du code ; aucun appel à `idFromName`, dans `src/platform/frequence/`, ne prend une valeur issue d'une requête | 9 — API prohibée | l'argument de `idFromName`, dans `src/platform/frequence/` | C2, FR-007, FR-062 | |
-| **I8** | Les valeurs propres à une instance qui vivent dans les fichiers — le domaine, la clé **publique** Turnstile, et tout ce que `docs/stack.md:51` n'affecte pas à l'un des trois autres lieux — ne figurent que dans le fichier d'instance `instance.json`, à la racine du dépôt ; aucun autre fichier versionné hors contenu ne les porte. Les trois autres lieux gardent les leurs : rattachement D1 et destination d'acheminement dans la configuration du déploiement, clé de vérification Turnstile dans le compte Cloudflare, adresse autorisée en D1 | 5 — placement | l'occurrence du domaine ou de la clé publique Turnstile, hors d'`instance.json` | C4, FR-104, FR-105, SC-008 | |
+| **I8** | Les valeurs propres à une instance qui vivent dans les fichiers — le domaine, la clé **publique** Turnstile, et tout ce que la ligne « Configuration d'instance » de `docs/stack.md` n'affecte pas à l'un des trois autres lieux — ne figurent que dans le fichier d'instance `instance.json`, à la racine du dépôt ; aucun autre fichier versionné hors contenu ne les porte. Les trois autres lieux gardent les leurs : rattachement D1 et destination d'acheminement dans la configuration du déploiement, clé de vérification Turnstile dans le compte Cloudflare, adresse autorisée en D1 | 5 — placement | l'occurrence du domaine ou de la clé publique Turnstile, hors d'`instance.json` | C4, FR-104, FR-105, SC-008 | |
 | **I9** | Les préfixes que la publication a le droit d'écrire sont déclarés dans la constante littérale `PREFIXES_AUTORISES` de `src/core/publication/prefixes.ts`, seul porteur de cette liste, et `.github/` n'y figure pas | 9 — API prohibée | la valeur de `PREFIXES_AUTORISES`, dans `src/core/publication/prefixes.ts` | FR-101, FR-086, FR-089 | |
 | **I10** | La configuration Astro et celle du Worker lisent dans `instance.json` les valeurs qu'`I8` y loge ; aucune d'elles n'y est écrite en dur. Les liaisons de plateforme, elles, restent déclarées dans la configuration du déploiement — c'est leur lieu | 5 — placement | la lecture d'`instance.json`, dans `astro.config.*` et dans `wrangler.*` | C4, FR-104, FR-105, SC-008 | |
 
@@ -128,9 +128,9 @@ transformation se déclare ici plutôt que de se découvrir à la lecture :
   sous `src/pages/admin/`** ; l'ajouter ailleurs demanderait un troisième préfixe servi par le code,
   donc une révision de la Stack.
 
-**`I10` referme la réserve que la Stack déposait sur cette phase** (`docs/stack.md:1338`, candidat
-n° 20) : « nom, format et mécanisme de lecture du fichier par les deux configurations qui en
-dépendent ». `I8` en rend le nom et le format — `instance.json`, à la racine —, `I10` le mécanisme
+**`I10` referme la réserve que la Stack déposait sur cette phase** (candidat n° 20, réserve
+« la forme exacte reste à `archi` ») : « nom, format et mécanisme de lecture du fichier par les
+deux configurations qui en dépendent ». `I8` en rend le nom et le format — `instance.json`, à la racine —, `I10` le mécanisme
 de lecture. Les deux se complètent sans se recouvrir : `I8` interdit qu'une valeur **logée dans le
 fichier** vive ailleurs, `I10` impose que les deux configurations aillent l'y chercher plutôt que de
 la redire. Ni l'un ni l'autre ne déplace les trois lieux que la Stack imposait par ailleurs — les
