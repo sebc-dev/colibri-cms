@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Statut** | accepted — un constat d'audit reste à arbitrer, voir Documents liés |
+| **Statut** | accepted |
 | **Date** | 2026-08-10 |
 | **Amendé** | 2026-08-11 → 2026-08-13 — traitements des audits [Stack](./audit-stack.md) et [Authentification](./audit-auth.md) |
 | **Trace vers** | [PRD](./prd.md) |
@@ -29,7 +29,7 @@ La forme de la solution — style macro et micro, invariants — sera arrêtée 
 | Langage | TypeScript, mode strict | (tous) | |
 | Générateur du site public et de l'aperçu | Astro 7 | FR-081, FR-095, FR-096, SC-005 | |
 | Cible de déploiement et système de build | Un Worker Cloudflare unique — assets statiques + routes serveur —, bâti par Workers Builds | FR-087, FR-089, FR-096, FR-097, SC-001, SC-004 | |
-| Base de données | Cloudflare D1 — brouillons, état publié, demandes | FR-026, FR-032, FR-044, FR-051, FR-065, FR-078, FR-092 | |
+| Base de données | Cloudflare D1 — brouillons, état publié, demandes. **Ce que D1 porte seul — brouillons, médias en brouillon, suite donnée — n'a aucune copie, et sa reprise après perte n'est pas établie : réserve au candidat n° 3** | FR-026, FR-032, FR-044, FR-051, FR-065, FR-078, FR-092 | |
 | Contenu publié en fichiers | Un répertoire par objet dans le dépôt : `page.json` pour la structure, un `.md` par emplacement de texte riche | FR-087, FR-107, FR-109, SC-011 | |
 | Médias publiés | Même dépôt, branche orpheline `media` : dépôt **additif** à la publication, **élagage des orphelins au début de la publication suivante** | FR-037, FR-084, FR-088, FR-107, FR-108, SC-011 | |
 | Médias en brouillon | D1 : le binaire est stocké en `BLOB`, transféré sur `media` à la publication puis effacé de la base. Plafond **2 Mo par média**, imposé par D1 et non choisi | FR-027, FR-033, FR-034, FR-040, SC-010 | |
@@ -793,6 +793,14 @@ ils sont mesurés ci-dessus.
    de maintien en vie actif avant la livraison — c'est là que ça se voit, et c'est la même
    observation qui vérifiera que la cadence hebdomadaire du tableau est tenable.
    *(Ajouté le 2026-08-12 par le traitement de `S-11`.)*
+8. **Ce que D1 sait rendre après une perte.** Exécuter sur l'instance la commande de
+   rétablissement et celle d'export, et constater ce qu'elles produisent réellement : jusqu'où
+   elles remontent, ce qu'elles rendent, et si elles valent pour une base corrompue comme pour
+   une base effacée. Aucune ligne de ce document, aucune contrainte du socle et aucun rapport
+   de `docs/research/` ne porte sauvegarde, export ou restauration — le fait est absent, pas
+   contesté. C'est lui qui départage les deux issues de la dette déposée par `S-12` : créer une
+   exigence de sauvegarde, ou assumer la perte par écrit. Un appel réel le tranche ; c'est ce
+   qui le range ici et non en recherche. *(Ajouté le 2026-08-13 par le traitement de `S-12`.)*
 
 ## Décisions structurantes → candidats ADR
 
@@ -856,6 +864,23 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
    magasin** (et sa variante dépôt + index D1 dérivé) — reconstruire l'index inverse
    qu'exige `FR-032` sans base dépasse le plafond de **50 sous-requêtes par requête** des
    Workers, à la lecture comme à la reconstruction.
+
+   *Réserve posée le 2026-08-13 par le traitement de `S-12` — la troisième des trois issues de
+   `S-10`, **assumer marqué**. Ce candidat est retenu parce qu'il confirme `C1` et `I2` ; ceux-ci
+   ne couvrent que la moitié **copiée**. Ce que D1 porte **seul** n'a aucune copie : les
+   **brouillons** de texte, les **médias en brouillon** — le binaire lui-même, en `BLOB` — et la
+   **suite donnée** à chaque demande (`FR-071`). Et rien n'établit à ce jour ce que D1 sait
+   rendre après une perte : ni ce document, ni le socle, ni aucun rapport de `docs/research/` ne
+   porte sauvegarde, export ou restauration — point **8** de « À constater en recette ». **Les
+   demandes elles-mêmes survivent**, expédiées chez la cliente par e-mail au moment où elles
+   arrivent (`FR-063`, ligne « Acheminement des demandes ») ; ce qui disparaît est leur **liste**
+   et leur **suite** — donc le second des deux nombres de `US10`, « ce que ça a donné » (`FR-075`,
+   `FR-077`), que rien ne reconstitue. Le Brief assume cette perte-là **au départ du CMS** — « la
+   suite donnée sert le pilotage courant de l'activité, elle n'est pas un actif du site » — ; il
+   ne l'assume pas **par accident**, et le motif ne s'y transporte pas : ce qui sert le pilotage
+   courant est précisément ce qui doit survivre à l'exploitation courante. Le seul objet du lot
+   qu'une éditrice ne peut pas ressaisir est le **média en brouillon**. Dette au dossier de
+   `/scd-sdd:premortem socle`, seul à pouvoir créer le `FR` ou assumer la perte par écrit.*
 
 4. **Médias : deux magasins, un par état — branche orpheline `media` pour le publié, additive
    à la publication et élaguée au début de la suivante ; D1 pour le brouillon, le binaire
@@ -1359,7 +1384,7 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
 - **`docs/prd.md`** : non modifié **par la phase Stack elle-même**, et il ne doit pas l'être
   ici — les exigences ajoutées depuis le 2026-08-11 (`FR-118` à `FR-122`, `SC-021`, `FR-012`
   amendée) le sont par les traitements de l'audit de l'authentification, chacune consignée à
-  sa ligne des « arbitrages rendus ». **Cinq** dettes y restent ouvertes, toutes pour
+  sa ligne des « arbitrages rendus ». **Six** dettes y restent ouvertes, toutes pour
   `/scd-sdd:premortem socle` : le `FR` qui porterait la détection de panne d'acheminement ; la
   qualification de `FR-005`, qui verrouille `FR-014` tel qu'il est rédigé ; le sort de
   `FR-013`, dont le glossaire fond l'adresse de connexion et la destination des demandes en un
@@ -1376,7 +1401,15 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   après le retrait des accès d'Isometria, **personne ne regarde**, et un changement se
   manifesterait par des demandes qui cessent d'arriver, en silence. Même angle mort que la
   quatrième, sur un autre canal — et il se recoupe avec elle : la détection de panne
-  d'acheminement, si `premortem` la crée, verrait passer ce cas-là aussi.
+  d'acheminement, si `premortem` la crée, verrait passer ce cas-là aussi. La **sixième** est du
+  **2026-08-13, par le traitement de `S-12`** : ce que D1 porte seul — brouillons, **médias en
+  brouillon**, **suite donnée** — est sans copie et sans reprise établie (réserve au candidat
+  n° 3). Deux issues, et **une seule sera instruite** : un `FR` de sauvegarde et de reprise
+  naît, ou la perte est assumée par écrit au clausier. Le fait qui les départage — ce que la
+  plateforme sait rendre — est au point **8** de « À constater en recette » ; il n'est pas
+  acquis, et `premortem` ne doit pas trancher avant lui. La perte du champ de suite est
+  **déjà assumée par le Brief au départ de la cliente**, jamais par accident : c'est ce bord-là
+  qui est versé, non l'exclusion elle-même.
 - **La recette de livraison et l'inventaire de livraison** gagnent le **moyen de reprise** —
   code remis sur papier, rangé dans un espace de la cliente, son emplacement noté au dossier
   d'instance et jamais sa valeur (`FR-112`). *Renvoi **fermé** le 2026-08-12 par le traitement
