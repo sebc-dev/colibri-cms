@@ -4,7 +4,7 @@
 |---|---|
 | **Statut** | accepted |
 | **Date** | 2026-08-10 |
-| **Amendé** | 2026-08-11 → 2026-08-13 — traitements des audits [Stack](./audit-stack.md) et [Authentification](./audit-auth.md) |
+| **Amendé** | 2026-08-11 → 2026-08-13 — traitements des audits [Stack](./audit-stack.md) et [Authentification](./audit-auth.md), puis de l'audit de conformité du 2026-08-13 (2 Critical, 3 Major), dont les constats sont dans `docs/chantiers/archive/2026-08-13-audit-stack.md` — cet audit-là n'a pas de document, sa fiche en tient lieu |
 | **Trace vers** | [PRD](./prd.md) |
 | **Consommé par** | Archi, ADR, CI, niveau specs |
 | **Documents liés** | [Socle de livraison](./socle-de-livraison.md) — invariants `I1`–`I6`, contraintes `C1`–`C10`, Annexe A datée · [Audit Stack](./audit-stack.md) — les constats et leurs arbitrages, datés un par un · [Audit Authentification](./audit-auth.md) — idem pour la chaîne d'authentification |
