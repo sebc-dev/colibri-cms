@@ -1304,18 +1304,22 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   lignes ajoutées au tableau de l'Annexe A** le 2026-08-11 par le traitement de `S-09` — taille
   d'une base D1 (500 Mo, palier gratuit) et taille d'une ligne ou d'un `BLOB` (2 Mo), toutes
   deux absentes de la page *Pricing* qui avait servi au relevé.
-- **`C4` reste à corriger au socle** : sa vérification (« dix enregistrements en deux minutes
-  → un seul déploiement ») teste une architecture où enregistrer commite, ce qui n'est pas
-  celle-ci. Dette portée par le traitement de `S-14`.
-- **Le contenu du dossier d'instance reste à vérifier au socle** : le §7 coche le dossier
+- **`C4` corrigé au socle** : sa vérification (« dix enregistrements en deux minutes → un seul
+  déploiement ») testait une architecture où enregistrer commite, ce qui n'est pas celle-ci.
+  *Renvoi **fermé** le 2026-08-13 par le traitement de `S-14`, qui a corrigé la ligne entière
+  et non la seule colonne de vérification — l'énoncé (« doit produire un build, pas dix »)
+  portait le même défaut, et le résidu assumé y est écrit : dix publications rapprochées font
+  dix builds, mis en file par la concurrence de 1.*
+- **Le contenu du dossier d'instance est vérifié au socle** : le §7 cochait le dossier
   déposé chez la cliente (`FR-110`), l'emplacement du moyen de reprise (`FR-112`) et le
   réamorçage documenté (`FR-119`), mais **rien de ce que le dossier doit contenir** — le
   recensement des comptes et du nom au titre duquel chacun est ouvert (`FR-111`), ceux dont la
   récupération pend à la boîte e-mail de l'éditrice (`FR-113`), et les trois procédures :
   redéploiement (`FR-114`), publication (`FR-115`), reconstruction (`FR-116`). Aucun choix
   technique n'est en jeu — un dossier d'instance est un livrable de livraison, pas une
-  fondation. Dette relevée le 2026-08-13 par le traitement de `S-13`, **portée par celui de
-  `S-14`**, qui traite les dettes déjà déposées sur le socle.
+  fondation. Dette relevée le 2026-08-13 par le traitement de `S-13`. *Renvoi **fermé** le
+  même jour par le traitement de `S-14` : les cinq exigences sont portées par **une** ligne de
+  recette à cinq puces, sous « Propriété ».*
 - **La recette de livraison** (§7 du socle) gagne trois lignes que cette phase impose :
   le jeton d'écriture créé **sans expiration** et portant `Contents: Read and write` seule,
   le jeton de lecture de `media` en `Contents: Read-only`, et le Cron de maintien en vie
@@ -1326,6 +1330,11 @@ Une ligne = un futur ADR. La colonne « ADR » du tableau ci-dessus est back-fil
   la recette ne parlait que de secrets — et la ligne `C10` durcie : une publication ne
   compte pour aboutie que si le **site en ligne porte la nouvelle empreinte de commit**, le
   mécanisme acquis par `S-07`. Un `git push` réussi devant un build mort ne prouve rien.
+  **Le traitement de `S-14` en a ajouté deux le 2026-08-13** : les **serveurs de noms délégués
+  à Cloudflare**, prérequis que cette page affirmait déjà être « une ligne de la recette de
+  livraison » alors que le socle n'en portait aucune trace, et le **contenu du dossier
+  d'instance**. Il a en outre corrigé la case `I3`, restée à « clone nu » alors que
+  l'amendement de `C6` du 2026-08-10 avait été porté partout ailleurs dans le document.
 - **`docs/prd.md`** : non modifié **par la phase Stack elle-même**, et il ne doit pas l'être
   ici — les exigences ajoutées depuis le 2026-08-11 (`FR-118` à `FR-122`, `SC-021`, `FR-012`
   amendée) le sont par les traitements de l'audit de l'authentification, chacune consignée à

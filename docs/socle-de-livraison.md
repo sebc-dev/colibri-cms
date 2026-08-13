@@ -227,7 +227,7 @@ intentions.
 | **C1** | À la publication, le CMS écrit le contenu dans D1 **et** le commite en **fichiers plats** (Markdown ou JSON) dans le dépôt du client | I2 | Après une publication, le dépôt contient le contenu en clair, daté du commit |
 | **C2** | **Le commit est le déclencheur du build.** Un seul mécanisme : la copie portable et le déclencheur sont le même geste, donc l'export ne peut jamais être périmé | I2 | Aucun autre chemin de déclenchement n'existe |
 | **C3** | **Le build ne commite jamais.** Le dump vient du CMS, pas du build — un build qui écrit dans son propre dépôt boucle | I2 | Aucune écriture Git depuis l'étape de build |
-| **C4** | **Anti-rebond des publications.** La concurrence de build est de 1 : une rafale d'enregistrements doit produire un build, pas dix | I5 | Dix enregistrements en deux minutes → un seul déploiement |
+| **C4** | **Anti-rebond des publications.** Enregistrer ne commite pas : une rafale d'enregistrements ne produit **aucun** build. Seule une publication commite, et la concurrence de build de 1 met en file les publications rapprochées, sans erreur ni coût | I5 | Dix enregistrements en deux minutes → **zéro** déploiement ; dix publications → dix builds, mis en file |
 | **C5** | **Garde-fou sur le nombre de fichiers.** Le build compte les fichiers produits et **alerte au-delà du seuil d'annexe A**. C'est la seule limite qui morde en premier, et elle se mesure localement | I5 | Un build artificiellement gonflé déclenche l'alerte |
 | **C6** | **Mode de build « depuis les fichiers plats »**, sans D1 et sans accès Cloudflare, documenté dans le `README` du dépôt. Le contenu vit sur `main`, les médias sur la branche orpheline `media` : la procédure récupère **les deux** | I3 | **Un clone, deux branches** → le site complet, médias compris |
 | **C7** | **Aucun secret Isometria** dans les variables d'environnement ni dans les liaisons du déploiement | I4 | Inventaire au moment de la recette |
@@ -283,6 +283,9 @@ l'accès.**
 
 - [ ] Compte Cloudflare ouvert au nom du client, client Super Administrateur
 - [ ] Nom de domaine acheté et renouvelé au nom du client
+- [ ] **Serveurs de noms du domaine délégués à Cloudflare, zone active dans le compte du
+      client** — exigé deux fois : `send_email` ne fonctionne pas autrement (`FR-063`), et un
+      Worker n'accepte aucun domaine dont les serveurs de noms sont gérés ailleurs
 - [ ] Renouvellement du domaine assuré sans intervention d'Isometria : renouvellement automatique
       activé chez le registrar avec un moyen de paiement du client (acte du client — compatible I5,
       c'est la seule dépense certaine du §4.1), ou renouvellement pluriannuel réglé d'avance ;
@@ -301,10 +304,16 @@ l'accès.**
 - [ ] **Emplacement du papier noté au dossier d'instance, jamais sa valeur** (`FR-112`) — et
       l'espace qui porte le dossier n'est pas ouvert plus largement que les comptes et les
       rangements qu'il décrit (`FR-110`)
+- [ ] **Contenu du dossier d'instance vérifié** : comptes ouverts pour l'instance et nom au
+      titre duquel chacun l'est (`FR-111`) ; comptes dont la récupération dépend de la boîte
+      e-mail de l'éditrice, recensés à part (`FR-113`) ; procédure de redéploiement
+      (`FR-114`) ; procédure de publication (`FR-115`) ; procédure de reconstruction
+      (`FR-116`)
 
 **Invariants**
 
-- [ ] I3 exécuté : clone nu → build → site complet, **sortie de commande conservée**
+- [ ] I3 exécuté : **un clone, deux branches** — `main` et `media` — → build → site complet,
+      médias compris, **sortie de commande conservée**
 - [ ] C7 : inventaire des secrets **et des liaisons du déploiement** — aucun n'appartient à
       Isometria, et rien de ce qu'il contient ne permet de reconstituer le moyen de reprise
       (`SC-013`). Une liaison n'est pas un secret : c'est une autorisation entre deux comptes,
