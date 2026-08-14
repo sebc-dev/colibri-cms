@@ -115,7 +115,7 @@ vise.
 | — | `lint` | Style | dépôt (garde de scaffold) | Informatif | **vérificateur** — cible du mode 2 (lisibilité) |
 | — | `coverage` | Couverture du **code nouveau**, sans seuil chiffré | diff | Informatif | **vérificateur** — mesure l'exécution, **jamais l'assertion** |
 | — | `sast` | Semgrep | dépôt | Informatif | **vérificateur** — cible du mode 2 (injection, XSS, traversée) |
-| — | `arch-invariants` | Invariants de `docs/archi.md` + six ADR | arbre courant | Informatif → bloquant après rejeu | 5 — le **gisement principal** |
+| — | `arch-invariants` | Invariants de `docs/archi.md` + les clauses d'ADR du registre ci-dessous | arbre courant | Informatif → bloquant après rejeu | 5 — le **gisement principal** |
 | — | `dead-code` | knip (**nocturne**) | dépôt | Informatif | 4 — partiellement |
 | — | `mutation` | Stryker (**nocturne**) | code nouveau | Informatif | 1 — **statistiquement**, jamais prouvé |
 | — | — (résolveur) | Cooldown de dépendances, `min-release-age = 7` dans `.npmrc` | installation | **Bloquant (déclaratif)** | 3a, 3b |

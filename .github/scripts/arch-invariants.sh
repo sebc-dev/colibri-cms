@@ -2,9 +2,11 @@
 #
 # Invariants d'architecture — mode 5 de la grille de docs/ci.md.
 #
-# Source : la table des invariants de docs/archi.md (I1..I10) et six ADR
-# acceptés qui adressent au présent un contrôle à docs/ci.md. Le registre des
-# ADR vérifiés, dans docs/ci.md, dit ligne par ligne d'où vient chaque contrôle.
+# Source : la table des invariants de docs/archi.md (I1..I10) et les clauses
+# d'ADR que le registre de docs/ci.md verse ici — ADR-0015, ADR-0024, ADR-0006.
+# Des six ADR qui adressent un contrôle bloquant à docs/ci.md, les trois autres
+# n'y passent pas : ADR-0008 revient au job `test`, ADR-0009 et ADR-0012 ne sont
+# rendus par aucun contrôle. Le registre le dit ligne par ligne.
 #
 # CE SCRIPT EST INFORMATIF. Son taux de faux positifs n'est pas mesuré : un
 # contrôle maison neuf n'en a aucun de connu, et un contrôle bruyant finit
