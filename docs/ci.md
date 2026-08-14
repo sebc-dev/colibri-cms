@@ -67,7 +67,7 @@ Ce tableau est la source unique. `CLAUDE.md` y renvoie, il ne le recopie pas.
 | Secrets | `trufflehog git file:///repo --results=verified --fail` (image `3.96.0`) | Réelle |
 | SAST | `semgrep scan --config=p/typescript --config=p/javascript --config=p/owasp-top-ten` (image `1.172.0`) | Réelle |
 | Audit des workflows | `zizmorcore/zizmor-action@v0.6.2` (zizmor 1.29.0, hors ligne) | Réelle |
-| Graphe d'imports (invariants `I1`, `I3`) | `[à compléter]` — dependency-cruiser, fichier de règles à poser au scaffold | Non posée |
+| Graphe d'imports (invariants `I1`, `I3`) | `[à compléter]` — `eslint-plugin-boundaries` sur `eslint-import-resolver-typescript`, règles à poser au scaffold dans `eslint.config.*` | Non posée |
 
 **Aucune commande de run local n'existe**, et ce n'est pas un oubli : la stack déploie un Worker
 bâti par Workers Builds, et rien de ce qui a été arbitré n'a fixé la commande de développement.
@@ -198,10 +198,21 @@ min-release-age=7
 > **Une faiblesse propre à npm, et le contrôle qui la referme.** La documentation embarquée de
 > `npm 11.16.0` écrit que la précédence des sources est `cli > env > projet > user > global`, si
 > bien qu'« une source de priorité supérieure peut toujours relâcher ou écraser une source de
-> priorité inférieure ». Un `npm ci --min-release-age=0` en ligne de commande annulerait donc le
-> fichier sans le modifier. `dependency-review` cherche pour cette raison `--min-release-age` et
+> priorité inférieure ». Un `npm install --min-release-age=0` en ligne de commande annulerait donc
+> le fichier sans le modifier. `dependency-review` cherche pour cette raison `--min-release-age` et
 > `--before` dans `package.json`, dans les workflows et dans les scripts shell versionnés : aucune
 > commande de ce dépôt n'a de raison d'en porter un.
+
+> **Le cooldown protège la résolution, jamais l'installation en CI — et c'est ce qui désigne le
+> vrai chemin exposé.** La clé n'est documentée que pour `install`, `install-test`, `outdated` et
+> `update` ; la page `npm-ci.1` ne la mentionne pas, et une version déjà verrouillée ne paie aucun
+> délai — mesuré le 2026-08-14 sur la documentation npm, [sujet 07 de la campagne de
+> recherche](./research/ci-code-genere/07-flux-de-mise-a-jour-des-dependances-sous-cooldown.md). Ce
+> n'est donc pas `npm ci` qui est à surveiller, c'est le moment où **l'agent ajoute une
+> dépendance** : c'est là que la résolution s'ouvre, et c'est exactement ce que `min-release-age`
+> couvre, transitives comprises. Le garde ci-dessus reste juste parce qu'il est **déclaratif** — il
+> lit le dépôt et non l'exécution, et un `--min-release-age=0` versionné y serait visible quelle
+> que soit la sous-commande qui le porte.
 
 > **Ce que le cooldown coûte, et c'est réel.** Un correctif de sécurité publié aujourd'hui n'est
 > installable qu'à J+7. En incident il faut relâcher la clé à la main, sous pression — et comme
@@ -263,7 +274,7 @@ commits qui y touchent portent un scope explicite — `chore(ci):`, `chore(confi
 
 Chemins surveillés : `eslint.config.*`, `.eslintrc*`, `tsconfig*.json`, `vitest.config.*`,
 `playwright.config.*`, `stryker.conf.*`, `knip.*`, `prettier.config.*`, `.prettierrc*`,
-`.prettierignore`, `.eslintignore`, **`.npmrc`**, `.dependency-cruiser.*`, `.github/workflows/**`,
+`.prettierignore`, `.eslintignore`, **`.npmrc`**, `.github/workflows/**`,
 `.github/scripts/**`, et — parce qu'ils contraignent l'agent lui-même — `CLAUDE.md`, `AGENTS.md`,
 `.claude/**`.
 
@@ -382,7 +393,7 @@ violations de contrat propres au projet, qu'aucun outil générique ne connaît.
 
 | ADR | Invariant | Source | Rendu par | Statut |
 |---|---|---|---|---|
-| [ADR-0021](./adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/archi.md` `I1` | **`[à compléter]`** — dependency-cruiser au scaffold | **Non rendu** |
+| [ADR-0021](./adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/archi.md` `I1` | **`[à compléter]`** — chaîne ESLint au scaffold | **Non rendu** |
 | [ADR-0022](./adr/0022-core-sans-framework-ni-plateforme.md) | `I2` — `src/core/` n'importe ni `astro`, ni `svelte`, ni `@astrojs/*`, ni `cloudflare:*` | `docs/archi.md` `I2` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0023](./adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/archi.md` `I3` | `arch-invariants` — **partiellement**, voir ci-dessous | Informatif depuis 2026-08-14 |
 | [ADR-0024](./adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/archi.md` `I4` | `arch-invariants` | Informatif depuis 2026-08-14 |
@@ -400,11 +411,32 @@ violations de contrat propres au projet, qu'aucun outil générique ne connaît.
 **`I1` et `I3` résistent à l'expression régulière, et il faut le dire plutôt que le masquer.** La
 matrice des arêtes autorisées entre zones et le point d'entrée unique de `src/render/` se vérifient
 sur le **graphe d'imports résolu** — alias `tsconfig paths`, ré-exports, barils —, ce qu'un script
-maison ne fait pas sans recréer un résolveur. L'outil de l'écosystème est **dependency-cruiser**
-(18.1.0, constat du 2026-08-09) ; son fichier de règles se pose au scaffold, avec le code. `I3` est
-rendu **à moitié** dès aujourd'hui — les chemins d'import littéraux vers `src/render/` et la
-présence du gabarit partagé dans les deux routes —, et le reste attend l'outil. Réserve à porter :
-dependency-cruiser ne parse pas les fichiers `.astro`, et une partie des zones en est faite.
+maison ne fait pas sans recréer un résolveur. L'outil est la **chaîne ESLint** :
+`eslint-plugin-boundaries` (7.2.0) branché sur `eslint-import-resolver-typescript`, avec les
+parsers `astro-eslint-parser` et `svelte-eslint-parser` que le projet aura de toute façon. Son
+fichier de règles se pose au scaffold, dans `eslint.config.*`, avec le code. `I3` est rendu **à
+moitié** dès aujourd'hui — les chemins d'import littéraux vers `src/render/` et la présence du
+gabarit partagé dans les deux routes —, et le reste attend l'outil.
+
+> **dependency-cruiser était le candidat, et il est écarté sur deux constats indépendants.** [Le
+> sujet 02 de la campagne de recherche du
+> 2026-08-14](./research/ci-code-genere/02-graphe-d-imports-resolu-avec-astro-et-svelte.md) les a
+> mesurés au registre et dans le code de l'outil. **Un** : sa table d'extensions ne liste pas
+> `.astro`, et une partie des zones en est faite — la réserve était déjà écrite ici. **Deux** : sa
+> table de transpilation déclare `typescript >=2.0.0 <7.0.0`, quand `typescript@7.0.2` est la
+> version courante du registre depuis le 2026-07-08 ; sous TS 7, `depcruise --info` marque `.ts`
+> lui-même comme non pris en charge, et le mainteneur conditionne le support à `typescript@7.1.0`
+> livrant une API publique, qui n'existe pas. `ADR-0010` n'épingle aucune version de TypeScript :
+> le premier mur suffirait seul, le second dépend de ce que le scaffold installera.
+>
+> La chaîne ESLint ne touche pas à l'API du compilateur — `typescript-eslint` parse, le resolver
+> résout —, donc aucun des deux murs ne la concerne, et elle hérite du parsing `.astro`/`.svelte`
+> déjà nécessaire au lint. **Réserve à porter à sa place** : elle évalue la frontière contre le
+> **baril résolu** et ne remonte pas les chaînes `export … from`. C'est ce qu'on veut pour une
+> frontière entre zones, mais un import profond qui contourne un `index.ts` lui échappe : il
+> demande une règle de plus (`import-x/no-internal-modules`). Sheriff, seul outil à modéliser
+> nativement cette encapsulation, est écarté — mono-`.ts`, testé jusqu'à TS 5.7, sans release
+> depuis fin 2025.
 
 ### L'écart entre ce que six ADR demandent et ce que cette phase donne
 
@@ -440,7 +472,7 @@ action d'emballage : c'est une dépendance de moins, et c'est la couche qui meur
 | Semgrep (image) | 1.172.0, digest `sha256:65dcd440…` | 2026-08-08 — même correction de tag ; l'action d'emballage est **archivée**, on invoque le binaire |
 | zizmor (action) | v0.6.2, SHA `3dc1ecc9`, moteur 1.29.0 | 2026-08-08, repris du socle v1 archivé |
 | diff-cover | 10.4.2 | 2026-08-08, repris du socle v1 archivé |
-| dependency-cruiser | 18.1.0 | 2026-08-09, référentiel d'outillage du cycle (hors dépôt) — datée du 12 juil. 2026, `18.1.1` publiée depuis ; se re-vérifie au registre à l'adoption |
+| `eslint-plugin-boundaries` (+ `eslint-import-resolver-typescript`) | 7.2.0 · 4.4.5 | **2026-08-14**, registre npm par la campagne de recherche — 7.2.0 publiée vers le 9 août 2026, historique régulier (7.0.0 le 5 juil.), documentation dédiée ; le resolver en 4.4.5 du 1ᵉʳ juin 2026. Remplace dependency-cruiser 18.1.0, écarté le même jour (ni `.astro`, ni TypeScript 7) |
 | knip · Stryker | au scaffold | indications reprises du socle v1 : knip 6.32.0, `@stryker-mutator/core` 9.6.1 (2026-08-08) |
 
 > **Ces constats ont six jours et ne se re-vérifient pas depuis un document.** Toutes les lignes
@@ -676,8 +708,10 @@ l'ablation no-op elle-même n'est pas posée : aucune commande réelle ne l'expr
 
 **Mode 5 — l'invariant qu'un grep ne rend pas.** Quatre trous nommés :
 
-- **`I1` et `I3`** exigent un graphe d'imports résolu — non posé, dependency-cruiser au
-  scaffold. Et l'outil ne parse pas les fichiers `.astro`, dont une partie des zones est faite.
+- **`I1` et `I3`** exigent un graphe d'imports résolu — non posé, chaîne ESLint au scaffold.
+  dependency-cruiser, candidat initial, est écarté depuis le 2026-08-14 : ni `.astro`, ni
+  TypeScript 7. Et ce que son remplaçant ne rendra pas non plus : un import profond qui contourne
+  un baril, sauf règle dédiée.
 - **La composition inerte de l'e-mail acheminé** ([ADR-0009](./adr/0009-acheminement-email-routing-send-email.md))
   — texte seul, objet fixe, chaque donnée du visiteur derrière son étiquette. Le gabarit n'existe
   pas et son chemin n'est pas décidé : aucun motif ne se dérive sans l'inventer. **La cinquième

@@ -43,9 +43,12 @@ echo "── Invariants de docs/archi.md ─────────────
 # ── I1 · sens descendant des dépendances entre zones ─────────────────────────
 # NON RENDU ICI. La matrice des arêtes autorisées se vérifie sur le graphe
 # d'imports résolu — alias `tsconfig paths`, ré-exports, barils —, ce à quoi une
-# expression régulière ne suffit pas (references/archi.md § Vérification).
-# Le moteur est dependency-cruiser ; son fichier de règles se pose au scaffold.
-echo "  ! I1 (sens descendant des dépendances entre zones) — NON RENDU : exige un graphe d'imports résolu (dependency-cruiser, à poser au scaffold)"
+# expression régulière ne suffit pas (docs/archi.md § I1).
+# Le moteur est la chaîne ESLint — eslint-plugin-boundaries sur
+# eslint-import-resolver-typescript ; ses règles se posent au scaffold dans
+# eslint.config.*. dependency-cruiser est écarté depuis le 2026-08-14 : ni
+# .astro, ni TypeScript 7 (docs/ci.md § Registre des ADR vérifiés en CI).
+echo "  ! I1 (sens descendant des dépendances entre zones) — NON RENDU : exige un graphe d'imports résolu (chaîne ESLint, à poser au scaffold)"
 
 # ── I2 · src/core/ n'importe ni framework ni plateforme ──────────────────────
 if exists 'src/core/*'; then

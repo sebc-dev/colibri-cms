@@ -408,7 +408,7 @@ jobs:
                   ':(glob)stryker.conf.*'    ':(glob)knip.*'
                   ':(glob)prettier.config.*' ':(glob).prettierrc*'
                   ':(glob).prettierignore'   ':(glob).eslintignore'
-                  ':(glob).npmrc'            ':(glob).dependency-cruiser.*'
+                  ':(glob).npmrc'
                   ':(glob).github/workflows/**'
                   ':(glob).github/scripts/**'
                   ':(glob)CLAUDE.md'         ':(glob)AGENTS.md'
