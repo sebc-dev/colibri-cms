@@ -400,7 +400,7 @@ violations de contrat propres au projet, qu'aucun outil générique ne connaît.
 | [ADR-0024](./adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/archi.md` `I4` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0025](./adr/0025-html-brut-confine-au-rendu-markdown.md) | `I5` — `{@html}` et `set:html` confinés à `src/render/markdown/` | `docs/archi.md` `I5` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0026](./adr/0026-garde-de-session-par-import-et-surface-publique-close.md) | `I6` — garde de session importé par toute route non publique ; aucun `multipart` sur la surface publique | `docs/archi.md` `I6` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0027](./adr/0027-objet-de-frequence-nomme-par-une-constante.md) | `I7` — `idFromName` ne reçoit qu'une constante littérale | `docs/archi.md` `I7` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0027](./adr/0027-objet-de-frequence-nomme-par-une-constante.md) · [ADR-0012](./adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md) | `I7` — `idFromName` ne reçoit qu'une constante littérale ; c'est aussi la moitié statique d'`ADR-0012` — rien de dérivé d'une origine ne survit à la fenêtre qui l'a fait naître | `docs/archi.md` `I7` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0028](./adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) | `I8` — les valeurs d'instance ne vivent que dans `instance.json` | `docs/archi.md` `I8` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0029](./adr/0029-prefixes-de-publication-en-constante-unique.md) | `I9` — `PREFIXES_AUTORISES` a un seul porteur, et `.github/` n'y figure pas | `docs/archi.md` `I9` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0030](./adr/0030-configurations-lisent-le-fichier-d-instance.md) | `I10` — les deux configurations lisent `instance.json` | `docs/archi.md` `I10` | `arch-invariants` | Informatif depuis 2026-08-14 |
@@ -458,7 +458,10 @@ aura, un `arch-invariants` rouge et ignoré vaudra exactement zéro.
 
 Trois clauses ne sont rendues par **aucun** contrôle, et c'est déclaré plus bas : la composition
 inerte de l'e-mail acheminé (`ADR-0009`), l'effacement conjoint de la clé de fenêtre et des
-entrées du compteur (`ADR-0012`), et le jeton anti-CSRF doublé d'`Origin` (`ADR-0006`).
+entrées du compteur (`ADR-0012`), et le jeton anti-CSRF doublé d'`Origin` (`ADR-0006`). Les cinq
+autres sont au registre ci-dessous — dont la moitié statique d'`ADR-0012` (rien de dérivé d'une
+origine ne survit à la fenêtre qui l'a fait naître), tenue par `I7` au même titre qu'`ADR-0027`,
+et facile à manquer parce qu'elle ne porte pas de ligne à elle : 5 + 3 = 8.
 
 ---
 
@@ -732,8 +735,10 @@ l'ablation no-op elle-même n'est pas posée : aucune commande réelle ne l'expr
 - **L'effacement conjoint de la clé de fenêtre et des entrées du compteur**
   ([ADR-0012](./adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md)) —
   `docs/archi.md` a écarté ses deux versants **faute de trace observable**, comme comportement à
-  l'exécution. `I7` en tient la moitié statique — aucun objet nommé d'après une origine — et rien
-  ne tient l'autre.
+  l'exécution : rien ne le tient. C'est la seconde clause d'`ADR-0012` — rien de dérivé d'une
+  origine ne survit à la fenêtre qui l'a fait naître — que tient la moitié statique, au registre
+  ci-dessus via `I7` au même titre qu'`ADR-0027` : ce n'est **pas** un trou, malgré l'absence de
+  ligne qui lui soit propre.
 - **Le jeton anti-CSRF doublé du contrôle d'`Origin`**
   ([ADR-0006](./adr/0006-auth-implementation-maison-sur-d1.md)) — l'ADR verse cette propriété aux
   contrôles bloquants au même titre que les attributs du cookie, mais les deux ne se lisent pas de

@@ -43,12 +43,22 @@ candidat ADR — jamais en rejouant la phase `ci`.
   est que le chantier de durcissement promeut les invariants un par un, et noyer `I1`/`I3` dans
   `lint` interdirait de les promouvoir sans bloquer aussi sur le style. Édité : table
   `## Contrôles`, ligne `l. 70`, registre des ADR (`I1`, `I3`) et sa prose, plus le job dans
-  `.github/workflows/ci.yml`.
+  `.github/workflows/ci.yml`. Commit `dbad57e`.
+- **M3 refermé (14/08)** — licence + palier gratuit ajoutés aux 8 lignes de
+  `## La maturité de l'outillage`, vérifiés le jour même sur `LICENSE`/`package.json` de chaque
+  dépôt. Point fragile signalé plutôt qu'arrondi : la licence des règles du registre Semgrep
+  (Semgrep Rules License v.1.0, non-OSI) diffère de celle du moteur (LGPL-2.1), et l'absence de
+  login pour `--config=p/xxx` n'est confirmée que par des sources secondaires. Commit `30c17f6`.
+- **M4 refermé (14/08)** — la clause statique d'`ADR-0012` (« rien de dérivé d'une origine ne
+  survit à la fenêtre ») est désormais citée sur la ligne `I7` du registre, à côté d'`ADR-0027` :
+  5 + 3 = 8. Le bullet Mode 5 dit maintenant explicitement que ce n'est pas un trou. Pas encore
+  committé — voir Prochaine étape.
 
 ## Prochaine étape
-Trancher M3 — ajouter à la table `## La maturité de l'outillage` (l. 467-476) le constat de
-licence et de palier gratuit des 8 outils, absent aujourd'hui alors que `l. 483-486` en fait deux
-des trois seuils de re-passe.
+Committer M4, puis trancher M2 — le seul Major restant. Verdict déjà acquis : `docs/stack.md` ne
+tranche pas le gestionnaire de paquets, `docs/ci.md:38-46` l'arbitre seul. Reste à écrire le
+candidat ADR (`docs/adr/_candidates/`) et à signaler `/scd-sdd:audit stack` pour qu'il absorbe le
+sujet à sa prochaine passe.
 
 ## Écarté
 - Ouvrir une fiche d'audit `2026-08-14-audit-ci.md` — le verdict était CONFORME, et la règle du
