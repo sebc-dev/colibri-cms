@@ -503,27 +503,31 @@ build · test · sca · dependency-review · secrets · workflow-integrity
 test-integrity · quality-config-guard · verifier-guard
 ```
 
-### État : **POSÉE mais PÉRIMÉE — à reprendre avant la première PR**
+### État : **POSÉE et à jour — reprise le 2026-08-14**
 
-Relevé sur la forge le **2026-08-14** : le ruleset `Main protect`, id `20239278`, posé le
-2026-08-08 pour le socle v1, est toujours `enforcement: active`, `bypass_actors: []`,
-`current_user_can_bypass: "never"`, `allowed_merge_methods: ["merge"]`. Six de ses neuf contextes
-requis correspondent encore aux jobs de ce portail. **Trois ne correspondent plus** :
+Le ruleset `Main protect`, id `20239278`, est `enforcement: active`, `bypass_actors: []`,
+`current_user_can_bypass: "never"`, `allowed_merge_methods: ["merge"]`, et ses **neuf** contextes
+requis sont exactement ceux ci-dessus. La commande de reprise est passée le **2026-08-14**, et sa
+vérification a été rejouée dans la foulée.
 
-| Contexte encore exigé | Job qui l'honorait (v1) | Job de ce portail |
-|---|---|---|
-| `deps-policy` | `deps-policy` | **`dependency-review`** |
-| `suppression-guard` | `suppression-guard` | **`verifier-guard`** |
-| `workflow-audit` | `workflow-audit` | **`workflow-integrity`** |
+**Ce qu'elle a corrigé, et pourquoi ce n'était pas cosmétique.** Le ruleset avait été posé pour le
+socle v1 ; six de ses contextes correspondaient encore aux jobs de ce portail, **trois portaient
+les anciens noms** :
 
-> **Conséquence immédiate, et c'est exactement le piège que cette phase décrit.** Un check requis
-> dont aucun job ne porte le nom reste `pending` **pour toujours**. En l'état, la première PR — y
-> compris celle qui apporte ce portail — sera bloquée sans issue, avec trois contextes fantômes que
-> rien ne viendra satisfaire. **La commande ci-dessous se joue avant d'ouvrir cette PR**, pas après.
+| Contexte exigé (v1) | Job de ce portail |
+|---|---|
+| `deps-policy` | **`dependency-review`** |
+| `suppression-guard` | **`verifier-guard`** |
+| `workflow-audit` | **`workflow-integrity`** |
 
-Les trois renommages ne sont pas cosmétiques : `verifier-guard` et `workflow-integrity` sont les
-noms que le cycle fixe, et ils ne se renomment plus. C'est le dernier moment où les corriger coûte
-une commande.
+> **Le piège était celui que cette phase décrit.** Un check requis dont aucun job ne porte le nom
+> reste `pending` **pour toujours**. La première PR — y compris celle qui apporte ce portail —
+> aurait été bloquée sans issue, par trois contextes fantômes que rien ne serait venu satisfaire.
+> `verifier-guard` et `workflow-integrity` sont les noms que le cycle fixe, et ils ne se renomment
+> plus : la reprise a aligné le ruleset sur eux, jamais l'inverse.
+
+La commande reste écrite ci-dessous parce qu'elle est la **source** du contenu du ruleset : toute
+divergence future — un job renommé, un contrôle qui monte — se referme en la rejouant.
 
 ```bash
 gh api -X PUT repos/sebc-dev/colibri-cms/rulesets/20239278 \
@@ -574,8 +578,8 @@ gh api repos/sebc-dev/colibri-cms/rulesets/20239278 \
 #            "test","test-integrity","verifier-guard","workflow-integrity"]
 ```
 
-**Tant que cette commande n'est pas passée, tout ce document est informatif** — et pire
-qu'informatif : la PR qui apporte ces contrôles serait bloquée par trois fantômes.
+**Sans ce ruleset, tout ce document serait informatif** : c'est lui, et lui seul, qui fait refuser.
+Il est posé — et c'est la vérification ci-dessus qui le prouve, jamais cette phrase.
 
 #### Pourquoi `allowed_merge_methods` reste réduit à `["merge"]`
 
