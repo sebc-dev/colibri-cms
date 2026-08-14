@@ -51,14 +51,18 @@ candidat ADR — jamais en rejouant la phase `ci`.
   login pour `--config=p/xxx` n'est confirmée que par des sources secondaires. Commit `30c17f6`.
 - **M4 refermé (14/08)** — la clause statique d'`ADR-0012` (« rien de dérivé d'une origine ne
   survit à la fenêtre ») est désormais citée sur la ligne `I7` du registre, à côté d'`ADR-0027` :
-  5 + 3 = 8. Le bullet Mode 5 dit maintenant explicitement que ce n'est pas un trou. Pas encore
-  committé — voir Prochaine étape.
+  5 + 3 = 8. Le bullet Mode 5 dit maintenant explicitement que ce n'est pas un trou. Commit
+  `344da04`.
+- **M2 refermé (14/08)** — candidat ADR écrit dans
+  `docs/adr/_candidates/gestionnaire-de-paquets-npm.md` (Nygard : contexte · décision ·
+  conséquences · alternatives), reprenant les trois faits déjà mesurés (`npm 11.16.0` porte
+  `min-release-age` nativement, `pnpm` absent, `bun` sans équivalent). Signalement, non exécuté
+  ici : `/scd-sdd:audit stack` devrait absorber ce trou de traçabilité à sa prochaine passe,
+  puisque c'est `docs/stack.md` qui aurait dû trancher le gestionnaire de paquets.
 
 ## Prochaine étape
-Committer M4, puis trancher M2 — le seul Major restant. Verdict déjà acquis : `docs/stack.md` ne
-tranche pas le gestionnaire de paquets, `docs/ci.md:38-46` l'arbitre seul. Reste à écrire le
-candidat ADR (`docs/adr/_candidates/`) et à signaler `/scd-sdd:audit stack` pour qu'il absorbe le
-sujet à sa prochaine passe.
+Aucune — les quatre Major sont refermés. Le candidat ADR reste à promouvoir par `/scd-sdd:adr`
+(hors périmètre de ce chantier).
 
 ## Écarté
 - Ouvrir une fiche d'audit `2026-08-14-audit-ci.md` — le verdict était CONFORME, et la règle du
