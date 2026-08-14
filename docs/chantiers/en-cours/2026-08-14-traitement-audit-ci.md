@@ -39,10 +39,16 @@ candidat ADR — jamais en rejouant la phase `ci`.
   4 + 3 = 7. La huitième est `ADR-0012` — « rien de dérivé d'une origine ne survit à la fenêtre
   qui l'a fait naître » —, tenue par `I7`, mais nommée seulement `l. 722-723`.
 - Le verdict de la passe était **CONFORME** : aucun des quatre ne bloque quoi que ce soit.
+- **M1 refermé (14/08)** — job dédié `boundaries`, mode 5, séparé de `lint` : la raison retenue
+  est que le chantier de durcissement promeut les invariants un par un, et noyer `I1`/`I3` dans
+  `lint` interdirait de les promouvoir sans bloquer aussi sur le style. Édité : table
+  `## Contrôles`, ligne `l. 70`, registre des ADR (`I1`, `I3`) et sa prose, plus le job dans
+  `.github/workflows/ci.yml`.
 
 ## Prochaine étape
-Trancher M1 — quel job portera `I1` et `I3` : un second job ESLint dédié, ou `lint` scindé. Les
-trois autres sont des éditions qui ne demandent aucun arbitrage.
+Trancher M3 — ajouter à la table `## La maturité de l'outillage` (l. 467-476) le constat de
+licence et de palier gratuit des 8 outils, absent aujourd'hui alors que `l. 483-486` en fait deux
+des trois seuils de re-passe.
 
 ## Écarté
 - Ouvrir une fiche d'audit `2026-08-14-audit-ci.md` — le verdict était CONFORME, et la règle du

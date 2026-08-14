@@ -67,7 +67,7 @@ Ce tableau est la source unique. `CLAUDE.md` y renvoie, il ne le recopie pas.
 | Secrets | `trufflehog git file:///repo --results=verified --fail` (image `3.96.0`) | Réelle |
 | SAST | `semgrep scan --config=p/typescript --config=p/javascript --config=p/owasp-top-ten` (image `1.172.0`) | Réelle |
 | Audit des workflows | `zizmorcore/zizmor-action@v0.6.2` (zizmor 1.29.0, hors ligne) | Réelle |
-| Graphe d'imports (invariants `I1`, `I3`) | `[à compléter]` — `eslint-plugin-boundaries` sur `eslint-import-resolver-typescript`, règles à poser au scaffold dans `eslint.config.*` | Non posée |
+| Graphe d'imports (invariants `I1`, `I3`) — job `boundaries` | `npm run lint:boundaries` — `[à compléter]` : `eslint-plugin-boundaries` sur `eslint-import-resolver-typescript`, règles à poser au scaffold dans `eslint.config.*` | Non posée |
 
 **Aucune commande de run local n'existe**, et ce n'est pas un oubli : la stack déploie un Worker
 bâti par Workers Builds, et rien de ce qui a été arbitré n'a fixé la commande de développement.
@@ -116,11 +116,12 @@ vise.
 | — | `coverage` | Couverture du **code nouveau**, sans seuil chiffré | diff | Informatif | **vérificateur** — mesure l'exécution, **jamais l'assertion** |
 | — | `sast` | Semgrep | dépôt | Informatif | **vérificateur** — cible du mode 2 (injection, XSS, traversée) |
 | — | `arch-invariants` | Invariants de `docs/archi.md` + les clauses d'ADR du registre ci-dessous | arbre courant | Informatif → bloquant après rejeu | 5 — le **gisement principal** |
+| — | `boundaries` | Graphe d'imports **résolu** — `I1` (sens descendant des dépendances entre zones) et le reliquat d'`I3` qu'un grep littéral ne peut pas voir (ré-exports, barils, alias) | dépôt (garde de scaffold) | Informatif → bloquant après rejeu | 5 — hors de portée d'`arch-invariants`, qui ne résout pas le graphe |
 | — | `dead-code` | knip (**nocturne**) | dépôt | Informatif | 4 — partiellement |
 | — | `mutation` | Stryker (**nocturne**) | code nouveau | Informatif | 1 — **statistiquement**, jamais prouvé |
 | — | — (résolveur) | Cooldown de dépendances, `min-release-age = 7` dans `.npmrc` | installation | **Bloquant (déclaratif)** | 3a, 3b |
 
-**9 bloquants · 4 informatifs sur PR · 2 informatifs nocturnes.**
+**9 bloquants · 5 informatifs sur PR · 2 informatifs nocturnes.**
 
 La dernière ligne n'est pas un job : c'est une **clé de configuration** du résolveur, elle agit à
 l'installation, et son abaissement est gardé par `dependency-review` **et** par
@@ -393,9 +394,9 @@ violations de contrat propres au projet, qu'aucun outil générique ne connaît.
 
 | ADR | Invariant | Source | Rendu par | Statut |
 |---|---|---|---|---|
-| [ADR-0021](./adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/archi.md` `I1` | **`[à compléter]`** — chaîne ESLint au scaffold | **Non rendu** |
+| [ADR-0021](./adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/archi.md` `I1` | `boundaries` — job créé, règles ESLint **`[à compléter]`** au scaffold | **Non rendu** |
 | [ADR-0022](./adr/0022-core-sans-framework-ni-plateforme.md) | `I2` — `src/core/` n'importe ni `astro`, ni `svelte`, ni `@astrojs/*`, ni `cloudflare:*` | `docs/archi.md` `I2` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0023](./adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/archi.md` `I3` | `arch-invariants` — **partiellement**, voir ci-dessous | Informatif depuis 2026-08-14 |
+| [ADR-0023](./adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/archi.md` `I3` | `arch-invariants` — **partiellement**, `boundaries` pour le reste, voir ci-dessous | Informatif depuis 2026-08-14 |
 | [ADR-0024](./adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/archi.md` `I4` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0025](./adr/0025-html-brut-confine-au-rendu-markdown.md) | `I5` — `{@html}` et `set:html` confinés à `src/render/markdown/` | `docs/archi.md` `I5` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0026](./adr/0026-garde-de-session-par-import-et-surface-publique-close.md) | `I6` — garde de session importé par toute route non publique ; aucun `multipart` sur la surface publique | `docs/archi.md` `I6` | `arch-invariants` | Informatif depuis 2026-08-14 |
@@ -414,9 +415,14 @@ sur le **graphe d'imports résolu** — alias `tsconfig paths`, ré-exports, bar
 maison ne fait pas sans recréer un résolveur. L'outil est la **chaîne ESLint** :
 `eslint-plugin-boundaries` (7.2.0) branché sur `eslint-import-resolver-typescript`, avec les
 parsers `astro-eslint-parser` et `svelte-eslint-parser` que le projet aura de toute façon. Son
-fichier de règles se pose au scaffold, dans `eslint.config.*`, avec le code. `I3` est rendu **à
-moitié** dès aujourd'hui — les chemins d'import littéraux vers `src/render/` et la présence du
-gabarit partagé dans les deux routes —, et le reste attend l'outil.
+fichier de règles se pose au scaffold, dans `eslint.config.*`, avec le code. Elle tourne dans un
+job dédié, `boundaries` — et non dans `lint` — parce que `lint` couvre le style (mode 2) : y noyer
+`I1`/`I3` interdirait de les promouvoir en bloquant sans bloquer aussi sur le style, alors que le
+chantier de durcissement (`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`) promeut les
+invariants un par un. `I3` est rendu **à moitié** dès aujourd'hui, par `arch-invariants` — les
+chemins d'import littéraux vers `src/render/` et la présence du gabarit partagé dans les deux
+routes —, et le reste, ce qu'un grep littéral ne peut pas voir (ré-export, barils, alias), attend
+l'outil sous `boundaries`.
 
 > **dependency-cruiser était le candidat, et il est écarté sur deux constats indépendants.** [Le
 > sujet 02 de la campagne de recherche du
