@@ -1,0 +1,82 @@
+# Régime nocturne — les contrôles trop lents pour le chemin critique d'une PR
+#
+# Ces deux jobs sont INFORMATIFS et ne sont JAMAIS des checks requis : ils ne
+# tournent pas sur `pull_request`, donc ils n'apparaîtront jamais dans la liste
+# des status checks sélectionnables. C'est voulu — exiger un check qui ne tourne
+# pas sur une PR bloquerait la PR indéfiniment.
+#
+# Ils couvrent deux modes que le portail de PR ne ferme pas :
+#   · mode 4 — building to the test : la logique vit dans un artefact jetable et
+#     l'artefact demandé reste mort. `dead-code` le voit quand il est mort ;
+#     il ne voit rien quand il est propre (docs/ci.md § Ce que ces contrôles
+#     ne couvrent pas).
+#   · mode 1 — oracle faux : un test qui passe mais dont l'assertion vérifie la
+#     mauvaise chose. `mutation` le signale STATISTIQUEMENT et ne le prouve pas.
+
+name: Nightly
+
+on:
+  schedule:
+    # 03:17 UTC — décalé de l'heure ronde, où la file de la forge est chargée.
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Informatif · CODE MORT — mode 4, partiellement ──────────────────────────
+  dead-code:
+    name: dead-code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
+          fi
+      - if: steps.scaffold.outputs.ok == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm run knip
+
+  # ── Informatif · MUTATION — mode 1, statistiquement ─────────────────────────
+  # La couverture mesure l'EXÉCUTION, jamais l'ASSERTION : une ligne couverte par
+  # un test qui n'affirme rien compte comme couverte. Le test de mutation est le
+  # seul instrument qui regarde l'oracle — et il ne rend qu'un score.
+  mutation:
+    name: mutation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
+          fi
+      - if: steps.scaffold.outputs.ok == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm run mutation

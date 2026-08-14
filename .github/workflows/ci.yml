@@ -1,0 +1,644 @@
+# Portail de contrôles — ColibriCMS
+#
+# Ce fichier est le contrôle réel ; docs/ci.md en est la synthèse, la portée et
+# les limites. Les NOMS DE JOBS ci-dessous sont les noms des checks requis de la
+# protection de branche, caractère pour caractère. Les renommer sans reprendre
+# le ruleset laisse un check requis fantôme qui bloque toutes les PR.
+#
+# Bloquants   : build · test · sca · secrets · dependency-review
+#               workflow-integrity · test-integrity · quality-config-guard
+#               verifier-guard
+# Informatifs : lint · coverage · sast · arch-invariants
+#               (ils annotent la PR, ils ne sont pas exigés — aucun
+#                continue-on-error ne vient masquer leur signal)
+#
+# Toutes les actions sont épinglées au SHA COMPLET et toutes les images au
+# DIGEST : un tag est mobile et peut être repointé sous le même nom.
+# `workflow-integrity` (zizmor) refuse toute référence mobile.
+#
+# GARDE DE SCAFFOLD : le dépôt ne porte encore aucun code. Les jobs qui en
+# dépendent testent la présence de package.json et se déclarent HORS PORTÉE
+# tant qu'il n'existe pas. Ils passent alors AU VERT SANS RIEN VÉRIFIER —
+# c'est un coût assumé et déclaré (docs/ci.md § L'état du dépôt), pas un oubli.
+
+name: CI
+
+on:
+  # `labeled` et `unlabeled` ne sont PAS dans les types par défaut
+  # (opened · synchronize · reopened). Sans eux, poser le label `config-change`
+  # ou `deps` ne relance rien, et `gh run rerun` rejoue la charge utile
+  # d'origine — donc sans le label. Les soupapes seraient inertes.
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Informatif · quelques secondes ──────────────────────────────────────────
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
+          fi
+      - if: steps.scaffold.outputs.ok == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm run lint
+
+  # ── Informatif · INVARIANTS D'ARCHITECTURE — le mode 5 ──────────────────────
+  # Le gisement principal : les défauts qui comptent dans du code généré sont
+  # des violations de contrat propres au projet, qu'aucun outil générique ne
+  # connaît. Dérivé de la table de docs/archi.md (I1..I10) et de six ADR.
+  #
+  # INFORMATIF, et ce n'est pas un provisoire mal assumé : un contrôle maison
+  # neuf n'a aucun taux de faux positifs connu. Six ADR acceptés demandent
+  # « bloquant » ; c'est le rejeu sur l'historique, porté par le chantier de
+  # durcissement, qui lèvera l'écart. Voir docs/ci.md § Registre des ADR.
+  arch-invariants:
+    name: arch-invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: bash .github/scripts/arch-invariants.sh
+
+  # ── Bloquant · dizaines de secondes ─────────────────────────────────────────
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
+          fi
+      - if: steps.scaffold.outputs.ok == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      # `npm ci` et jamais `npm install` : sans version figée, la SCA scannerait
+      # autre chose que ce qui est installé et ne prouverait rien.
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm run typecheck
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm run build
+      # ── Garde-fou C5 · le plafond porte sur la SORTIE du build ──────────────
+      # Une photographie produit 5 fichiers avec la configuration d'images
+      # retenue (docs/stack.md § Le garde-fou C5). Le mur de la plateforme est
+      # à 20 000 fichiers ; l'alerte du socle de livraison à 15 000.
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: |
+          set -uo pipefail
+          if [ ! -d dist ]; then
+            echo "::notice title=Hors portée::Aucun répertoire dist/ — rien à compter."
+            exit 0
+          fi
+          n=$(find dist -type f | wc -l)
+          echo "Fichiers produits : ${n}"
+          if [ "$n" -ge 20000 ]; then
+            echo "::error title=C5 franchi::${n} fichiers produits — le plafond de la plateforme est 20 000."
+            exit 1
+          elif [ "$n" -ge 15000 ]; then
+            echo "::warning title=C5 en alerte::${n} fichiers produits — l'alerte du socle de livraison est à 15 000."
+          fi
+
+  # ── Bloquant · dépôt ENTIER, pas le diff ────────────────────────────────────
+  # Une CVE dans une dépendance que la PR ne touche pas reste exploitable.
+  sca:
+    name: sca
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: lockfile
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors portée::Aucun package-lock.json — rien à scanner (docs/ci.md)."
+          fi
+      - if: steps.lockfile.outputs.ok == 'true'
+        uses: google/osv-scanner-action/osv-scanner-action@8deb546fdb875b9996d27d4950be7312dac076a1 # v2.5.0
+        with:
+          scan-args: |-
+            --recursive
+            ./
+
+  # ── Bloquant · dépôt ENTIER + HISTORIQUE ────────────────────────────────────
+  # Un secret dans un fichier non modifié reste un secret ; un secret retiré de
+  # l'arbre de travail mais présent dans l'historique reste exposé — le dépôt
+  # est public. `--results=verified` : seuls les credentials RÉELLEMENT ACTIFS
+  # remontent. Un scanner par entropie ferait du bruit sur les fixtures et
+  # finirait désactivé.
+  secrets:
+    name: secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: TruffleHog — historique complet, credentials vérifiés
+        run: |
+          docker run --rm -v "$PWD":/repo \
+            ghcr.io/trufflesecurity/trufflehog:3.96.0@sha256:aa821cf4ace8861c7d096d83818cdf7bb9719028a52d37a52eaad44086a52577 \
+            git file:///repo \
+            --results=verified \
+            --fail \
+            --no-update \
+            --github-actions
+
+  # ── Bloquant · CHAÎNE D'APPROVISIONNEMENT — modes 3a, 3b, 3c ────────────────
+  # Ce que la SCA ne voit PAS : un paquet hostile trop récent pour figurer dans
+  # une base de vulnérabilités. C'est la fenêtre du slopsquatting — un nom de
+  # paquet halluciné par un modèle, enregistré par un tiers. Deux gardes :
+  #   a. le cooldown npm est déclaré et suffisant (7 jours) ;
+  #   b. aucune variation de dépendance n'entre EN SILENCE.
+  dependency-review:
+    name: dependency-review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Cooldown déclaré, et aucune variation muette
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HAS_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'deps') }}
+        run: |
+          set -uo pipefail
+          fail=0
+          MIN_AGE=7   # jours — npm `min-release-age` s'exprime en jours
+
+          # ── a. Le cooldown, dès que le scaffold existe ────────────────────
+          if [ -f package.json ]; then
+            if [ ! -f .npmrc ]; then
+              echo "::error title=Cooldown absent::.npmrc manquant — min-release-age ne peut pas être déclaré (docs/ci.md § Approvisionnement)."
+              fail=1
+            else
+              # `s/[;#].*$//` d'abord : un commentaire en fin de ligne rendrait
+              # la valeur non numérique et ferait échouer le contrôle sur sa
+              # propre lisibilité.
+              age=$(grep -iE '^[[:space:]]*min-release-age[[:space:]]*=' .npmrc \
+                    | head -1 | sed -E 's/[;#].*$//; s/.*=[[:space:]]*//' | tr -d '"'\''[:space:]')
+              if ! printf '%s' "${age:-}" | grep -qE '^[0-9]+$'; then
+                echo "::error title=Cooldown absent::.npmrc ne déclare pas min-release-age (attendu : >= ${MIN_AGE} jours)."
+                fail=1
+              elif [ "$age" -lt "$MIN_AGE" ]; then
+                echo "::error title=Cooldown trop court::min-release-age=${age} < ${MIN_AGE} jours."
+                fail=1
+              else
+                echo "Cooldown déclaré : ${age} jours."
+              fi
+            fi
+            # La précédence npm est cli > env > projet : un `--min-release-age`
+            # sur la ligne de commande écraserait le fichier. Aucune commande du
+            # dépôt n'a de raison d'en porter un.
+            contournements=$(git grep -nE -- '--min-release-age|--before' -- \
+                             ':(glob)package.json' ':(glob).github/workflows/**' ':(glob)**/*.sh' 2>/dev/null) || true
+            if [ -n "$contournements" ]; then
+              echo "::error title=Cooldown contourné::une commande passe min-release-age ou before en ligne de commande, ce qui écrase .npmrc :"
+              echo "$contournements"
+              fail=1
+            fi
+          else
+            echo "::notice title=Hors portée::Aucun package.json — le cooldown n'a rien à contraindre (docs/ci.md)."
+          fi
+
+          # ── b. Aucune variation de dépendance en silence ──────────────────
+          # Le lockfile ET le manifeste. Le lockfile est le signal qui ne ment
+          # pas : il ne change pas sans qu'une dépendance change. Le manifeste
+          # bouge pour mille raisons légitimes — on ne regarde donc que ses
+          # blocs de dépendances, comparés d'une version à l'autre. Un contrôle
+          # bruyant finit désactivé.
+          if [ -z "${BASE_SHA:-}" ]; then
+            echo "::notice title=Hors portée::Pas d'événement pull_request — aucun diff à inspecter."
+          elif [ "${HAS_LABEL}" = "true" ]; then
+            echo "::notice title=Soupape::Label 'deps' posé sur la PR — variation de dépendance déclarée."
+          else
+            varie=0
+            [ -n "$(git diff --name-only "$BASE_SHA"...HEAD -- ':(glob)package-lock.json' ':(glob)**/package-lock.json')" ] && varie=1
+            if [ "$varie" -eq 0 ] && [ -n "$(git diff --name-only "$BASE_SHA"...HEAD -- ':(glob)package.json' ':(glob)**/package.json')" ]; then
+              git show "$BASE_SHA:package.json" > /tmp/pkg-base.json 2>/dev/null || echo '{}' > /tmp/pkg-base.json
+              if ! node -e '
+                const fs = require("fs");
+                const dep = p => { const j = JSON.parse(fs.readFileSync(p, "utf8"));
+                  return JSON.stringify(["dependencies","devDependencies","optionalDependencies","peerDependencies"]
+                    .map(k => Object.entries(j[k] || {}).sort())); };
+                process.exit(dep("/tmp/pkg-base.json") === dep("package.json") ? 0 : 1);
+              '; then
+                varie=1
+              fi
+            fi
+            if [ "$varie" -eq 1 ]; then
+              for c in $(git log --format=%H "$BASE_SHA"..HEAD -- ':(glob)package-lock.json' ':(glob)**/package-lock.json' ':(glob)package.json' ':(glob)**/package.json'); do
+                msg=$(git log -1 --format=%s "$c")
+                case "$msg" in
+                  build\(deps\):*|chore\(deps\):*|fix\(deps\):*) ;;
+                  *)
+                    echo "::error title=Dépendance modifiée sans déclaration::$c — $msg"
+                    fail=1 ;;
+                esac
+              done
+            fi
+          fi
+
+          exit $fail
+
+  # ── Bloquant · AUDIT DES WORKFLOWS EUX-MÊMES — mode 3d ──────────────────────
+  # L'épinglage se VÉRIFIE, il ne se déclare pas : un `@v3` réintroduit par un
+  # copier-coller annule l'épinglage sans que rien ne change de couleur. zizmor
+  # refuse les références non épinglées, les permissions trop larges,
+  # l'injection de gabarit et l'empoisonnement de cache.
+  # `online-audits: false` : aucun appel d'API, donc aucune limite de débit,
+  # donc aucun rouge intermittent.
+  workflow-integrity:
+    name: workflow-integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+        with:
+          version: 1.29.0
+          inputs: .github/workflows/
+          online-audits: false
+          advanced-security: false
+          annotations: true
+
+  # ── Bloquant · diff des TESTS — mode 2 ──────────────────────────────────────
+  # Vise l'agent, pas le code qu'il écrit. Ne peut PAS reproduire la règle
+  # temporelle du niveau implémentation (« les tests existent, rouges, et ne
+  # bougent plus ») : en TDD, la PR d'un lot contient légitimement les tests ET
+  # le code. Il porte donc les signaux vrais quel que soit le moment.
+  #
+  # DEUX RÉGIMES, et la distinction est le cœur du job :
+  #   A. endormir un test → refus sec, aucune issue ;
+  #   B. retirer un test ou alléger un oracle → légitime, mais SOUS SIGNATURE.
+  test-integrity:
+    name: test-integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Intégrité des tests
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -uo pipefail
+          if [ -z "${BASE_SHA:-}" ]; then
+            echo "::notice title=Hors portée::Pas d'événement pull_request — aucun diff à inspecter."
+            exit 0
+          fi
+
+          # Globs NORMATIFS : un test écrit ailleurs échappe au contrôle.
+          TESTS=(':(glob)**/*.test.ts'   ':(glob)**/*.test.tsx'
+                 ':(glob)**/*.spec.ts'   ':(glob)**/*.spec.tsx'
+                 ':(glob)tests/**'       ':(glob)e2e/**')
+
+          d() { git diff "$BASE_SHA"...HEAD -- "${TESTS[@]}"; }
+          fail=0
+
+          # ── A. Un neutralisant ajouté — AUCUNE soupape ─────────────────────
+          # Endormir un test n'a jamais de justification recevable : la sortie
+          # est de le RETIRER, et retirer est exactement ce que B autorise sous
+          # signature. C'est la seule branche sans issue, et c'est délibéré.
+          neutre=$(d | grep -nE '^\+.*(\.skip\(|\.only\(|\.todo\(|\.fixme\(|\bxit\(|\bxdescribe\(|expect\(true\)\.toBe\(true\)|expect\(1\)\.toBe\(1\))') || true
+          if [ -n "$neutre" ]; then
+            echo "::error title=Neutralisant ajouté dans un test::$neutre"
+            fail=1
+          fi
+
+          # ── B. Test supprimé, ou assertions nettes retirées — SOUS SIGNATURE
+          # Retirer un test ou alléger un oracle est LÉGITIME (retrait d'un
+          # module, refonte) et INDISCERNABLE d'une subversion par le seul diff.
+          # On ne l'interdit donc pas : on exige que l'humain le signe de sa
+          # main. Un scope de commit serait écrit par l'agent lui-même.
+          raisons=()
+          sup=$(git diff --diff-filter=D --name-only "$BASE_SHA"...HEAD -- "${TESTS[@]}")
+          [ -n "$sup" ] && raisons+=("fichier(s) de test supprimé(s)")
+
+          a=$(d | grep -cE '^\+.*(expect\(|assert)') || true
+          r=$(d | grep -cE '^-.*(expect\(|assert)') || true
+          echo "Assertions — ajoutées: ${a:-0} · retirées: ${r:-0}"
+          [ "${r:-0}" -gt "${a:-0}" ] && raisons+=("${r} assertions retirées pour ${a} ajoutées")
+
+          if [ ${#raisons[@]} -gt 0 ]; then
+            printf 'Signature exigée — %s\n' "$(IFS='; '; echo "${raisons[*]}")"
+            [ -n "$sup" ] && printf '  supprimé : %s\n' $sup
+            # Tout commit de l'intervalle qui touche un fichier de test doit
+            # être signé : c'est l'ensemble qui porte la responsabilité, pas le
+            # seul commit où le compteur bascule.
+            mapfile -t touchants < <(git rev-list --no-merges "$BASE_SHA..HEAD" -- "${TESTS[@]}")
+            bash .github/scripts/verify-signed-commits.sh \
+              .github/allowed_signers "${touchants[@]}" || fail=1
+          fi
+
+          exit $fail
+
+  # ── Bloquant · diff de la CONFIG QUALITÉ — mode 2 ───────────────────────────
+  # SOUPAPE obligatoire, sinon ce contrôle bloquerait sa propre maintenance : le
+  # changement est autorisé si TOUS les commits qui y touchent portent un scope
+  # explicite, ou si la PR porte le label `config-change`. Jamais en silence.
+  #
+  # Surveille aussi les fichiers qui contraignent l'AGENT lui-même : un
+  # CLAUDE.md ou un .claude/settings.json réécrit en silence désarme les
+  # consignes avant qu'aucun autre contrôle ne s'en aperçoive.
+  quality-config-guard:
+    name: quality-config-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Config qualité figée
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'config-change') }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -uo pipefail
+          if [ -z "${BASE_SHA:-}" ]; then
+            echo "::notice title=Hors portée::Pas d'événement pull_request — aucun diff à inspecter."
+            exit 0
+          fi
+
+          CONFIG=(':(glob)eslint.config.*'   ':(glob).eslintrc*'
+                  ':(glob)tsconfig*.json'    ':(glob)**/tsconfig*.json'
+                  ':(glob)vitest.config.*'   ':(glob)**/vitest.config.*'
+                  ':(glob)playwright.config.*'
+                  ':(glob)stryker.conf.*'    ':(glob)knip.*'
+                  ':(glob)prettier.config.*' ':(glob).prettierrc*'
+                  ':(glob).prettierignore'   ':(glob).eslintignore'
+                  ':(glob).npmrc'            ':(glob).dependency-cruiser.*'
+                  ':(glob).github/workflows/**'
+                  ':(glob).github/scripts/**'
+                  ':(glob)CLAUDE.md'         ':(glob)AGENTS.md'
+                  ':(glob).claude/**')
+          fail=0
+
+          verifier_scopes() {
+            # $@ : pathspecs. Chaque commit qui touche ces chemins doit porter
+            # un scope explicite.
+            for c in $(git log --format=%H "$BASE_SHA"..HEAD -- "$@"); do
+              msg=$(git log -1 --format=%s "$c")
+              case "$msg" in
+                chore\(ci\):*|chore\(config\):*|build\(ci\):*|chore\(agent\):*) ;;
+                *)
+                  echo "::error title=Config qualité modifiée sans scope::$c — $msg"
+                  fail=1 ;;
+              esac
+            done
+          }
+
+          # a. Les fichiers de configuration eux-mêmes.
+          if [ -n "$(git diff --name-only "$BASE_SHA"...HEAD -- "${CONFIG[@]}")" ]; then
+            verifier_scopes "${CONFIG[@]}"
+          fi
+
+          # b. Les scripts du portail dans package.json. Seules les lignes des
+          #    commandes de contrôle sont surveillées : ajouter une dépendance
+          #    touche package.json légitimement et ne doit pas faire de bruit.
+          scripts_touches=$(git diff "$BASE_SHA"...HEAD -- ':(glob)package.json' ':(glob)**/package.json' \
+            | grep -E '^[-+][[:space:]]*"(test|typecheck|lint|build|coverage|knip|mutation)"[[:space:]]*:') || true
+          if [ -n "$scripts_touches" ]; then
+            echo "Scripts du portail touchés :"
+            echo "$scripts_touches"
+            verifier_scopes ':(glob)package.json' ':(glob)**/package.json'
+          fi
+
+          exit $fail
+
+  # ── Bloquant · SUPPRESSION DU VÉRIFICATEUR, sous signature — mode 2 ─────────
+  # L'agent n'écrit pas du code qui échoue au typage : il ÉTEINT le typage sur
+  # la ligne qui échoue. Un `@ts-ignore` au-dessus de la ligne qui ne compile
+  # pas, un `as any`, un `eslint-disable`, un `catch {}` vide. Rien n'est rouge :
+  # le vérificateur a été débranché à l'endroit précis où il servait.
+  #
+  # La soupape n'est PAS un scope de commit — l'agent écrit `chore(types):`
+  # aussi facilement qu'il écrit `as any`. C'est une SIGNATURE SSH vérifiée
+  # hors ligne contre .github/allowed_signers. Fermeture par défaut.
+  #
+  # Portée limitée aux EXTENSIONS DE SOURCE : tests exclus (test-integrity les
+  # couvre) et documentation exclue — docs/ci.md cite ces motifs et n'a pas à
+  # bloquer sa propre notice.
+  verifier-guard:
+    name: verifier-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Extinctions du vérificateur — signature exigée
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -uo pipefail
+          if [ -z "${BASE_SHA:-}" ]; then
+            echo "::notice title=Hors portée::Pas d'événement pull_request — aucun diff à inspecter."
+            exit 0
+          fi
+
+          SIGNERS=.github/allowed_signers
+          fail=0
+
+          # Contexte indéterminable → refus (fermeture par défaut).
+          git rev-parse --verify "$BASE_SHA^{commit}" >/dev/null 2>&1 || {
+            echo "::error title=Base introuvable::historique incomplet — aucune preuve n'est possible."
+            exit 1
+          }
+
+          SRC=(':(glob)**/*.ts'  ':(glob)**/*.tsx'   ':(glob)**/*.js'
+               ':(glob)**/*.jsx' ':(glob)**/*.mjs'   ':(glob)**/*.cjs'
+               ':(glob)**/*.astro' ':(glob)**/*.svelte'
+               ':(exclude,glob)**/*.test.ts'  ':(exclude,glob)**/*.test.tsx'
+               ':(exclude,glob)**/*.spec.ts'  ':(exclude,glob)**/*.spec.tsx'
+               ':(exclude,glob)tests/**'      ':(exclude,glob)e2e/**')
+
+          # Motifs dérivés de l'écosystème JS/TS, plus les trois neutralisants
+          # qui dépendent de l'outil et non du langage.
+          PAT='^\+.*(@ts-ignore|@ts-nocheck|@ts-expect-error|eslint-disable|\bas any\b|\bas unknown as\b|:[[:space:]]*any\b|catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{[[:space:]]*\}|nosemgrep|trufflehog:ignore)'
+
+          verifier() { bash .github/scripts/verify-signed-commits.sh "$@" || fail=1; }
+
+          # ── 1. LE REGISTRE, contre sa version À LA BASE, commit par commit ──
+          # Sans cela l'agent y ajoute sa propre clé et le garde ne vaut plus
+          # rien. Commit par commit et jamais sur le diff net : un ajout suivi
+          # d'un retrait ne laisse aucun diff net, passerait le contrôle 2 et
+          # échouerait ici — c'est pourquoi ce contrôle-ci PRÉCÈDE l'autre.
+          if [ -n "$(git diff --name-only "$BASE_SHA"...HEAD -- "$SIGNERS")" ]; then
+            if git cat-file -e "$BASE_SHA:$SIGNERS" 2>/dev/null; then
+              git show "$BASE_SHA:$SIGNERS" > "$RUNNER_TEMP/base_signers"
+              echo "Modification de $SIGNERS — vérification contre la liste de la base :"
+              # shellcheck disable=SC2046
+              verifier "$RUNNER_TEMP/base_signers" $(git rev-list --no-merges "$BASE_SHA..HEAD" -- "$SIGNERS")
+              [ "$fail" -eq 0 ] || { echo "::error title=Registre non prouvé::le contrôle du registre a échoué — refus immédiat."; exit 1; }
+            else
+              echo "::warning title=Amorçage du registre::$SIGNERS n'existe pas à la base. Cette PR l'installe SANS PREUVE — il n'existe aucune clé de confiance pour signer l'arrivée de la première."
+              echo "::warning title=Seule parade::poussez ce fichier vous-même et vérifiez la clé de vos yeux (docs/ci.md § La soupape de verifier-guard)."
+            fi
+          fi
+
+          # ── 2. LE CODE, contre le registre COURANT ─────────────────────────
+          offenders=()
+          for c in $(git rev-list --no-merges "$BASE_SHA..HEAD"); do
+            if git show --format= --unified=0 "$c" -- "${SRC[@]}" | grep -qE "$PAT"; then
+              offenders+=("$c")
+            fi
+          done
+
+          if [ ${#offenders[@]} -eq 0 ]; then
+            echo "Aucune extinction de vérificateur introduite."
+            exit $fail
+          fi
+
+          echo "Extinctions introduites par ${#offenders[@]} commit(s) :"
+          for c in "${offenders[@]}"; do
+            echo "── $c — $(git log -1 --format=%s "$c")"
+            git show --format= --unified=0 "$c" -- "${SRC[@]}" | grep -nE "$PAT" | sed 's/^/    /'
+          done
+
+          verifier "$SIGNERS" "${offenders[@]}"
+
+          # Le message du commit signé doit dire QUEL vérificateur il éteint.
+          # La revue est une lecture, pas une case.
+          for c in "${offenders[@]}"; do
+            git log -1 --format=%B "$c" | grep -qE "$PAT|@ts-ignore|as any|eslint-disable|nosemgrep" || {
+              echo "::error title=Motif non déclaré::$c est signé mais son message ne dit pas quel vérificateur il éteint."
+              fail=1
+            }
+          done
+
+          exit $fail
+
+  # ── Bloquant · minutes ──────────────────────────────────────────────────────
+  # Porte aussi les épreuves que six ADR réclament et qui ne sont pas des greps :
+  # l'aller-retour de sérialisation Markdown et le rejet d'une URL de schéma non
+  # autorisé (ADR-0008). Elles s'écrivent au niveau specs ; le job qui les rend
+  # bloquantes existe dès maintenant.
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
+          fi
+      - if: steps.scaffold.outputs.ok == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm test
+
+  # ── Informatif · couverture du CODE NOUVEAU, jamais globale ─────────────────
+  # Aucun --fail-under : arbitré le 2026-08-14, le seuil chiffré est fixé par le
+  # chantier de durcissement, une fois mesuré sur du code réel. Conséquence
+  # assumée et non tue : pendant la fenêtre de mesure, du code non testé peut
+  # atteindre main sans aucun refus.
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
+          fi
+      - if: steps.scaffold.outputs.ok == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm run coverage
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: pipx install diff-cover==10.4.2
+      - if: steps.scaffold.outputs.ok == 'true'
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.event.pull_request.base.ref) || 'origin/main' }}
+        run: diff-cover coverage/lcov.info --compare-branch="$BASE_REF" --markdown-report "$GITHUB_STEP_SUMMARY"
+
+  # ── Informatif · SAST ───────────────────────────────────────────────────────
+  # Taux de faux positifs INCONNU sur ce dépôt : aucun code n'y a jamais été
+  # scanné. Arbitré informatif le 2026-08-14 ; le chantier de durcissement le
+  # mesure et le fait monter. Un contrôle bruyant rendu bloquant trop tôt finit
+  # désactivé, et son efficacité tombe alors à zéro.
+  #
+  # On invoque le binaire `semgrep` : l'action `semgrep/semgrep-action` est
+  # ARCHIVÉE depuis le 9 avril 2024 et ne doit jamais être utilisée.
+  sast:
+    name: sast
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:1.172.0@sha256:65dcd4408adda7c183a6b4550cb1e9b19f7f627a6fbb7e0559bd466bedc44d7b
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Semgrep
+        run: |
+          semgrep scan \
+            --config=p/typescript \
+            --config=p/javascript \
+            --config=p/owasp-top-ten \
+            --error \
+            --metrics=off
