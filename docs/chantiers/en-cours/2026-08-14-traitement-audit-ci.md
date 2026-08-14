@@ -71,3 +71,18 @@ Aucune — les quatre Major sont refermés. Le candidat ADR reste à promouvoir 
 - Verser les 3 Minor (commandes abrégées du tableau, `import-x/no-internal-modules` non nommé,
   intitulé « SCA ») — un Minor ne va jamais sur disque.
 - Rejouer `/scd-sdd:ci` — ré-assembler est une voie de destruction déguisée en mise à jour.
+
+## Issue
+Les quatre Major relevés par l'audit du 14/08 sont refermés, par éditions chirurgicales de
+`docs/ci.md` et un candidat ADR — la phase `ci` n'a jamais été rejouée, conformément à l'objectif.
+
+- **M1** — job `boundaries` dédié (mode 5), séparé de `lint`, pour `I1`/`I3`. Commit `dbad57e`.
+- **M3** — licence + palier gratuit ajoutés aux 8 outils de la table de maturité. Commit `30c17f6`.
+- **M4** — la clause statique d'`ADR-0012` créditée au registre via `I7` (5 + 3 = 8). Commit
+  `344da04`.
+- **M2** — candidat ADR `docs/adr/_candidates/gestionnaire-de-paquets-npm.md`. Commit `7a7cc7b`.
+
+Deux suites restent hors périmètre de ce chantier, à qui de droit :
+- promouvoir le candidat ADR par `/scd-sdd:adr` ;
+- `/scd-sdd:audit stack` devrait absorber le trou de traçabilité dans `docs/stack.md` lui-même
+  (le gestionnaire de paquets n'y est mentionné nulle part) à sa prochaine passe.
