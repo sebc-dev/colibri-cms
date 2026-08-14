@@ -470,21 +470,28 @@ C'est un coût invisible au moment du choix — il apparaît des mois plus tard,
 relit. **Partout où c'est possible, le binaire est invoqué directement** plutôt qu'à travers une
 action d'emballage : c'est une dépendance de moins, et c'est la couche qui meurt en premier.
 
-| Outil | Version retenue | Constat de maturité |
-|---|---|---|
-| npm | 11.16.0 | **2026-08-14**, sur la machine de développement — livré avec Node 24, `min-release-age` présent |
-| OSV-Scanner (action) | v2.5.0, SHA `8deb546f` | 2026-08-08, repris du socle v1 archivé |
-| TruffleHog (image) | 3.96.0, digest `sha256:aa821cf4…` | 2026-08-08 — le tag `v3.96.0` n'existe pas au registre, seul `3.96.0` ; le digest, lui, n'est pas mobile |
-| Semgrep (image) | 1.172.0, digest `sha256:65dcd440…` | 2026-08-08 — même correction de tag ; l'action d'emballage est **archivée**, on invoque le binaire |
-| zizmor (action) | v0.6.2, SHA `3dc1ecc9`, moteur 1.29.0 | 2026-08-08, repris du socle v1 archivé |
-| diff-cover | 10.4.2 | 2026-08-08, repris du socle v1 archivé |
-| `eslint-plugin-boundaries` (+ `eslint-import-resolver-typescript`) | 7.2.0 · 4.4.5 | **2026-08-14**, registre npm par la campagne de recherche — 7.2.0 publiée vers le 9 août 2026, historique régulier (7.0.0 le 5 juil.), documentation dédiée ; le resolver en 4.4.5 du 1ᵉʳ juin 2026. Remplace dependency-cruiser 18.1.0, écarté le même jour (ni `.astro`, ni TypeScript 7) |
-| knip · Stryker | au scaffold | indications reprises du socle v1 : knip 6.32.0, `@stryker-mutator/core` 9.6.1 (2026-08-08) |
+| Outil | Version retenue | Licence | Palier gratuit | Constat de maturité |
+|---|---|---|---|---|
+| npm | 11.16.0 | Artistic-2.0 | Oui — CLI open source, registre npm public sans compte ni CB | **2026-08-14**, sur la machine de développement — livré avec Node 24, `min-release-age` présent |
+| OSV-Scanner (action) | v2.5.0, SHA `8deb546f` | Apache-2.0 | Oui — outil Google entièrement open source, aucun palier payant | 2026-08-08, repris du socle v1 archivé |
+| TruffleHog (image) | 3.96.0, digest `sha256:aa821cf4…` | AGPL-3.0 (le mainteneur signale lui-même l'identifiant SPDX déprécié — `-only` ou `-or-later` non tranché par le fichier LICENSE) | Oui — `--results=verified` tourne en local/CI sans compte ; **TruffleHog Enterprise** est un produit cloud séparé, non requis ici | 2026-08-08 — le tag `v3.96.0` n'existe pas au registre, seul `3.96.0` ; le digest, lui, n'est pas mobile |
+| Semgrep (image) | 1.172.0, digest `sha256:65dcd440…` | LGPL-2.1 pour le moteur ; les règles du registre (`p/typescript`, `p/javascript`, `p/owasp-top-ten`) sont sous **Semgrep Rules License v.1.0**, non-OSI (« internal business use » seulement) | **Nuance, non confirmée par la doc officielle** — `semgrep scan --config=p/xxx` télécharge sans login apparent (identifiant anonyme auto-généré) ; la page `docs.semgrep.dev/licensing` ne le dit pas explicitement, seules des sources secondaires le confirment | 2026-08-08 — même correction de tag ; l'action d'emballage est **archivée**, on invoque le binaire |
+| zizmor (action) | v0.6.2, SHA `3dc1ecc9`, moteur 1.29.0 | MIT | Oui — binaire et action entièrement open source, aucun service cloud payant adossé | 2026-08-08, repris du socle v1 archivé |
+| diff-cover | 10.4.2 | Apache-2.0 | Oui — CLI Python pur, aucun palier payant | 2026-08-08, repris du socle v1 archivé |
+| `eslint-plugin-boundaries` (+ `eslint-import-resolver-typescript`) | 7.2.0 · 4.4.5 | MIT · **ISC** (le resolver n'est pas MIT, à ne pas arrondir) | Oui, les deux — paquets npm classiques | **2026-08-14**, registre npm par la campagne de recherche — 7.2.0 publiée vers le 9 août 2026, historique régulier (7.0.0 le 5 juil.), documentation dédiée ; le resolver en 4.4.5 du 1ᵉʳ juin 2026. Remplace dependency-cruiser 18.1.0, écarté le même jour (ni `.astro`, ni TypeScript 7) |
+| knip · Stryker | au scaffold | ISC · Apache-2.0 | Oui, les deux — knip a une page de sponsoring mais aucune fonctionnalité verrouillée derrière | indications reprises du socle v1 : knip 6.32.0, `@stryker-mutator/core` 9.6.1 (2026-08-08) |
 
 > **Ces constats ont six jours et ne se re-vérifient pas depuis un document.** Toutes les lignes
 > datées du 2026-08-08 viennent de l'archive du socle v1, qui les avait mesurées sur le registre.
 > Elles sont reprises telles quelles, avec leur date, et **se re-vérifient à l'adoption** — au
 > scaffold, sur le dépôt et le registre de paquets, jamais sur une page de présentation.
+>
+> **Licence et palier gratuit vérifiés le 2026-08-14**, sur le fichier `LICENSE` ou le champ
+> `license` du `package.json` de chaque dépôt (branche par défaut, pas nécessairement le tag exact
+> épinglé — les licences changent rarement entre versions mineures, mais c'est une extrapolation).
+> Le point le plus fragile est **Semgrep** : la licence des règles du registre est confirmée par une
+> source officielle, mais l'absence de login pour `semgrep scan --config=p/xxx` ne l'est que par des
+> sources secondaires — à re-vérifier sur la doc CLI officielle avant de la tenir pour acquise.
 
 Trois seuils déclenchent une **re-passe** de cette phase et le retrait de l'outil concerné : le
 mainteneur disparaît ou le dépôt est archivé · la licence change, y compris sur les seules **règles**
