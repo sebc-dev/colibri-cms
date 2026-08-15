@@ -18,8 +18,8 @@ Deux points sont tenus par une mesure et non par une intention. **Un** : le serv
 développement et les migrations partagent le même état local (`.wrangler/state/v3/d1`), si bien
 qu'une seule commande de run donne l'accès à la base que `FR-013` vient de migrer. **Deux** : la
 route qui le prouve est **injectée en développement seulement** — elle n'entre pas dans l'artefact
-bâti, ce qui garde vraie la frontière « aucune route HTTP » du lot et n'entame ni `FR-096` ni
-`FR-097`.
+bâti (`FR-024`), ce qui garde vraie la frontière « aucune route servie par l'artefact bâti » du lot
+et n'entame ni `FR-096` ni `FR-097` du PRD.
 
 ## Réutilisation du socle
 
@@ -35,10 +35,14 @@ variantes d'images au build, `constrained` + `[640, 960, 1280]`
 `instance.json` à la racine ([ADR-0028](../../docs/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md)).
 Les **noms de commandes** viennent de `docs/ci.md` § Commandes du projet et ne se renégocient pas ici.
 
-**Invariants d'architecture confrontés, fichier par fichier.** Sept sont **hors portée** faute des
-fichiers qu'ils nomment (`I3`, `I4`, `I6`, `I7`, `I9`), et trois sont tenus : `I1` par la chaîne
-ESLint que ce lot pose, `I2` et `I5` par `arch-invariants` déjà en place, `I8` par le placement des
-valeurs. Deux conséquences ont **changé le découpage** plutôt que d'être écrites en dérogation :
+**Invariants d'architecture confrontés, fichier par fichier.** **Cinq** sont **hors portée** faute
+des fichiers qu'ils nomment (`I3`, `I4`, `I6`, `I7`, `I9`), et **cinq** sont tenus : `I1` par la
+chaîne ESLint que ce lot pose, `I2` et `I5` par `arch-invariants` déjà en place, `I8` par le
+placement des valeurs, `I10` par la lecture d'`instance.json` dans `astro.config.ts` (§ ci-dessous).
+Ce partage cinq/cinq **est** celui que `SC-010` énonce, et il n'y a pas d'autre lecture à en faire.
+Trois confrontations méritent d'être écrites : les **deux premières ont changé le découpage** plutôt
+que de produire une dérogation, la troisième dit **où un invariant ne mord pas** — et ce qui tient
+à sa place. Aucune des trois n'est une dérogation :
 
 - **`I3` interdit au plancher de zone d'être un graphe complet.** `src/render/index.ts` est le seul
   chemin de `src/render/` atteignable de l'extérieur, et ce lot ne le pose pas (frontière de la
@@ -48,6 +52,12 @@ valeurs. Deux conséquences ont **changé le découpage** plutôt que d'être é
 - **La sonde de développement ne crée pas de sixième répertoire sous `src/`.** Elle vit dans
   `src/platform/d1/sonde-dev.ts` — lire D1 est le métier de `platform/` —, et non dans un `src/dev/`
   qu'aucune zone ne couvrirait et que `boundaries` ne saurait pas classer.
+- **`I6` ne la couvre pas, et c'est `FR-024` qui rend ce trou soutenable.** La trace observable
+  d'`I6` est un fichier de route sous `src/pages/api/` ou `src/pages/admin/` ; injectée depuis
+  `src/platform/`, la sonde n'y est pas, donc elle ne porte **aucun garde de session** et aucun
+  contrôle ne le lui reproche. Ce qui tient l'intention d'`I6` ici n'est donc pas le garde, c'est
+  l'**absence** : la route n'existe qu'en développement et ne part pas dans l'artefact (`FR-024`).
+  D'où la vérification dédiée à l'étape 6 ci-dessous — sans elle, cette ligne serait une intention.
 
 **Ce que `I10` demande, et où il s'arrête.** L'invariant exigeait que `wrangler.*` lise aussi
 `instance.json` « au moment où [elle] s'évalue, sans outil intermédiaire ». **Mesuré le 2026-08-15**
@@ -119,8 +129,8 @@ job teste `-f package.json` et exécute la vérification réelle dès qu'il exis
 | `coverage` | `vitest run --coverage --passWithNoTests` | `coverage/lcov.info`, vide (`FR-006`) |
 | `lint` | `eslint .` | diagnostics, aucun fichier modifié (`FR-005`) |
 | `lint:boundaries` | `eslint --config eslint.config.boundaries.js .` | violations d'`I1` (`FR-010`) |
-| `knip` | `knip` | code mort |
-| `mutation` | `stryker run` | refus tant qu'aucun test n'a tourné (`FR-007`) |
+| `knip` | `knip` | code mort ; exécutable sans `mutation` (`FR-007`) |
+| `mutation` | `stryker run` | refus tant qu'aucun test n'a tourné ; exécutable sans `knip` (`FR-023`) |
 | `dev` | `astro dev` | serveur HTTP local, liaisons branchées (`FR-012`) |
 | `db:migrate` | `wrangler d1 migrations apply DB --local` | migrations en attente (`FR-013`) |
 
@@ -134,7 +144,10 @@ chemins relatifs.
 **Route de sonde** — `GET /_sonde` → `200`, `{"n": <entier>}`, le nombre de lignes de
 `d1_migrations`. **Injectée par `injectRoute` uniquement quand `command === 'dev'`.** *Mesuré* :
 elle répond `{"n":1}` en développement, et le build repasse à `0 page(s)` / 3 fichiers — elle est
-**absente de l'artefact**.
+**absente de l'artefact**. `FR-024` fait de cette absence une exigence et non un effet de bord :
+la forme falsifiable retenue est **la double absence dans `dist/`** — aucun fichier d'entrée serveur
+(`dist/server/entry.mjs`), et aucune occurrence de la chaîne `_sonde`. C'est ce que l'étape 6
+vérifie, et c'est ce qui distingue ce plan de l'alternative écartée au point 4.
 
 **Migrations** — `migrations/NNNN_nom.sql`, ordre numéroté. *Mesuré* : après `0001_amorce.sql`
 (`SELECT 1;`), `sqlite_master` ne porte que `d1_migrations`, `sqlite_sequence` et `_cf_METADATA` —
@@ -228,7 +241,11 @@ Elle enchaîne, et refuse au premier écart :
    distinct**, comme la spec l'exige). L'arbre est rendu intact à la fin.
 5. `npm run db:migrate` deux fois : la seconde répond `No migrations to apply!` ; le schéma obtenu
    ne porte que `d1_migrations`, `sqlite_sequence` et `_cf_METADATA` (`SC-007`).
-6. `npm run dev`, puis `curl /_sonde` → `{"n":1}`, puis `astro dev stop` (`SC-006`).
+6. `npm run dev`, puis `curl /_sonde` → `{"n":1}`, puis `astro dev stop` (`SC-006`) — **et,
+   immédiatement après, la double absence dans le `dist/` de l'étape 1** : pas de
+   `dist/server/entry.mjs`, aucune occurrence de `_sonde` sous `dist/` (`FR-024`, scénario 3
+   d'`US3`). Les deux moitiés sont dans la même étape **à dessein** : « la route répond » et « la
+   route n'est pas livrée » ne valent que constatées ensemble, sur le même arbre.
 
 **`SC-009` n'entre pas dans ce script** : c'est une pièce datée, produite une fois. La recette est
 rejouée et tient : dans un dossier neuf portant `min-release-age=7`, `npm install astro` résout
@@ -236,8 +253,28 @@ rejouée et tient : dans un dossier neuf portant `min-release-age=7`, `npm insta
 
 ## Couverture des exigences
 
-Les 22 `FR` de la spec sont couverts. Deux lectures sont **fixées ici** pour qu'elles ne soient pas
-rouvertes en aval :
+Les **24** `FR` de la spec sont couverts, et par quoi :
+
+| `FR` | Porté par |
+|---|---|
+| `FR-001` `FR-018` | `package.json` + `package-lock.json` ; étape 1 (installation), défaut de désynchronisation injecté |
+| `FR-019` | `.npmrc` (`min-release-age=7`) ; pièce datée de `SC-009`, hors script |
+| `FR-002` `FR-017` | script `build` ; étapes 1 et 2 |
+| `FR-003` | `tsconfig.json` + script `typecheck` ; défaut injecté, étape 4 |
+| `FR-004` `FR-006` | `vitest.config.ts` + scripts `test` / `coverage` ; étape 1 |
+| `FR-005` | `eslint.config.js` + script `lint` ; étape 1 |
+| `FR-007` `FR-023` | `knip.json` · `stryker.conf.json`, deux scripts distincts |
+| `FR-008` | aucun fichier de `.github/` touché — la garde teste `-f package.json` |
+| `FR-009` | les cinq sources `src/*/zone.ts`, une par zone ; étape 3 |
+| `FR-010` `FR-020` | `eslint.config.boundaries.js` + script `lint:boundaries` ; défaut injecté, étape 4 |
+| `FR-011` | `arch-invariants.sh` **déjà en place** ; défaut injecté, étape 4 — porteur distinct |
+| `FR-012` | script `dev` + `src/platform/d1/sonde-dev.ts` ; étape 6 |
+| `FR-024` | injection conditionnée à `command === 'dev'` ; double absence dans `dist/`, étape 6 |
+| `FR-013` `FR-014` `FR-021` | `migrations/0001_amorce.sql` + script `db:migrate` ; étape 5 |
+| `FR-015` | `instance.json`, lu par `astro.config.ts` ; contrôle `I10`, étape 3 |
+| `FR-016` `FR-022` | `wrangler.jsonc` statique, sans `database_id` ni valeur d'instance |
+
+Deux lectures sont **fixées ici** pour qu'elles ne soient pas rouvertes en aval :
 
 - **`SC-010` se lit sur les deux porteurs.** `FR-010` confie `I1` à la commande de graphe d'imports
   et `FR-011` confie `I2` à `arch-invariants` ; « la vérification d'invariants d'architecture »

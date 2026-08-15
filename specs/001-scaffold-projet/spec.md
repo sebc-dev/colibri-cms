@@ -68,9 +68,11 @@ dans `core` (`I2`) revient à la vérification d'invariants d'architecture **dé
   2. **When** un fichier de la zone `core` importe le framework web, le framework d'îlots, ou une
      API propre à la plateforme, the system **shall** signaler cet import comme violation (`I2`),
      par la vérification d'invariants d'architecture déjà en place (`FR-011`).
-  3. **When** le contrôle d'invariants d'architecture est exécuté sur le squelette livré, the system
-     **shall** exercer réellement `I1`, `I2`, `I5`, `I8` et `I10`, les autres invariants restant
-     déclarés hors portée faute des fichiers qu'ils nomment.
+  3. **When** les deux vérifications de cette user story sont exécutées sur le squelette livré, the
+     system **shall** exercer réellement `I1` — par la commande de graphe d'imports (`FR-010`) —
+     ainsi que `I2`, `I5`, `I8` et `I10` — par le contrôle d'invariants d'architecture déjà en place
+     (`FR-011`) —, les autres invariants restant déclarés hors portée faute des fichiers qu'ils
+     nomment.
 
 > **Pourquoi ce plancher, et pas un `.gitkeep`.** Le contrôle d'invariants ne regarde que les
 > fichiers **versionnés** (`git ls-files`), et un répertoire vide n'existe pas pour Git : mesuré le
@@ -81,13 +83,16 @@ dans `core` (`I2`) revient à la vérification d'invariants d'architecture **dé
 `docs/ci.md` déclare la commande de run local comme une case vide « à poser au scaffold ». Ce lot
 la pose — **une seule commande**, et elle donne aussi l'accès à la base locale que `US4` migre : la
 cohérence entre les deux est ainsi constatée au lieu d'être supposée.
-- Trace vers : docs/ci.md § Commandes du projet (ligne « Run local ») ; ADR-0018 (accès aux données)
+- Trace vers : docs/ci.md § Commandes du projet (ligne « Run local ») ; ADR-0018 (accès aux
+  données) ; PRD FR-096, FR-097 (aucun traitement serveur sur une page publique)
 - Scénarios d'acceptation (EARS) :
   1. **When** la commande de développement local est lancée, the system **shall** démarrer un
      serveur accessible en HTTP sur la machine du développeur, sans erreur.
   2. **When** une route servie par ce serveur interroge la base de données locale, the system
      **shall** rendre le résultat de cette interrogation, sur la base même où `FR-013` a appliqué
      ses migrations.
+  3. **When** la commande de build est exécutée, the system **shall** produire un artefact qui ne
+     sert pas cette route — elle n'existe qu'en développement (`FR-024`).
 
 ### US4 — Le mécanisme de migration de base de données fonctionne (Priorité : P1)
 La chaîne de migration (fichiers SQL numérotés → application ordonnée) fonctionne de bout en bout,
@@ -138,18 +143,19 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   pour le Worker. _(PRD: FR-104, FR-105 ; docs/ci.md — Build)_
 - **FR-003** : When le code source contient une incohérence de type, the system shall faire échouer
   la commande de typage (code de sortie non nul). _(docs/ci.md — Typage)_
-- **FR-004** : The system shall fournir une commande de test qui exécute les tests automatisés du
-  projet et rapporte un résultat passant/échouant par test. **While** le dépôt ne porte encore aucun
-  fichier de test, cette commande shall terminer avec un code de sortie nul. _(docs/ci.md — Tests)_
+- **FR-004** : The system shall fournir une commande qui exécute les tests automatisés du projet.
+  **While** le dépôt ne porte encore aucun fichier de test, cette commande shall terminer avec un
+  code de sortie nul. _(docs/ci.md — Tests)_
 - **FR-005** : The system shall fournir une commande de lint qui rapporte des diagnostics de style
   et de correction sans modifier les fichiers source. _(docs/ci.md — Lint/format)_
 - **FR-006** : The system shall fournir une commande de couverture qui produit un rapport
   machine-lisible (`coverage/lcov.info`). **While** aucun test n'existe, ce rapport shall être
   produit **et vide**. _(docs/ci.md — Couverture)_
-- **FR-007** : The system shall fournir une commande de détection de code mort et une commande de
-  test de mutation, chacune exécutable indépendamment de l'autre. **While** le dépôt ne porte aucun
-  test, la commande de mutation shall rapporter son refus d'exécuter, plutôt qu'un succès.
-  _(docs/ci.md — Code mort, Mutation)_
+- **FR-007** : The system shall fournir une commande de détection de code mort, exécutable
+  indépendamment de la commande de test de mutation. _(docs/ci.md — Code mort)_
+- **FR-023** : The system shall fournir une commande de test de mutation, exécutable indépendamment
+  de la commande de détection de code mort. **While** le dépôt ne porte aucun test, cette commande
+  shall rapporter son refus d'exécuter, plutôt qu'un succès. _(docs/ci.md — Mutation)_
 - **FR-008** : If `package.json` est présent dans le dépôt, then the system shall exécuter la
   vérification réelle de chaque job CI concerné au lieu de sa garde de scaffold. _(docs/ci.md — §
   L'état du dépôt)_
@@ -172,6 +178,9 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
 - **FR-012** : The system shall fournir une commande unique qui démarre un serveur de développement
   local accessible en HTTP, **dont les routes atteignent la base de données locale sur laquelle
   `FR-013` applique ses migrations**. _(docs/ci.md — Run local)_
+- **FR-024** : The system shall livrer la route de développement qu'exige `FR-012` **hors de
+  l'artefact bâti** : la commande de build ne la produit pas, et l'artefact déployable ne la sert
+  pas. _(PRD: FR-096, FR-097 ; frontière « aucune route servie par l'artefact bâti » ci-dessous)_
 
 ### Migration de base de données (US4)
 - **FR-013** : The system shall fournir une commande qui applique, dans leur ordre numéroté, les
@@ -179,6 +188,7 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   de données locale. _(PRD: FR-105, FR-106, SC-008 ; ADR-0018)_
 - **FR-014** : When la commande de migration est exécutée deux fois de suite sans nouveau fichier de
   migration, the system shall rapporter zéro migration en attente la seconde fois.
+  _(dérivé de `FR-013` ; PRD: FR-106 — une montée de version ne perd rien)_
 - **FR-021** : The system shall livrer des migrations qui n'ajoutent **aucun objet de schéma propre
   au produit** — après application, seules subsistent les tables de service du mécanisme de
   migration lui-même. _(frontière : « aucun schéma de données applicatif » ci-dessous)_
@@ -208,7 +218,8 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   où un contrôle permanent la lit. _(CLAUDE.md — gotcha `.npmrc` `min-release-age=7` ; ADR-0031)_
 - **FR-020** : If un import viole `I1` ou `I2`, then la vérification concernée — celle de `FR-010`
   ou celle de `FR-011` — shall le rapporter, que la commande de build ou de lint échoue par ailleurs
-  ou non : la détection ne dépend d'aucune autre commande.
+  ou non : la détection ne dépend d'aucune autre commande. _(docs/archi.md I1, I2 ; docs/ci.md —
+  jobs `boundaries` et `arch-invariants`)_
 - Que se passe-t-il si aucune migration n'a encore jamais été appliquée sur une base neuve ? La
   commande de migration (FR-013) les applique toutes, dans l'ordre, en un seul appel.
 - Que se passe-t-il quand la commande de test ne trouve aucun fichier de test ? Elle retourne zéro
@@ -220,7 +231,7 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   `eslint-disable`, `as any` et les tests neutralisés, jamais une option du lanceur. Elle doit être
   retirée par la première feature qui apporte des tests.
 - Que se passe-t-il pour la commande de mutation, tant qu'aucun test n'existe ? Elle refuse
-  d'exécuter (`FR-007`) : mesuré, elle exige que des tests aient réellement tourné, et l'option de
+  d'exécuter (`FR-023`) : mesuré, elle exige que des tests aient réellement tourné, et l'option de
   `FR-004` ne l'y aide pas. Le travail nocturne part donc en rouge dès le premier soir. Ce rouge ne
   bloque aucune intégration — la commande de mutation ne figure pas parmi les contrôles exigés — et
   il s'éteint avec la même feature que la concession précédente.
@@ -247,7 +258,7 @@ ne l'utilise encore — aucun formulaire n'existe.
 typecheck, test, lint, coverage, knip, boundaries) retournent `0` sur le scaffold livré, et un code
 non nul en présence du défaut qu'elles sont faites pour détecter. La **huitième**, la mutation, est
 posée et s'exécute, mais son code de sortie n'entre dans aucun critère de ce lot tant qu'aucun test
-n'existe (`FR-007`).
+n'existe (`FR-023`).
 
 Ce lot ne fixe **aucun seuil** (ex. taux de couverture minimal) : `docs/ci.md` documente ces
 contrôles comme informatifs aujourd'hui, statut que ce lot ne change pas.
@@ -259,9 +270,13 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
 
 ## NON inclus (frontière de périmètre)
 
-- **Aucun code applicatif** : ni page, ni écran, ni route HTTP, ni composant produit. Les cinq zones
-  existent comme structure de dossiers portant chacune un fichier trivial (`FR-009`), pas comme
-  application.
+- **Aucun code applicatif, et aucune route servie par l'artefact bâti** : ni page, ni écran, ni
+  composant produit. Les cinq zones existent comme structure de dossiers portant chacune un fichier
+  trivial (`FR-009`), pas comme application. **Une seule route est posée** — la sonde de
+  développement qu'exigent `FR-012` et `SC-006` pour prouver que le serveur local atteint bien la
+  base migrée. Elle vit hors de l'artefact, et c'est `FR-024` qui l'exige : c'est cette absence, et
+  non le silence sur la sonde, qui tient `FR-096` et `FR-097` du PRD — « l'envoi d'une demande DOIT
+  être le seul geste d'un visiteur déclenchant un traitement serveur ».
 - **Aucun des fichiers que les invariants nomment.** `src/render/index.ts`, `src/site/page.astro`,
   les deux routes qui l'importent, `src/platform/session/index.ts` et
   `src/core/publication/prefixes.ts` ne sont **pas** posés par ce lot. Conséquence assumée et
@@ -270,7 +285,10 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
   `I1`, `I2`, `I5`, `I8` et `I10`.
 - **Aucune unité de logique métier, donc aucun test.** Le lot ne pose ni fonction de `core/` ni test
   qui la couvre ; la commande de test est fournie et verte à vide (`FR-004`), et les deux
-  conséquences en sont écrites au chapitre des cas limites.
+  conséquences en sont écrites au chapitre des cas limites. **Le rapport par test — un résultat
+  passant ou échouant pour chacun — n'est donc ni exigé ni vérifié ici** : il ne s'observe qu'avec
+  des tests, et se prouvera avec la première feature qui en apporte — celle-là même qui retire la
+  concession du code de sortie nul à vide.
 - **Aucune lecture du fichier d'instance par la configuration de déploiement** (`FR-022`) : la
   plateforme ne le permet pas, et `ADR-0032` l'a sortie du périmètre de `I10` — ce n'est plus un
   écart, c'est une frontière.
@@ -311,5 +329,8 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
 - **SC-009** : Le gel de sept jours est **démontré une fois** : une installation retient une version
   antérieure alors qu'une plus récente existe et a moins de sept jours. La sortie est conservée
   comme pièce, datée. Le contrôle permanent, lui, se borne à lire la clé déclarée (`FR-019`).
-- **SC-010** : Sur le squelette livré, la vérification d'invariants d'architecture exerce réellement
-  `I1`, `I2`, `I5`, `I8` et `I10` — cinq contrôles qui ne se déclarent pas « hors portée ».
+- **SC-010** : Sur le squelette livré, cinq invariants sont réellement exercés et aucun ne se
+  déclare « hors portée » — `I2`, `I5`, `I8` et `I10` par la vérification d'invariants
+  d'architecture déjà en place (`FR-011`), et `I1` par la commande de graphe d'imports que ce lot
+  pose (`FR-010`), cette vérification-là déclarant explicitement ne pas rendre `I1`. **Deux
+  porteurs**, comme `SC-004` et `SC-005` les distinguent déjà.
