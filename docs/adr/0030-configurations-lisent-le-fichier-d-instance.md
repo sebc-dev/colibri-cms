@@ -1,5 +1,5 @@
 # ADR-0030 : La configuration Astro et celle du Worker lisent `instance.json`, et n'y écrivent aucune valeur en dur
-Statut : Accepté | Date : 2026-08-13 | Trace vers : [docs/archi.md](../archi.md) — invariant `I10`
+Statut : Remplacé par [ADR-0032](./0032-invariant-i10-restreint-a-la-configuration-astro.md) | Date : 2026-08-13 | Trace vers : [docs/archi.md](../archi.md) — invariant `I10`
 
 ## Contexte
 
