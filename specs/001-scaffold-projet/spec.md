@@ -46,9 +46,9 @@ ou l'invariant de `docs/archi.md` qu'il rend réel.
 ## User stories (priorisées)
 
 ### US1 — La CI cesse de mentir (Priorité : P1)
-Les jobs `build`, `typecheck`, `test`, `lint`, `coverage`, `knip`, `mutation` cessent de passer au
-vert par garde de scaffold : ils exécutent pour de vrai les commandes que `docs/ci.md` décrit comme
-normatives, sur le squelette de ce lot.
+Les sept vérifications que `docs/ci.md` déclare normatives — build, typage, tests, couverture,
+lint, détection de code mort, test de mutation — cessent de passer au vert par garde de scaffold :
+elles s'exécutent pour de vrai sur le squelette de ce lot.
 - Trace vers : PRD FR-105, SC-008 ; docs/ci.md § Commandes du projet
 - Scénarios d'acceptation (EARS) :
   1. **When** `package.json` existe dans le dépôt, the system **shall** exécuter la vérification
@@ -85,11 +85,15 @@ dans `core` (`I2`) revient à la vérification d'invariants d'architecture **dé
 >
 > **Ce que le plancher ouvre, et ce qu'il ne prouve pas encore.** Un contrôle sort de « hors
 > portée » dès que le répertoire qu'il nomme porte un fichier versionné — **indépendamment de ce
-> qu'il y trouve**. `I3` et `I4` passent donc au vert **faute de matière** : aucun fichier
-> n'importe `src/render/`, aucun gabarit de page ne vit sous `src/admin/`, et le contrôle d'`I3` le
-> dit de lui-même (« *ou n'existent pas encore* »). Leur vert n'atteste rien aujourd'hui ; il prendra sa
-> valeur avec la première feature qui posera le baril de `render` ou un écran d'administration. Les
-> cinq autres ont, eux, de la matière à examiner — le sens des imports du plancher (`I1`), les
+> qu'il y trouve**. `I3` et `I4` passent donc au vert **faute de matière à condamner** : aucun
+> fichier n'importe `src/render/`, aucun gabarit de page ne vit sous `src/admin/`, et le contrôle
+> d'`I3` le dit de lui-même (« *ou n'existent pas encore* »). Leur vert n'atteste rien aujourd'hui ;
+> il prendra sa valeur avec la première feature qui posera le baril de `render` ou un écran
+> d'administration. **Le vert d'`I3` n'est pas gratuit pour autant** : son contrôle balaie tous les
+> fichiers source à la recherche d'un chemin écrit en dur, et le lot en pose lui-même qui ont à
+> désigner les cinq zones — c'est `FR-026` qui exige qu'aucun ne le fasse sous une forme que ce
+> contrôle condamne.
+> Les cinq autres ont, eux, de la matière à examiner — le sens des imports du plancher (`I1`), les
 > sources qui pourraient importer le framework depuis `core` (`I2`) ou rendre du HTML brut (`I5`),
 > les valeurs d'`instance.json` (`I8`), la configuration du site (`I10`) —, et deux d'entre eux
 > sont en outre démontrés par un défaut injecté (`SC-004`, `SC-005`).
@@ -154,6 +158,10 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
 ### Outillage CI (US1)
 - **FR-001** : When `npm ci` est exécuté contre le lockfile committé, the system shall terminer
   l'installation sans erreur. _(docs/ci.md — Installation)_
+- **FR-027** : The system shall déclarer la période de gel de sept jours dans le fichier de
+  configuration du gestionnaire de paquets, à l'endroit où le contrôle permanent de la CI la lit.
+  _(CLAUDE.md — gotcha `.npmrc` `min-release-age=7` ; ADR-0031 ; docs/ci.md — job
+  `dependency-review`)_
 - **FR-002** : The system shall fournir une commande de build qui produit un artefact déployable
   pour le Worker. _(PRD: FR-104, FR-105 ; docs/ci.md — Build)_
 - **FR-003** : When le code source contient une incohérence de type, the system shall faire échouer
@@ -171,7 +179,7 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
 - **FR-023** : The system shall fournir une commande de test de mutation, exécutable indépendamment
   de la commande de détection de code mort. **While** le dépôt ne porte aucun test, cette commande
   shall rapporter son refus d'exécuter, plutôt qu'un succès. _(docs/ci.md — Mutation)_
-- **FR-008** : If `package.json` est présent dans le dépôt, then the system shall exécuter la
+- **FR-008** : When `package.json` est présent dans le dépôt, the system shall exécuter la
   vérification réelle de chaque job CI concerné au lieu de sa garde de scaffold. _(docs/ci.md — §
   L'état du dépôt)_
 
@@ -192,6 +200,12 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   la part que ce lot referme — la matrice d'`I1` (`FR-010`) — de celle qui reste `[à compléter]` —
   le reliquat d'`I3` qu'un contrôle littéral ne voit pas. _(docs/ci.md — Graphe d'imports,
   invariants `I1` et `I3` ; frontière « le reliquat d'`I3` n'est pas posé » ci-dessous)_
+- **FR-026** : The system shall livrer un arbre de sources dont **aucun fichier versionné hors de
+  `src/render/`** ne porte la chaîne littérale `src/render/` suivie d'un caractère, de sorte que le
+  contrôle littéral d'`I3` rapporte cet invariant **passant** et non en violation. La règle vaut
+  pour **tout** fichier du lot, y compris ceux qui ont à désigner les cinq zones : c'est le
+  plancher de `FR-009` qui réveille ce contrôle, et le lot s'y plie plutôt que de l'affaiblir.
+  _(docs/archi.md I3 ; docs/ci.md — job `arch-invariants`)_
 
 ### Run local (US3)
 - **FR-012** : The system shall fournir une commande unique qui démarre un serveur de développement
@@ -232,9 +246,9 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   échouer plutôt que de resynchroniser silencieusement le lockfile. _(docs/ci.md — le lockfile est
   committé et l'installation verrouillée)_
 - **FR-019** : If une dépendance à installer a une version publiée il y a moins de sept jours, then
-  la commande d'installation shall retenir une version antérieure éligible plutôt que celle-ci ; la
-  période de gel shall être déclarée dans le fichier de configuration du gestionnaire de paquets,
-  où un contrôle permanent la lit. _(CLAUDE.md — gotcha `.npmrc` `min-release-age=7` ; ADR-0031)_
+  la commande d'installation shall retenir une version antérieure éligible plutôt que celle-ci.
+  _(CLAUDE.md — gotcha `.npmrc` `min-release-age=7` ; ADR-0031 ; la déclaration de cette période
+  est portée par `FR-027`)_
 - **FR-020** : If un import viole `I1` ou `I2`, then la vérification concernée — celle de `FR-010`
   ou celle de `FR-011` — shall le rapporter, que la commande de build ou de lint échoue par ailleurs
   ou non : la détection ne dépend d'aucune autre commande. _(docs/archi.md I1, I2 ; docs/ci.md —
@@ -243,9 +257,9 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   commande de migration (FR-013) les applique toutes, dans l'ordre, en un seul appel.
 - Que se passe-t-il quand la commande de test ne trouve aucun fichier de test ? Elle retourne zéro
   (`FR-004`). **C'est une concession, et elle est datée.** Sans elle, le job `test` — bloquant —
-  tomberait dès le premier commit de code : mesuré le 2026-08-15, le lanceur sort en erreur quand
-  il ne trouve rien (« No test files found, exiting with code 1 »). En contrepartie, un job bloquant
-  passe au vert sans rien vérifier — la garde de scaffold que ce lot retire, réinstallée ailleurs —
+  tomberait dès le premier commit de code : mesuré le 2026-08-15, le lanceur de tests sort avec un
+  code non nul quand il ne trouve aucun fichier de test. En contrepartie, un job bloquant passe au
+  vert sans rien vérifier — la garde de scaffold que ce lot retire, réinstallée ailleurs —
   et **aucun garde du dépôt ne l'attrape** : les gardes d'intégrité traquent `@ts-ignore`,
   `eslint-disable`, `as any` et les tests neutralisés, jamais une option du lanceur. Elle doit être
   retirée par la première feature qui apporte des tests.
@@ -275,8 +289,9 @@ ne l'utilise encore — aucun formulaire n'existe.
 
 **Codes de sortie des commandes que ce lot pose** — les huit sont les sept normatives de
 `docs/ci.md` et le graphe d'imports, qui y est « non posée ». **Sept** d'entre elles (build,
-typecheck, test, lint, coverage, knip, boundaries) retournent `0` sur le scaffold livré, et un code
-non nul en présence du défaut qu'elles sont faites pour détecter. La **huitième**, la mutation, est
+typage, tests, lint, couverture, détection de code mort, graphe d'imports) retournent `0` sur le
+scaffold livré, et un code non nul en présence du défaut qu'elles sont faites pour détecter. La
+**huitième**, la mutation, est
 posée et s'exécute, mais son code de sortie n'entre dans aucun critère de ce lot tant qu'aucun test
 n'existe (`FR-023`).
 
@@ -339,9 +354,9 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
   committé. _(PRD: SC-008)_
 - **SC-002** : Sept des huit commandes que ce lot pose — les sept normatives de `docs/ci.md` et le
   graphe d'imports — s'exécutent et retournent **0** sur le scaffold livré, sans passer par la garde
-  de scaffold : build, typecheck, test, lint, coverage, knip, vérification du graphe d'imports. La
-  huitième — la mutation — s'exécute réellement, et son code de sortie n'entre pas dans ce critère
-  tant qu'aucun test n'existe.
+  de scaffold : build, typage, tests, lint, couverture, détection de code mort, vérification du
+  graphe d'imports. La huitième — la mutation — s'exécute réellement, et son code de sortie n'entre
+  pas dans ce critère tant qu'aucun test n'existe.
 - **SC-003** : Une erreur de type introduite délibérément fait échouer la commande de typage.
 - **SC-004** : Un import qui viole `I1` (sens des zones) est signalé par la commande de graphe
   d'imports posée par ce lot (`FR-010`).
@@ -356,7 +371,7 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
   environnement ne portant **aucun identifiant de compte Cloudflare**. _(PRD: SC-001, SC-013)_
 - **SC-009** : Le gel de sept jours est **démontré une fois** : une installation retient une version
   antérieure alors qu'une plus récente existe et a moins de sept jours. La sortie est conservée
-  comme pièce, datée. Le contrôle permanent, lui, se borne à lire la clé déclarée (`FR-019`).
+  comme pièce, datée. Le contrôle permanent, lui, se borne à lire la clé déclarée (`FR-027`).
 - **SC-010** : Sur le squelette livré, **sept** des dix invariants sont exercés et **trois
   seulement** — `I6`, `I7`, `I9` — se déclarent « hors portée » : `I2`, `I3`, `I4`, `I5`, `I8` et
   `I10` par la vérification d'invariants d'architecture déjà en place (`FR-011`), et `I1` par la
