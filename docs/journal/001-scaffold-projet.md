@@ -19,3 +19,4 @@
 | 2026-08-15 | analyze | **PRÊT** — 0 Critical · 2 Major (1 à corriger : R1·R2·R3 à fusionner, la garde de scaffold tombe avant les configs ; 1 assumé : dépassement de seuil du lot de scaffold) · 6 Minor |
 | 2026-08-15 | tasks | correction post-gate : R1·R2·R3 fusionnés → 2 lots (1 check, 1 inhérent) · 37 tâches (inchangé) · lot de scaffold à ~480 lignes / 26 concepts, dépassement assumé et motivé |
 | 2026-08-15 | analyze | **CORRIGER D'ABORD** — 1 Critical (US2·3 et FR-009 incompatibles : le squelette des cinq zones sort `I3` et `I4` de « hors portée ») · 0 Major · 7 Minor · fusion R1·R2·R3 constatée corrigée |
+| 2026-08-15 | specify | correction post-gate : 25 FR (+1 — FR-025, moitié d'`I3` déclarée dans `docs/ci.md`) · 0 [NEEDS CLARIFICATION] · partage des invariants réécrit en 7 exercés / 3 hors portée (`I6`, `I7`, `I9`) |

@@ -69,15 +69,27 @@ dans `core` (`I2`) revient à la vérification d'invariants d'architecture **dé
      API propre à la plateforme, the system **shall** signaler cet import comme violation (`I2`),
      par la vérification d'invariants d'architecture déjà en place (`FR-011`).
   3. **When** les deux vérifications de cette user story sont exécutées sur le squelette livré, the
-     system **shall** exercer réellement `I1` — par la commande de graphe d'imports (`FR-010`) —
-     ainsi que `I2`, `I5`, `I8` et `I10` — par le contrôle d'invariants d'architecture déjà en place
-     (`FR-011`) —, les autres invariants restant déclarés hors portée faute des fichiers qu'ils
-     nomment.
+     system **shall** exercer `I1` — par la commande de graphe d'imports (`FR-010`) — ainsi que
+     `I2`, `I3`, `I4`, `I5`, `I8` et `I10` — par le contrôle d'invariants d'architecture déjà en
+     place (`FR-011`) —, `I6`, `I7` et `I9` restant seuls déclarés hors portée faute des fichiers
+     qu'ils nomment.
 
 > **Pourquoi ce plancher, et pas un `.gitkeep`.** Le contrôle d'invariants ne regarde que les
-> fichiers **versionnés** (`git ls-files`), et un répertoire vide n'existe pas pour Git : mesuré le
-> 2026-08-15, cinq zones vides font sortir six contrôles sur dix en « HORS PORTÉE » sans rien
-> vérifier. Un fichier source par zone est le minimum qui rende `SC-004` et `SC-005` atteignables.
+> fichiers **versionnés** (`git ls-files`), et un répertoire vide n'existe pas pour Git. Mesuré le
+> 2026-08-15 sur le dépôt en l'état : **aucun** contrôle au vert, **douze** hors portée — le script
+> sort à `0` sans avoir rien vérifié. Un fichier source par zone est le minimum qui rende `SC-004`,
+> `SC-005` et `SC-010` atteignables.
+>
+> **Ce que le plancher ouvre, et ce qu'il ne prouve pas encore.** Un contrôle sort de « hors
+> portée » dès que le répertoire qu'il nomme porte un fichier versionné — **indépendamment de ce
+> qu'il y trouve**. `I3` et `I4` passent donc au vert **faute de matière** : aucun fichier
+> n'importe `src/render/`, aucun gabarit de page ne vit sous `src/admin/`, et le contrôle d'`I3` le
+> dit de lui-même (« *ou n'existent pas encore* »). Leur vert n'atteste rien aujourd'hui ; il prendra sa
+> valeur avec la première feature qui posera le baril de `render` ou un écran d'administration. Les
+> cinq autres ont, eux, de la matière à examiner — le sens des imports du plancher (`I1`), les
+> sources qui pourraient importer le framework depuis `core` (`I2`) ou rendre du HTML brut (`I5`),
+> les valeurs d'`instance.json` (`I8`), la configuration du site (`I10`) —, et deux d'entre eux
+> sont en outre démontrés par un défaut injecté (`SC-004`, `SC-005`).
 
 ### US3 — Un serveur de développement local démarre, base branchée (Priorité : P1)
 `docs/ci.md` déclare la commande de run local comme une case vide « à poser au scaffold ». Ce lot
@@ -173,6 +185,10 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   une API propre à la plateforme, then the system shall signaler cet import comme violation, **par
   la vérification d'invariants d'architecture déjà en place** — ce lot n'en écrit pas une seconde.
   _(docs/archi.md I2 ; docs/ci.md — job `arch-invariants`)_
+- **FR-025** : The system shall livrer un `docs/ci.md` dont la ligne du job `boundaries` distingue
+  la part que ce lot referme — la matrice d'`I1` (`FR-010`) — de celle qui reste `[à compléter]` —
+  le reliquat d'`I3` qu'un contrôle littéral ne voit pas. _(docs/ci.md — Graphe d'imports,
+  invariants `I1` et `I3` ; frontière « le reliquat d'`I3` n'est pas posé » ci-dessous)_
 
 ### Run local (US3)
 - **FR-012** : The system shall fournir une commande unique qui démarre un serveur de développement
@@ -278,11 +294,18 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
   non le silence sur la sonde, qui tient `FR-096` et `FR-097` du PRD — « l'envoi d'une demande DOIT
   être le seul geste d'un visiteur déclenchant un traitement serveur ».
 - **Aucun des fichiers que les invariants nomment.** `src/render/index.ts`, `src/site/page.astro`,
-  les deux routes qui l'importent, `src/platform/session/index.ts` et
+  les deux routes qui l'importent, `src/platform/session/index.ts`, `src/platform/frequence/` et
   `src/core/publication/prefixes.ts` ne sont **pas** posés par ce lot. Conséquence assumée et
-  mesurée : `I3`, `I4`, `I6`, `I7` et `I9` se déclarent « hors portée » et ne vérifient rien tant
-  qu'une feature produit ne les fait pas naître. Ce que ce lot rend réellement vérifiable, ce sont
-  `I1`, `I2`, `I5`, `I8` et `I10`.
+  mesurée : `I6`, `I7` et `I9` se déclarent « hors portée » et ne vérifient rien tant qu'une feature
+  produit ne les fait pas naître. `I3` et `I4`, eux, **sortent** de cet état — le plancher fait
+  naître `src/render/` et `src/admin/` (`FR-009`) — mais passent sans matière à examiner : c'est
+  l'encadré d'`US2` qui le dit, et `SC-010` qui compte l'état rapporté, jamais la valeur du constat.
+- **Le reliquat d'`I3` dans le job `boundaries` n'est pas posé.** `docs/ci.md` affecte à ce job la
+  matrice d'`I1` **et** ce qu'un contrôle littéral ne voit pas d'`I3` — ré-exports, barils, alias.
+  Ce lot ne livre que la matrice d'`I1` (`FR-010`) : la case du tableau reste `[à compléter]` **pour
+  moitié**, et `FR-025` exige que le document le dise de lui-même plutôt que de laisser croire la
+  case close. La moitié d'`I3` que `arch-invariants` rend déjà — les chemins d'import littéraux et
+  la présence du gabarit partagé dans les deux routes — n'est pas entamée par cette frontière.
 - **Aucune unité de logique métier, donc aucun test.** Le lot ne pose ni fonction de `core/` ni test
   qui la couvre ; la commande de test est fournie et verte à vide (`FR-004`), et les deux
   conséquences en sont écrites au chapitre des cas limites. **Le rapport par test — un résultat
@@ -329,8 +352,11 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
 - **SC-009** : Le gel de sept jours est **démontré une fois** : une installation retient une version
   antérieure alors qu'une plus récente existe et a moins de sept jours. La sortie est conservée
   comme pièce, datée. Le contrôle permanent, lui, se borne à lire la clé déclarée (`FR-019`).
-- **SC-010** : Sur le squelette livré, cinq invariants sont réellement exercés et aucun ne se
-  déclare « hors portée » — `I2`, `I5`, `I8` et `I10` par la vérification d'invariants
-  d'architecture déjà en place (`FR-011`), et `I1` par la commande de graphe d'imports que ce lot
-  pose (`FR-010`), cette vérification-là déclarant explicitement ne pas rendre `I1`. **Deux
-  porteurs**, comme `SC-004` et `SC-005` les distinguent déjà.
+- **SC-010** : Sur le squelette livré, **sept** des dix invariants sont exercés et **trois
+  seulement** — `I6`, `I7`, `I9` — se déclarent « hors portée » : `I2`, `I3`, `I4`, `I5`, `I8` et
+  `I10` par la vérification d'invariants d'architecture déjà en place (`FR-011`), et `I1` par la
+  commande de graphe d'imports que ce lot pose (`FR-010`), cette vérification-là déclarant
+  explicitement ne pas rendre `I1`. **Deux porteurs**, comme `SC-004` et `SC-005` les distinguent
+  déjà. Ce critère porte sur **l'état que chaque contrôle rapporte**, jamais sur la valeur de ce
+  qu'il a trouvé : deux des sept — `I3` et `I4` — passent faute de matière à examiner, et l'encadré
+  d'`US2` dit à quelle condition leur vert cessera d'être vide.
