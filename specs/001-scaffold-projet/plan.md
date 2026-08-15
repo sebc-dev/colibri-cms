@@ -8,8 +8,9 @@ Trace vers : [spec.md](./spec.md) · [docs/stack.md](../../docs/stack.md) ·
 
 ## Approche
 
-Le dépôt reçoit un scaffold **minimal et complet** : les huit commandes normatives de `docs/ci.md`
-deviennent réelles, les cinq zones de `docs/archi.md` naissent avec un fichier source chacune, et
+Le dépôt reçoit un scaffold **minimal et complet** : les **sept** commandes que `docs/ci.md`
+déclare normatives deviennent réelles et la **huitième** — le graphe d'imports, qu'il laisse « non
+posée » — est posée, les cinq zones de `docs/archi.md` naissent avec un fichier source chacune, et
 le sens des imports devient vérifiable par la chaîne ESLint que `docs/ci.md` a déjà désignée. La
 garde de scaffold des jobs CI se lève **d'elle-même** — elle teste `-f package.json` —, donc aucun
 workflow n'est à réécrire.
@@ -51,10 +52,11 @@ du constat. Ce plan n'a donc pas à les faire tenir : il a à **ne pas les casse
 première confrontation ci-dessous (`src/render/` reste inatteignable) et le choix de n'écrire aucun
 `.astro` sous `src/admin/`.
 
-Quatre confrontations méritent d'être écrites : les **deux premières ont changé le découpage** plutôt
-que de produire une dérogation, la troisième dit **où un invariant ne mord pas** — et ce qui tient
-à sa place —, la quatrième dit **où il mord sur un fichier que ce lot pose lui-même**. Aucune des
-quatre n'est une dérogation :
+Quatre confrontations méritent d'être écrites, et elles se lisent dans cet ordre : la **première a
+changé le découpage** plutôt que de produire une dérogation, la deuxième dit **où l'invariant mord
+sur un fichier que ce lot pose lui-même** — c'est la contrainte que `FR-026` érige en exigence —,
+la troisième a changé le découpage elle aussi, la quatrième dit **où un invariant ne mord pas**, et
+ce qui tient à sa place. Aucune des quatre n'est une dérogation :
 
 - **`I3` interdit au plancher de zone d'être un graphe complet.** `src/render/index.ts` est le seul
   chemin de `src/render/` atteignable de l'extérieur, et ce lot ne le pose pas (frontière de la
@@ -69,10 +71,12 @@ quatre n'est une dérogation :
   `.svelte`…) hors de `src/render/` — et `eslint.config.boundaries.js`, qui déclare les cinq zones
   par motif de chemin, en est un. **La contrainte que ce lot tient est donc générale, et elle se lit
   dans les sources : aucun fichier hors `src/render/` ne porte la chaîne littérale `src/render/`
-  suivie de quelque chose.** Elle vaut pour `src/core/zone.ts` — les cinq noms y sont des
-  identifiants nus — comme pour `eslint.config.boundaries.js`, dont les motifs se déclarent **sans
-  barre finale** (`'src/render'`). La forme exacte, sa mesure et le piège de la forme voisine sont
-  au point 10. Ce n'est pas une dérogation : le contrôle reste tel quel, c'est le lot qui s'y plie.
+  suivie de quelque chose** — c'est le texte même de `FR-026`, qui l'érige en exigence plutôt que de
+  la laisser au rang d'intention de plan. Elle vaut pour `src/core/zone.ts` — les cinq noms y sont
+  des identifiants nus — comme pour `eslint.config.boundaries.js`, dont les motifs se déclarent
+  **sans barre finale** (`'src/render'`). La forme exacte, sa mesure et le piège de la forme voisine
+  sont au point 10. Ce n'est pas une dérogation : le contrôle reste tel quel, c'est le lot qui s'y
+  plie.
 - **La sonde de développement ne crée pas de sixième répertoire sous `src/`.** Elle vit dans
   `src/platform/d1/sonde-dev.ts` — lire D1 est le métier de `platform/` —, et non dans un `src/dev/`
   qu'aucune zone ne couvrirait et que `boundaries` ne saurait pas classer.
@@ -107,15 +111,15 @@ qui ne balaie plus que `astro.config.*` — **passe**. Il n'y a plus de dérogat
 
 | Fichier | Ce qu'il porte | Patron / convention |
 |---|---|---|
-| `package.json` | les huit scripts normatifs + `dev` et `db:migrate` ; dépendances | noms de scripts **repris à la lettre** de `docs/ci.md` § Commandes |
+| `package.json` | les huit scripts que ce lot pose — les sept commandes normatives de `docs/ci.md` et le graphe d'imports — plus `dev` et `db:migrate` ; dépendances | noms de scripts **repris à la lettre** de `docs/ci.md` § Commandes |
 | `package-lock.json` | versions figées | `npm ci` seul, jamais `npm install` (`docs/ci.md`) |
-| `.npmrc` | `min-release-age=7` | bloc exact de `docs/ci.md` § Approvisionnement |
+| `.npmrc` | `min-release-age=7` — la **déclaration** qu'exige `FR-027`, à l'endroit même où `dependency-review` la lit | bloc exact de `docs/ci.md` § Approvisionnement |
 | `tsconfig.json` | `extends: astro/tsconfigs/strict`, `strict: true` | [ADR-0010](../../docs/adr/0010-langage-typescript-strict.md) |
 | `astro.config.ts` | adaptateur Cloudflare (`platformProxy`), `image` d'[ADR-0019](../../docs/adr/0019-pipeline-d-images-variantes-au-build.md), **lecture d'`instance.json`**, intégration de sonde dev-only | porteur unique d'`I10` (`ADR-0032`) |
 | `wrangler.jsonc` | `name`, `compatibility_date`, liaison D1 **sans `database_id`**, `migrations_dir` | `FR-016` ; aucune valeur d'instance (`FR-022`) |
 | `instance.json` | `domain`, `turnstilePublicKey` — valeurs d'exemple | contrat d'E/S de la spec ; `I8` |
 | `eslint.config.js` | style + TypeScript (job `lint`) | — |
-| `eslint.config.boundaries.js` | **la matrice `I1` seule** (job `boundaries`) ; zones déclarées **sans barre finale** (`'src/render'`), contrainte d'`I3` — point 10 | nom choisi pour matcher le glob `eslint.config.*` de `quality-config-guard` — un `eslint.boundaries.config.js` y échapperait |
+| `eslint.config.boundaries.js` | **la matrice `I1` seule** (job `boundaries`) ; zones déclarées **sans barre finale** (`'src/render'`), contrainte d'`I3` — `FR-026`, point 10 | nom choisi pour matcher le glob `eslint.config.*` de `quality-config-guard` — un `eslint.boundaries.config.js` y échapperait |
 | `vitest.config.ts` | `defineWorkersConfig`, couverture → `coverage/lcov.info` | [ADR-0013](../../docs/adr/0013-tests-vitest-dans-workerd.md) |
 | `knip.json` · `stryker.conf.json` | jobs nocturnes `dead-code` et `mutation` | `.github/workflows/nightly.yml` |
 
@@ -298,10 +302,11 @@ Elle enchaîne, et refuse au premier écart :
    rendu à l'étape 1 par `lint:boundaries`, c'est le **sept/trois** de `SC-010` qui se lit ici : la
    vérification compte les **états rapportés**, `I3` et `I4` passant faute de matière (§ Réutilisation
    du socle). Un `I3` ou un `I4` retombé « hors portée » signifierait que le plancher de `FR-009` a
-   été amputé — c'est ce que cette étape attrape. Elle attrape aussi l'autre sens : `I3` **rapporté
-   en violation** signifierait qu'un fichier du lot — au premier chef `eslint.config.boundaries.js`
-   — porte un motif à barre finale (point 10). L'étape s'exécute sur l'arbre qui porte cette
-   configuration, sans quoi elle ne prouverait rien de ce qu'elle prétend prouver.
+   été amputé — c'est ce que cette étape attrape. Elle attrape aussi l'autre sens, et c'est là que
+   `FR-026` se vérifie : `I3` **rapporté en violation** signifierait qu'un fichier du lot — au
+   premier chef `eslint.config.boundaries.js` — porte un motif à barre finale (point 10). L'étape
+   s'exécute sur l'arbre qui porte cette configuration, sans quoi elle ne prouverait rien de ce
+   qu'elle prétend prouver.
 4. Trois défauts injectés puis retirés, chacun devant être **signalé** : une incohérence de type
    (`SC-003`), un import `src/core/ → src/platform/` (`SC-004`, par `lint:boundaries`), un
    `import 'cloudflare:workers'` dans `src/core/` (`SC-005`, par `arch-invariants` — **un porteur
@@ -314,18 +319,21 @@ Elle enchaîne, et refuse au premier écart :
    d'`US3`). Les deux moitiés sont dans la même étape **à dessein** : « la route répond » et « la
    route n'est pas livrée » ne valent que constatées ensemble, sur le même arbre.
 
-**`SC-009` n'entre pas dans ce script** : c'est une pièce datée, produite une fois. La recette est
-rejouée et tient : dans un dossier neuf portant `min-release-age=7`, `npm install astro` résout
-**7.2.0** quand le registre publie **7.2.2** depuis le 2026-08-13. Sortie à conserver, datée.
+**`SC-009` n'entre pas dans ce script** : c'est une pièce datée, produite une fois — elle démontre
+le **comportement** de `FR-019`. La recette est rejouée et tient : dans un dossier neuf portant
+`min-release-age=7`, `npm install astro` résout **7.2.0** quand le registre publie **7.2.2** depuis
+le 2026-08-13. Sortie à conserver, datée. La **déclaration** de `FR-027`, elle, n'a pas besoin de ce
+script : `dependency-review` la lit en permanence dans `.npmrc`, à chaque PR.
 
 ## Couverture des exigences
 
-Les **25** `FR` de la spec sont couverts, et par quoi :
+Les **27** `FR` de la spec sont couverts, et par quoi :
 
 | `FR` | Porté par |
 |---|---|
 | `FR-001` `FR-018` | `package.json` + `package-lock.json` ; étape 1 (installation), défaut de désynchronisation injecté |
-| `FR-019` | `.npmrc` (`min-release-age=7`) ; pièce datée de `SC-009`, hors script |
+| `FR-027` | `.npmrc`, la **déclaration** de `min-release-age=7` — c'est elle que le contrôle permanent `dependency-review` lit, et lui seul |
+| `FR-019` | le **comportement** de résolution qui en découle ; pièce datée de `SC-009`, hors script |
 | `FR-002` `FR-017` | script `build` ; étapes 1 et 2 |
 | `FR-003` | `tsconfig.json` + script `typecheck` ; défaut injecté, étape 4 |
 | `FR-004` `FR-006` | `vitest.config.ts` + scripts `test` / `coverage` ; étape 1 |
@@ -336,6 +344,7 @@ Les **25** `FR` de la spec sont couverts, et par quoi :
 | `FR-010` `FR-020` | `eslint.config.boundaries.js` + script `lint:boundaries` ; défaut injecté, étape 4 |
 | `FR-011` | `arch-invariants.sh` **déjà en place** ; défaut injecté, étape 4 — porteur distinct |
 | `FR-025` | `docs/ci.md`, édition (b) — la ligne du job `boundaries` distingue `I1` (refermé) du reliquat d'`I3` (`[à compléter]`) |
+| `FR-026` | la contrainte générale d'`I3` — 2ᵉ confrontation et décision 10 : motifs de zone **sans barre finale** dans `eslint.config.boundaries.js`, identifiants nus dans `src/core/zone.ts` ; étape 3, qui attrape les deux sens |
 | `FR-012` | script `dev` + `src/platform/d1/sonde-dev.ts` ; étape 6 |
 | `FR-024` | injection conditionnée à `command === 'dev'` ; double absence dans `dist/`, étape 6 |
 | `FR-013` `FR-014` `FR-021` | `migrations/0001_amorce.sql` + script `db:migrate` ; étape 5 |
