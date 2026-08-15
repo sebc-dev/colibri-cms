@@ -16,3 +16,9 @@ Corriger le seul Major retenu au gate (verdict global déjà CONFORME, zéro Cri
 
 ## Prochaine étape
 `/scd-sdd:resume audit-claude-md` pour traiter le Lot A, puis relancer `/scd-sdd:audit claude-md`.
+
+## Issue
+Lot A corrigé le 2026-08-15 : la gotcha `.npmrc` (l.61) reformulée au futur/normatif — « devra
+porter … au scaffold (voir `docs/ci.md`) » — au lieu de l'affirmation au présent. `/scd-sdd:audit
+claude-md` relancé la même passe : **CONFORME · 0 Critical · 0 Major**, le Major corrigé vérifié
+cohérent avec `docs/ci.md:189-196`. Fermé en 2 passes.
