@@ -1,6 +1,7 @@
-# ADR (candidat) : Gestionnaire de paquets — npm
-Statut : Candidat | Date : 2026-08-14 | Trace vers : [docs/ci.md](../../ci.md) § L'état du dépôt
+# ADR-0031 : Gestionnaire de paquets — npm
+Statut : Accepté | Date : 2026-08-14 | Trace vers : [docs/ci.md](../ci.md) § L'état du dépôt
 (l. 38-46) — arbitré là faute d'un porteur dans `docs/stack.md` ou dans le registre des 30 ADR
+précédents
 
 ## Contexte
 
@@ -57,5 +58,5 @@ Nous retenons **npm** comme gestionnaire de paquets du projet.
 
 - Décision influencée/générée par l'agent : oui — les trois faits sont mesurés sur machine par la
   campagne de recherche du 14/08 ; le choix reprend l'arbitrage déjà écrit dans `docs/ci.md`.
-  Revue humaine : en attente — candidat posé par le chantier `2026-08-14-traitement-audit-ci.md`
-  (M2), à promouvoir par `/scd-sdd:adr`.
+  Revue humaine : 2026-08-14 — candidat posé par le chantier `2026-08-14-traitement-audit-ci.md`
+  (M2), promu par `/scd-sdd:adr`.
