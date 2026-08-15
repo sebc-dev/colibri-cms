@@ -1,35 +1,42 @@
-# Gate 001-scaffold-projet — 0 Critical · 2 Major
+# Gate 001-scaffold-projet — 1 Critical · 0 Major
 
 Portée : 001-scaffold-projet · gate
-Ouvert le 2026-08-15 · Actualisé le 2026-08-15 · branche `work/reprise-socle-v2` · HEAD `d655ed8`
+Ouvert le 2026-08-15 · Actualisé le 2026-08-15 · branche `work/reprise-socle-v2` · HEAD `7de5f7b`
 
 ## Objectif
-Refondre le découpage de `tasks.md` selon l'arbitrage rendu à la gate du 15/08 : les trois
-premiers lots deviennent une seule PR, et le motif du dépassement de seuil est réécrit.
+Aligner la spec et le plan sur l'état que `arch-invariants.sh` calcule réellement pour `I3` et
+`I4` : le squelette des cinq zones les fait sortir de « hors portée ».
 
 ## Contexte à charger
-à lire  `specs/001-scaffold-projet/tasks.md` — porte R1, R2, R3, R4
-à lire  `specs/001-scaffold-projet/plan.md` — § Approche, § Fichiers touchés
-à situer `.github/workflows/ci.yml` — chaque job teste `-f package.json` (la garde de scaffold)
+à lire  `specs/001-scaffold-projet/spec.md` — porte US2·3, FR-009, SC-010, § NON inclus
+à lire  `specs/001-scaffold-projet/plan.md` — § Réutilisation du socle, § Étape de vérification
+à situer `.github/scripts/arch-invariants.sh` — gardes `exists 'src/render/*'` (l.68) et
+  `exists 'src/admin/*'` (l.92) ; `exists()` teste `git ls-files` (l.37)
 
 ## À corriger
-### Major (1)
-- [R1·R2·R3] `tasks.md` — R1 posait `package.json`, ce qui levait la garde de scaffold sur `build`
-  et `test` (bloquants) alors que `astro.config.ts` et `wrangler.jsonc` n'arrivaient qu'en R2 →
-  fusionner les trois lots en un seul, de sorte que les configurations arrivent avec le manifeste.
-  Le nouveau lot est à écrire comme **un** sujet — le scaffold est atomique, il n'a pas de point
-  de coupure où la CI bloquante soit verte — sans quoi la re-passe le lira comme trois sujets, ce
-  qui est le seul défaut de découpage qui rende un Critical. Phase : `tasks`
+### Critical (1)
+- [US2·3 · FR-009] `spec.md` — `US2` scénario 3 exige que « les autres invariants » restent hors
+  portée, quand `FR-009` fait poser un fichier versionné dans les cinq zones : les gardes du script
+  sortent alors `I3` (`src/render/*`) et `I4` (`src/admin/*`) de « hors portée ». Les deux `SHALL`
+  ne peuvent pas être vrais ensemble, et le script sort à 0 — rien n'attrape l'écart. → Réécrire le
+  partage en **7 exercés / 3 hors portée** (`I6`, `I7`, `I9`) dans les quatre passages solidaires :
+  `spec.md` US2·3, § NON inclus (bullet 2), `SC-010` ; `plan.md` § Réutilisation du socle et
+  étape 3. Rien de ce qui est construit ne change. Phase : `specify`, puis répercussion `plan`
+- [rattaché] `docs/ci.md` affecte `I1` **et** `I3` au job `boundaries` ; ce lot n'y pose que `I1`
+  (`T11`). Cohérent, mais aucun document ne dit que la case reste partiellement `[à compléter]` —
+  à écrire dans la même reprise, puisqu'elle rouvre l'histoire d'`I3`. Phase : `specify`
 
-### Minor restés en conversation (6)
-Non portés ici, par contrat. Ils sont dans le rapport de la passe du 15/08 : « knip » comme nom
-d'outil (SC-002), le message du lanceur de tests cité en spec, le décompte « huit commandes
-normatives », l'atomicité de FR-019, le candidat ADR de l'épinglage TypeScript, le pattern
-`If…then` de FR-008.
+### Minor restés en conversation (7)
+Non portés ici, par contrat. Ils sont dans le rapport de la passe du 15/08 : le § Résumé qui dit
+inexistantes des commandes et sans outil des invariants que `arch-invariants.sh` vérifie déjà ; le
+décompte « huit commandes normatives » (`ci.md` en marque sept) et ses deux listes divergentes ;
+« knip » comme nom d'outil (SC-002) ; l'atomicité de FR-019 ; le pattern `If…then` de FR-008 ; le
+message du lanceur de tests cité en spec ; `T1` et `T29` non marquées `[P]`.
 
 ## Prochaine étape
-J'allais fusionner R1, R2 et R3 par `/scd-sdd:tasks 001`, en reprenant le motif d'arbitrage
-ci-dessous dans l'encadré du lot fusionné.
+Corriger le Critical par `/scd-sdd:specify 001`, puis répercuter dans `plan.md`. **Committer la
+correction avant de relancer la gate** : `tasks.md` a été jugé non commité cette passe, ce qui a
+forcé le régime intégral ; sans commit, la passe suivante le forcera encore.
 
 ## Écarté
 - Dépassement du signal de scission sur le lot de scaffold — assumé le 15/08, arbitrage rendu une
@@ -41,3 +48,7 @@ ci-dessous dans l'encadré du lot fusionné.
   fusion complète : ça vidait R2 de sa substance sans fermer la question pour R3.
 - Assumer la fenêtre rouge et le documenter — écarté : sous protection de branche, une PR dont un
   job bloquant est rouge ne se merge pas.
+- Ne pas poser `src/render/zone.ts` ni `src/admin/zone.ts` pour garder vrai le « cinq hors
+  portée » — écarté le 15/08 : ça violerait `FR-009` et remettrait six contrôles sur dix en
+  « HORS PORTÉE », ce que l'encadré de la spec (« pourquoi pas un `.gitkeep` ») refuse
+  explicitement. C'est le texte qui est faux, pas le squelette.
