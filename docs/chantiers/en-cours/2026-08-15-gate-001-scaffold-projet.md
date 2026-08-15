@@ -1,7 +1,7 @@
 # Gate 001-scaffold-projet — 0 Critical · 2 Major
 
 Portée : 001-scaffold-projet · gate
-Ouvert le 2026-08-15 · Actualisé le 2026-08-15 · branche `work/reprise-socle-v2` · HEAD `d9735c1`
+Ouvert le 2026-08-15 · Actualisé le 2026-08-15 · branche `work/reprise-socle-v2` · HEAD `d655ed8`
 
 ## Objectif
 Refondre le découpage de `tasks.md` selon l'arbitrage rendu à la gate du 15/08 : les trois
