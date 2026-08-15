@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Configuration de déploiement statique — ADR-0032 : hors du périmètre de
+  // I10, elle ne porte que des liaisons de plateforme (ADR-0020), aucune
+  // valeur propre à l'instance (FR-022). Le domaine et la clé publique
+  // Turnstile vivent dans instance.json (I8), lu par astro.config.ts seul.
+  "name": "colibri-cms",
+  // Bornée par le binaire workerd figé au lockfile (1.20260801.1, plus haute
+  // date supportée 2026-08-08) — au-delà, workerd refuse de démarrer et toute
+  // exécution de test échoue ; se relève avec le workerd du lockfile.
+  "compatibility_date": "2026-08-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "colibri",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

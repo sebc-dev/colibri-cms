@@ -67,7 +67,7 @@ Ce tableau est la source unique. `CLAUDE.md` y renvoie, il ne le recopie pas.
 | Secrets | `trufflehog git file:///repo --results=verified --fail` (image `3.96.0`) | Réelle |
 | SAST | `semgrep scan --config=p/typescript --config=p/javascript --config=p/owasp-top-ten` (image `1.172.0`) | Réelle |
 | Audit des workflows | `zizmorcore/zizmor-action@v0.6.2` (zizmor 1.29.0, hors ligne) | Réelle |
-| Graphe d'imports (invariants `I1`, `I3`) — job `boundaries` | `npm run lint:boundaries` — `[à compléter]` : `eslint-plugin-boundaries` sur `eslint-import-resolver-typescript`, règles à poser au scaffold dans `eslint.config.*` | Non posée |
+| Graphe d'imports (invariants `I1`, `I3`) — job `boundaries` | `npm run lint:boundaries` — matrice `I1` **réelle** (`eslint-plugin-boundaries` sur `eslint-import-resolver-typescript`, règles dans `eslint.config.boundaries.js`) ; le reliquat d'`I3` qu'un contrôle littéral ne voit pas (ré-exports, barils, alias) reste `[à compléter]` | `I1` posée par `specs/001-scaffold-projet` (R1) · reliquat `I3` non posé |
 
 **Aucune commande de run local n'existe**, et ce n'est pas un oubli : la stack déploie un Worker
 bâti par Workers Builds, et rien de ce qui a été arbitré n'a fixé la commande de développement.
@@ -394,7 +394,7 @@ violations de contrat propres au projet, qu'aucun outil générique ne connaît.
 
 | ADR | Invariant | Source | Rendu par | Statut |
 |---|---|---|---|---|
-| [ADR-0021](./adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/archi.md` `I1` | `boundaries` — job créé, règles ESLint **`[à compléter]`** au scaffold | **Non rendu** |
+| [ADR-0021](./adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/archi.md` `I1` | `boundaries` — `npm run lint:boundaries` (`eslint.config.boundaries.js`, scaffold posé par `specs/001-scaffold-projet`) | **Rendu** depuis `specs/001-scaffold-projet` (R1) — même statut informatif que les autres lignes de ce registre, en attendant le rejeu de `docs/chantiers/en-attente/2026-08-14-durcissement-ci.md` |
 | [ADR-0022](./adr/0022-core-sans-framework-ni-plateforme.md) | `I2` — `src/core/` n'importe ni `astro`, ni `svelte`, ni `@astrojs/*`, ni `cloudflare:*` | `docs/archi.md` `I2` | `arch-invariants` | Informatif depuis 2026-08-14 |
 | [ADR-0023](./adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/archi.md` `I3` | `arch-invariants` — **partiellement**, `boundaries` pour le reste, voir ci-dessous | Informatif depuis 2026-08-14 |
 | [ADR-0024](./adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/archi.md` `I4` | `arch-invariants` | Informatif depuis 2026-08-14 |
