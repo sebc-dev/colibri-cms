@@ -130,12 +130,28 @@ CONFIG = [
     r"(^|/)CLAUDE\.md$",
     r"(^|/)AGENTS\.md$",
     r"(^|/)\.claude/",
+    # L'outil qui produit les signatures : s'il devenait modifiable par l'agent,
+    # il pourrait afficher une chose et en signer une autre.
+    r"(^|/)scripts/signer-commit\.sh$",
 ]
+
+# Le registre des clés de confiance a son propre motif de refus : sa soupape
+# CI n'est pas un scope de commit mais une SIGNATURE, que l'agent ne peut pas
+# produire. `verifier-guard` le protège déjà — mais en CI, donc tard.
+REGISTRE = r"\.github/allowed_signers$"
 
 
 def est_config(p):
     return any(re.search(m, p) for m in CONFIG)
 
+
+if chemin and re.search(REGISTRE, chemin):
+    refus(
+        "Registre des clés de confiance : réservé à l'humain.",
+        "`verifier-guard` exige que tout commit y touchant soit SIGNÉ par une clé",
+        "déjà de confiance sur main — une signature que je ne peux pas produire.",
+        "Le refus arriverait de toute façon, en CI ; autant qu'il arrive ici.",
+    )
 
 if chemin and est_config(chemin):
     a = absolu(chemin)
