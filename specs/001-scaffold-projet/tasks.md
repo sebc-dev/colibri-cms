@@ -10,8 +10,8 @@ Trace vers : [plan.md](./plan.md) (fichiers) · [spec.md](./spec.md) (FR/SC/SHAL
   `test-after` (le test après) · `check` (pas de test auto : une vérification observée) ·
   `inhérent` (la preuve est le résultat lui-même, ex. le pipeline CI qui passe au vert)
 - _Requirements:_ = **backref** : les FR/SC que la tâche couvre — le fil qui dit pourquoi elle existe
-- Un `Tn` est un **identifiant stable**, pas un rang : `T40` a été ajoutée après coup et se lit à sa
-  place logique, entre `T11` et `T12`.
+- Un `Tn` est un **identifiant stable**, pas un rang : `T40` et `T41` ont été ajoutées après coup et
+  se lisent à leur place logique — `T40` entre `T11` et `T12`, `T41` entre `T4` et `T5`.
 
 > **Deux lots, et aucun n'est `[P]`.** `R2` constate `R1` : il n'y a rien à paralléliser entre eux.
 > Les tâches `[P]` d'un même lot, elles, touchent des fichiers réellement disjoints — les scripts
@@ -27,7 +27,7 @@ Trace vers : [plan.md](./plan.md) (fichiers) · [spec.md](./spec.md) (FR/SC/SHAL
 ---
 
 ## R1 — Le dépôt devient un projet où toutes les commandes de `docs/ci.md` sont réelles
-_Livre : FR-001 à FR-025_ · _vérif : check (aucune logique métier dans ce lot : la preuve est le code de sortie de chaque commande, observé sur un défaut injecté puis retiré)_ · _~490 lignes est. (hors `package-lock.json` engendré)_ · _27 concepts_ · dépend de : —
+_Livre : FR-001 à FR-027_ · _vérif : check (aucune logique métier dans ce lot : la preuve est le code de sortie de chaque commande, observé sur un défaut injecté puis retiré)_ · _~490 lignes est. (hors `package-lock.json` engendré)_ · _29 concepts_ · dépend de : —
 Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/core/zone.ts`, `src/render/zone.ts`, `src/platform/zone.ts`, `src/platform/d1/sonde-dev.ts`, `src/site/zone.ts`, `src/admin/zone.ts`, `eslint.config.js`, `eslint.config.boundaries.js`, `vitest.config.ts`, `knip.json`, `stryker.conf.json`, `astro.config.ts`, `instance.json`, `wrangler.jsonc`, `migrations/0001_amorce.sql`, `docs/ci.md` (deux éditions : la case « Run local », et la part du job de graphe d'imports que ce lot referme)
 
 > **Un seul sujet, et c'est le scaffold lui-même.** Ce lot ne fait qu'une chose : rendre réelles, sur
@@ -37,7 +37,7 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 > parties : ce sont les faces d'un même geste, et **aucune n'est livrable seule**.
 
 > **Pourquoi la fusion, et pourquoi le dépassement de seuil est assumé — arbitré le 2026-08-15.**
-> Vingt-sept concepts contre un signal de ~7, et ~490 lignes contre un signal de ~400. Ce lot était
+> Vingt-neuf concepts contre un signal de ~7, et ~490 lignes contre un signal de ~400. Ce lot était
 > découpé en trois ; la gate du 15/08 a montré que **le point de coupure n'existe pas**. La garde de
 > scaffold des jobs CI teste `-f package.json` : elle se lève **dès que le manifeste est posé**, si
 > bien que `build` et `test` — tous deux **bloquants** — s'exécuteraient pour de vrai avant que
@@ -46,11 +46,15 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 > ne se merge pas. Ce que la scission coûterait ici est supérieur à ce que la review y gagnerait. La
 > déviation est documentée, jamais silencieuse. **`T6` est l'endroit où ce motif se vérifie** : sa
 > liste de `bloqué par` est exactement la raison pour laquelle les trois lots n'en font qu'un.
+>
+> *Le compte est passé de 27 à 29 le 2026-08-15, sans que le motif soit entamé : le dédoublement de
+> `FR-019` en `FR-019`/`FR-027` et la naissance de `FR-026` sont des contraintes sur des fichiers que
+> le lot posait déjà. Deux concepts de plus, **aucun fichier de plus**, budget en lignes inchangé.*
 
 ### Installation verrouillée et gelée
 
 - [ ] T1 [P] — Poser `.npmrc` portant le gel d'approvisionnement de sept jours, à l'endroit où le
-  contrôle permanent le lit _Requirements: FR-019_ ; dépend de : —
+  contrôle permanent le lit _Requirements: FR-019, FR-027_ ; dépend de : —
 - [ ] T2 — Poser `package.json` — les scripts que `docs/ci.md` § Commandes nomme, repris à la lettre,
   et les dépendances — puis engendrer `package-lock.json` et le committer
   _Requirements: FR-001, FR-008, FR-018_ ; bloqué par : T1
@@ -59,9 +63,13 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 - [ ] T4 — Vérif : un `package.json` désynchronisé du lockfile fait échouer l'installation au lieu de
   resynchroniser le lockfile en silence (défaut injecté puis retiré, arbre rendu intact)
   _Requirements: FR-018_ ; bloqué par : T2
-- [ ] T5 — Vérif : la période de gel est lue là où le contrôle permanent la cherche, et une
-  installation retient une version antérieure éligible plutôt qu'une version publiée depuis moins de
-  sept jours _Requirements: FR-019_ ; bloqué par : T2
+- [ ] T41 — Vérif : la période de gel est **déclarée** dans le fichier de configuration du
+  gestionnaire de paquets, à l'endroit même où le contrôle permanent de la CI la lit — c'est cette
+  déclaration, et elle seule, que ce contrôle lit à chaque intégration
+  _Requirements: FR-027_ ; bloqué par : T1
+- [ ] T5 — Vérif : le **comportement** qui en découle — une installation retient une version
+  antérieure éligible plutôt qu'une version publiée depuis moins de sept jours
+  _Requirements: FR-019_ ; bloqué par : T2
 - [ ] T6 — Vérif : les jobs CI n'empruntent plus leur garde de scaffold dès lors que `package.json`
   existe — chacun exécute sa commande réelle, **et chacune passe**, ce qui n'est vrai qu'une fois
   toutes les configurations de ce lot posées _Requirements: FR-008_ ;
@@ -71,8 +79,9 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 
 - [ ] T7 — Poser `tsconfig.json` en mode strict _Requirements: FR-003_ ; bloqué par : T2
 - [ ] T8 — Poser un fichier source par zone (`core`, `render`, `platform`, `site`, `admin`), chacun
-  n'important que vers le bas selon les cinq arêtes légales retenues au plan
-  _Requirements: FR-009, FR-011_ ; bloqué par : T2
+  n'important que vers le bas selon les cinq arêtes légales retenues au plan ; les cinq noms de zone
+  y sont des **identifiants nus**, jamais des chemins écrits en dur — c'est la contrainte générale
+  d'`I3` appliquée aux sources du plancher _Requirements: FR-009, FR-011, FR-026_ ; bloqué par : T2
 - [ ] T9 — Vérif : une incohérence de type introduite dans une source de zone fait échouer la
   commande de typage avec un code de sortie non nul (défaut injecté puis retiré, arbre rendu intact)
   _Requirements: FR-003_ ; bloqué par : T7, T8
@@ -87,11 +96,11 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   qualité, et les cinq zones s'y déclarent **sans barre finale** (point 10 du plan) — c'est ce
   fichier que la contrainte générale d'`I3` contraint le plus durement, et la forme qui retirerait
   le préfixe `src/` pour y échapper ne classerait plus aucun fichier
-  _Requirements: FR-010, FR-020_ ; bloqué par : T8
+  _Requirements: FR-010, FR-020, FR-026_ ; bloqué par : T8
 - [ ] T40 — Vérif : sur l'arbre qui porte cette configuration, le contrôle `I3` de la vérification
   d'invariants d'architecture est rapporté **passant** — ni hors portée, ni en violation — et une
   barre finale ajoutée au motif d'une zone l'y fait basculer (défaut injecté puis retiré, arbre
-  rendu intact) _Requirements: FR-010, FR-011_ ; bloqué par : T11
+  rendu intact) _Requirements: FR-026_ ; bloqué par : T11
 - [ ] T12 — Vérif : un import d'une zone vers une autre dans un sens que `I1` interdit est signalé
   comme violation par cette commande (défaut injecté puis retiré) _Requirements: FR-010_ ;
   bloqué par : T11
