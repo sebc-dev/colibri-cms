@@ -182,17 +182,19 @@ else
   hors "I9" "src/core/publication/"
 fi
 
-# ── I10 · les configurations lisent le fichier d'instance ────────────────────
-if ls astro.config.* wrangler.* >/dev/null 2>&1; then
+# ── I10 · la configuration Astro lit le fichier d'instance ───────────────────
+# ADR-0032 remplace ADR-0030 : la configuration du déploiement sort du périmètre
+# de I10 — wrangler n'accepte qu'un fichier statique, qui ne lit rien.
+if ls astro.config.* >/dev/null 2>&1; then
   muettes=""
-  for c in $(files 'astro.config.*' 'wrangler.*'); do
+  for c in $(files 'astro.config.*'); do
     grep -q 'instance.json' "$c" || muettes="${muettes}${c}"$'\n'
   done
   [ -n "$muettes" ] \
-    && ko I10 "une configuration ne lit pas instance.json et redit donc ses valeurs (ADR-0030)" "$muettes" \
-    || ok "I10 — les deux configurations lisent instance.json"
+    && ko I10 "la configuration Astro ne lit pas instance.json et redit donc ses valeurs (ADR-0032)" "$muettes" \
+    || ok "I10 — la configuration Astro lit instance.json"
 else
-  hors "I10" "astro.config.* et wrangler.*"
+  hors "I10" "astro.config.*"
 fi
 
 echo
