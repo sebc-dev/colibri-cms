@@ -10,46 +10,47 @@ Trace vers : [plan.md](./plan.md) (fichiers) · [spec.md](./spec.md) (FR/SC/SHAL
   `test-after` (le test après) · `check` (pas de test auto : une vérification observée) ·
   `inhérent` (la preuve est le résultat lui-même, ex. le pipeline CI qui passe au vert)
 - _Requirements:_ = **backref** : les FR/SC que la tâche couvre — le fil qui dit pourquoi elle existe
-- Un `Tn` est un **identifiant stable**, pas un rang : `T40` et `T41` ont été ajoutées après coup et
-  se lisent à leur place logique — `T40` entre `T11` et `T12`, `T41` entre `T4` et `T5`.
+- Un `Tn` est un **identifiant stable**, pas un rang : `T40` et `T41` se lisent à leur place logique
+  — `T40` entre `T11` et `T12`, `T41` entre `T4` et `T5`. `T38` et `T39` n'existent plus : le script
+  de vérification a été réparti dans les tâches qu'il constate (voir l'encadré de `R1`), et la pièce
+  datée du gel a rejoint `T5`, qui faisait déjà l'observation.
 
-> **Deux lots, et aucun n'est `[P]`.** `R2` constate `R1` : il n'y a rien à paralléliser entre eux.
-> Les tâches `[P]` d'un même lot, elles, touchent des fichiers réellement disjoints — les scripts
-> étant tous posés d'un coup en `T2`, chaque configuration d'outil vit ensuite seule dans son
-> fichier.
+> **Chaque tâche `Vérif` écrit son assertion dans le script de vérification bout-en-bout.** Le script
+> n'est pas rédigé après coup par un lot séparé : il **naît par morceaux**, dans la section dont il
+> constate le résultat. C'est ce qui empêche qu'une observation soit faite deux fois — une fois à la
+> main, une fois retranscrite. `R1` écrit ainsi les étapes 1 à 5, `R2` la 6ᵉ.
 
 > **Pourquoi aucun lot n'est en `TDD`.** La spec exclut explicitement toute unité de logique métier
 > — « aucune unité de logique métier, donc aucun test » (§ NON inclus) : ce scaffold pose
-> l'outillage qui *permettra* d'écrire des tests, il n'a lui-même rien à tester. Chaque lot porte
-> donc sa justification de mode, et sa preuve reste un code de sortie ou un artefact observé, jamais
-> une affirmation.
+> l'outillage qui *permettra* d'écrire des tests, il n'a lui-même rien à tester. Les deux lots sont
+> donc en `inhérent`, et leur preuve est le code de sortie du script, jamais une affirmation.
 
 ---
 
-## R1 — Le dépôt devient un projet où toutes les commandes de `docs/ci.md` sont réelles
-_Livre : FR-001 à FR-027_ · _vérif : check (aucune logique métier dans ce lot : la preuve est le code de sortie de chaque commande, observé sur un défaut injecté puis retiré)_ · _~490 lignes est. (hors `package-lock.json` engendré)_ · _29 concepts_ · dépend de : —
-Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/core/zone.ts`, `src/render/zone.ts`, `src/platform/zone.ts`, `src/platform/d1/sonde-dev.ts`, `src/site/zone.ts`, `src/admin/zone.ts`, `eslint.config.js`, `eslint.config.boundaries.js`, `vitest.config.ts`, `knip.json`, `stryker.conf.json`, `astro.config.ts`, `instance.json`, `wrangler.jsonc`, `migrations/0001_amorce.sql`, `docs/ci.md` (deux éditions : la case « Run local », et la part du job de graphe d'imports que ce lot referme)
+## R1 — Le dépôt devient un projet où les commandes de `docs/ci.md` s'exécutent réellement
+_Livre : FR-001 à FR-011, FR-013 à FR-023, FR-025 à FR-027 ; SC-001 à SC-005, SC-007 à SC-010_ · _vérif : inhérent (le script de vérification **est** la preuve : son code de sortie nul atteste les critères, et un test écrit par-dessus ne ferait que le redire)_ · _~570 lignes est. (hors `package-lock.json` engendré)_ · _26 concepts_ · dépend de : —
+Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/core/zone.ts`, `src/render/zone.ts`, `src/platform/zone.ts`, `src/site/zone.ts`, `src/admin/zone.ts`, `eslint.config.js`, `eslint.config.boundaries.js`, `vitest.config.ts`, `knip.json`, `stryker.conf.json`, `astro.config.ts`, `instance.json`, `wrangler.jsonc`, `migrations/0001_amorce.sql`, `scripts/verif-bout-en-bout.sh` (étapes 1 à 5), `docs/preuves/`, `docs/ci.md` (le job de graphe d'imports, deux endroits)
 
 > **Un seul sujet, et c'est le scaffold lui-même.** Ce lot ne fait qu'une chose : rendre réelles, sur
 > un dépôt qui n'en portait aucune, les commandes que `docs/ci.md` déclare normatives — leur
 > installation, leur configuration, et le squelette de sources sans lequel elles n'auraient rien à
-> vérifier. L'installation, les zones, le build, la base migrée et le serveur local n'en sont pas les
-> parties : ce sont les faces d'un même geste, et **aucune n'est livrable seule**.
+> vérifier. Le build, la base migrée et la configuration de déploiement n'en sont pas des sujets
+> distincts : ce sont les conditions sans lesquelles ces commandes ne s'exécutent pas.
 
-> **Pourquoi la fusion, et pourquoi le dépassement de seuil est assumé — arbitré le 2026-08-15.**
-> Vingt-neuf concepts contre un signal de ~7, et ~490 lignes contre un signal de ~400. Ce lot était
-> découpé en trois ; la gate du 15/08 a montré que **le point de coupure n'existe pas**. La garde de
-> scaffold des jobs CI teste `-f package.json` : elle se lève **dès que le manifeste est posé**, si
-> bien que `build` et `test` — tous deux **bloquants** — s'exécuteraient pour de vrai avant que
-> `astro.config.ts` et `wrangler.jsonc` n'aient atterri. Scinder ne fermerait donc pas la fenêtre
-> rouge, ça la **déplacerait** ; et sous protection de branche, une PR dont un job bloquant est rouge
-> ne se merge pas. Ce que la scission coûterait ici est supérieur à ce que la review y gagnerait. La
-> déviation est documentée, jamais silencieuse. **`T6` est l'endroit où ce motif se vérifie** : sa
-> liste de `bloqué par` est exactement la raison pour laquelle les trois lots n'en font qu'un.
+> **Ce que la gate a retiré de ce lot, et pourquoi le reste tient — arbitré le 2026-08-15.**
+> La tranche « serveur de développement local » **en est sortie** et forme `R2`. Le motif de fusion
+> ne la couvrait pas : il tient à ce qu'aucune coupure ne laisse les jobs bloquants verts, or la
+> mesure du plan montre que la sonde est injectée sous `command === 'dev'` et que le build « repasse
+> à 0 page(s) / 3 fichiers » — la retirer ne rougit donc **rien**.
 >
-> *Le compte est passé de 27 à 29 le 2026-08-15, sans que le motif soit entamé : le dédoublement de
-> `FR-019` en `FR-019`/`FR-027` et la naissance de `FR-026` sont des contraintes sur des fichiers que
-> le lot posait déjà. Deux concepts de plus, **aucun fichier de plus**, budget en lignes inchangé.*
+> Pour ce qui reste, le motif tient tel quel : la garde de scaffold des jobs CI teste
+> `-f package.json` et se lève **dès que le manifeste est posé**, si bien que `build` et `test` —
+> tous deux **bloquants** — s'exécuteraient pour de vrai avant que `astro.config.ts` et
+> `wrangler.jsonc` n'aient atterri. Scinder plus avant ne fermerait pas la fenêtre rouge, ça la
+> **déplacerait** ; et sous protection de branche, une PR dont un job bloquant est rouge ne se merge
+> pas. Le dépassement des signaux de scission (~570 lignes contre ~400, 26 concepts contre ~7) est
+> donc **assumé et documenté**, jamais silencieux. **`T6` est l'endroit où ce motif se vérifie** :
+> sa liste de `bloqué par` est exactement la raison pour laquelle ces tranches-là n'en font qu'une.
 
 ### Installation verrouillée et gelée
 
@@ -59,7 +60,7 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   et les dépendances — puis engendrer `package-lock.json` et le committer
   _Requirements: FR-001, FR-008, FR-018_ ; bloqué par : T1
 - [ ] T3 — Vérif : sur un environnement dépourvu de `node_modules/`, l'installation verrouillée
-  termine avec un code de sortie nul _Requirements: FR-001_ ; bloqué par : T2
+  termine avec un code de sortie nul _Requirements: FR-001, SC-001_ ; bloqué par : T2
 - [ ] T4 — Vérif : un `package.json` désynchronisé du lockfile fait échouer l'installation au lieu de
   resynchroniser le lockfile en silence (défaut injecté puis retiré, arbre rendu intact)
   _Requirements: FR-018_ ; bloqué par : T2
@@ -67,13 +68,16 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   gestionnaire de paquets, à l'endroit même où le contrôle permanent de la CI la lit — c'est cette
   déclaration, et elle seule, que ce contrôle lit à chaque intégration
   _Requirements: FR-027_ ; bloqué par : T1
-- [ ] T5 — Vérif : le **comportement** qui en découle — une installation retient une version
-  antérieure éligible plutôt qu'une version publiée depuis moins de sept jours
-  _Requirements: FR-019_ ; bloqué par : T2
-- [ ] T6 — Vérif : les jobs CI n'empruntent plus leur garde de scaffold dès lors que `package.json`
-  existe — chacun exécute sa commande réelle, **et chacune passe**, ce qui n'est vrai qu'une fois
-  toutes les configurations de ce lot posées _Requirements: FR-008_ ;
-  bloqué par : T7, T11, T17, T19, T27, T28
+- [ ] T5 — Vérif, **hors du script** : le **comportement** qui découle du gel — l'**ajout** d'une
+  dépendance retient une version antérieure éligible plutôt qu'une version publiée depuis moins de
+  sept jours, l'installation verrouillée n'étant pas concernée. La sortie est conservée, datée, dans
+  `docs/preuves/` _Requirements: FR-019, SC-009_ ; bloqué par : T2
+- [ ] T6 — Vérif : les jobs d'intégration n'empruntent plus leur garde de scaffold dès lors que
+  `package.json` existe — chacun exécute sa commande réelle, **et chacun passe**. Les deux jobs
+  **nocturnes** (code mort, mutation) lèvent la même garde, mais **sortent de ce « chacun passe »** :
+  leur rouge est attendu et motivé aux cas limites de la spec. La liste ci-dessous est la raison
+  pour laquelle ce lot n'est pas scindé davantage _Requirements: FR-008_ ;
+  bloqué par : T7, T11, T17, T19, T22, T23, T27, T28
 
 ### Squelette des cinq zones, typé en strict
 
@@ -84,10 +88,13 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   d'`I3` appliquée aux sources du plancher _Requirements: FR-009, FR-011, FR-026_ ; bloqué par : T2
 - [ ] T9 — Vérif : une incohérence de type introduite dans une source de zone fait échouer la
   commande de typage avec un code de sortie non nul (défaut injecté puis retiré, arbre rendu intact)
-  _Requirements: FR-003_ ; bloqué par : T7, T8
-- [ ] T10 — Vérif : les cinq répertoires de zone portent chacun au moins un fichier versionné, et la
-  vérification d'invariants d'architecture cesse de se déclarer hors portée sur les contrôles qui les
-  nomment _Requirements: FR-009_ ; bloqué par : T8
+  _Requirements: FR-003, SC-003_ ; bloqué par : T7, T8
+- [ ] T10 — Vérif : les cinq répertoires de zone portent chacun au moins un fichier versionné, et sur
+  les **dix invariants de la table** de `docs/archi.md` sept sont exercés — six par la vérification
+  d'invariants d'architecture, `I1` par la commande de graphe d'imports — contre trois seuls hors
+  portée. L'assertion porte sur ces dix-là, **jamais sur la ligne de bilan du script**, qui compte
+  aussi trois contrôles réclamés par des ADR et lira `8 au vert · 4 hors portée`
+  _Requirements: FR-009, SC-010_ ; bloqué par : T8
 
 ### Le sens des imports entre zones
 
@@ -97,16 +104,19 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   fichier que la contrainte générale d'`I3` contraint le plus durement, et la forme qui retirerait
   le préfixe `src/` pour y échapper ne classerait plus aucun fichier
   _Requirements: FR-010, FR-020, FR-026_ ; bloqué par : T8
-- [ ] T40 — Vérif : sur l'arbre qui porte cette configuration, le contrôle `I3` de la vérification
-  d'invariants d'architecture est rapporté **passant** — ni hors portée, ni en violation — et une
-  barre finale ajoutée au motif d'une zone l'y fait basculer (défaut injecté puis retiré, arbre
-  rendu intact) _Requirements: FR-026_ ; bloqué par : T11
+- [ ] T40 — Vérif : sur l'arbre **complet du lot** — tous fichiers d'extension source posés, y
+  compris les configurations de lint, de test et du site —, le contrôle `I3` de la vérification
+  d'invariants d'architecture est rapporté **passant** : ni hors portée, ni en violation. Une barre
+  finale ajoutée au motif d'une zone l'y fait basculer (défaut injecté puis retiré, arbre rendu
+  intact). La liste de dépendances ci-dessous **est** le périmètre de `FR-026` : le vérifier après
+  `T11` seul laisserait quatre fichiers hors du champ du contrôle
+  _Requirements: FR-026_ ; bloqué par : T11, T17, T19, T27
 - [ ] T12 — Vérif : un import d'une zone vers une autre dans un sens que `I1` interdit est signalé
-  comme violation par cette commande (défaut injecté puis retiré) _Requirements: FR-010_ ;
-  bloqué par : T11
+  comme violation par cette commande (défaut injecté puis retiré)
+  _Requirements: FR-010, SC-004_ ; bloqué par : T11
 - [ ] T13 — Vérif : un import d'une API propre à la plateforme depuis la zone `core` est signalé
   comme violation par la vérification d'invariants d'architecture **déjà en place**, sans qu'aucun
-  fichier de `.github/` ne soit ajouté ni modifié _Requirements: FR-011_ ; bloqué par : T8
+  fichier de `.github/` ne soit ajouté ni modifié _Requirements: FR-011, SC-005_ ; bloqué par : T8
 - [ ] T14 — Vérif : chacune des deux détections rapporte sa violation indépendamment de l'issue des
   autres commandes — build ou lint en échec par ailleurs ne la supprime pas _Requirements: FR-020_ ;
   bloqué par : T12, T13
@@ -122,7 +132,9 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 ### Les commandes de mesure, correctes sur un dépôt sans test
 
 - [ ] T17 [P] — Poser la configuration de lint de style _Requirements: FR-005_ ; bloqué par : T8
-- [ ] T18 — Vérif : la commande de lint rapporte ses diagnostics et ne modifie aucun fichier source
+- [ ] T18 — Vérif : la commande de lint rapporte ses diagnostics sans modifier aucun fichier source,
+  **et une violation de règle injectée est signalée** (défaut injecté puis retiré, arbre rendu
+  intact). Sans ce second volet, une configuration **sans une seule règle** satisferait le critère
   _Requirements: FR-005_ ; bloqué par : T17
 - [ ] T19 [P] — Poser la configuration de test dans l'exécutable de la plateforme, la couverture
   écrivant `coverage/lcov.info` _Requirements: FR-004, FR-006_ ; bloqué par : T8
@@ -134,8 +146,10 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   mutation le soit _Requirements: FR-007_ ; bloqué par : T8
 - [ ] T23 [P] — Poser la configuration de test de mutation, exécutable sans que celle de code mort
   le soit _Requirements: FR-023_ ; bloqué par : T8
-- [ ] T24 — Vérif : la commande de code mort s'exécute sur le squelette et rapporte son diagnostic,
-  la commande de mutation n'ayant pas été exécutée _Requirements: FR-007_ ; bloqué par : T22
+- [ ] T24 — Vérif : la commande de code mort s'exécute sur le squelette et **rapporte son
+  diagnostic**, la commande de mutation n'ayant pas été exécutée. Son code de sortie n'entre pas
+  dans `SC-002` : il signale à juste titre un plancher qu'aucun point d'entrée n'atteint, et le
+  faire taire neutraliserait le vérificateur _Requirements: FR-007_ ; bloqué par : T22
 - [ ] T25 — Vérif : la commande de mutation rapporte son refus d'exécuter faute de test ayant tourné
   — plutôt qu'un succès —, la commande de code mort n'ayant pas été exécutée
   _Requirements: FR-023_ ; bloqué par : T23
@@ -154,45 +168,54 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 - [ ] T29 — Vérif : la configuration de déploiement ne porte aucune valeur propre à l'instance, et le
   contrôle `I10` s'exerce sur la configuration du site — il ne se déclare pas hors portée et il passe
   _Requirements: FR-015, FR-016, FR-022_ ; bloqué par : T27, T28
-- [ ] T30 — Vérif : la commande de build produit l'artefact déployable et termine avec un code de
-  sortie nul dans un environnement dépourvu de tout identifiant de compte Cloudflare
-  _Requirements: FR-002, FR-017_ ; bloqué par : T27, T28
+- [ ] T30 — Vérif : la commande de build écrit le site bâti dans le répertoire de sortie et termine
+  avec un code de sortie nul dans un environnement dépourvu de tout identifiant de compte Cloudflare
+  _Requirements: FR-002, FR-017, SC-008_ ; bloqué par : T27, T28
 
-### La boucle de développement local sur la base migrée
+### La base migrée
 
 - [ ] T31 [P] — Poser la première migration, **sans effet de schéma**
   _Requirements: FR-013, FR-014, FR-021_ ; dépend de : —
 - [ ] T32 — Vérif : sur une base locale neuve, la commande de migration applique les migrations en
-  attente dans leur ordre numéroté _Requirements: FR-013_ ; bloqué par : T28, T31
+  attente dans leur ordre numéroté _Requirements: FR-013_ ; bloqué par : T2, T28, T31
 - [ ] T33 — Vérif : relancée sans nouveau fichier de migration, la commande rapporte zéro migration
-  en attente, et le schéma obtenu ne porte que les tables de service du mécanisme de migration —
-  aucun objet propre au produit _Requirements: FR-014, FR-021_ ; bloqué par : T32
-- [ ] T34 — Poser la sonde de lecture de la base dans la zone `platform` et son injection de route
-  **conditionnée au seul mode développement** _Requirements: FR-012, FR-024_ ; bloqué par : T27, T31
-- [ ] T35 — Vérif : la commande de run local démarre un serveur HTTP joignable sur la machine du
-  développeur, et sa route de sonde rend le résultat lu sur la base même que T32 a migrée
-  _Requirements: FR-012_ ; bloqué par : T33, T34
-- [ ] T36 — Vérif : la commande de build ne produit pas cette route — l'artefact ne porte aucun
-  fichier d'entrée serveur, et le nom de la sonde n'y apparaît nulle part ; constaté sur l'arbre même
-  qui vient de servir T35 _Requirements: FR-024_ ; bloqué par : T30, T35
-- [ ] T37 — Reporter la commande de run local dans la case vide de `docs/ci.md` § Commandes du projet
-  _Requirements: FR-012_ ; bloqué par : T35
+  en attente, et le schéma obtenu ne porte **aucun objet du produit** — ni table, ni index, ni vue —,
+  seules subsistant les tables de service du mécanisme de migration **et du moteur**
+  _Requirements: FR-014, FR-021, SC-007_ ; bloqué par : T32
+
+### L'enchaînement complet
+
+- [ ] T42 — Assembler les étapes 1 à 5 du script de vérification bout-en-bout, sur le patron de
+  `.github/scripts/arch-invariants.sh`, et poser l'assertion d'ensemble que nulle section ne porte
+  seule : **six** codes de sortie nuls sur le scaffold livré — build, typage, tests, lint,
+  couverture, graphe d'imports — sans passer par la garde de scaffold. Critère d'acceptation : la
+  commande termine avec un code de sortie nul sur un dépôt propre
+  _Requirements: SC-002_ ; bloqué par : T3, T9, T10, T12, T13, T18, T20, T21, T24, T25, T30, T33, T40
 
 ---
 
-## R2 — Vérification bout-en-bout
-_Livre : SC-001 à SC-010_ · _vérif : inhérent (le script de vérification **est** la preuve : son code de sortie nul atteste les critères, et un test écrit par-dessus ne ferait que le redire)_ · _~150 lignes est._ · _2 concepts_ · dépend de : R1
-Fichiers : `scripts/verif-bout-en-bout.sh`
+## R2 — Le serveur de développement local démarre et lit la base migrée
+_Livre : FR-012, FR-024 ; SC-006_ · _vérif : inhérent (le script rejoué de bout en bout **est** la preuve, son code de sortie nul attestant à la fois la nouvelle étape et les cinq précédentes sur l'arbre augmenté)_ · _~90 lignes est._ · _5 concepts_ · dépend de : R1
+Fichiers : `src/platform/d1/sonde-dev.ts`, `astro.config.ts` (injection de route conditionnelle), `scripts/verif-bout-en-bout.sh` (étape 6), `docs/ci.md` (la ligne « Run local », à créer)
 
-- [ ] T38 — Écrire le script de vérification bout-en-bout sur le patron de
-  `.github/scripts/arch-invariants.sh` — les six étapes du plan, refus au premier écart, arbre rendu
-  intact après chaque défaut injecté ; critère d'acceptation : la commande termine avec un code de
-  sortie nul sur un dépôt propre
-  _Requirements: SC-001, SC-002, SC-003, SC-004, SC-005, SC-006, SC-007, SC-008, SC-010_ ;
-  dépend de : —
-- [ ] T39 [P] — Produire la pièce datée du gel de sept jours, **hors du script** : une installation
-  retient une version antérieure alors qu'une plus récente de moins de sept jours existe ; la sortie
-  est conservée, datée _Requirements: SC-009_ ; dépend de : —
+> **Pourquoi cette tranche est un lot à elle seule.** Elle livre une capacité nommable en une
+> phrase, et son retrait ne rougit aucun job bloquant — c'est ce qui la distingue du reste du
+> scaffold, où la garde de scaffold interdit toute coupure. Son `inhérent` rejoue **tout** le
+> script, étapes 1 à 5 comprises : c'est ainsi que `FR-026` reste tenu sur l'arbre augmenté d'un
+> fichier source, sans que ce lot ait à reprendre un critère qui appartient à `R1`.
+
+- [ ] T34 — Poser la sonde de lecture de la base dans la zone `platform` et son injection de route
+  **conditionnée au seul mode développement** _Requirements: FR-012, FR-024_ ; dépend de : —
+- [ ] T35 — Vérif : la commande de run local démarre un serveur HTTP joignable sur la machine du
+  développeur, et sa route de sonde rend le résultat lu sur la base même que `T32` a migrée
+  _Requirements: FR-012, SC-006_ ; bloqué par : T34
+- [ ] T36 — Vérif : la commande de build ne produit pas cette route — le répertoire de sortie ne
+  porte aucun fichier d'entrée serveur, et le nom de la sonde n'y apparaît nulle part ; constaté sur
+  l'arbre même qui vient de servir `T35` _Requirements: FR-024_ ; bloqué par : T35
+- [ ] T37 — Reporter la commande de run local dans `docs/ci.md` § Commandes du projet : **créer** la
+  ligne « Run local », qui n'existe pas, **et retirer** le paragraphe qui la suit — « Aucune commande
+  de run local n'existe […] Elle se pose au scaffold, dans ce tableau » —, faux dès l'instant où la
+  ligne existe _Requirements: FR-012_ ; bloqué par : T35
 
 ---
 
