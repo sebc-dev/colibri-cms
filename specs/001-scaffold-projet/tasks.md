@@ -11,11 +11,10 @@ Trace vers : [plan.md](./plan.md) (fichiers) · [spec.md](./spec.md) (FR/SC/SHAL
   `inhérent` (la preuve est le résultat lui-même, ex. le pipeline CI qui passe au vert)
 - _Requirements:_ = **backref** : les FR/SC que la tâche couvre — le fil qui dit pourquoi elle existe
 
-> **Aucun lot n'est `[P]`, et ce n'est pas un oubli.** `R2` a besoin des dépendances installées par
-> `R1` ; `R3` écrit dans la configuration du site que `R2` vient de poser ; `R4` constate les trois
-> autres. Les tâches `[P]` d'un même lot, elles, touchent des fichiers réellement disjoints — les
-> scripts étant tous posés d'un coup en `T2`, chaque configuration d'outil vit ensuite seule dans
-> son fichier.
+> **Deux lots, et aucun n'est `[P]`.** `R2` constate `R1` : il n'y a rien à paralléliser entre eux.
+> Les tâches `[P]` d'un même lot, elles, touchent des fichiers réellement disjoints — les scripts
+> étant tous posés d'un coup en `T2`, chaque configuration d'outil vit ensuite seule dans son
+> fichier.
 
 > **Pourquoi aucun lot n'est en `TDD`.** La spec exclut explicitement toute unité de logique métier
 > — « aucune unité de logique métier, donc aucun test » (§ NON inclus) : ce scaffold pose
@@ -25,20 +24,26 @@ Trace vers : [plan.md](./plan.md) (fichiers) · [spec.md](./spec.md) (FR/SC/SHAL
 
 ---
 
-## R1 — Les commandes de `docs/ci.md` deviennent réelles sur le squelette des cinq zones
-_Livre : FR-001, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-018, FR-019, FR-020, FR-023_ · _vérif : check (aucune logique métier dans ce lot : la preuve est le code de sortie de chaque commande, observé sur un défaut injecté puis retiré)_ · _~300 lignes est. (hors `package-lock.json` engendré)_ · _15 concepts_ · dépend de : —
-Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/core/zone.ts`, `src/render/zone.ts`, `src/platform/zone.ts`, `src/site/zone.ts`, `src/admin/zone.ts`, `eslint.config.js`, `eslint.config.boundaries.js`, `vitest.config.ts`, `knip.json`, `stryker.conf.json`
+## R1 — Le dépôt devient un projet où toutes les commandes de `docs/ci.md` sont réelles
+_Livre : FR-001 à FR-024_ · _vérif : check (aucune logique métier dans ce lot : la preuve est le code de sortie de chaque commande, observé sur un défaut injecté puis retiré)_ · _~480 lignes est. (hors `package-lock.json` engendré)_ · _26 concepts_ · dépend de : —
+Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/core/zone.ts`, `src/render/zone.ts`, `src/platform/zone.ts`, `src/platform/d1/sonde-dev.ts`, `src/site/zone.ts`, `src/admin/zone.ts`, `eslint.config.js`, `eslint.config.boundaries.js`, `vitest.config.ts`, `knip.json`, `stryker.conf.json`, `astro.config.ts`, `instance.json`, `wrangler.jsonc`, `migrations/0001_amorce.sql`, `docs/ci.md` (ligne « Run local »)
 
-> **Dépassement du signal de scission, arbitré le 2026-08-15.** Quinze concepts contre un signal
-> de ~7 — le budget en lignes, lui, reste sous les ~400. Le quinzième est `FR-023`, née de la
-> scission de `FR-007` par la correction post-gate : elle nomme séparément la commande de mutation
-> et celle de code mort, dont l'exigence est précisément d'être **exécutables l'une sans l'autre**.
-> Elle n'ajoute donc ni fichier ni travail au lot, seulement un identifiant à tracer — l'arbitrage
-> rendu tient tel quel. Le regroupement de l'installation, du squelette des zones et des commandes
-> de mesure a été retenu **pour qu'aucun job bloquant ne soit
-> rouge entre deux lots** : la garde de scaffold se lève dès que `package.json` existe, si bien que
-> `test` et `build` s'exécuteraient pour de vrai avant que leur configuration n'ait atterri. La
-> déviation est ici documentée, jamais silencieuse.
+> **Un seul sujet, et c'est le scaffold lui-même.** Ce lot ne fait qu'une chose : rendre réelles, sur
+> un dépôt qui n'en portait aucune, les commandes que `docs/ci.md` déclare normatives — leur
+> installation, leur configuration, et le squelette de sources sans lequel elles n'auraient rien à
+> vérifier. L'installation, les zones, le build, la base migrée et le serveur local n'en sont pas les
+> parties : ce sont les faces d'un même geste, et **aucune n'est livrable seule**.
+
+> **Pourquoi la fusion, et pourquoi le dépassement de seuil est assumé — arbitré le 2026-08-15.**
+> Vingt-six concepts contre un signal de ~7, et ~480 lignes contre un signal de ~400. Ce lot était
+> découpé en trois ; la gate du 15/08 a montré que **le point de coupure n'existe pas**. La garde de
+> scaffold des jobs CI teste `-f package.json` : elle se lève **dès que le manifeste est posé**, si
+> bien que `build` et `test` — tous deux **bloquants** — s'exécuteraient pour de vrai avant que
+> `astro.config.ts` et `wrangler.jsonc` n'aient atterri. Scinder ne fermerait donc pas la fenêtre
+> rouge, ça la **déplacerait** ; et sous protection de branche, une PR dont un job bloquant est rouge
+> ne se merge pas. Ce que la scission coûterait ici est supérieur à ce que la review y gagnerait. La
+> déviation est documentée, jamais silencieuse. **`T6` est l'endroit où ce motif se vérifie** : sa
+> liste de `bloqué par` est exactement la raison pour laquelle les trois lots n'en font qu'un.
 
 ### Installation verrouillée et gelée
 
@@ -56,7 +61,9 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   installation retient une version antérieure éligible plutôt qu'une version publiée depuis moins de
   sept jours _Requirements: FR-019_ ; bloqué par : T2
 - [ ] T6 — Vérif : les jobs CI n'empruntent plus leur garde de scaffold dès lors que `package.json`
-  existe — chacun exécute sa commande réelle _Requirements: FR-008_ ; bloqué par : T2
+  existe — chacun exécute sa commande réelle, **et chacune passe**, ce qui n'est vrai qu'une fois
+  toutes les configurations de ce lot posées _Requirements: FR-008_ ;
+  bloqué par : T7, T15, T17, T25, T26
 
 ### Squelette des cinq zones, typé en strict
 
@@ -107,18 +114,14 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   — plutôt qu'un succès —, la commande de code mort n'ayant pas été exécutée
   _Requirements: FR-023_ ; bloqué par : T21
 
----
+### Le build, configuré depuis le fichier d'instance
 
-## R2 — Le build produit un artefact déployable, configuré depuis le fichier d'instance
-_Livre : FR-002, FR-015, FR-016, FR-017, FR-022_ · _vérif : check (configuration de build : la preuve est l'artefact produit et le code de sortie observé, il n'y a pas d'unité à tester)_ · _~90 lignes est._ · _5 concepts_ · dépend de : R1
-Fichiers : `astro.config.ts`, `instance.json`, `wrangler.jsonc`
-
-- [ ] T24 — Poser le fichier de configuration d'instance à la racine, portant le domaine et la clé
-  publique Turnstile en valeurs d'exemple documentées comme telles _Requirements: FR-015_ ;
+- [ ] T24 [P] — Poser le fichier de configuration d'instance à la racine, portant le domaine et la
+  clé publique Turnstile en valeurs d'exemple documentées comme telles _Requirements: FR-015_ ;
   dépend de : —
 - [ ] T25 — Poser la configuration du site — adaptateur de la plateforme, réglages du pipeline
   d'images d'ADR-0019 — lisant le domaine depuis le fichier d'instance **au moment où elle
-  s'évalue** _Requirements: FR-002, FR-015, FR-017_ ; bloqué par : T24
+  s'évalue** _Requirements: FR-002, FR-015, FR-017_ ; bloqué par : T2, T24
 - [ ] T26 [P] — Poser la configuration de déploiement statique : liaison de base de données par son
   nom de liaison, son nom de base et son répertoire de migrations, **sans identifiant de base** et
   sans aucune valeur propre à l'instance _Requirements: FR-016, FR-022_ ; dépend de : —
@@ -129,34 +132,30 @@ Fichiers : `astro.config.ts`, `instance.json`, `wrangler.jsonc`
   sortie nul dans un environnement dépourvu de tout identifiant de compte Cloudflare
   _Requirements: FR-002, FR-017_ ; bloqué par : T25, T26
 
----
-
-## R3 — La boucle de développement local sur la base de données migrée
-_Livre : FR-012, FR-013, FR-014, FR-021, FR-024_ · _vérif : check (mécanisme de plateforme : la preuve est la sortie des deux applications de migration, le schéma obtenu, la réponse HTTP de la sonde et son absence de l'artefact bâti)_ · _~90 lignes est._ · _6 concepts_ · dépend de : R2
-Fichiers : `migrations/0001_amorce.sql`, `src/platform/d1/sonde-dev.ts`, `astro.config.ts` (injection de route en développement seulement), `docs/ci.md` (ligne « Run local »)
+### La boucle de développement local sur la base migrée
 
 - [ ] T29 — Poser la première migration, **sans effet de schéma**
   _Requirements: FR-013, FR-014, FR-021_ ; dépend de : —
 - [ ] T30 — Vérif : sur une base locale neuve, la commande de migration applique les migrations en
-  attente dans leur ordre numéroté _Requirements: FR-013_ ; bloqué par : T29
+  attente dans leur ordre numéroté _Requirements: FR-013_ ; bloqué par : T26, T29
 - [ ] T31 — Vérif : relancée sans nouveau fichier de migration, la commande rapporte zéro migration
   en attente, et le schéma obtenu ne porte que les tables de service du mécanisme de migration —
   aucun objet propre au produit _Requirements: FR-014, FR-021_ ; bloqué par : T30
 - [ ] T32 — Poser la sonde de lecture de la base dans la zone `platform` et son injection de route
-  **conditionnée au seul mode développement** _Requirements: FR-012, FR-024_ ; bloqué par : T29
+  **conditionnée au seul mode développement** _Requirements: FR-012, FR-024_ ; bloqué par : T25, T29
 - [ ] T33 — Vérif : la commande de run local démarre un serveur HTTP joignable sur la machine du
   développeur, et sa route de sonde rend le résultat lu sur la base même que T30 a migrée
   _Requirements: FR-012_ ; bloqué par : T31, T32
 - [ ] T34 — Vérif : la commande de build ne produit pas cette route — l'artefact ne porte aucun
   fichier d'entrée serveur, et le nom de la sonde n'y apparaît nulle part ; constaté sur l'arbre même
-  qui vient de servir T33 _Requirements: FR-024_ ; bloqué par : T33
+  qui vient de servir T33 _Requirements: FR-024_ ; bloqué par : T28, T33
 - [ ] T35 — Reporter la commande de run local dans la case vide de `docs/ci.md` § Commandes du projet
   _Requirements: FR-012_ ; bloqué par : T33
 
 ---
 
-## R4 — Vérification bout-en-bout
-_Livre : SC-001 à SC-010_ · _vérif : inhérent (le script de vérification **est** la preuve : son code de sortie nul atteste les critères, et un test écrit par-dessus ne ferait que le redire)_ · _~150 lignes est._ · _2 concepts_ · dépend de : R1, R2, R3
+## R2 — Vérification bout-en-bout
+_Livre : SC-001 à SC-010_ · _vérif : inhérent (le script de vérification **est** la preuve : son code de sortie nul atteste les critères, et un test écrit par-dessus ne ferait que le redire)_ · _~150 lignes est._ · _2 concepts_ · dépend de : R1
 Fichiers : `scripts/verif-bout-en-bout.sh`
 
 - [ ] T36 — Écrire le script de vérification bout-en-bout sur le patron de
