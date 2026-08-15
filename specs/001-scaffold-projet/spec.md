@@ -125,13 +125,13 @@ ne restera à nettoyer plus tard.
   2. **When** la commande de migration est relancée sans nouveau fichier de migration, the system
      **shall** rapporter zéro migration en attente.
   3. **When** les migrations de ce lot ont été appliquées, the system **shall** laisser un schéma
-     dépourvu de tout objet propre au produit — seules subsistent les tables de service du
-     mécanisme de migration lui-même.
+     dépourvu de tout objet propre au produit — ne subsistent que les tables de service du
+     mécanisme de migration et du moteur de base de données.
 
 ### US5 — La configuration de déploiement est cohérente, sans déploiement réel (Priorité : P1)
 `instance.json` existe, porte des valeurs d'exemple documentées comme telles, et est lu par la
-configuration du site (`I8`, `I10`). `npm run build` produit un artefact
-déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
+configuration du site (`I8`, `I10`). `npm run build` écrit le site bâti sans qu'aucun identifiant
+de compte Cloudflare ne soit présent.
 - Trace vers : docs/archi.md I8, I10 ; PRD SC-001 (0 €, aucun compte sollicité), SC-013
 - Scénarios d'acceptation (EARS) :
   1. **When** la configuration du site lit une valeur propre à l'instance (le domaine), the system
@@ -142,16 +142,14 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
      system **shall** l'y déclarer sans identifiant de base, de sorte qu'aucune valeur fictive ne
      soit versionnée.
 
-> **`I10` ne porte plus que la configuration du site, et ce lot y est conforme.** `ADR-0030`
-> exigeait que la configuration du site **et** celle du Worker lisent `instance.json` « au moment
-> où elles s'évaluent, **sans outil intermédiaire** ». La première le fait. La seconde ne le peut
-> pas : mesuré le 2026-08-15, l'outil de déploiement n'accepte que du JSON ou du TOML **statique**
-> — un fichier de configuration évalué (`wrangler.ts`) est refusé net, et un fichier statique ne
-> lit rien. `ADR-0032`, accepté le 2026-08-15, en tire la conséquence : il **remplace `ADR-0030`**
-> et sort la configuration du déploiement du périmètre de `I10`. Ce lot livre donc une
-> configuration de déploiement statique, **sans valeur d'instance** — elle n'en a d'ailleurs
-> aucune à porter, le rattachement de base relevant de son lieu propre (`ADR-0020`). Le contrôle
-> `I10` est exercé et **passe** : il n'y a plus d'écart à porter.
+> **`I10` ne porte que la configuration du site, et ce lot y est conforme.** Depuis
+> [`ADR-0032`](../../docs/adr/0032-invariant-i10-restreint-a-la-configuration-astro.md), qui
+> remplace `ADR-0030`, la configuration du déploiement est **hors du périmètre** de cet invariant.
+> Ce lot livre donc une configuration de déploiement **sans aucune valeur propre à l'instance** —
+> elle n'en a d'ailleurs aucune à porter, le rattachement de base relevant de son lieu propre
+> (`ADR-0020`) —, et le contrôle `I10` s'exerce sur la seule configuration du site, où il passe.
+> Le *pourquoi* de cette restriction et la mesure de plateforme qui l'a imposée vivent dans
+> `ADR-0032` : ils ne se recopient pas ici.
 
 ## Exigences fonctionnelles (EARS, atomiques, testables)
 
@@ -162,8 +160,10 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   configuration du gestionnaire de paquets, à l'endroit où le contrôle permanent de la CI la lit.
   _(CLAUDE.md — gotcha `.npmrc` `min-release-age=7` ; ADR-0031 ; docs/ci.md — job
   `dependency-review`)_
-- **FR-002** : The system shall fournir une commande de build qui produit un artefact déployable
-  pour le Worker. _(PRD: FR-104, FR-105 ; docs/ci.md — Build)_
+- **FR-002** : The system shall fournir une commande de build qui écrit le site bâti dans le
+  répertoire de sortie. _(PRD: FR-104, FR-105 ; docs/ci.md — Build ; ce lot ne produit **aucun**
+  module d'entrée serveur — la sonde vit hors de l'artefact (`FR-024`) — et la déployabilité réelle
+  est hors périmètre, voir « Aucun déploiement réel » ci-dessous)_
 - **FR-003** : When le code source contient une incohérence de type, the system shall faire échouer
   la commande de typage (code de sortie non nul). _(docs/ci.md — Typage)_
 - **FR-004** : The system shall fournir une commande qui exécute les tests automatisés du projet.
@@ -212,8 +212,8 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   local accessible en HTTP, **dont les routes atteignent la base de données locale sur laquelle
   `FR-013` applique ses migrations**. _(docs/ci.md — Run local)_
 - **FR-024** : The system shall livrer la route de développement qu'exige `FR-012` **hors de
-  l'artefact bâti** : la commande de build ne la produit pas, et l'artefact déployable ne la sert
-  pas. _(PRD: FR-096, FR-097 ; frontière « aucune route servie par l'artefact bâti » ci-dessous)_
+  l'artefact bâti** : la commande de build ne la produit pas, et le répertoire de sortie ne la
+  porte pas. _(PRD: FR-096, FR-097 ; frontière « aucune route servie par l'artefact bâti » ci-dessous)_
 
 ### Migration de base de données (US4)
 - **FR-013** : The system shall fournir une commande qui applique, dans leur ordre numéroté, les
@@ -223,16 +223,17 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   migration, the system shall rapporter zéro migration en attente la seconde fois.
   _(dérivé de `FR-013` ; PRD: FR-106 — une montée de version ne perd rien)_
 - **FR-021** : The system shall livrer des migrations qui n'ajoutent **aucun objet de schéma propre
-  au produit** — après application, seules subsistent les tables de service du mécanisme de
-  migration lui-même. _(frontière : « aucun schéma de données applicatif » ci-dessous)_
+  au produit** — après application, le schéma ne porte que les tables de service créées par le
+  mécanisme de migration et par le moteur de base de données lui-même, et aucune table, aucun index
+  ni aucune vue du produit. _(frontière : « aucun schéma de données applicatif » ci-dessous)_
 
 ### Configuration de déploiement (US5)
 - **FR-015** : The system shall fournir un fichier de configuration d'instance à la racine du dépôt,
   portant au minimum le domaine de l'instance, **lu par la configuration du site au moment où elle
   s'évalue**. _(docs/archi.md I8, I10)_
-- **FR-016** : The system shall déclarer la liaison de base de données nécessaire à l'artefact
-  déployable dans la configuration de déploiement, **sans identifiant de base** et sans que le build
-  n'exige de connexion réelle à une base. _(docs/archi.md C1 — reconstructibilité)_
+- **FR-016** : The system shall déclarer la liaison de base de données nécessaire au Worker dans la
+  configuration de déploiement, **sans identifiant de base** et sans que le build n'exige de
+  connexion réelle à une base. _(docs/archi.md C1 — reconstructibilité)_
 - **FR-017** : When la commande de build est exécutée dans un environnement ne portant aucun
   identifiant de compte Cloudflare, the system shall produire l'artefact et terminer avec un code de
   sortie nul. _(PRD: SC-001, SC-013)_
@@ -245,10 +246,12 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
 - **FR-018** : If le lockfile committé ne correspond pas à `package.json`, then `npm ci` shall
   échouer plutôt que de resynchroniser silencieusement le lockfile. _(docs/ci.md — le lockfile est
   committé et l'installation verrouillée)_
-- **FR-019** : If une dépendance à installer a une version publiée il y a moins de sept jours, then
-  la commande d'installation shall retenir une version antérieure éligible plutôt que celle-ci.
-  _(CLAUDE.md — gotcha `.npmrc` `min-release-age=7` ; ADR-0031 ; la déclaration de cette période
-  est portée par `FR-027`)_
+- **FR-019** : If l'ajout d'une dépendance au projet résout vers une version publiée il y a moins de
+  sept jours, then the system shall retenir une version antérieure éligible plutôt que celle-ci.
+  L'installation verrouillée de `FR-001` n'est pas concernée : elle réinstalle ce que le lockfile
+  fixe, sans réexaminer aucune date de publication. _(CLAUDE.md — gotcha `.npmrc`
+  `min-release-age=7` ; ADR-0031 ; docs/ci.md § Approvisionnement, qui borne la clé aux commandes
+  qui résolvent ; la déclaration de cette période est portée par `FR-027`)_
 - **FR-020** : If un import viole `I1` ou `I2`, then la vérification concernée — celle de `FR-010`
   ou celle de `FR-011` — shall le rapporter, que la commande de build ou de lint échoue par ailleurs
   ou non : la détection ne dépend d'aucune autre commande. _(docs/archi.md I1, I2 ; docs/ci.md —
@@ -268,6 +271,16 @@ déployable sans qu'aucun identifiant de compte Cloudflare ne soit présent.
   `FR-004` ne l'y aide pas. Le travail nocturne part donc en rouge dès le premier soir. Ce rouge ne
   bloque aucune intégration — la commande de mutation ne figure pas parmi les contrôles exigés — et
   il s'éteint avec la même feature que la concession précédente.
+- Que se passe-t-il pour la commande de détection de code mort, sur un plancher que rien n'importe ?
+  Elle signale les cinq fichiers de zone — et elle a **raison** : `FR-009` les pose précisément pour
+  qu'ils existent avant d'être atteints, et la sonde n'est référencée que par une chaîne
+  d'injection, cas où l'outil a des faux positifs connus (`docs/ci.md`). Son code de sortie sort
+  donc de `SC-002` comme celui de la mutation, et le lot n'exige d'elle que de **s'exécuter et de
+  rapporter** (`FR-007`). **Écarté** : déclarer le plancher comme points d'entrée dans sa
+  configuration pour obtenir un `0` — la liste survivrait à la raison qui l'a fait naître, personne
+  ne la réduirait, et un vérificateur qu'on fait taire ne vérifie plus. Le job `dead-code` étant
+  nocturne et informatif, ce rouge ne bloque rien et s'éteint avec la première feature qui rend le
+  plancher atteignable.
 
 ## Contrats d'entrée/sortie (schémas machine-lisibles)
 
@@ -288,12 +301,13 @@ publique Turnstile est portée par ce fichier par anticipation de `I8`, sans qu'
 ne l'utilise encore — aucun formulaire n'existe.
 
 **Codes de sortie des commandes que ce lot pose** — les huit sont les sept normatives de
-`docs/ci.md` et le graphe d'imports, qui y est « non posée ». **Sept** d'entre elles (build,
-typage, tests, lint, couverture, détection de code mort, graphe d'imports) retournent `0` sur le
-scaffold livré, et un code non nul en présence du défaut qu'elles sont faites pour détecter. La
-**huitième**, la mutation, est
-posée et s'exécute, mais son code de sortie n'entre dans aucun critère de ce lot tant qu'aucun test
-n'existe (`FR-023`).
+`docs/ci.md` et le graphe d'imports, qui y est « non posée ». **Six** d'entre elles (build, typage,
+tests, lint, couverture, graphe d'imports) retournent `0` sur le scaffold livré, et un code non nul
+en présence du défaut qu'elles sont faites pour détecter. Les **deux** dernières — la mutation et
+la détection de code mort — sont posées et s'exécutent, mais leur code de sortie n'entre dans aucun
+critère de ce lot : l'une faute de test ayant tourné (`FR-023`), l'autre faute de point d'entrée
+qui rende son verdict sensé. Ce que le lot exige d'elles est qu'elles **s'exécutent** et rapportent
+(`FR-007`, `FR-023`), pas qu'elles se taisent.
 
 Ce lot ne fixe **aucun seuil** (ex. taux de couverture minimal) : `docs/ci.md` documente ces
 contrôles comme informatifs aujourd'hui, statut que ce lot ne change pas.
@@ -352,11 +366,13 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
 
 - **SC-001** : Sur un environnement neuf (ex. un runner CI), `npm ci` réussit contre le lockfile
   committé. _(PRD: SC-008)_
-- **SC-002** : Sept des huit commandes que ce lot pose — les sept normatives de `docs/ci.md` et le
-  graphe d'imports — s'exécutent et retournent **0** sur le scaffold livré, sans passer par la garde
-  de scaffold : build, typage, tests, lint, couverture, détection de code mort, vérification du
-  graphe d'imports. La huitième — la mutation — s'exécute réellement, et son code de sortie n'entre
-  pas dans ce critère tant qu'aucun test n'existe.
+- **SC-002** : **Six** des huit commandes que ce lot pose — les sept normatives de `docs/ci.md` et
+  le graphe d'imports — s'exécutent et retournent **0** sur le scaffold livré, sans passer par la
+  garde de scaffold : build, typage, tests, lint, couverture, vérification du graphe d'imports. Les
+  **deux** autres s'exécutent réellement, et leur code de sortie n'entre pas dans ce critère : la
+  mutation tant qu'aucun test n'existe (`FR-023`), et la détection de code mort, dont le verdict
+  n'a pas de sens sur un plancher de zones qu'aucun point d'entrée n'atteint encore. Les deux jobs
+  qui les portent sont nocturnes et **informatifs**, donc aucun rouge ne bloque d'intégration.
 - **SC-003** : Une erreur de type introduite délibérément fait échouer la commande de typage.
 - **SC-004** : Un import qui viole `I1` (sens des zones) est signalé par la commande de graphe
   d'imports posée par ce lot (`FR-010`).
@@ -367,8 +383,10 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
   de ses routes lit la base locale sur laquelle les migrations ont été appliquées.
 - **SC-007** : Une migration appliquée deux fois de suite ne réapplique rien la seconde fois (zéro
   migration en attente rapportée), et le schéma obtenu ne porte aucun objet propre au produit.
-- **SC-008** : `npm run build` produit un artefact déployable et termine sans erreur dans un
-  environnement ne portant **aucun identifiant de compte Cloudflare**. _(PRD: SC-001, SC-013)_
+- **SC-008** : `npm run build` termine avec un code de sortie nul et laisse le répertoire de sortie
+  peuplé, dans un environnement ne portant **aucun identifiant de compte Cloudflare**. Que
+  l'artefact se déploie réellement n'est **pas** mesuré ici : aucun déploiement n'a lieu dans ce
+  lot, et le squelette livré ne porte aucune route serveur. _(PRD: SC-001, SC-013)_
 - **SC-009** : Le gel de sept jours est **démontré une fois** : une installation retient une version
   antérieure alors qu'une plus récente existe et a moins de sept jours. La sortie est conservée
   comme pièce, datée. Le contrôle permanent, lui, se borne à lire la clé déclarée (`FR-027`).
