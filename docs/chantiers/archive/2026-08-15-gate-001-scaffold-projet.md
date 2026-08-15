@@ -1,7 +1,7 @@
 # Gate 001-scaffold-projet — 1 Critical · 0 Major
 
 Portée : 001-scaffold-projet · gate
-Ouvert le 2026-08-15 · Actualisé le 2026-08-15 · branche `work/reprise-socle-v2` · HEAD `16d70e7`
+Ouvert le 2026-08-15 · Actualisé le 2026-08-15 · branche `work/reprise-socle-v2` · HEAD `a099952`
 
 ## Objectif
 Fermer le Critical né de la correction précédente : en réveillant `I3`, le plancher des cinq zones
@@ -38,6 +38,25 @@ expose `eslint.config.boundaries.js` — que le lot pose lui-même — au grep l
 ## Prochaine étape
 Corriger le Critical par `/scd-sdd:plan 001`, répercuter dans `tasks.md`, puis passer les 6 Minor.
 **Committer avant de relancer la gate** — sans commit, la passe suivante retombe en régime intégral.
+
+## Issue
+Fermé le 2026-08-15, en **une** passe de correction. Le Critical a été refermé par la contrainte
+générale d'`I3` écrite au plan (4ᵉ confrontation + décision 10, mesurée sur
+`eslint-plugin-boundaries@7.2.0` et sur le grep du script), câblée dans `T11` — motifs de zone sans
+barre finale — et vérifiée dans les deux sens par `T40`, l'étape 3 attrapant la régression passive.
+Deux des six Minor sont partis avec : `T15` (« trois endroits » → deux) et `T6` (`bloqué par` porte
+`T11`). Commits `eea276e` (plan) et `a099952` (tâches).
+
+**Quatre Minor de `spec.md` restaient ouverts, et un cinquième est né avec `T40`** — l'humain a
+choisi le 15/08 de les corriger avant d'implémenter plutôt que de les assumer. Ils ne sont
+arbitrés par personne et n'ont donc pas leur place dans `## Écarté` :
+- `SC-002` — `knip` nommé comme outil dans une liste de rôles. Phase : `specify`
+- `FR-019` — deux `shall` sous un même `;`. Phase : `specify`
+- `FR-008` — `If…then` là où le déclencheur appelle `When`. Phase : `specify`
+- cas limites — message du lanceur cité verbatim. Phase : `specify`
+- `T40` — backref `FR-011` (dont le `SHALL` porte `I2`) pour une vérification qui porte `I3` ; le
+  rebrancher sur `SC-010` mettrait ce critère dans deux lots. Issue propre : un `FR-026` portant la
+  contrainte littérale d'`I3`, sur le patron de `FR-025`. Phase : `specify`, puis `tasks`
 
 ## Écarté
 - Dépassement du signal de scission sur le lot de scaffold — assumé le 15/08, arbitrage rendu une
