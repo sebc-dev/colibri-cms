@@ -51,9 +51,10 @@ du constat. Ce plan n'a donc pas à les faire tenir : il a à **ne pas les casse
 première confrontation ci-dessous (`src/render/` reste inatteignable) et le choix de n'écrire aucun
 `.astro` sous `src/admin/`.
 
-Trois confrontations méritent d'être écrites : les **deux premières ont changé le découpage** plutôt
+Quatre confrontations méritent d'être écrites : les **deux premières ont changé le découpage** plutôt
 que de produire une dérogation, la troisième dit **où un invariant ne mord pas** — et ce qui tient
-à sa place. Aucune des trois n'est une dérogation :
+à sa place —, la quatrième dit **où il mord sur un fichier que ce lot pose lui-même**. Aucune des
+quatre n'est une dérogation :
 
 - **`I3` interdit au plancher de zone d'être un graphe complet.** `src/render/index.ts` est le seul
   chemin de `src/render/` atteignable de l'extérieur, et ce lot ne le pose pas (frontière de la
@@ -62,6 +63,16 @@ que de produire une dérogation, la troisième dit **où un invariant ne mord pa
   `render→core`, `platform→core`), et laisse les deux autres à la feature qui posera le baril.
   Le contrôle d'`I3` étant désormais **actif** — c'est le plancher qui l'a réveillé —, un import
   `site → src/render/zone.ts` ne serait plus une inélégance mais une **violation rapportée**.
+- **Ce même réveil met `I3` en travers de la configuration de zones que ce lot pose.** Son contrôle
+  est un **grep littéral** : il cherche la chaîne `src/render/` **suivie d'au moins un caractère**,
+  entre guillemets, dans tout fichier versionné d'extension source (`.ts`, `.js`, `.astro`,
+  `.svelte`…) hors de `src/render/` — et `eslint.config.boundaries.js`, qui déclare les cinq zones
+  par motif de chemin, en est un. **La contrainte que ce lot tient est donc générale, et elle se lit
+  dans les sources : aucun fichier hors `src/render/` ne porte la chaîne littérale `src/render/`
+  suivie de quelque chose.** Elle vaut pour `src/core/zone.ts` — les cinq noms y sont des
+  identifiants nus — comme pour `eslint.config.boundaries.js`, dont les motifs se déclarent **sans
+  barre finale** (`'src/render'`). La forme exacte, sa mesure et le piège de la forme voisine sont
+  au point 10. Ce n'est pas une dérogation : le contrôle reste tel quel, c'est le lot qui s'y plie.
 - **La sonde de développement ne crée pas de sixième répertoire sous `src/`.** Elle vit dans
   `src/platform/d1/sonde-dev.ts` — lire D1 est le métier de `platform/` —, et non dans un `src/dev/`
   qu'aucune zone ne couvrirait et que `boundaries` ne saurait pas classer.
@@ -104,7 +115,7 @@ qui ne balaie plus que `astro.config.*` — **passe**. Il n'y a plus de dérogat
 | `wrangler.jsonc` | `name`, `compatibility_date`, liaison D1 **sans `database_id`**, `migrations_dir` | `FR-016` ; aucune valeur d'instance (`FR-022`) |
 | `instance.json` | `domain`, `turnstilePublicKey` — valeurs d'exemple | contrat d'E/S de la spec ; `I8` |
 | `eslint.config.js` | style + TypeScript (job `lint`) | — |
-| `eslint.config.boundaries.js` | **la matrice `I1` seule** (job `boundaries`) | nom choisi pour matcher le glob `eslint.config.*` de `quality-config-guard` — un `eslint.boundaries.config.js` y échapperait |
+| `eslint.config.boundaries.js` | **la matrice `I1` seule** (job `boundaries`) ; zones déclarées **sans barre finale** (`'src/render'`), contrainte d'`I3` — point 10 | nom choisi pour matcher le glob `eslint.config.*` de `quality-config-guard` — un `eslint.boundaries.config.js` y échapperait |
 | `vitest.config.ts` | `defineWorkersConfig`, couverture → `coverage/lcov.info` | [ADR-0013](../../docs/adr/0013-tests-vitest-dans-workerd.md) |
 | `knip.json` · `stryker.conf.json` | jobs nocturnes `dead-code` et `mutation` | `.github/workflows/nightly.yml` |
 
@@ -114,8 +125,8 @@ Un fichier par zone, chacun important **vers le bas** pour exercer la matrice d'
 
 - `src/core/zone.ts` — le type `Zone` et la liste des cinq zones. N'importe **rien** (`I1`, `I2`).
   Les cinq noms y sont des **identifiants nus** (`'render'`), jamais des chemins (`'src/render/'`) :
-  le contrôle d'`I3`, désormais actif, cherche la seconde forme dans tout fichier hors
-  `src/render/` et la rapporterait comme violation.
+  c'est ici l'application de la contrainte générale d'`I3` écrite plus haut, et ce fichier n'en est
+  pas le seul porteur — `eslint.config.boundaries.js` la subit aussi, et plus durement.
 - `src/render/zone.ts` — importe `src/core/`. **Pas** `index.ts` : ce nom est réservé au baril d'`I3`.
 - `src/platform/zone.ts` — importe `src/core/`.
 - `src/platform/d1/sonde-dev.ts` — la route de sonde, injectée en développement seulement.
@@ -240,6 +251,29 @@ paquets de plateforme), et le build comme le serveur de développement ont tourn
 approuver. Mais une dépendance future dont le `postinstall` est vital s'installerait **muette et
 cassée en CI**. À vérifier au premier ajout de dépendance, pas à traiter ici.
 
+**10. Les cinq zones se déclarent par un motif sans barre finale — `'src/render'`, jamais
+`'src/render/*'`.** C'est `I3` qui l'impose et non le greffon : son contrôle cherche la chaîne
+`src/render/` suivie d'au moins un caractère, et la configuration qui déclare les zones est un
+fichier `.js` versionné hors de `src/render/`. **Mesuré le 2026-08-15** en rejouant le contrôle
+d'`arch-invariants.sh` sur un arbre à cinq zones : `'src/render/*'` et `'src/render/**'` sont
+rapportés en violation — donc **sortie à `1`**, donc l'étape 3, `SC-010` et l'issue de `R2`
+tombent —, quand `'src/render'` n'est même pas apparié. Et la forme sans barre **vérifie
+réellement** : **mesuré** sur `eslint-plugin-boundaries@7.2.0` (la version de `docs/ci.md`) branché
+sur `@typescript-eslint/parser`, elle classe les neuf fichiers de l'arbre — zéro
+`boundaries/no-unknown-files` —, y compris le fichier imbriqué `src/platform/d1/sonde-dev.ts`, et
+rapporte les trois violations injectées (`core→platform`, `site→admin`, `platform/d1→admin`).
+
+Écarté : **retirer le préfixe `src/`** — `'render/*'`, qui est la forme des exemples du greffon.
+Elle passe le grep d'`I3`, et c'est précisément le piège : **mesuré** sur le même arbre et les mêmes
+défauts, elle **ne classe rien** — `boundaries/no-unknown-files` signale sept des neuf fichiers — et
+rapporte **zéro** violation là où la forme retenue en rapporte trois. Le job `boundaries` sortirait vert en n'ayant rien vérifié — un contrôle qui ne
+vérifie plus rien, sans qu'aucun écran ne change. Ce qui l'attrape n'est pas l'étape 3 mais
+l'**étape 4**, qui exige qu'un import `src/core/ → src/platform/` soit *signalé* : les deux étapes
+ferment la question par les deux bouts, la 3 sur la lettre du fichier, la 4 sur ce qu'il fait.
+Écarté aussi : **relâcher le contrôle `I3`** pour laisser passer la configuration — il vit dans
+`.github/scripts/arch-invariants.sh`, que ce lot ne touche pas (`FR-008`, `FR-011`), et affaiblir un
+vérificateur pour faire entrer un fichier est le mode 2 de la grille de `docs/ci.md`.
+
 **Contrainte de livraison, à ne pas découvrir en PR.** Ce lot touche `eslint.config.*`,
 `tsconfig.json`, `vitest.config.*`, `knip.*`, `stryker.conf.*`, `.npmrc` et les lignes de scripts de
 `package.json` — tous surveillés par `quality-config-guard`. La PR **doit** porter le label
@@ -264,7 +298,10 @@ Elle enchaîne, et refuse au premier écart :
    rendu à l'étape 1 par `lint:boundaries`, c'est le **sept/trois** de `SC-010` qui se lit ici : la
    vérification compte les **états rapportés**, `I3` et `I4` passant faute de matière (§ Réutilisation
    du socle). Un `I3` ou un `I4` retombé « hors portée » signifierait que le plancher de `FR-009` a
-   été amputé — c'est ce que cette étape attrape.
+   été amputé — c'est ce que cette étape attrape. Elle attrape aussi l'autre sens : `I3` **rapporté
+   en violation** signifierait qu'un fichier du lot — au premier chef `eslint.config.boundaries.js`
+   — porte un motif à barre finale (point 10). L'étape s'exécute sur l'arbre qui porte cette
+   configuration, sans quoi elle ne prouverait rien de ce qu'elle prétend prouver.
 4. Trois défauts injectés puis retirés, chacun devant être **signalé** : une incohérence de type
    (`SC-003`), un import `src/core/ → src/platform/` (`SC-004`, par `lint:boundaries`), un
    `import 'cloudflare:workers'` dans `src/core/` (`SC-005`, par `arch-invariants` — **un porteur
