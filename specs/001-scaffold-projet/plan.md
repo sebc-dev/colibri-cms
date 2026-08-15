@@ -142,10 +142,19 @@ Un fichier par zone, chacun important **vers le bas** pour exercer la matrice d'
 
 - `migrations/0001_amorce.sql` — migration **sans effet de schéma** (`FR-021`).
 - `scripts/verif-bout-en-bout.sh` — l'étape unique, ci-dessous. Patron : `.github/scripts/arch-invariants.sh`
-  (`set -uo pipefail`, un état par contrôle, le commentaire dit le *pourquoi*).
-- `docs/ci.md` — **deux lignes, et deux seulement.**
-  **(a)** § Commandes du projet, la case vide « Run local » reçoit `npm run dev` — ce document
-  déclare lui-même que la commande « se pose au scaffold, dans ce tableau ».
+  (`set -uo pipefail`, un état par contrôle, le commentaire dit le *pourquoi*). **Écrit par les deux
+  lots**, chaque étape naissant dans la section de tâches dont elle constate le résultat : `R1`
+  porte les étapes 1 à 5, `R2` ajoute la 6ᵉ.
+- `docs/preuves/` — répertoire **ouvert par ce lot**, domicile des pièces datées. Il en reçoit une
+  seule ici, celle de `SC-009` (`AAAA-MM-JJ-gel-sept-jours.md`).
+- `docs/ci.md` — **quatre gestes, dans trois endroits**, et le décompte n'est pas cosmétique : le
+  premier bloc en demande deux, dont un qui se rate facilement.
+  **(a)** § Commandes du projet : le tableau **ne porte aucune ligne « Run local »** — il n'y a
+  donc pas de case à remplir, il faut **créer la ligne**, portant `npm run dev`. Et le paragraphe
+  placé juste sous le tableau — « **Aucune commande de run local n'existe** […] Elle se pose au
+  scaffold, dans ce tableau » — devient faux à l'instant où cette ligne existe : il se **retire
+  dans le même geste**. Poser la ligne sans lui laisserait une négation en gras deux lignes sous
+  ce qu'elle nie.
   **(b)** La ligne du job `boundaries` perd son `[à compléter]` **pour la matrice d'`I1` seule** et
   le garde, dit comme tel, pour le reliquat d'`I3` que ce lot ne pose pas — ré-exports, barils,
   alias (`FR-025`). Deux endroits portent cette même affirmation et se corrigent ensemble :
@@ -197,12 +206,17 @@ c'est l'énoncé exact que `FR-021` et `SC-007` vérifient, et la seconde applic
 
 ## Décisions & alternatives écartées
 
-**1. TypeScript est épinglé en `6.0.3`, pas en `latest`.** [officiel · cité] registre npm, lu le
-2026-08-15 : `typescript@7.0.2` est la version courante, mais `typescript-eslint@8.66.0` pose
-`typescript >=4.8.4 <6.1.0` et `@astrojs/svelte@9.0.1` pose `^5.3.3 || ^6.0.0`. Prendre TS 7
-**tuerait la chaîne ESLint** — donc `boundaries`, donc la seule vérification d'`I1`. C'est le second
-des deux murs qui avaient déjà écarté dependency-cruiser (`docs/ci.md`). `6.0.3` (2026-04-16) est la
-dernière 6.x. *Condition de révision : le jour où `typescript-eslint` élargit son pair à TS 7.*
+**1. TypeScript est épinglé en `6.0.3`, pas en `latest` — et le plafond est déposé en candidat
+ADR.** [officiel · cité] registre npm, lu le 2026-08-15 : `typescript@7.0.2` est la version
+courante, mais `typescript-eslint@8.66.0` pose `typescript >=4.8.4 <6.1.0` et
+`@astrojs/svelte@9.0.1` pose `^5.3.3 || ^6.0.0`. Prendre TS 7 **tuerait la chaîne ESLint** — donc
+`boundaries`, donc la seule vérification d'`I1`. C'est le second des deux murs qui avaient déjà
+écarté dependency-cruiser (`docs/ci.md`). `6.0.3` (2026-04-16) est la dernière 6.x.
+**Ce plafond ne peut pas rester ici** : `FR-105` et `SC-008` le font porter par **toute la flotte**,
+et une contrainte écrite dans le plan d'une feature n'est lue par personne au moment où elle mord —
+la feature suivante qui monte TypeScript ne croiserait rien qui l'en empêche. Il est donc déposé en
+[candidat ADR](../../docs/adr/_candidates/typescript-plafonne-a-la-branche-6.md), avec sa condition
+de révision : le jour où `typescript-eslint` élargit son pair à TS 7.
 Écarté : **suivre `latest`** — le contrôle qui tient `ADR-0021` s'éteindrait en silence.
 
 **2. Le serveur de développement est `astro dev`, pas `wrangler dev`.** `FR-012` exige **une**
@@ -292,38 +306,63 @@ Une seule commande, sur un dépôt propre :
 bash scripts/verif-bout-en-bout.sh
 ```
 
-Elle enchaîne, et refuse au premier écart :
+**Le script naît avec les lots qu'il vérifie ; il n'est pas un lot à lui seul.** `R1` écrit les
+étapes 1 à 5, chacune dans la section de tâches dont elle constate le résultat ; `R2` y ajoute
+l'étape 6, qui est la sienne. C'est ce qui empêche qu'une même observation soit faite deux fois —
+une fois à la main dans une tâche `Vérif`, une fois retranscrite dans un script écrit après coup.
 
-1. `npm ci` — puis `typecheck`, `build`, `test`, `coverage`, `lint`, `lint:boundaries`, `knip` :
-   **sept codes de sortie nuls** (`SC-002`), `dist/` et `coverage/lcov.info` présents.
+Il enchaîne, et refuse au premier écart :
+
+1. `npm ci` — puis `typecheck`, `build`, `test`, `coverage`, `lint`, `lint:boundaries` : **six codes
+   de sortie nuls** (`SC-002`), `dist/` peuplé et `coverage/lcov.info` présent. `knip` et la
+   commande de mutation sont lancées **à part** : l'étape constate qu'elles **s'exécutent et
+   rapportent** (`FR-007`, `FR-023`), leur code de sortie ne décidant de rien — les deux cas limites
+   de la spec disent pourquoi, et pourquoi les faire taire serait pire.
 2. Le build est rejoué par `env -u CLOUDFLARE_ACCOUNT_ID -u CLOUDFLARE_API_TOKEN` : `0` (`SC-008`).
-3. `bash .github/scripts/arch-invariants.sh` : `I2`, `I3`, `I4`, `I5`, `I8` et `I10` au vert et
-   `I6`, `I7`, `I9` seuls hors portée — **code de sortie nul**, aucune violation tolérée. Avec `I1`,
-   rendu à l'étape 1 par `lint:boundaries`, c'est le **sept/trois** de `SC-010` qui se lit ici : la
-   vérification compte les **états rapportés**, `I3` et `I4` passant faute de matière (§ Réutilisation
-   du socle). Un `I3` ou un `I4` retombé « hors portée » signifierait que le plancher de `FR-009` a
-   été amputé — c'est ce que cette étape attrape. Elle attrape aussi l'autre sens, et c'est là que
-   `FR-026` se vérifie : `I3` **rapporté en violation** signifierait qu'un fichier du lot — au
-   premier chef `eslint.config.boundaries.js` — porte un motif à barre finale (point 10). L'étape
-   s'exécute sur l'arbre qui porte cette configuration, sans quoi elle ne prouverait rien de ce
-   qu'elle prétend prouver.
-4. Trois défauts injectés puis retirés, chacun devant être **signalé** : une incohérence de type
-   (`SC-003`), un import `src/core/ → src/platform/` (`SC-004`, par `lint:boundaries`), un
+3. `bash .github/scripts/arch-invariants.sh` : **code de sortie nul, aucune violation tolérée**, et
+   sur les **dix invariants de la table** de `docs/archi.md`, `I2`, `I3`, `I4`, `I5`, `I8` et `I10`
+   au vert, `I6`, `I7` et `I9` seuls hors portée. Avec `I1`, rendu à l'étape 1 par
+   `lint:boundaries`, c'est le **sept/trois** de `SC-010` : la vérification compte les **états
+   rapportés**, `I3` et `I4` passant faute de matière (§ Réutilisation du socle).
+   ⚠️ **L'assertion porte sur ces dix-là, jamais sur la ligne de bilan du script.** Celui-ci rend
+   aussi trois contrôles réclamés par des ADR, hors table : le plancher en réveille **deux**
+   (`ADR-0015 (a)` sur `run_worker_first`, `ADR-0024` sur les directives CSP relâchées), qui passent
+   sur ce lot, et laisse `ADR-0006` hors portée faute de `src/platform/session/`. Le bilan lira donc
+   **8 au vert · 4 hors portée** — une assertion écrite sur « trois hors portée » échouerait à tort
+   et ferait tomber l'issue de `R1`.
+   L'étape attrape les deux sens : un `I3` ou un `I4` retombé « hors portée » dirait que le plancher
+   de `FR-009` a été amputé ; un `I3` **rapporté en violation** dirait qu'un fichier du lot — au
+   premier chef `eslint.config.boundaries.js` — porte un motif à barre finale (point 10), et c'est
+   là que `FR-026` se vérifie. Elle s'exécute sur l'arbre qui porte cette configuration, sans quoi
+   elle ne prouverait rien de ce qu'elle prétend prouver.
+4. **Quatre** défauts injectés puis retirés, chacun devant être **signalé** : une incohérence de
+   type (`SC-003`), un import `src/core/ → src/platform/` (`SC-004`, par `lint:boundaries`), un
    `import 'cloudflare:workers'` dans `src/core/` (`SC-005`, par `arch-invariants` — **un porteur
-   distinct**, comme la spec l'exige). L'arbre est rendu intact à la fin.
+   distinct**, comme la spec l'exige), et une **violation de la règle de lint de style** (`FR-005`).
+   Ce quatrième manquait, et son absence était un trou : sans lui, un `eslint.config.js` **sans une
+   seule règle** satisfaisait l'étape 1 comme la tâche de vérif — exactement le mode de défaillance
+   que le point 10 traque pour `boundaries`, sur l'autre configuration. L'arbre est rendu intact à
+   la fin.
 5. `npm run db:migrate` deux fois : la seconde répond `No migrations to apply!` ; le schéma obtenu
-   ne porte que `d1_migrations`, `sqlite_sequence` et `_cf_METADATA` (`SC-007`).
-6. `npm run dev`, puis `curl /_sonde` → `{"n":1}`, puis `astro dev stop` (`SC-006`) — **et,
-   immédiatement après, la double absence dans le `dist/` de l'étape 1** : pas de
+   ne porte **aucun objet du produit** — seules `d1_migrations`, plus `sqlite_sequence` et
+   `_cf_METADATA`, qui sont du moteur et non du mécanisme de migration (`SC-007`, `FR-021` — c'est
+   cette distinction que la spec porte désormais, une assertion écrite sur « les seules tables du
+   mécanisme de migration » échouerait contre cette mesure).
+6. *(écrite par `R2`)* `npm run dev`, puis `curl /_sonde` → `{"n":1}`, puis `astro dev stop`
+   (`SC-006`) — **et, immédiatement après, la double absence dans le `dist/` de l'étape 1** : pas de
    `dist/server/entry.mjs`, aucune occurrence de `_sonde` sous `dist/` (`FR-024`, scénario 3
    d'`US3`). Les deux moitiés sont dans la même étape **à dessein** : « la route répond » et « la
    route n'est pas livrée » ne valent que constatées ensemble, sur le même arbre.
 
-**`SC-009` n'entre pas dans ce script** : c'est une pièce datée, produite une fois — elle démontre
-le **comportement** de `FR-019`. La recette est rejouée et tient : dans un dossier neuf portant
-`min-release-age=7`, `npm install astro` résout **7.2.0** quand le registre publie **7.2.2** depuis
-le 2026-08-13. Sortie à conserver, datée. La **déclaration** de `FR-027`, elle, n'a pas besoin de ce
-script : `dependency-review` la lit en permanence dans `.npmrc`, à chaque PR.
+**`SC-009` n'entre pas dans ce script, et sa pièce a un domicile.** C'est une pièce datée, produite
+une fois — elle démontre le **comportement** de `FR-019`, c'est-à-dire la résolution à l'**ajout**
+d'une dépendance, jamais l'installation verrouillée. La recette est rejouée et tient : dans un
+dossier neuf portant `min-release-age=7`, `npm install astro` résout **7.2.0** quand le registre
+publie **7.2.2** depuis le 2026-08-13. La sortie est conservée dans
+**`docs/preuves/AAAA-MM-JJ-gel-sept-jours.md`**, datée du jour où elle est produite. Le répertoire
+n'existe pas encore : ce lot l'ouvre, et il devient le domicile des pièces que le socle réclame
+sans jamais avoir dit où (`SC-011`, `SC-014` du PRD). La **déclaration** de `FR-027`, elle, n'a pas
+besoin de ce script : `dependency-review` la lit en permanence dans `.npmrc`, à chaque PR.
 
 ## Couverture des exigences
 
@@ -333,12 +372,12 @@ Les **27** `FR` de la spec sont couverts, et par quoi :
 |---|---|
 | `FR-001` `FR-018` | `package.json` + `package-lock.json` ; étape 1 (installation), défaut de désynchronisation injecté |
 | `FR-027` | `.npmrc`, la **déclaration** de `min-release-age=7` — c'est elle que le contrôle permanent `dependency-review` lit, et lui seul |
-| `FR-019` | le **comportement** de résolution qui en découle ; pièce datée de `SC-009`, hors script |
+| `FR-019` | le **comportement** de résolution à l'**ajout** d'une dépendance ; pièce datée de `SC-009` dans `docs/preuves/`, hors script |
 | `FR-002` `FR-017` | script `build` ; étapes 1 et 2 |
 | `FR-003` | `tsconfig.json` + script `typecheck` ; défaut injecté, étape 4 |
 | `FR-004` `FR-006` | `vitest.config.ts` + scripts `test` / `coverage` ; étape 1 |
-| `FR-005` | `eslint.config.js` + script `lint` ; étape 1 |
-| `FR-007` `FR-023` | `knip.json` · `stryker.conf.json`, deux scripts distincts |
+| `FR-005` | `eslint.config.js` + script `lint` ; étape 1, **et défaut de lint injecté à l'étape 4** — sans lui, une configuration sans règle passait |
+| `FR-007` `FR-023` | `knip.json` · `stryker.conf.json`, deux scripts distincts ; étape 1, qui constate qu'ils **s'exécutent et rapportent** — leur code de sortie est hors de `SC-002`, faute de test ayant tourné pour l'un, de point d'entrée pour l'autre |
 | `FR-008` | aucun fichier de `.github/` touché — la garde teste `-f package.json` |
 | `FR-009` | les cinq sources `src/*/zone.ts`, une par zone ; étape 3 |
 | `FR-010` `FR-020` | `eslint.config.boundaries.js` + script `lint:boundaries` ; défaut injecté, étape 4 |
