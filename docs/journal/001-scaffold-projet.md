@@ -21,3 +21,4 @@
 | 2026-08-15 | analyze | **CORRIGER D'ABORD** — 1 Critical (US2·3 et FR-009 incompatibles : le squelette des cinq zones sort `I3` et `I4` de « hors portée ») · 0 Major · 7 Minor · fusion R1·R2·R3 constatée corrigée |
 | 2026-08-15 | specify | correction post-gate : 25 FR (+1 — FR-025, moitié d'`I3` déclarée dans `docs/ci.md`) · 0 [NEEDS CLARIFICATION] · partage des invariants réécrit en 7 exercés / 3 hors portée (`I6`, `I7`, `I9`) |
 | 2026-08-15 | specify | Minor de gate : § Résumé aligné sur l'état réel des commandes (7 normatives inexistantes, `arch-invariants` réelle mais sans matière) · décompte « huit commandes normatives » corrigé au § Contrats d'E/S et en `SC-002` · 25 FR, 0 marqueur |
+| 2026-08-15 | plan | répercussion du Critical : 21 fichiers touchés (inchangé) · 0 candidat ADR · partage 7/3 propagé (§ Réutilisation du socle, étape 3, lecture de `SC-010`) · couverture des 25 FR · `docs/ci.md` passe à 2 éditions (`FR-025`) |

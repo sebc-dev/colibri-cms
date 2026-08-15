@@ -35,11 +35,22 @@ variantes d'images au build, `constrained` + `[640, 960, 1280]`
 `instance.json` à la racine ([ADR-0028](../../docs/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md)).
 Les **noms de commandes** viennent de `docs/ci.md` § Commandes du projet et ne se renégocient pas ici.
 
-**Invariants d'architecture confrontés, fichier par fichier.** **Cinq** sont **hors portée** faute
-des fichiers qu'ils nomment (`I3`, `I4`, `I6`, `I7`, `I9`), et **cinq** sont tenus : `I1` par la
-chaîne ESLint que ce lot pose, `I2` et `I5` par `arch-invariants` déjà en place, `I8` par le
-placement des valeurs, `I10` par la lecture d'`instance.json` dans `astro.config.ts` (§ ci-dessous).
-Ce partage cinq/cinq **est** celui que `SC-010` énonce, et il n'y a pas d'autre lecture à en faire.
+**Invariants d'architecture confrontés, fichier par fichier.** **Trois** sont **hors portée** faute
+des fichiers qu'ils nomment (`I6`, `I7`, `I9`), et **sept** sont exercés : `I1` par la chaîne ESLint
+que ce lot pose, `I2`, `I3`, `I4` et `I5` par `arch-invariants` déjà en place, `I8` par le placement
+des valeurs, `I10` par la lecture d'`instance.json` dans `astro.config.ts` (§ ci-dessous). Ce partage
+sept/trois **est** celui que `SC-010` énonce, et il n'y a pas d'autre lecture à en faire.
+
+**Pourquoi sept et non cinq : c'est le plancher qui décide, et le mécanisme est littéral.** Les
+gardes du script testent `git ls-files` — `exists 'src/render/*'`, `exists 'src/admin/*'` —, et
+`FR-009` fait porter à chacune des cinq zones un fichier source versionné. `I3` et `I4` **sortent**
+donc de « hors portée » du seul fait du plancher, **avant toute matière à examiner** : personne
+n'importe `src/render/`, aucun fichier `.astro` ne vit sous `src/admin/`. Leur vert n'atteste rien
+aujourd'hui — l'encadré d'`US2` le qualifie, et `SC-010` compte l'**état rapporté**, jamais la valeur
+du constat. Ce plan n'a donc pas à les faire tenir : il a à **ne pas les casser**, ce que tiennent la
+première confrontation ci-dessous (`src/render/` reste inatteignable) et le choix de n'écrire aucun
+`.astro` sous `src/admin/`.
+
 Trois confrontations méritent d'être écrites : les **deux premières ont changé le découpage** plutôt
 que de produire une dérogation, la troisième dit **où un invariant ne mord pas** — et ce qui tient
 à sa place. Aucune des trois n'est une dérogation :
@@ -49,6 +60,8 @@ que de produire une dérogation, la troisième dit **où un invariant ne mord pa
   spec). Donc `src/site/` et `src/admin/` **n'importent pas** `src/render/` : le plancher exerce
   les cinq arêtes qui restent légales sans le baril (`site→core`, `admin→core`, `admin→platform`,
   `render→core`, `platform→core`), et laisse les deux autres à la feature qui posera le baril.
+  Le contrôle d'`I3` étant désormais **actif** — c'est le plancher qui l'a réveillé —, un import
+  `site → src/render/zone.ts` ne serait plus une inélégance mais une **violation rapportée**.
 - **La sonde de développement ne crée pas de sixième répertoire sous `src/`.** Elle vit dans
   `src/platform/d1/sonde-dev.ts` — lire D1 est le métier de `platform/` —, et non dans un `src/dev/`
   qu'aucune zone ne couvrirait et que `boundaries` ne saurait pas classer.
@@ -100,19 +113,32 @@ qui ne balaie plus que `astro.config.*` — **passe**. Il n'y a plus de dérogat
 Un fichier par zone, chacun important **vers le bas** pour exercer la matrice d'`I1` :
 
 - `src/core/zone.ts` — le type `Zone` et la liste des cinq zones. N'importe **rien** (`I1`, `I2`).
+  Les cinq noms y sont des **identifiants nus** (`'render'`), jamais des chemins (`'src/render/'`) :
+  le contrôle d'`I3`, désormais actif, cherche la seconde forme dans tout fichier hors
+  `src/render/` et la rapporterait comme violation.
 - `src/render/zone.ts` — importe `src/core/`. **Pas** `index.ts` : ce nom est réservé au baril d'`I3`.
 - `src/platform/zone.ts` — importe `src/core/`.
 - `src/platform/d1/sonde-dev.ts` — la route de sonde, injectée en développement seulement.
 - `src/site/zone.ts` — importe `src/core/`.
-- `src/admin/zone.ts` — importe `src/core/` et `src/platform/`.
+- `src/admin/zone.ts` — importe `src/core/` et `src/platform/`. **`.ts` et non `.astro`** : le
+  contrôle d'`I4` ne balaie que `src/admin/*.astro`, et ce lot n'a aucun gabarit à y poser.
 
 ### Migrations et vérification
 
 - `migrations/0001_amorce.sql` — migration **sans effet de schéma** (`FR-021`).
 - `scripts/verif-bout-en-bout.sh` — l'étape unique, ci-dessous. Patron : `.github/scripts/arch-invariants.sh`
   (`set -uo pipefail`, un état par contrôle, le commentaire dit le *pourquoi*).
-- `docs/ci.md` — **une seule ligne** : la case vide « Run local » reçoit `npm run dev`. Ce document
+- `docs/ci.md` — **deux lignes, et deux seulement.**
+  **(a)** § Commandes du projet, la case vide « Run local » reçoit `npm run dev` — ce document
   déclare lui-même que la commande « se pose au scaffold, dans ce tableau ».
+  **(b)** La ligne du job `boundaries` perd son `[à compléter]` **pour la matrice d'`I1` seule** et
+  le garde, dit comme tel, pour le reliquat d'`I3` que ce lot ne pose pas — ré-exports, barils,
+  alias (`FR-025`). Deux endroits portent cette même affirmation et se corrigent ensemble :
+  § Commandes du projet, ligne « Graphe d'imports (invariants `I1`, `I3`) », et § Registre des ADR
+  vérifiés en CI, ligne `ADR-0021`, dont la colonne « Non rendu » cesse d'être vraie dès que
+  `lint:boundaries` existe. La ligne du § Contrôles, elle, **distingue déjà** `I1` du reliquat
+  d'`I3` : rien à y changer. Sans cette seconde édition, le document laisserait croire la case
+  close quand elle ne l'est qu'à moitié.
 
 **Aucun fichier de `.github/` n'est touché.** La garde de scaffold se lève seule (`FR-008`) : chaque
 job teste `-f package.json` et exécute la vérification réelle dès qu'il existe.
@@ -233,8 +259,12 @@ Elle enchaîne, et refuse au premier écart :
 1. `npm ci` — puis `typecheck`, `build`, `test`, `coverage`, `lint`, `lint:boundaries`, `knip` :
    **sept codes de sortie nuls** (`SC-002`), `dist/` et `coverage/lcov.info` présents.
 2. Le build est rejoué par `env -u CLOUDFLARE_ACCOUNT_ID -u CLOUDFLARE_API_TOKEN` : `0` (`SC-008`).
-3. `bash .github/scripts/arch-invariants.sh` : `I2`, `I5`, `I8` et `I10` au vert — **code de sortie
-   nul**, aucune violation tolérée.
+3. `bash .github/scripts/arch-invariants.sh` : `I2`, `I3`, `I4`, `I5`, `I8` et `I10` au vert et
+   `I6`, `I7`, `I9` seuls hors portée — **code de sortie nul**, aucune violation tolérée. Avec `I1`,
+   rendu à l'étape 1 par `lint:boundaries`, c'est le **sept/trois** de `SC-010` qui se lit ici : la
+   vérification compte les **états rapportés**, `I3` et `I4` passant faute de matière (§ Réutilisation
+   du socle). Un `I3` ou un `I4` retombé « hors portée » signifierait que le plancher de `FR-009` a
+   été amputé — c'est ce que cette étape attrape.
 4. Trois défauts injectés puis retirés, chacun devant être **signalé** : une incohérence de type
    (`SC-003`), un import `src/core/ → src/platform/` (`SC-004`, par `lint:boundaries`), un
    `import 'cloudflare:workers'` dans `src/core/` (`SC-005`, par `arch-invariants` — **un porteur
@@ -253,7 +283,7 @@ rejouée et tient : dans un dossier neuf portant `min-release-age=7`, `npm insta
 
 ## Couverture des exigences
 
-Les **24** `FR` de la spec sont couverts, et par quoi :
+Les **25** `FR` de la spec sont couverts, et par quoi :
 
 | `FR` | Porté par |
 |---|---|
@@ -268,6 +298,7 @@ Les **24** `FR` de la spec sont couverts, et par quoi :
 | `FR-009` | les cinq sources `src/*/zone.ts`, une par zone ; étape 3 |
 | `FR-010` `FR-020` | `eslint.config.boundaries.js` + script `lint:boundaries` ; défaut injecté, étape 4 |
 | `FR-011` | `arch-invariants.sh` **déjà en place** ; défaut injecté, étape 4 — porteur distinct |
+| `FR-025` | `docs/ci.md`, édition (b) — la ligne du job `boundaries` distingue `I1` (refermé) du reliquat d'`I3` (`[à compléter]`) |
 | `FR-012` | script `dev` + `src/platform/d1/sonde-dev.ts` ; étape 6 |
 | `FR-024` | injection conditionnée à `command === 'dev'` ; double absence dans `dist/`, étape 6 |
 | `FR-013` `FR-014` `FR-021` | `migrations/0001_amorce.sql` + script `db:migrate` ; étape 5 |
@@ -276,10 +307,14 @@ Les **24** `FR` de la spec sont couverts, et par quoi :
 
 Deux lectures sont **fixées ici** pour qu'elles ne soient pas rouvertes en aval :
 
-- **`SC-010` se lit sur les deux porteurs.** `FR-010` confie `I1` à la commande de graphe d'imports
-  et `FR-011` confie `I2` à `arch-invariants` ; « la vérification d'invariants d'architecture »
-  de `SC-010` désigne donc l'ensemble des deux — `arch-invariants.sh` déclare `I1` « NON RENDU »
-  et le renvoie explicitement à la chaîne ESLint que ce lot pose.
+- **`SC-010` se lit sur les deux porteurs, et sur l'état rapporté.** `FR-010` confie `I1` à la
+  commande de graphe d'imports et `FR-011` confie à `arch-invariants` les six autres exercés
+  (`I2`, `I3`, `I4`, `I5`, `I8`, `I10`) ; « la vérification d'invariants d'architecture » de
+  `SC-010` désigne donc l'ensemble des deux — `arch-invariants.sh` déclare `I1` « NON RENDU » et le
+  renvoie explicitement à la chaîne ESLint que ce lot pose. Ce que le critère compte est l'**état**
+  que chaque contrôle rapporte, jamais la valeur de ce qu'il a trouvé : `I3` et `I4` y entrent en
+  passant faute de matière, et c'est l'encadré d'`US2` qui dit à quelle condition leur vert cessera
+  d'être vide. Aucune tâche de ce lot n'a donc à leur fabriquer de la matière.
 - **`I10` est exercé, et son résultat est vert.** « Ne pas se déclarer hors portée » est ce que
   `SC-010` demande, et `astro.config.ts` donne au contrôle de quoi lire. Depuis `ADR-0032`, il ne
   balaie plus que la configuration du site : ce qu'il exerce, ce lot le satisfait.
