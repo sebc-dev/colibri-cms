@@ -1,38 +1,31 @@
-# Régime nocturne — ColibriCMS
+# Régime nocturne — les contrôles trop lents pour le chemin critique d'une PR
 #
-# CE FICHIER NE BLOQUE RIEN. Aucun de ses jobs ne tourne sur `pull_request`, donc
-# aucun ne peut figurer dans les checks requis de la protection de branche. C'est
-# délibéré : ces contrôles couvrent l'ORACLE FAUX et le BUILDING TO THE TEST — les
-# deux modes de défaillance qu'aucun contrôle déterministe n'attrape de façon fiable.
-# Ils signalent, ils ne refusent pas.
+# Ces deux jobs sont INFORMATIFS et ne sont JAMAIS des checks requis : ils ne
+# tournent pas sur `pull_request`, donc ils n'apparaîtront jamais dans la liste
+# des status checks sélectionnables. C'est voulu — exiger un check qui ne tourne
+# pas sur une PR bloquerait la PR indéfiniment.
 #
-# Pourquoi ils ne peuvent pas être bloquants : le test de mutation a un taux de
-# mutants équivalents estimé entre 4 % et 39 % dans la littérature (Madeyski 2013),
-# très au-dessus du seuil de 10-15 %. `knip` a des faux positifs connus sur les
-# points d'entrée dynamiques. Un contrôle bruyant rendu bloquant finit désactivé,
-# et son efficacité théorique tombe alors à zéro.
-#
-# GARDE DE SCAFFOLD : tant qu'il n'y a pas de package.json, ces jobs se déclarent
-# hors portée et passent au vert SANS RIEN VÉRIFIER (voir docs/ci.md).
-#
-# NOTE GITHUB : un `schedule` est automatiquement désactivé après 60 jours sans
-# activité sur le dépôt. Le réveiller est un geste manuel dans l'onglet Actions.
+# Ils couvrent deux modes que le portail de PR ne ferme pas :
+#   · mode 4 — building to the test : la logique vit dans un artefact jetable et
+#     l'artefact demandé reste mort. `dead-code` le voit quand il est mort ;
+#     il ne voit rien quand il est propre (docs/ci.md § Ce que ces contrôles
+#     ne couvrent pas).
+#   · mode 1 — oracle faux : un test qui passe mais dont l'assertion vérifie la
+#     mauvaise chose. `mutation` le signale STATISTIQUEMENT et ne le prouve pas.
 
 name: Nightly
 
 on:
   schedule:
-    - cron: "0 3 * * *"
+    # 03:17 UTC — décalé de l'heure ronde, où la file de la forge est chargée.
+    - cron: '17 3 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  # ── Informatif · code mort ────────────────────────────────────────────────────
-  # Mode visé : l'agent écrit la logique dans un artefact jetable pendant que
-  # l'artefact demandé reste mort. knip voit les fichiers, exports et dépendances
-  # que plus rien n'atteint.
+  # ── Informatif · CODE MORT — mode 4, partiellement ──────────────────────────
   dead-code:
     name: dead-code
     runs-on: ubuntu-latest
@@ -49,32 +42,22 @@ jobs:
             echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
           fi
       - if: steps.scaffold.outputs.ok == 'true'
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-      - if: steps.scaffold.outputs.ok == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-          cache: pnpm
+          cache: npm
       - if: steps.scaffold.outputs.ok == 'true'
-        run: pnpm install --frozen-lockfile
-      # Script NORMATIF : le scaffold doit fournir `knip` (knip 6.32.0).
+        run: npm ci
       - if: steps.scaffold.outputs.ok == 'true'
-        run: pnpm knip
+        run: npm run knip
 
-  # ── Informatif · test de mutation ─────────────────────────────────────────────
-  # Mode visé : l'ORACLE FAUX. Un test qui exécute le code sans rien vérifier
-  # contribue à la couverture ; seul un mutant survivant le révèle. Statistiquement,
-  # pas mécaniquement — c'est pourquoi ce job ne peut pas refuser une PR.
-  #
-  # [à compléter] La comparaison « alerter uniquement sur un mutant survivant
-  # NOUVEAU » exige une base de référence (mutation-survivors.baseline.json) qui
-  # n'existe pas tant qu'aucun code n'a été muté une première fois. Sans elle, le
-  # premier vrai run remontera l'intégralité du corpus comme « nouveau ». Ce
-  # rattachement appartient au chantier de durcissement, pas à ce fichier.
+  # ── Informatif · MUTATION — mode 1, statistiquement ─────────────────────────
+  # La couverture mesure l'EXÉCUTION, jamais l'ASSERTION : une ligne couverte par
+  # un test qui n'affirme rien compte comme couverte. Le test de mutation est le
+  # seul instrument qui regarde l'oracle — et il ne rend qu'un score.
   mutation:
     name: mutation
     runs-on: ubuntu-latest
-    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -89,15 +72,11 @@ jobs:
             echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
           fi
       - if: steps.scaffold.outputs.ok == 'true'
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-      - if: steps.scaffold.outputs.ok == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-          cache: pnpm
+          cache: npm
       - if: steps.scaffold.outputs.ok == 'true'
-        run: pnpm install --frozen-lockfile
-      # Script NORMATIF : le scaffold doit fournir `mutation`
-      # (@stryker-mutator/core 9.6.1, invoqué avec --incremental).
+        run: npm ci
       - if: steps.scaffold.outputs.ok == 'true'
-        run: pnpm mutation
+        run: npm run mutation

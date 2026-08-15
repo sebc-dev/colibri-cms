@@ -1,0 +1,176 @@
+TRACE BRUTE — jeton GitHub et désuétude
+Relevé du 2026-08-12, instruisant le fait 3 de S-10 (docs/audit-stack.md).
+Conclusions : docs/research/2026-08-12-jeton-github-desuetude.md
+
+AVERTISSEMENT DE MÉTHODE
+Les pages ont été lues par récupération HTTP puis restitution ; les phrases entre
+guillemets ci-dessous sont ce que la lecture a rendu comme étant verbatim. Elles se
+revérifient en ouvrant les URL, qui sont toutes publiques et sans authentification.
+La question de PORTÉE a été posée DEUX FOIS, sous deux formulations différentes,
+parce que c'est elle qui décidait de l'arbitrage. Les deux lectures concordent.
+Aucun appel n'a été fait contre l'API GitHub : rien n'est mesuré ici.
+
+
+=== 1. REPÉRAGE ===
+
+Recherche 1, restreinte à docs.github.com :
+  "GitHub docs \"removes personal access tokens that haven't been used in a year\""
+  → renvoie en tête :
+     - Managing your personal access tokens
+     - Token expiration and revocation
+     - GitHub credential types reference
+
+Recherche 2, non restreinte :
+  "GitHub fine-grained personal access token unused one year automatically removed policy 2026"
+  → mêmes pages officielles, plus des billets tiers et deux fils github/orgs/community.
+  NON RETENUS : les billets tiers et les fils Community. Motif — l'écarté déjà
+  inscrit au projet (« R2 : I5, sur la Billing policy et non sur le témoignage
+  Community »). Seules les pages docs.github.com sont citées.
+
+
+=== 2. PAGE — Managing your personal access tokens ===
+
+URL : https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/
+      managing-your-personal-access-tokens
+
+Question posée (1re formulation) : citer verbatim toute phrase sur le retrait
+automatique d'un jeton resté un certain temps sans usage, avec le titre de la
+section où elle se trouve, la portée (classique / portée fine / les deux) en citant
+le texte qui l'établit, et la date de dernière mise à jour de la page.
+
+Réponse :
+  Phrase verbatim
+    « As a security precaution, GitHub automatically removes personal access tokens
+      that haven't been used in a year. »
+  Section
+    « Personal access tokens (classic) »
+  Portée
+    Les jetons CLASSIQUES seulement. Texte environnant cité :
+    « Personal access tokens (classic) are less secure. However, some features
+      currently will only work with personal access tokens (classic)... As a security
+      precaution, GitHub automatically removes personal access tokens that haven't
+      been used in a year. »
+    « The fine-grained tokens section contains no equivalent auto-removal language. »
+  Date affichée sur la page
+    AUCUNE.
+
+Question posée (2e formulation, contrôle adverse) : citer verbatim la section
+« Fine-grained personal access tokens » ; mentionne-t-elle l'inactivité, le non-usage
+ou un retrait automatique ? La page dit-elle QUELQUE PART que la règle du retrait
+après un an s'applique aussi aux jetons à portée fine ? Répondre uniquement sur le
+texte littéral.
+
+Réponse :
+  « The fine-grained token section makes no mention of automatic removal due to
+    inactivity or non-use. »
+  « The page does not state that the classic token's one-year auto-removal rule
+    applies to fine-grained tokens. That automatic-removal language appears only in
+    the "Personal access tokens (classic)" section... This removal policy is presented
+    exclusively for classic tokens, with no cross-reference indicating fine-grained
+    tokens follow the same practice. »
+  Sur l'expiration d'un jeton à portée fine, verbatim :
+  « Infinite lifetimes are allowed but may be blocked by a maximum lifetime policy set
+    by your organization or enterprise owner. »
+
+CONSÉQUENCE : la phrase citée par docs/stack.md:585 et :663 est portée aux jetons
+CLASSIQUES. Le jeton de la publication est à portée fine. La citation était mal portée.
+
+
+=== 3. PAGE — Token expiration and revocation ===
+
+URL : https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/
+      token-expiration-and-revocation
+
+Question posée (1re formulation) : citer verbatim toute phrase sur une révocation
+automatique pour non-usage, avec sa section, sa portée, la date de la page, et si un
+avertissement précède la révocation.
+
+Réponse :
+  Section  « Token expired due to lack of use »
+  Verbatim « GitHub will automatically revoke an OAuth token or personal access token
+             when the token hasn't been used in one year. »
+  Date     AUCUNE.
+  Avertissement préalable : la page n'en mentionne aucun.
+
+Question posée (2e formulation, contrôle adverse) : le terme « fine-grained »
+apparaît-il sur cette page ? Citer chaque occurrence avec sa section. La section
+« Token expired due to lack of use » distingue-t-elle les deux types de jeton, ou
+emploie-t-elle « personal access token » sans qualification ? Répondre uniquement sur
+le texte littéral, sans inférer.
+
+Réponse :
+  Occurrence unique de « fine-grained », dans une AUTRE section
+    (« Token revoked by a third party ») :
+      « Fine-grained personal access tokens with the `github_pat_` prefix »
+  Section « Token expired due to lack of use », en entier :
+      « GitHub will automatically revoke an OAuth token or personal access token when
+        the token hasn't been used in one year. »
+  Distinction : « The section does not distinguish between classic and fine-grained
+                 personal access tokens. It uses only the unqualified term
+                 "personal access token". »
+
+CONSÉQUENCE : formulation générale, non qualifiée. Elle couvre notre cas par
+absence d'exclusion, ce qui est plus faible qu'une ligne nommant le type. D'où la
+recherche d'une troisième page.
+
+
+=== 4. PAGE — GitHub credential types reference  [LA CITATION RETENUE] ===
+
+URL : https://docs.github.com/en/organizations/managing-programmatic-access-to-your-
+      organization/github-credential-types
+
+Question posée : cette page énonce-t-elle, POUR LES JETONS À PORTÉE FINE
+spécifiquement, une révocation automatique après une période de non-usage ? Citer
+verbatim toute phrase ou ligne de tableau sur l'inactivité, en nommant la section.
+Citer aussi ce qui est dit de leur expiration. Uniquement le texte littéral ; dire
+franchement si la page ne dit rien.
+
+Réponse :
+  Section « Credential revocation », sous « Fine-grained personal access token » :
+    « **Revoked automatically** if pushed to a public repository or gist, or if
+      unused for one year. »
+  Tableau d'ensemble, colonne « Lifespan » :
+    « Configurable (up to 1 year, or no expiration) »
+
+CONSÉQUENCE : c'est la citation correctement portée. Elle donne en outre une
+seconde cause de révocation (poussé dans un dépôt ou un gist public), et elle
+CORROBORE par la documentation le fait mesuré le 11/08 — un jeton à portée fine
+peut n'avoir aucune expiration.
+
+
+=== 5. DATATION DES SOURCES ===
+
+Les pages GitHub n'affichent aucune date de mise à jour. La date est donc prise au
+dernier commit du fichier Markdown source, dans le dépôt public github/docs.
+
+$ gh api "repos/github/docs/commits?path=content/organizations/managing-programmatic-access-to-your-organization/github-credential-types.md&per_page=3" \
+    --jq '.[] | "\(.sha[0:8]) \(.commit.committer.date) \(.commit.message | split("\n")[0])"'
+6f9f6f89 2026-06-23T18:42:00Z Enterprise admin and user self-service credential revocation [GA] (#61764)
+8755e44c 2026-06-12T22:55:36Z Update OpenAPI Description (#61718)
+737ac95c 2026-05-08T18:16:22Z Deprecate GHES 3.15 (#61022)
+
+$ gh api "repos/github/docs/commits?path=content/authentication/keeping-your-account-and-data-secure/token-expiration-and-revocation.md&per_page=3" \
+    --jq '.[] | "\(.sha[0:8]) \(.commit.committer.date) \(.commit.message | split("\n")[0])"'
+3c5bf3cf 2026-07-08T13:09:48Z Update redirected internal links in authentication (#62107)
+6f9f6f89 2026-06-23T18:42:00Z Enterprise admin and user self-service credential revocation [GA] (#61764)
+43f4390a 2026-03-25T21:39:50Z Update token revocation docs (#60372)
+
+$ gh api "repos/github/docs/commits?path=content/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens.md&per_page=2" \
+    --jq '.[] | "\(.sha[0:8]) \(.commit.committer.date) \(.commit.message | split("\n")[0])"'
+3363b628 2026-07-30T19:59:59Z Retire GitHub Models documentation (#62387)
+3c5bf3cf 2026-07-08T13:09:48Z Update redirected internal links in authentication (#62107)
+
+NOTE : le commit 6f9f6f89 du 23/06/2026 touche les deux premières pages à la fois —
+« Enterprise admin and user self-service credential revocation [GA] ». La section
+« Credential revocation » citée ci-dessus a donc été retouchée à cette date.
+
+
+=== 6. CE QUI N'A PAS ÉTÉ ÉTABLI ===
+
+- Que l'horloge d'un an se REMETTE À ZÉRO à chaque usage. « hasn't been used in one
+  year » est une fenêtre glissante, ce qui va dans ce sens, mais aucune page ne
+  l'écrit. Le Cron de maintien en vie en dépend entièrement. C'est une LECTURE.
+- Ce qui compte comme « usage » — aucune page ne définit le geste qui rafraîchit la
+  date de dernier emploi.
+- Si la cliente serait avertie avant la révocation. Aucune des trois pages ne le dit.
+- La branche GitHub App, non instruite depuis le 11/08.

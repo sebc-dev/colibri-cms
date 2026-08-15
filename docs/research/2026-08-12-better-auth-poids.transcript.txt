@@ -1,0 +1,171 @@
+Trace brute rejouable — poids et surface de better-auth@1.6.26
+Mesure du 2026-08-12. Registre registry.npmjs.org. Node v24.18.1, npm 11.16.0.
+Machine : Linux 7.0.0-28-generic, 12 coeurs.
+
+############################################################
+# 1. Metadonnees du registre npm — version nommee par la stack
+############################################################
+
+$ npm view better-auth@1.6.26 version dist.unpackedSize dist.fileCount dist.tarball
+version = '1.6.26'
+dist.unpackedSize = 2072279
+dist.fileCount = 475
+dist.tarball = 'https://registry.npmjs.org/better-auth/-/better-auth-1.6.26.tgz'
+
+$ npm view better-auth@1.6.26 dependencies --json
+{
+  "zod": "^4.3.6",
+  "defu": "^6.1.4",
+  "jose": "^6.1.3",
+  "kysely": "^0.28.17 || ^0.29.0",
+  "nanostores": "^1.1.1",
+  "better-call": "1.3.7",
+  "@noble/hashes": "^2.0.1",
+  "@noble/ciphers": "^2.1.1",
+  "@better-auth/core": "1.6.26",
+  "@better-auth/utils": "0.4.2",
+  "@better-fetch/fetch": "1.3.1",
+  "@better-auth/telemetry": "1.6.26",
+  "@better-auth/mongo-adapter": "1.6.26",
+  "@better-auth/kysely-adapter": "1.6.26",
+  "@better-auth/memory-adapter": "1.6.26",
+  "@better-auth/prisma-adapter": "1.6.26",
+  "@better-auth/drizzle-adapter": "1.6.26"
+}
+
+$ npm view better-auth@1.6.26 peerDependencies --json
+{
+  "pg": "^8.0.0",
+  "vue": "^3.0.0",
+  "next": "^14.0.0 || ^15.0.0 || ^16.0.0",
+  "react": "^18.0.0 || ^19.0.0",
+  "mysql2": "^3.0.0",
+  "prisma": "^5.0.0 || ^6.0.0 || ^7.0.0",
+  "svelte": "^4.0.0 || ^5.0.0",
+  "vitest": "^2.0.0 || ^3.0.0 || ^4.0.0",
+  "mongodb": "^6.0.0 || ^7.0.0",
+  "solid-js": "^1.0.0",
+  "react-dom": "^18.0.0 || ^19.0.0",
+  "drizzle-kit": ">=0.31.4",
+  "drizzle-orm": "^0.45.2",
+  "@sveltejs/kit": "^2.0.0",
+  "@lynx-js/react": "*",
+  "@prisma/client": "^5.0.0 || ^6.0.0 || ^7.0.0",
+  "better-sqlite3": "^12.0.0",
+  "@tanstack/react-start": "^1.0.0",
+  "@tanstack/solid-start": "^1.0.0"
+}
+
+$ npm view better-auth time --json   (extrait : 1.6.26 et la version courante)
+1.6.26 : 2026-08-04T21:19:38.019Z
+1.6.27 : 2026-08-11T18:02:27.519Z
+
+############################################################
+# 2. Arbre reellement installe
+############################################################
+
+$ npm install better-auth@1.6.26   (dans un projet vide, aucune autre dependance)
+  -> added 22 packages in 10s
+  -> 9 paquets racine + 13 paquets scopes
+
+$ du -sb node_modules
+23978004	node_modules   (23.98 Mo decimal, 22.87 Mio)
+
+$ du -sb node_modules/better-auth
+2072279	node_modules/better-auth   (2.07 Mo)
+
+############################################################
+# 3. Worker reel : bundle, elague, minifie, gzippe
+############################################################
+
+--- worker.mjs (entree mesuree) ---
+import { betterAuth } from "better-auth";
+import { emailOTP } from "better-auth/plugins/email-otp";
+
+const auth = betterAuth({
+  database: { dialect: null, type: "sqlite" },
+  emailAndPassword: { enabled: false },
+  plugins: [
+    emailOTP({
+      async sendVerificationOTP({ email, otp }) {
+        // Cloudflare Email Routing send_email — hors bundle
+        void email; void otp;
+      },
+    }),
+  ],
+});
+
+export default {
+  async fetch(request) {
+    return auth.handler(request);
+  },
+};
+
+$ esbuild worker.mjs --bundle --format=esm --platform=neutral \
+    --main-fields=workerd,browser,module,main --conditions=workerd,worker,browser \
+    --external:node:* --minify --outfile=worker.bundle.mjs
+
+  Note : sans --external:node:*, esbuild ECHOUE sur
+         « Could not resolve "node:crypto" » depuis @better-auth/utils/dist/password.node.mjs.
+         Sur Workers cela impose le drapeau de compatibilite nodejs_compat.
+
+$ stat -c %s worker.bundle.mjs
+755735	(0.76 Mo brut minifie)
+
+$ gzip -9 -c worker.bundle.mjs | wc -c
+192305	(0.192 Mo gzip) = 6.1 % du plafond de 3 Mio (3145728 o)
+
+$ grep -oE "from\"node:[a-z_/]+\"" worker.bundle.mjs | sort -u
+from"node:crypto"
+
+############################################################
+# 4. Surface d'integration — ce que le paquet expose
+############################################################
+
+$ (package.json exports) points d entree par framework
+total points d entree : 56
+cibles framework      : ['./next-js', './node', './solid', './solid-start', './svelte', './svelte-kit', './tanstack-start', './tanstack-start/solid']
+cible cloudflare / D1 : AUCUNE
+
+$ ls node_modules/better-auth/dist/integrations/
+cookie-plugin-guard.mjs
+next-js.d.mts
+next-js.mjs
+node.d.mts
+node.mjs
+solid-start.d.mts
+solid-start.mjs
+svelte-kit.d.mts
+svelte-kit.mjs
+tanstack-start-solid.d.mts
+tanstack-start-solid.mjs
+tanstack-start.d.mts
+tanstack-start.mjs
+
+$ npm view kysely-d1 version dist.unpackedSize   (dialecte tiers necessaire pour brancher D1)
+version = '0.4.0'
+dist.unpackedSize = 14931
+
+$ options du plugin email-otp (dist/plugins/email-otp/*.d.mts)
+allowedAttempts
+disableSignUp
+expiresIn
+otpLength
+overrideDefaultEmailVerification
+sendVerificationOnSignUp
+storeOTP
+
+$ prefixes de cookie et controle d origine presents dans dist/
+cookiePrefix
+__Host-
+originCheck
+__Secure-
+useSecureCookies
+
+$ tables du schema par defaut (dist/db/schema.mjs, dist/db/internal-adapter.mjs)
+"account"
+"session"
+"user"
+"verification"
+
+=== fin de trace ===
