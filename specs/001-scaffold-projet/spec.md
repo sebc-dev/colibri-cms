@@ -22,11 +22,14 @@ Statut : Brouillon | Créé : 2026-08-15 | Clarifié : 2026-08-15 | Trace vers :
 
 ## Résumé
 
-Le dépôt ne porte encore aucun code : `docs/ci.md` liste des commandes **normatives** (build,
-typage, test, lint, couverture, code mort, mutation, invariants d'architecture) qui n'existent pas,
-et `docs/archi.md` fixe dix invariants de structure (`I1`-`I10`, cinq zones) qu'aucun outil ne
-vérifie. Cette feature pose l'**outillage** qui rend ces commandes réelles et le **squelette de
-dossiers** des cinq zones dont le sens des imports devient mécaniquement vérifiable — rien de plus.
+Le dépôt ne porte encore aucun code. Des sept commandes que `docs/ci.md` déclare **normatives**
+(build, typage, test, couverture, lint, code mort, mutation), aucune n'existe, et celle du graphe
+d'imports y est « non posée ». La vérification d'invariants d'architecture, elle, est **réelle** —
+mais elle n'a rien à examiner : mesurée le 2026-08-15, elle rapporte douze contrôles hors portée,
+aucun au vert, et sort à `0`. Les dix invariants de structure de `docs/archi.md` (`I1`-`I10`, cinq
+zones) ne sont donc, en fait, gardés par rien. Cette feature pose l'**outillage** qui rend ces
+commandes réelles et le **squelette de dossiers** des cinq zones dont le sens des imports devient
+mécaniquement vérifiable — rien de plus.
 Elle ajoute aussi une commande de développement local (case vide de `docs/ci.md`), le mécanisme de
 migration de base de données (sans schéma applicatif), et une configuration de déploiement cohérente
 avec `instance.json` (sans déploiement réel).
@@ -270,7 +273,8 @@ de déploiement n'en lisant aucune valeur (`FR-022`, et l'encadré d'`US5`). La 
 publique Turnstile est portée par ce fichier par anticipation de `I8`, sans qu'aucun code de ce lot
 ne l'utilise encore — aucun formulaire n'existe.
 
-**Codes de sortie des commandes normatives** — **sept** des huit commandes de `docs/ci.md` (build,
+**Codes de sortie des commandes que ce lot pose** — les huit sont les sept normatives de
+`docs/ci.md` et le graphe d'imports, qui y est « non posée ». **Sept** d'entre elles (build,
 typecheck, test, lint, coverage, knip, boundaries) retournent `0` sur le scaffold livré, et un code
 non nul en présence du défaut qu'elles sont faites pour détecter. La **huitième**, la mutation, est
 posée et s'exécute, mais son code de sortie n'entre dans aucun critère de ce lot tant qu'aucun test
@@ -333,10 +337,11 @@ versionnée, et que le fichier livré est incomplet **de façon visible** pour l
 
 - **SC-001** : Sur un environnement neuf (ex. un runner CI), `npm ci` réussit contre le lockfile
   committé. _(PRD: SC-008)_
-- **SC-002** : Sept des huit commandes normatives de `docs/ci.md` (build, typecheck, test, lint,
-  coverage, knip, vérification du graphe d'imports) s'exécutent et retournent **0** sur le scaffold
-  livré, sans passer par la garde de scaffold. La huitième — la mutation — s'exécute réellement, et
-  son code de sortie n'entre pas dans ce critère tant qu'aucun test n'existe.
+- **SC-002** : Sept des huit commandes que ce lot pose — les sept normatives de `docs/ci.md` et le
+  graphe d'imports — s'exécutent et retournent **0** sur le scaffold livré, sans passer par la garde
+  de scaffold : build, typecheck, test, lint, coverage, knip, vérification du graphe d'imports. La
+  huitième — la mutation — s'exécute réellement, et son code de sortie n'entre pas dans ce critère
+  tant qu'aucun test n'existe.
 - **SC-003** : Une erreur de type introduite délibérément fait échouer la commande de typage.
 - **SC-004** : Un import qui viole `I1` (sens des zones) est signalé par la commande de graphe
   d'imports posée par ce lot (`FR-010`).
