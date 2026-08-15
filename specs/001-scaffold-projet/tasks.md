@@ -10,6 +10,8 @@ Trace vers : [plan.md](./plan.md) (fichiers) · [spec.md](./spec.md) (FR/SC/SHAL
   `test-after` (le test après) · `check` (pas de test auto : une vérification observée) ·
   `inhérent` (la preuve est le résultat lui-même, ex. le pipeline CI qui passe au vert)
 - _Requirements:_ = **backref** : les FR/SC que la tâche couvre — le fil qui dit pourquoi elle existe
+- Un `Tn` est un **identifiant stable**, pas un rang : `T40` a été ajoutée après coup et se lit à sa
+  place logique, entre `T11` et `T12`.
 
 > **Deux lots, et aucun n'est `[P]`.** `R2` constate `R1` : il n'y a rien à paralléliser entre eux.
 > Les tâches `[P]` d'un même lot, elles, touchent des fichiers réellement disjoints — les scripts
@@ -63,7 +65,7 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 - [ ] T6 — Vérif : les jobs CI n'empruntent plus leur garde de scaffold dès lors que `package.json`
   existe — chacun exécute sa commande réelle, **et chacune passe**, ce qui n'est vrai qu'une fois
   toutes les configurations de ce lot posées _Requirements: FR-008_ ;
-  bloqué par : T7, T17, T19, T27, T28
+  bloqué par : T7, T11, T17, T19, T27, T28
 
 ### Squelette des cinq zones, typé en strict
 
@@ -82,7 +84,14 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 
 - [ ] T11 — Poser la configuration de graphe d'imports portant la matrice `I1` **seule**, sur le
   graphe résolu ; le nom du fichier reste sous le glob que surveille le garde de configuration
-  qualité _Requirements: FR-010, FR-020_ ; bloqué par : T8
+  qualité, et les cinq zones s'y déclarent **sans barre finale** (point 10 du plan) — c'est ce
+  fichier que la contrainte générale d'`I3` contraint le plus durement, et la forme qui retirerait
+  le préfixe `src/` pour y échapper ne classerait plus aucun fichier
+  _Requirements: FR-010, FR-020_ ; bloqué par : T8
+- [ ] T40 — Vérif : sur l'arbre qui porte cette configuration, le contrôle `I3` de la vérification
+  d'invariants d'architecture est rapporté **passant** — ni hors portée, ni en violation — et une
+  barre finale ajoutée au motif d'une zone l'y fait basculer (défaut injecté puis retiré, arbre
+  rendu intact) _Requirements: FR-010, FR-011_ ; bloqué par : T11
 - [ ] T12 — Vérif : un import d'une zone vers une autre dans un sens que `I1` interdit est signalé
   comme violation par cette commande (défaut injecté puis retiré) _Requirements: FR-010_ ;
   bloqué par : T11
@@ -94,7 +103,7 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   bloqué par : T12, T13
 - [ ] T15 — Reporter dans `docs/ci.md` ce que ce lot referme du job de graphe d'imports — la matrice
   `I1` — et ce qu'il **laisse ouvert** : le reliquat d'`I3` qu'un contrôle littéral ne voit pas. Les
-  trois endroits qui portent la même affirmation se corrigent ensemble : la ligne « Graphe d'imports »
+  deux endroits qui portent la même affirmation se corrigent ensemble : la ligne « Graphe d'imports »
   du § Commandes du projet, et la ligne `ADR-0021` du § Registre des ADR vérifiés en CI, dont la
   colonne « Non rendu » cesse d'être vraie _Requirements: FR-025_ ; bloqué par : T12
 - [ ] T16 — Vérif : le document dit de lui-même que cette case n'est refermée **que pour moitié** —
