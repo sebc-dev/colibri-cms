@@ -261,10 +261,17 @@ jobs:
                 echo "Cooldown déclaré : ${age} jours."
               fi
             fi
-            # La précédence npm est cli > env > projet : un `--min-release-age`
-            # sur la ligne de commande écraserait le fichier. Aucune commande du
-            # dépôt n'a de raison d'en porter un.
-            contournements=$(git grep -nE -- '--min-release-age|--before' -- \
+            # La précédence npm est cli > env > projet : le drapeau de délai
+            # passé en ligne de commande écraserait le fichier. Aucune commande
+            # du dépôt n'a de raison d'en porter un.
+            #
+            # Les deux motifs portent une classe de caractères — [-] et [f] —
+            # SANS laquelle cette recherche se trouverait elle-même : le garde
+            # vit dans `.github/workflows/**`, qui est dans son propre périmètre.
+            # La classe ne change pas ce qui est matché, seulement l'écriture du
+            # motif. Ne pas « simplifier » : le contrôle redeviendrait rouge en
+            # permanence, sur sa propre définition.
+            contournements=$(git grep -nE -- '--min-release[-]age|--be[f]ore' -- \
                              ':(glob)package.json' ':(glob).github/workflows/**' ':(glob)**/*.sh' 2>/dev/null) || true
             if [ -n "$contournements" ]; then
               echo "::error title=Cooldown contourné::une commande passe min-release-age ou before en ligne de commande, ce qui écrase .npmrc :"
