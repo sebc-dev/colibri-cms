@@ -324,12 +324,21 @@ Il enchaîne, et refuse au premier écart :
    au vert, `I6`, `I7` et `I9` seuls hors portée. Avec `I1`, rendu à l'étape 1 par
    `lint:boundaries`, c'est le **sept/trois** de `SC-010` : la vérification compte les **états
    rapportés**, `I3` et `I4` passant faute de matière (§ Réutilisation du socle).
-   ⚠️ **L'assertion porte sur ces dix-là, jamais sur la ligne de bilan du script.** Celui-ci rend
-   aussi trois contrôles réclamés par des ADR, hors table : le plancher en réveille **deux**
+   ⚠️ **L'assertion porte sur ces dix-là, jamais sur la ligne de bilan du script.** Celui-ci ne
+   compte pas les mêmes objets, et pour **deux** raisons qui se cumulent. **Un** : il rend aussi
+   trois contrôles réclamés par des ADR, hors table — le plancher en réveille **deux**
    (`ADR-0015 (a)` sur `run_worker_first`, `ADR-0024` sur les directives CSP relâchées), qui passent
-   sur ce lot, et laisse `ADR-0006` hors portée faute de `src/platform/session/`. Le bilan lira donc
-   **8 au vert · 4 hors portée** — une assertion écrite sur « trois hors portée » échouerait à tort
-   et ferait tomber l'issue de `R1`.
+   sur ce lot, et laisse `ADR-0006` hors portée faute de `src/platform/session/`. **Deux** : il
+   dénombre des **états rapportés** et non des lignes de table, or `I3` en rapporte **deux** dès que
+   `src/render/` existe — `I3 (a)`, le point d'entrée unique, et `I3 (b)`, les deux routes —, quand
+   les cinq autres invariants au vert n'en rapportent qu'un. (`I6` et `I9` sont eux aussi à deux
+   états ; ils sont hors portée sur ce lot, et le compteur ne les voit qu'une fois — la même
+   asymétrie rejouera le jour où une feature les réveillera.) Le bilan lira donc
+   **9 au vert · 4 hors portée** — une assertion écrite sur `8`, ou sur « trois hors portée »,
+   échouerait à tort et ferait tomber l'issue de `R1`. **Mesuré le 2026-08-15** en rejouant
+   `arch-invariants.sh` sur un arbre répliquant le plancher livré (les six sources de zone,
+   `instance.json`, `astro.config.ts`, `wrangler.jsonc`) :
+   `Bilan : 9 contrôle(s) au vert · 4 hors portée · 0 violation(s)`, sortie `0`.
    L'étape attrape les deux sens : un `I3` ou un `I4` retombé « hors portée » dirait que le plancher
    de `FR-009` a été amputé ; un `I3` **rapporté en violation** dirait qu'un fichier du lot — au
    premier chef `eslint.config.boundaries.js` — porte un motif à barre finale (point 10), et c'est

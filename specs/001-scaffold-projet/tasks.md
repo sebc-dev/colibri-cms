@@ -92,8 +92,11 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 - [ ] T10 — Vérif : les cinq répertoires de zone portent chacun au moins un fichier versionné, et sur
   les **dix invariants de la table** de `docs/archi.md` sept sont exercés — six par la vérification
   d'invariants d'architecture, `I1` par la commande de graphe d'imports — contre trois seuls hors
-  portée. L'assertion porte sur ces dix-là, **jamais sur la ligne de bilan du script**, qui compte
-  aussi trois contrôles réclamés par des ADR et lira `8 au vert · 4 hors portée`
+  portée. L'assertion porte sur ces dix-là, **jamais sur la ligne de bilan du script**, qui ne compte
+  pas les mêmes objets : elle y ajoute trois contrôles réclamés par des ADR — deux au vert, un hors
+  portée — et dénombre des **états rapportés**, or `I3` en rapporte **deux** dès que `src/render/`
+  existe (`I3 (a)` le point d'entrée unique, `I3 (b)` les deux routes). Elle lira donc
+  `9 au vert · 4 hors portée` — une assertion écrite sur `8` échouerait à tort
   _Requirements: FR-009, SC-010_ ; bloqué par : T8
 
 ### Le sens des imports entre zones
@@ -189,8 +192,12 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   `.github/scripts/arch-invariants.sh`, et poser l'assertion d'ensemble que nulle section ne porte
   seule : **six** codes de sortie nuls sur le scaffold livré — build, typage, tests, lint,
   couverture, graphe d'imports — sans passer par la garde de scaffold. Critère d'acceptation : la
-  commande termine avec un code de sortie nul sur un dépôt propre
-  _Requirements: SC-002_ ; bloqué par : T3, T9, T10, T12, T13, T18, T20, T21, T24, T25, T30, T33, T40
+  commande termine avec un code de sortie nul sur un dépôt propre. La liste ci-dessous est
+  exactement celle des tâches dont l'assertion vit dans une de ces cinq étapes — `T5` et `T41` n'y
+  sont pas, la pièce datée du gel et la **déclaration** de `min-release-age` se constatant hors du
+  script, et `T6`, `T15` et `T16` non plus, qui portent sur les jobs d'intégration et sur
+  `docs/ci.md`
+  _Requirements: SC-002_ ; bloqué par : T3, T4, T9, T10, T12, T13, T14, T18, T20, T21, T24, T25, T29, T30, T32, T33, T40
 
 ---
 
@@ -216,6 +223,13 @@ Fichiers : `src/platform/d1/sonde-dev.ts`, `astro.config.ts` (injection de route
   ligne « Run local », qui n'existe pas, **et retirer** le paragraphe qui la suit — « Aucune commande
   de run local n'existe […] Elle se pose au scaffold, dans ce tableau » —, faux dès l'instant où la
   ligne existe _Requirements: FR-012_ ; bloqué par : T35
+- [ ] T43 — Assembler la 6ᵉ étape du script de vérification bout-en-bout, puis **rejouer le script
+  entier** sur l'arbre augmenté de ce lot — les cinq étapes de `R1` comprises. Critère
+  d'acceptation : la commande termine avec un code de sortie nul sur un dépôt propre. C'est ce
+  rejeu, et lui seul, qui porte le mode `inhérent` de ce lot : sans lui, `R2` déclarait une preuve
+  que nulle tâche ne produisait. Il atteste la nouvelle étape **et** que le fichier source ajouté
+  n'a fait retomber aucun contrôle de `R1` — sans que ce lot ait à reprendre un critère qui
+  appartient à `R1` _Requirements: FR-012, FR-024, SC-006_ ; bloqué par : T36
 
 ---
 
