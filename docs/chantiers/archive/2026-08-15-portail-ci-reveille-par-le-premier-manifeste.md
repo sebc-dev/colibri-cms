@@ -38,5 +38,5 @@ première exécution réelle de ce contrôle.
   pousser, ou re-déclencher ensuite.
 
 ## Contexte à charger
-à situer `docs/chantiers/en-attente/2026-08-15-garde-config-juge-par-commit.md` — le second défaut
-        trouvé en chemin, non corrigé : même famille, autre garde
+à situer `docs/chantiers/archive/2026-08-15-garde-config-juge-par-commit.md` — le second défaut
+        trouvé en chemin, même famille, autre garde ; corrigé le 2026-08-16 (PR #25)

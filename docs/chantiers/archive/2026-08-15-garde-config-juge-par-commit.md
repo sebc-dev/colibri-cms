@@ -21,14 +21,17 @@ mordra la prochaine PR qui mêle un changement de config et un changement de dé
   coïncide pas avec la portée du jugement. Le premier se voyait ; celui-ci se cache derrière une
   soupape.
 
-## Prochaine étape
-Décider laquelle des deux formes tient, puis l'appliquer dans `.github/workflows/ci.yml` § garde de
-la config qualité :
-- restreindre la condition au **diff du commit examiné** plutôt qu'au diff cumulé — le garde
-  redevient exact, mais chaque commit doit alors être jugé seul ;
-- ou admettre `build(deps):`, `chore(deps):` et `fix(deps):` dans la liste des scopes acceptés
-  quand le seul fichier de config touché par ce commit est `package.json` — plus étroit, ne
-  déplace pas la sémantique du garde.
+## Issue
+Fermé le 2026-08-16 — commit `c4bed39`, PR #25. `verifier_scopes` prend un motif de ligne en
+premier argument ; quand il est fourni, seuls les commits dont le diff **sur ces chemins** porte
+une ligne correspondante sont jugés. Le volet (a) passe `''` : y toucher **est** le fait surveillé.
+Le motif des scripts est défini une seule fois (`SCRIPTS_PORTAIL`) et sert à la condition d'entrée
+comme au filtre — deux copies auraient divergé.
+
+Vérifié par rejeu sur le diff réel de la PR #22 (`7552e44` → `f9a64a6`) : le volet (b) signalait
+`build(deps)` **et** `chore(scaffold)`, il ne signale plus que le second. Et sur un témoin
+synthétique à deux commits `build(deps):` — celui qui ne touche que les dépendances passe, celui
+qui modifie aussi le script `test` est signalé : le filtre n'ouvre aucune échappatoire.
 
 ## Écarté
 - **Élargir la liste des scopes acceptés sans condition** — un `build(deps):` pourrait alors
@@ -36,6 +39,11 @@ la config qualité :
 - **Compter sur le label** — la soupape est faite pour un cas exceptionnel déclaré, pas pour
   couvrir en permanence un faux positif ; l'employer ainsi éteint le contrôle au lieu de le
   réparer.
+- **Admettre les scopes `deps` quand le seul fichier de config touché est `package.json`** — la
+  seconde forme envisagée à l'ouverture, écartée à l'application : elle ajoutait une exception à la
+  liste des scopes là où le défaut était dans la **portée du jugement**. Le garde serait resté faux
+  — un commit sans scope, glissé dans une PR dont un autre commit touche les scripts, aurait
+  continué d'être signalé à tort.
 
 ## Contexte à charger
 à lire  `.github/workflows/ci.yml` § `quality-config-guard` — les ~25 lignes de `verifier_scopes`
