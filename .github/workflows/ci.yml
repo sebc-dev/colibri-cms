@@ -457,10 +457,28 @@ jobs:
                   ':(glob).claude/**')
           fail=0
 
+          # Le motif des scripts surveillés, défini UNE fois : il sert à la
+          # condition d'entrée du volet b ET au filtre par commit. Deux copies
+          # divergeraient, et la divergence rendrait le volet muet ou bavard.
+          SCRIPTS_PORTAIL='^[-+][[:space:]]*"(test|typecheck|lint|build|coverage|knip|mutation)"[[:space:]]*:'
+
           verifier_scopes() {
-            # $@ : pathspecs. Chaque commit qui touche ces chemins doit porter
-            # un scope explicite.
+            # $1  : motif de ligne (grep -E), ou '' pour juger tout commit qui
+            #       touche les pathspecs.
+            # $2+ : pathspecs.
+            #
+            # Le motif existe parce qu'une condition d'entrée calculée sur le
+            # DIFF CUMULÉ de la PR ne dit rien de CHAQUE commit. Sans lui, le
+            # volet b reprochait à un commit `build(deps):` — qui n'ajoute qu'un
+            # bloc `overrides` — des scripts écrits par un autre commit, et les
+            # deux gardes exigeaient alors du même commit deux scopes qu'il ne
+            # peut pas porter ensemble (`dependency-review` veut `build(deps):`).
+            local motif="$1"; shift
             for c in $(git log --format=%H "$BASE_SHA"..HEAD -- "$@"); do
+              if [ -n "$motif" ] \
+                 && ! git show --format= "$c" -- "$@" | grep -qE "$motif"; then
+                continue
+              fi
               msg=$(git log -1 --format=%s "$c")
               case "$msg" in
                 chore\(ci\):*|chore\(config\):*|build\(ci\):*|chore\(agent\):*) ;;
@@ -471,20 +489,22 @@ jobs:
             done
           }
 
-          # a. Les fichiers de configuration eux-mêmes.
+          # a. Les fichiers de configuration eux-mêmes. Aucun filtre : toucher
+          #    un de ces fichiers EST le fait surveillé, et les pathspecs du
+          #    jugement sont déjà ceux de la condition.
           if [ -n "$(git diff --name-only "$BASE_SHA"...HEAD -- "${CONFIG[@]}")" ]; then
-            verifier_scopes "${CONFIG[@]}"
+            verifier_scopes '' "${CONFIG[@]}"
           fi
 
           # b. Les scripts du portail dans package.json. Seules les lignes des
           #    commandes de contrôle sont surveillées : ajouter une dépendance
           #    touche package.json légitimement et ne doit pas faire de bruit.
           scripts_touches=$(git diff "$BASE_SHA"...HEAD -- ':(glob)package.json' ':(glob)**/package.json' \
-            | grep -E '^[-+][[:space:]]*"(test|typecheck|lint|build|coverage|knip|mutation)"[[:space:]]*:') || true
+            | grep -E "$SCRIPTS_PORTAIL") || true
           if [ -n "$scripts_touches" ]; then
             echo "Scripts du portail touchés :"
             echo "$scripts_touches"
-            verifier_scopes ':(glob)package.json' ':(glob)**/package.json'
+            verifier_scopes "$SCRIPTS_PORTAIL" ':(glob)package.json' ':(glob)**/package.json'
           fi
 
           exit $fail
