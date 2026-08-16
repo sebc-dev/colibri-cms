@@ -54,6 +54,7 @@ Ce tableau est la source unique. `CLAUDE.md` y renvoie, il ne le recopie pas.
 | Rôle | Commande | État |
 |---|---|---|
 | Installation | `npm ci` | Réelle — **jamais** `npm install` |
+| Run local | `npm run dev` (`astro dev`, liaisons D1 branchées via `wrangler.jsonc`) | **Réelle** — posée par `specs/001-scaffold-projet` (R2) ; sert la sonde `GET /_sonde` en développement seul (`FR-012`, `FR-024`) |
 | Build | `npm run build` | **Normative** — à honorer au scaffold |
 | Typage | `npm run typecheck` (`tsc --noEmit`, cf. [ADR-0010](./adr/0010-langage-typescript-strict.md)) | **Normative** |
 | Tests | `npm test` | **Normative** |
@@ -68,10 +69,6 @@ Ce tableau est la source unique. `CLAUDE.md` y renvoie, il ne le recopie pas.
 | SAST | `semgrep scan --config=p/typescript --config=p/javascript --config=p/owasp-top-ten` (image `1.172.0`) | Réelle |
 | Audit des workflows | `zizmorcore/zizmor-action@v0.6.2` (zizmor 1.29.0, hors ligne) | Réelle |
 | Graphe d'imports (invariants `I1`, `I3`) — job `boundaries` | `npm run lint:boundaries` — matrice `I1` **réelle** (`eslint-plugin-boundaries` sur `eslint-import-resolver-typescript`, règles dans `eslint.config.boundaries.js`) ; le reliquat d'`I3` qu'un contrôle littéral ne voit pas (ré-exports, barils, alias) reste `[à compléter]` | `I1` posée par `specs/001-scaffold-projet` (R1) · reliquat `I3` non posé |
-
-**Aucune commande de run local n'existe**, et ce n'est pas un oubli : la stack déploie un Worker
-bâti par Workers Builds, et rien de ce qui a été arbitré n'a fixé la commande de développement.
-Elle se pose au scaffold, dans ce tableau.
 
 **Le lockfile est committé et l'installation verrouillée.** Sans version figée, la SCA scannerait
 autre chose que ce qui sera installé : elle ne prouverait rien.
