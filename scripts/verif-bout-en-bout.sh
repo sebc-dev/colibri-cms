@@ -286,6 +286,83 @@ else
   ko "schéma inattendu : '$schema_tables' (attendu : '$attendu_tables')"
 fi
 
+# ─── Étape 6 — serveur de développement local et sonde D1 ──────────────────
+# FR-012, SC-006 : une seule commande (`npm run dev`) donne un serveur HTTP
+# local dont une route lit la base même que l'étape 5 vient de migrer.
+# FR-024 : cette route (src/platform/d1/sonde-dev.ts, injectée par
+# astro.config.ts uniquement quand `command === 'dev'`) ne doit exister
+# qu'en développement — jamais dans dist/.
+step "6. npm run dev, sonde /_sonde, puis absence dans dist/ (FR-012, FR-024, SC-006)"
+
+npm run dev >/tmp/verif-dev.$$ 2>&1 &
+dev_job=$!
+
+# FR-012 : le port 4321 est celui par défaut, mais pas celui garanti — astro
+# bascule sur le port suivant s'il est occupé (ex. par un serveur étranger),
+# et interroger 4321 en dur constaterait alors CE serveur-là, pas celui lancé
+# ici. Le constat s'ancre donc au fichier de verrou qu'`astro dev` écrit
+# lui-même (`.astro/dev.json`, champs `pid`, `port`, `url`) : le préambule a
+# fait `rm -rf .astro`, donc son apparition signale CE lancement.
+dev_lock=".astro/dev.json"
+dev_started=0
+for _ in $(seq 1 30); do
+  if [ -f "$dev_lock" ]; then
+    dev_started=1
+    break
+  fi
+  if ! kill -0 "$dev_job" 2>/dev/null; then
+    break
+  fi
+  sleep 1
+done
+
+sonde_body=""
+sonde_reached=0
+if [ "$dev_started" -eq 0 ]; then
+  ko "npm run dev n'a pas démarré de serveur (FR-012)"
+  sed 's/^/      /' /tmp/verif-dev.$$
+else
+  dev_url="$(node -e 'console.log(JSON.parse(require("fs").readFileSync(".astro/dev.json","utf-8")).url)')"
+
+  if sonde_body="$(curl -s -f "$dev_url/_sonde" 2>/dev/null)"; then
+    sonde_reached=1
+  fi
+
+  if [ "$sonde_reached" -eq 1 ] && [ "$sonde_body" = '{"n":1}' ]; then
+    ok "GET /_sonde répond {\"n\":1} — lit la base migrée par l'étape 5 (FR-012, SC-006)"
+  elif [ "$sonde_reached" -eq 1 ]; then
+    ko "GET /_sonde a répondu '$sonde_body' (attendu : '{\"n\":1}')"
+  else
+    ko "GET /_sonde n'a jamais répondu — le serveur de développement local n'est pas monté (FR-012)"
+  fi
+fi
+
+npx astro dev stop >/tmp/verif-dev-stop.$$ 2>&1
+wait "$dev_job" 2>/dev/null
+echo "$(cat /tmp/verif-dev.$$ /tmp/verif-dev-stop.$$ 2>/dev/null)" | sed 's/^/      /'
+rm -f /tmp/verif-dev.$$ /tmp/verif-dev-stop.$$
+
+# FR-024 : le répertoire de sortie du build (`dist/`, produit par l'étape 2
+# et jamais reconstruit depuis — `npm run dev` ne reconstruit rien) ne porte
+# aucune trace DÉRIVÉE de la sonde. `dist/server/entry.mjs` existe déjà
+# indépendamment de cette route — c'est l'entrée générique qu'`output:
+# 'server'` émet quel que soit le nombre de routes servies — son existence
+# seule ne signale donc rien ; le signal falsifiable est l'absence de tout
+# fichier ou de toute chaîne dérivés de `sonde-dev`. Mesuré : sans le garde
+# `command === 'dev'` d'astro.config.ts, un fichier
+# `dist/server/chunks/sonde-dev_*.mjs` apparaît et la chaîne `_sonde` se lit
+# dans `dist/server/entry.mjs` — ce contrôle détecte donc réellement la fuite
+# qu'il prétend détecter, pas seulement en apparence.
+if [ ! -d dist ]; then
+  ko "dist/ est absent au moment de l'étape 6 (attendu : produit par l'étape 2)"
+elif find dist -type f -iname '*sonde-dev*' -print -quit | grep -q .; then
+  ko "un fichier dérivé de sonde-dev.ts existe dans dist/ (FR-024)"
+elif grep -rq "_sonde" dist/ 2>/dev/null; then
+  ko "la chaîne _sonde apparaît dans dist/ (FR-024)"
+else
+  ok "aucun fichier dérivé de la sonde ni occurrence de _sonde dans dist/ (FR-024)"
+fi
+
 # ─── Bilan ───────────────────────────────────────────────────────────────────
 echo
 echo "── Bilan : ${n_ok} contrôle(s) au vert · $([ $fail -eq 0 ] && echo 0 || echo "${n_ko}") en échec"
