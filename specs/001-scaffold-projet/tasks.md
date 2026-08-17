@@ -211,19 +211,19 @@ Fichiers : `src/platform/d1/sonde-dev.ts`, `astro.config.ts` (injection de route
 > script, étapes 1 à 5 comprises : c'est ainsi que `FR-026` reste tenu sur l'arbre augmenté d'un
 > fichier source, sans que ce lot ait à reprendre un critère qui appartient à `R1`.
 
-- [ ] T34 — Poser la sonde de lecture de la base dans la zone `platform` et son injection de route
+- [x] T34 — Poser la sonde de lecture de la base dans la zone `platform` et son injection de route
   **conditionnée au seul mode développement** _Requirements: FR-012, FR-024_ ; dépend de : —
-- [ ] T35 — Vérif : la commande de run local démarre un serveur HTTP joignable sur la machine du
+- [x] T35 — Vérif : la commande de run local démarre un serveur HTTP joignable sur la machine du
   développeur, et sa route de sonde rend le résultat lu sur la base même que `T32` a migrée
   _Requirements: FR-012, SC-006_ ; bloqué par : T34
-- [ ] T36 — Vérif : la commande de build ne produit pas cette route — le répertoire de sortie ne
+- [x] T36 — Vérif : la commande de build ne produit pas cette route — le répertoire de sortie ne
   porte aucun fichier d'entrée serveur, et le nom de la sonde n'y apparaît nulle part ; constaté sur
   l'arbre même qui vient de servir `T35` _Requirements: FR-024_ ; bloqué par : T35
-- [ ] T37 — Reporter la commande de run local dans `docs/ci.md` § Commandes du projet : **créer** la
+- [x] T37 — Reporter la commande de run local dans `docs/ci.md` § Commandes du projet : **créer** la
   ligne « Run local », qui n'existe pas, **et retirer** le paragraphe qui la suit — « Aucune commande
   de run local n'existe […] Elle se pose au scaffold, dans ce tableau » —, faux dès l'instant où la
   ligne existe _Requirements: FR-012_ ; bloqué par : T35
-- [ ] T43 — Assembler la 6ᵉ étape du script de vérification bout-en-bout, puis **rejouer le script
+- [x] T43 — Assembler la 6ᵉ étape du script de vérification bout-en-bout, puis **rejouer le script
   entier** sur l'arbre augmenté de ce lot — les cinq étapes de `R1` comprises. Critère
   d'acceptation : la commande termine avec un code de sortie nul sur un dépôt propre. C'est ce
   rejeu, et lui seul, qui porte le mode `inhérent` de ce lot : sans lui, `R2` déclarait une preuve
