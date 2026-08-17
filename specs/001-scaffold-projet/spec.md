@@ -161,9 +161,10 @@ de compte Cloudflare ne soit présent.
   _(CLAUDE.md — gotcha `.npmrc` `min-release-age=7` ; ADR-0031 ; docs/ci.md — job
   `dependency-review`)_
 - **FR-002** : The system shall fournir une commande de build qui écrit le site bâti dans le
-  répertoire de sortie. _(PRD: FR-104, FR-105 ; docs/ci.md — Build ; ce lot ne produit **aucun**
-  module d'entrée serveur — la sonde vit hors de l'artefact (`FR-024`) — et la déployabilité réelle
-  est hors périmètre, voir « Aucun déploiement réel » ci-dessous)_
+  répertoire de sortie. _(PRD: FR-104, FR-105 ; docs/ci.md — Build ; l'artefact de ce lot porte un
+  module d'entrée serveur (`output: 'server'`), mais aucune trace de la sonde de développement —
+  elle vit hors de l'artefact (`FR-024`) — et la déployabilité réelle est hors périmètre, voir
+  « Aucun déploiement réel » ci-dessous)_
 - **FR-003** : When le code source contient une incohérence de type, the system shall faire échouer
   la commande de typage (code de sortie non nul). _(docs/ci.md — Typage)_
 - **FR-004** : The system shall fournir une commande qui exécute les tests automatisés du projet.

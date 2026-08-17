@@ -193,11 +193,13 @@ chemins relatifs.
 
 **Route de sonde** — `GET /_sonde` → `200`, `{"n": <entier>}`, le nombre de lignes de
 `d1_migrations`. **Injectée par `injectRoute` uniquement quand `command === 'dev'`.** *Mesuré* :
-elle répond `{"n":1}` en développement, et le build repasse à `0 page(s)` / 3 fichiers — elle est
-**absente de l'artefact**. `FR-024` fait de cette absence une exigence et non un effet de bord :
-la forme falsifiable retenue est **la double absence dans `dist/`** — aucun fichier d'entrée serveur
-(`dist/server/entry.mjs`), et aucune occurrence de la chaîne `_sonde`. C'est ce que l'étape 6
-vérifie, et c'est ce qui distingue ce plan de l'alternative écartée au point 4.
+elle répond `{"n":1}` en développement, et le build produit toujours `dist/server/entry.mjs` —
+`output: 'server'` l'émet **quel que soit** le nombre de routes servies (mesuré : `npm run build`
+produit **15 fichiers** sous `dist/`, `entry.mjs` compris, avec ou sans la sonde) : son existence
+ne signale donc rien. `FR-024` fait de l'absence de la sonde une exigence et non un effet de bord :
+la forme falsifiable retenue est **la double absence dans `dist/`** — aucun fichier dérivé de
+`sonde-dev.ts`, et aucune occurrence de la chaîne `_sonde`. C'est ce que l'étape 6 vérifie, et
+c'est ce qui distingue ce plan de l'alternative écartée au point 4.
 
 **Migrations** — `migrations/NNNN_nom.sql`, ordre numéroté. *Mesuré* : après `0001_amorce.sql`
 (`SELECT 1;`), `sqlite_master` ne porte que `d1_migrations`, `sqlite_sequence` et `_cf_METADATA` —
@@ -234,10 +236,12 @@ Ce n'est pas un détail de ce lot — c'est la porte d'entrée de toute la plate
 
 **4. La sonde est injectée en développement seulement.** Écarté : **une route sous
 `src/pages/api/public/`** — elle satisferait `I6` (le sous-arbre public est exempt du garde de
-session), mais *mesuré* : une route serveur sous `src/pages/` **entre dans l'artefact**
-(`dist/server/entry.mjs`, 17 fichiers au lieu de 3). Le produit livrerait une route serveur
-publique atteignable par un inconnu, contre `FR-097` — « l'envoi d'une demande DOIT être le seul
-geste d'un visiteur déclenchant un traitement serveur ». Écarté aussi : **prouver le HTTP et la base
+session), mais *mesuré* : une route serveur sous `src/pages/` **entre dans l'artefact** — un
+fichier dérivé de `sonde-dev.ts` apparaît sous `dist/server/chunks/` et la chaîne `_sonde` se lit
+dans `dist/server/entry.mjs`, là où le placement retenu ne laisse ni l'un ni l'autre. Le produit
+livrerait une route serveur publique atteignable par un inconnu, contre `FR-097` — « l'envoi
+d'une demande DOIT être le seul geste d'un visiteur déclenchant un traitement serveur ». Écarté
+aussi : **prouver le HTTP et la base
 séparément** — `FR-012` et `SC-006` demandent une *route* qui lit la base, pas deux preuves à côté.
 
 **5. Ni Svelte ni les greffons ESLint `.astro`/`.svelte` ne sont installés.** Ce lot ne pose aucun
@@ -358,10 +362,10 @@ Il enchaîne, et refuse au premier écart :
    cette distinction que la spec porte désormais, une assertion écrite sur « les seules tables du
    mécanisme de migration » échouerait contre cette mesure).
 6. *(écrite par `R2`)* `npm run dev`, puis `curl /_sonde` → `{"n":1}`, puis `astro dev stop`
-   (`SC-006`) — **et, immédiatement après, la double absence dans le `dist/` de l'étape 1** : pas de
-   `dist/server/entry.mjs`, aucune occurrence de `_sonde` sous `dist/` (`FR-024`, scénario 3
-   d'`US3`). Les deux moitiés sont dans la même étape **à dessein** : « la route répond » et « la
-   route n'est pas livrée » ne valent que constatées ensemble, sur le même arbre.
+   (`SC-006`) — **et, immédiatement après, la double absence dans le `dist/` de l'étape 1** : aucun
+   fichier dérivé de `sonde-dev.ts`, aucune occurrence de `_sonde` sous `dist/` (`FR-024`,
+   scénario 3 d'`US3`). Les deux moitiés sont dans la même étape **à dessein** : « la route
+   répond » et « la route n'est pas livrée » ne valent que constatées ensemble, sur le même arbre.
 
 **`SC-009` n'entre pas dans ce script, et sa pièce a un domicile.** C'est une pièce datée, produite
 une fois — elle démontre le **comportement** de `FR-019`, c'est-à-dire la résolution à l'**ajout**
