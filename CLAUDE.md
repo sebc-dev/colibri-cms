@@ -67,13 +67,17 @@
 - `test-integrity` (bloquant) refuse sans appel tout `.skip(`/`.only(`/`.todo(`/`.fixme(`/`xit(`/
   `xdescribe(` ajouté à un test. Supprimer ou affaiblir un test reste possible mais exige un
   commit signé.
+- `specs-integrity` (bloquant) exige un commit signé pour toute modification de
+  `specs/**/spec.md` et `specs/**/plan.md`, et pour toute ligne de `specs/**/tasks.md` **autre
+  qu'une case** (`- [ ]` ↔ `- [x]`, libres) — ne jamais réécrire une exigence pour la faire
+  correspondre au code écrit ; c'est la cible qu'on déplacerait, pas le code qu'on corrigerait.
 - `lint`, `coverage`, `sast`, `arch-invariants`, `boundaries` sont **informatifs**, pas bloquants
   aujourd'hui (voir chantier de durcissement CI) — un rouge ne bloque pas la PR ; ne pas les
   traiter comme une garantie.
 - `boundaries` (invariants `I1`/`I3`, graphe d'imports) n'est pas encore posé — `docs/ci.md` le
   déclare `[à compléter]`, c'est un trou de la phase `ci`, pas à inventer ici.
 - Merge GitHub en mode `merge` uniquement — jamais squash/rebase dans l'UI : ça casserait la
-  chaîne de signature dont dépendent `verifier-guard` et `test-integrity`.
+  chaîne de signature dont dépendent `verifier-guard`, `specs-integrity` et `test-integrity`.
 - Un seul Worker sert le site public et l'administration (même origine) : tout script tiers
   chargé n'importe où est un risque XSS same-origin contre le cookie de session admin.
 - Médias : JPEG/PNG/WebP seuls, reconnus sur les octets d'en-tête (jamais l'extension ni le
