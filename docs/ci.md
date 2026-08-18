@@ -609,22 +609,23 @@ build · test · sca · dependency-review · secrets · workflow-integrity
 test-integrity · quality-config-guard · verifier-guard · specs-integrity
 ```
 
-### État : **POSÉE, en retard d'un contexte depuis le 2026-08-18**
+### État : **POSÉE et à jour — reprise le 2026-08-18**
 
 Le ruleset `Main protect`, id `20239278`, est `enforcement: active`, `bypass_actors: []`,
-`current_user_can_bypass: "never"`, `allowed_merge_methods: ["merge"]`. Sa pose est vérifiée : la
-commande de reprise est passée le **2026-08-14**, et sa vérification a été rejouée dans la foulée.
+`current_user_can_bypass: "never"`, `allowed_merge_methods: ["merge"]`,
+`strict_required_status_checks_policy: true`, et ses **dix** contextes requis sont exactement ceux
+ci-dessus. La commande a été rejouée le **2026-08-18** pour y porter `specs-integrity`, et sa
+vérification l'a suivie dans la foulée.
 
-> ⚠️ **Ses contextes requis sont les neuf du 2026-08-14, et la liste ci-dessus en compte dix.**
-> `specs-integrity` est né le 2026-08-18 : le job **tourne**, il n'est **pas exigé**, donc son rouge
-> n'empêche aujourd'hui aucun merge. Écrire le job et le rendre bloquant sont **deux gestes**, et
-> c'est précisément le piège que ce § documente par ailleurs, pris par l'autre bout — un job sans
-> contexte est silencieux là où un contexte sans job est éternellement `pending`. La sortie est de
-> **rejouer la commande ci-dessous**, qui porte déjà les dix, puis sa vérification.
+> **Écrire un garde et le rendre bloquant sont deux gestes**, et le second s'oublie sans bruit. Le
+> 2026-08-18, `specs-integrity` a tourné vert sur la PR qui l'apportait alors que le ruleset ne
+> l'exigeait pas encore : il ne bloquait rien. C'est le piège de ce § pris par l'autre bout — un
+> contexte sans job reste éternellement `pending` et **se voit** ; un job sans contexte est
+> silencieux et **ne se voit pas**. Tout garde ajouté à `ci.yml` se termine donc ici.
 
-**Ce qu'elle a corrigé, et pourquoi ce n'était pas cosmétique.** Le ruleset avait été posé pour le
-socle v1 ; six de ses contextes correspondaient encore aux jobs de ce portail, **trois portaient
-les anciens noms** :
+**Ce que la reprise du 2026-08-14 avait corrigé, et pourquoi ce n'était pas cosmétique.** Le ruleset
+avait été posé pour le socle v1 ; six de ses contextes correspondaient encore aux jobs de ce
+portail, **trois portaient les anciens noms** :
 
 | Contexte exigé (v1) | Job de ce portail |
 |---|---|
