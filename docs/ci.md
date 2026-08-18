@@ -84,7 +84,7 @@ contrôle existant, ni qu'un mode n'est couvert par rien.
 | # | Mode | Ce qui se passe |
 |---|---|---|
 | 1 | **Oracle faux** | le test passe, mais son assertion vérifie la mauvaise chose |
-| 2 | **Suppression du vérificateur** | l'agent n'écrit pas du code qui échoue au typage : il **éteint le typage** sur la ligne qui échoue |
+| 2 | **Suppression du vérificateur** | l'agent ne casse pas le contrôle, il le **débranche** : il éteint le typage sur la ligne qui échoue, ou il **réécrit l'exigence** contre laquelle son code est jugé |
 | 3 | **Chaîne d'approvisionnement** | (a) paquet halluciné puis enregistré par un tiers · (b) paquet hostile trop récent pour une base de CVE · (c) lockfile altéré · (d) action CI compromise par déplacement de tag |
 | 4 | **Building to the test** | la logique vit dans un artefact jetable et l'artefact demandé reste mort |
 | 5 | **Violation d'invariant d'architecture** | le code est correct en général et viole une décision propre à ce projet |
@@ -109,6 +109,7 @@ vise.
 | 7 | `test-integrity` | Intégrité des tests | diff des tests | **Bloquant** | 2 — dans les tests |
 | 8 | `quality-config-guard` | Config qualité et fichiers d'agent figés | diff de la config | **Bloquant** | 2 — par la config |
 | 9 | `verifier-guard` | Extinction du vérificateur, sous signature | diff des **sources** | **Bloquant** | 2 — typage, lint et SAST éteints ligne à ligne |
+| 10 | `specs-integrity` | Documents de specs figés, sous signature | diff de `specs/**` — `spec.md`, `plan.md`, `tasks.md` | **Bloquant** | 2 — la **cible** réécrite pour correspondre au code |
 | — | `lint` | Style | dépôt (garde de scaffold) | Informatif | **vérificateur** — cible du mode 2 (lisibilité) |
 | — | `coverage` | Couverture du **code nouveau**, sans seuil chiffré | diff | Informatif | **vérificateur** — mesure l'exécution, **jamais l'assertion** |
 | — | `sast` | Semgrep | dépôt | Informatif | **vérificateur** — cible du mode 2 (injection, XSS, traversée) |
@@ -118,7 +119,7 @@ vise.
 | — | `mutation` | Stryker (**nocturne**) | code nouveau | Informatif | 1 — **statistiquement**, jamais prouvé |
 | — | — (résolveur) | Cooldown de dépendances, `min-release-age = 7` dans `.npmrc` | installation | **Bloquant (déclaratif)** | 3a, 3b |
 
-**9 bloquants · 5 informatifs sur PR · 2 informatifs nocturnes.**
+**10 bloquants · 5 informatifs sur PR · 2 informatifs nocturnes.**
 
 La dernière ligne n'est pas un job : c'est une **clé de configuration** du résolveur, elle agit à
 l'installation, et son abaissement est gardé par `dependency-review` **et** par
@@ -143,16 +144,16 @@ qu'il traverse. Et le seuil, quand il viendra, portera sur le **code nouveau** :
 de couverture **globale** est un anti-pattern qui échoue indéfiniment sur du legacy et pousse à
 écrire des tests sans valeur — ce qui aggrave précisément le problème d'oracles faux.
 
-**Les neuf bloquants échappent à cette règle.** `build` et `test` en sortent d'emblée : ce sont des
-vérificateurs, pas des détecteurs — ils n'ont pas de faux positifs, ils ont des échecs. Les sept
+**Les dix bloquants échappent à cette règle.** `build` et `test` en sortent d'emblée : ce sont des
+vérificateurs, pas des détecteurs — ils n'ont pas de faux positifs, ils ont des échecs. Les huit
 autres y échappent par deux voies distinctes, qu'il vaut mieux ne pas confondre — sans quoi la
 règle paraîtrait valoir pour les uns et pas pour les autres, sans motif.
 
 **Ceux dont le signal n'est pas une heuristique.** `test-integrity`, `quality-config-guard`,
-`verifier-guard` et `dependency-review` ne mesurent rien : c'est un `git diff`, une comparaison
-d'entier, une clé lue dans un fichier ou une vérification de signature. Le taux de faux positifs
-n'est pas « inconnu », il est **nul par construction** — ou alors le contrôle a un défaut, pas un
-bruit.
+`verifier-guard`, `specs-integrity` et `dependency-review` ne mesurent rien : c'est un `git diff`,
+une comparaison d'entier, une clé lue dans un fichier, une comparaison de lignes ou une
+vérification de signature. Le taux de faux positifs n'est pas « inconnu », il est **nul par
+construction** — ou alors le contrôle a un défaut, pas un bruit.
 
 **Ceux dont le mode de restitution élimine le faux positif à la source.** `sca`, `secrets` et
 `workflow-integrity` sont bien des détecteurs, mais aucun ne rend une appréciation. `secrets` ne
@@ -233,7 +234,7 @@ limite de débit, donc pas de rouge intermittent.
 
 ---
 
-## Les trois gardes d'intégrité — le mode 2, réparti par chemin
+## Les quatre gardes d'intégrité — le mode 2, réparti par chemin
 
 Ils ne dépendent pas de l'écosystème : ce sont des `git diff` sur des chemins. Ils visent l'agent,
 pas le code qu'il écrit. La répartition n'est pas cosmétique — c'est elle qui maintient le taux de
@@ -380,6 +381,66 @@ combler un oubli : l'écart entre la propriété visée et ce que la machine peu
 **Le mode de défaillance reste sûr.** Sans signature valide, `verifier-guard` refuse. L'erreur
 possible est qu'il accepte une signature que l'agent aurait pu produire — jamais qu'il laisse passer
 une extinction non signée.
+
+---
+
+## `specs-integrity` — la même soupape, sur ce contre quoi le code est jugé
+
+**Le mode de défaillance.** C'est le mode 2 sur un quatrième chemin, et le seul où le vérificateur
+n'est pas un outil mais un **texte**. `spec.md` porte les exigences contre lesquelles le code est
+jugé ; `plan.md`, l'approche qu'il doit suivre. Un agent qui les réécrit pour qu'elles décrivent ce
+qu'il vient de coder ne casse aucun contrôle et n'éteint aucun outil : il **déplace la cible**, et
+tout redevient vert — build, tests, lint compris. La trace est un commit `docs(specs):` d'apparence
+ordinaire au milieu d'une PR d'implémentation.
+
+**Chemins surveillés**, globs **normatifs** comme ceux de `test-integrity` — un document de specs
+écrit ailleurs échappe au contrôle :
+
+| Chemin | Régime |
+|---|---|
+| `specs/**/spec.md`, `specs/**/plan.md` | **signature toujours** — aucune exception |
+| `specs/**/tasks.md` | **l'état des cases est libre** ; toute autre ligne sous signature |
+
+**La soupape est la signature**, pour la raison déjà écrite au § précédent et qu'on ne réécrit pas
+ici : un agent écrit `docs(specs):` aussi facilement qu'il écrit `as any`. La vérification passe par
+le même script partagé, `.github/scripts/verify-signed-commits.sh`, et la fermeture par défaut est
+la même — base indéterminable ou registre absent valent refus.
+
+**Pourquoi l'exception sur les cases, et pourquoi elle ne s'élargit pas.** Elle est **mesurée** :
+sur le commit du lot `R2`, `tasks.md` ne change que par des lignes `- [ ]` → `- [x]`. Or
+`progress-recorder` coche à chaque lot, sans surveillance humaine et sans pouvoir signer — sans
+cette exception, **tout run d'implémentation était bloqué**, ce qui aurait fait retirer le garde
+plutôt que cocher à la main.
+
+Ce qui la borne : les deux côtés du diff sont comparés **marqueur de case neutralisé**. Si les
+lignes retirées et les lignes ajoutées coïncident une fois `[ ]` et `[x]` rendus identiques, seul
+l'état des cases a bougé. Une case cochée **en même temps** qu'un texte de tâche réécrit rompt
+l'égalité et retombe sous signature. Ce n'est donc pas un grep sur `- [x]`, qui laisserait passer la
+réécriture accompagnée d'une coche.
+
+**Le jugement est commit par commit, jamais sur le diff net** — même leçon que
+`quality-config-guard` : une réécriture suivie d'un rétablissement ne laisse aucun diff net et doit
+rougir quand même.
+
+**Dépendance à `verifier-guard`, à ne pas perdre de vue.** Ce job **ne revérifie pas le registre de
+clés**, et il n'a pas à le faire : le contrôle 1 de `verifier-guard` se déclenche dès que
+`.github/allowed_signers` est **touché**, quel que soit le diff par ailleurs, donc l'agent qui s'y
+ajoute pour signer ses propres commits de specs échoue là-bas. Cette économie **tient à ce que
+`verifier-guard` reste bloquant** : le jour où il cesserait de l'être, ce job deviendrait sourd à ce
+scénario et le contrôle 1 serait à y rapatrier à l'identique.
+
+### Ce que ce garde ne prouve pas
+
+- **Un commit de specs signé ne survit pas à un rebase**, et le workflow d'implémentation en joue un
+  à chaque lot : les SHA changent, les signatures tombent. Le chemin courant n'est pas touché — ce
+  qui traverse une branche de lot, ce sont les coches de `progress-recorder`, précisément exemptées.
+  Mais un commit `spec.md` rebasé rougirait pour une raison **étrangère à son contenu**. La sortie
+  est de re-signer après rebase, jamais d'assouplir le garde ; c'est le même motif qui réduit
+  `allowed_merge_methods` à `["merge"]` au § Protection de branche.
+- **Une signature prouve un geste, pas une lecture** — limite déjà posée au § précédent, qui vaut
+  telle quelle ici et ne se revend pas pour autre chose.
+- **Le garde ne juge que `base..HEAD` d'une PR.** Les documents de specs déjà sur `main` sont
+  antérieurs à l'exigence et non signés : c'est leur état, pas une dette que ce job réclamerait.
 
 ---
 
@@ -545,15 +606,21 @@ Checks requis, à l'identique des noms de jobs :
 
 ```
 build · test · sca · dependency-review · secrets · workflow-integrity
-test-integrity · quality-config-guard · verifier-guard
+test-integrity · quality-config-guard · verifier-guard · specs-integrity
 ```
 
-### État : **POSÉE et à jour — reprise le 2026-08-14**
+### État : **POSÉE, en retard d'un contexte depuis le 2026-08-18**
 
 Le ruleset `Main protect`, id `20239278`, est `enforcement: active`, `bypass_actors: []`,
-`current_user_can_bypass: "never"`, `allowed_merge_methods: ["merge"]`, et ses **neuf** contextes
-requis sont exactement ceux ci-dessus. La commande de reprise est passée le **2026-08-14**, et sa
-vérification a été rejouée dans la foulée.
+`current_user_can_bypass: "never"`, `allowed_merge_methods: ["merge"]`. Sa pose est vérifiée : la
+commande de reprise est passée le **2026-08-14**, et sa vérification a été rejouée dans la foulée.
+
+> ⚠️ **Ses contextes requis sont les neuf du 2026-08-14, et la liste ci-dessus en compte dix.**
+> `specs-integrity` est né le 2026-08-18 : le job **tourne**, il n'est **pas exigé**, donc son rouge
+> n'empêche aujourd'hui aucun merge. Écrire le job et le rendre bloquant sont **deux gestes**, et
+> c'est précisément le piège que ce § documente par ailleurs, pris par l'autre bout — un job sans
+> contexte est silencieux là où un contexte sans job est éternellement `pending`. La sortie est de
+> **rejouer la commande ci-dessous**, qui porte déjà les dix, puis sa vérification.
 
 **Ce qu'elle a corrigé, et pourquoi ce n'était pas cosmétique.** Le ruleset avait été posé pour le
 socle v1 ; six de ses contextes correspondaient encore aux jobs de ce portail, **trois portaient
@@ -606,7 +673,8 @@ gh api -X PUT repos/sebc-dev/colibri-cms/rulesets/20239278 \
           { "context": "workflow-integrity" },
           { "context": "test-integrity" },
           { "context": "quality-config-guard" },
-          { "context": "verifier-guard" }
+          { "context": "verifier-guard" },
+          { "context": "specs-integrity" }
         ] } }
   ]
 }
@@ -620,7 +688,8 @@ gh api repos/sebc-dev/colibri-cms/rulesets/20239278 \
   --jq '[.rules[] | select(.type=="required_status_checks")
          | .parameters.required_status_checks[].context] | sort'
 # attendu : ["build","dependency-review","quality-config-guard","sca","secrets",
-#            "test","test-integrity","verifier-guard","workflow-integrity"]
+#            "specs-integrity","test","test-integrity","verifier-guard",
+#            "workflow-integrity"]
 ```
 
 **Sans ce ruleset, tout ce document serait informatif** : c'est lui, et lui seul, qui fait refuser.
@@ -641,8 +710,9 @@ la lecture.
 
 > **Ce qui n'est délibérément pas posé : `required_signatures`.** Le ruleset sait exiger que **tous**
 > les commits soient signés. Ce n'est pas ce qu'on veut : l'agent ne pourrait plus commiter du tout.
-> L'exigence de signature est portée par `verifier-guard` et par le régime B de `test-integrity`, et
-> ne s'applique qu'aux commits qui éteignent un vérificateur ou allègent un oracle.
+> L'exigence de signature est portée par `verifier-guard`, par `specs-integrity` et par le régime B
+> de `test-integrity`, et ne s'applique qu'aux commits qui éteignent un vérificateur, allègent un
+> oracle ou réécrivent une exigence.
 
 ---
 
@@ -760,7 +830,7 @@ l'ablation no-op elle-même n'est pas posée : aucune commande réelle ne l'expr
 - **Les soupapes par scope et par label ne résistent pas à un agent.** Un scope s'écrit ; un label
   se pose par l'API avec une portée `repo`, que le jeton d'un agent porte couramment. Elles rendent
   le changement **visible**, jamais **impossible**. C'est assumé pour de la configuration, et c'est
-  exactement pourquoi `verifier-guard` exige une signature.
+  exactement pourquoi `verifier-guard` et `specs-integrity` exigent une signature.
 - **Les invariants du produit.** `SC-011` (réversibilité), `SC-012` (révocation des accès) et
   `SC-014` (passation) sont des **procédures dont la sortie est une pièce datée**. Elles ne se
   jouent pas à chaque commit ; entre deux exécutions, une régression sur ces promesses n'est
