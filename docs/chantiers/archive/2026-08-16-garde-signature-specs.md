@@ -44,6 +44,27 @@ de `verifier-guard`.
 § « Les trois gardes d'intégrité », dont le titre, le tableau des contrôles et la grille des cinq
 modes sont à corriger avec — ils en comptent trois. Commit `chore(ci):`.
 
+## Issue
+Fermé le 2026-08-18 — commit `b984aee`, PR #28. Le job `specs-integrity` est dans `ci.yml` sur le
+patron de `verifier-guard` : fermeture par défaut si la base est introuvable, boucle commit par
+commit, globs normatifs, appel de `verify-signed-commits.sh` sur les seuls commits fautifs. Les
+deux régimes annoncés y sont — `spec.md`/`plan.md` sans exception, `tasks.md` jugé sur un diff dont
+le marqueur de case est neutralisé des deux côtés : si les lignes retirées et ajoutées coïncident
+alors, seul l'état des cases a bougé, et une case cochée en même temps qu'un libellé réécrit rompt
+l'égalité et retombe sous signature.
+
+Côté document, `docs/ci.md` gagne son § « `specs-integrity` — la même soupape, sur ce contre quoi
+le code est jugé », et les trois endroits qui comptaient à trois ont été corrigés : le titre
+(« Les **quatre** gardes d'intégrité »), le tableau des contrôles (ligne 10) et la grille des cinq
+modes, dont le mode 2 dit désormais « ou il **réécrit l'exigence** contre laquelle son code est
+jugé ». La dépendance à `verifier-guard` pour le contrôle du registre de clés est écrite, comme
+l'Acquis l'exigeait.
+
+**Écrire un garde et le rendre bloquant sont deux gestes.** Le job a tourné vert sur la PR qui
+l'apportait alors que le ruleset ne l'exigeait pas encore — il ne bloquait rien. Le ruleset
+`Main protect` a été repris le jour même et porte ses **dix** contextes requis, `specs-integrity`
+compris ; `66f23b7` en est le constat au document.
+
 ## Écarté
 - **Un hook `PreToolUse` sur `specs/`** — `/scd-sdd:specify` et `/scd-sdd:plan` y écrivent
   légitimement, avec les mêmes outils, dans la même session ; un hook voit le chemin, jamais la
