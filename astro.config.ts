@@ -1,7 +1,28 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
+import type { AstroIntegration } from 'astro';
 import cloudflare from '@astrojs/cloudflare';
+
+// FR-012, FR-024 (plan § décision 4) : la route de sonde (`src/platform/d1/
+// sonde-dev.ts`) ne doit exister qu'en développement — jamais dans
+// l'artefact bâti. `injectRoute` conditionné à `command === 'dev'` est ce
+// qui tient cette frontière : en `build`, l'intégration ne fait rien.
+function sondeDev(): AstroIntegration {
+  return {
+    name: 'sonde-dev',
+    hooks: {
+      'astro:config:setup': ({ command, injectRoute }) => {
+        if (command !== 'dev') return;
+        injectRoute({
+          pattern: '/_sonde',
+          entrypoint: './src/platform/d1/sonde-dev.ts',
+          prerender: false,
+        });
+      },
+    },
+  };
+}
 
 // I10 (docs/archi.md) : la configuration Astro lit instance.json au moment où
 // elle s'évalue, sans outil intermédiaire — c'est le seul porteur de cet
@@ -35,4 +56,5 @@ export default defineConfig({
     layout: 'constrained',
     breakpoints: [640, 960, 1280],
   },
+  integrations: [sondeDev()],
 });
