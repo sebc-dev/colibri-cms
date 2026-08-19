@@ -20,7 +20,7 @@
 - Typage : `npm run typecheck`
 - Test (unitaire) : `npm test`   # préférer un seul test, pas toute la suite
 - Lint/format : `npm run lint`        # SOURCE DE VÉRITÉ du style — ne pas documenter les règles ici
-- Run local : aucune commande retenue à ce jour — se pose au scaffold (`docs/ci.md`)
+- Run local : `npm run dev`   # `astro dev`, liaisons D1 branchées via `wrangler.jsonc`
 
 ## Conventions qui diffèrent des défauts du langage
 - Commit touchant la config qualité (`eslint.config.*`, `tsconfig*.json`, `.npmrc`,
@@ -48,18 +48,19 @@
   l'éditrice — elle n'a aucune notion technique (FR-117).
 
 ## Definition of Done (une tâche n'est "done" que si)
-- [ ] Build + typage strict passent (`npm run build`) — **bloquant**, job `build`
+- [ ] Build + typage strict passent (`npm run typecheck` **puis** `npm run build` — `astro build`
+      seul ne type pas) — **bloquant**, job `build`
 - [ ] Tests passent (`npm test`) — **bloquant**, job `test`
 - [ ] Lint propre (`npm run lint`) — **advisory** : job `lint` informatif, pas bloquant à ce jour
 - [ ] Rien hors périmètre de la tâche n'a été modifié — **advisory**, aucun contrôle CI ne le vérifie
 - [ ] Preuve fournie (sortie de commande réelle), pas seulement "ça a l'air fait" — **advisory**
 
 ## Gotchas / comportements non-évidents
-- Le dépôt ne porte encore aucun code : les jobs CI (`build`, `test`, `lint`…) passent au vert par
-  garde de scaffold tant qu'aucun `package.json` n'existe — un vert ne prouve rien avant le
-  premier scaffold.
-- `.npmrc` devra porter `min-release-age=7` au scaffold (voir `docs/ci.md`) : une dépendance
-  publiée il y a moins de 7 jours sera inutilisable. L'assouplir exigera un commit
+- Le dépôt ne porte **aucun fichier de test** : `npm test` passe au vert par `--passWithNoTests` et
+  `npm run coverage` produit un `coverage/lcov.info` de 0 octet. Le vert de `test` et de `coverage`
+  n'atteste que l'existence du script, jamais qu'une assertion a tourné.
+- `.npmrc` porte `min-release-age=7` (voir `docs/ci.md`) : une dépendance publiée il y a moins de
+  7 jours est inutilisable à la résolution. L'assouplir exige un commit
   `chore(config):` (ou label `config-change`), jamais en silence.
 - `verifier-guard` (bloquant) refuse tout `@ts-ignore`, `eslint-disable`, `as any`, `catch {}`
   vide, `nosemgrep`… non accompagné d'un commit signé SSH (clé dans `.github/allowed_signers`) —
@@ -74,8 +75,10 @@
 - `lint`, `coverage`, `sast`, `arch-invariants`, `boundaries` sont **informatifs**, pas bloquants
   aujourd'hui (voir chantier de durcissement CI) — un rouge ne bloque pas la PR ; ne pas les
   traiter comme une garantie.
-- `boundaries` (invariants `I1`/`I3`, graphe d'imports) n'est pas encore posé — `docs/ci.md` le
-  déclare `[à compléter]`, c'est un trou de la phase `ci`, pas à inventer ici.
+- `boundaries` (graphe d'imports) est posé pour la matrice `I1` **seule** — `npm run lint:boundaries`,
+  règles dans `eslint.config.boundaries.js`. Le reliquat d'`I3` qu'un contrôle littéral ne voit pas
+  (ré-exports, barils, alias) reste `[à compléter]` dans `docs/ci.md` : trou de la phase `ci`, pas à
+  inventer ici.
 - Merge GitHub en mode `merge` uniquement — jamais squash/rebase dans l'UI : ça casserait la
   chaîne de signature dont dépendent `verifier-guard`, `specs-integrity` et `test-integrity`.
 - Un seul Worker sert le site public et l'administration (même origine) : tout script tiers
@@ -84,9 +87,6 @@
   Content-Type) ; SVG refusé.
 - Publication GitHub en écriture additive stricte (`force: false`), sauf l'élagage de la branche
   `media` — seul `force: true`, calculé depuis D1 et jamais depuis ce qui est lu sur la branche.
-
-## Renvois (divulgation progressive — ne PAS inliner)
-<!-- Vide au premier assemblage : aucun skill ni rule propre au projet pour l'instant. -->
 
 # IMPORTANT
 - YOU MUST montrer la preuve (sortie de commande) au lieu d'affirmer le succès.
