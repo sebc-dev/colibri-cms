@@ -7,7 +7,10 @@
 #
 # Bloquants   : build · test · sca · secrets · dependency-review
 #               workflow-integrity · test-integrity · quality-config-guard
-#               verifier-guard
+#               verifier-guard · specs-integrity
+#               (DIX — le même compte que les dix contextes requis du ruleset
+#                et que le § Contrôles de docs/ci.md ; tout garde ajouté ici
+#                se termine dans le ruleset, sinon il ne bloque rien)
 # Informatifs : lint · coverage · sast · arch-invariants · boundaries
 #               (ils annotent la PR, ils ne sont pas exigés — aucun
 #                continue-on-error ne vient masquer leur signal)
@@ -16,10 +19,13 @@
 # DIGEST : un tag est mobile et peut être repointé sous le même nom.
 # `workflow-integrity` (zizmor) refuse toute référence mobile.
 #
-# GARDE DE SCAFFOLD : le dépôt ne porte encore aucun code. Les jobs qui en
-# dépendent testent la présence de package.json et se déclarent HORS PORTÉE
-# tant qu'il n'existe pas. Ils passent alors AU VERT SANS RIEN VÉRIFIER —
-# c'est un coût assumé et déclaré (docs/ci.md § L'état du dépôt), pas un oubli.
+# GARDE DE SCAFFOLD : DORMANTE depuis le 2026-08-15. package.json existe, donc
+# les cinq jobs qui la portent — lint · boundaries · build · test · coverage —
+# entrent en portée et exécutent réellement leur commande. Le mécanisme reste
+# en place : il redeviendrait actif sur un arbre sans package.json.
+# CE QUI L'A REMPLACÉE SE VOIT MOINS BIEN : le dépôt ne porte aucun fichier de
+# test, donc `test` et `coverage` sont verts sans rien vérifier. Coût assumé et
+# daté (docs/ci.md § L'état du dépôt), pas un oubli.
 
 name: CI
 
