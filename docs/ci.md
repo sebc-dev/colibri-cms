@@ -4,6 +4,7 @@
 |---|---|
 | **Statut** | Actif |
 | **Date** | 2026-08-14 |
+| **Amendé** | 2026-08-19 — lot A du traitement de l'audit `ci` (2 Critical, 4 Major) : le document décrivait l'avant-scaffold, le dépôt porte du code depuis le 2026-08-15 |
 | **Trace vers** | [Stack](./stack.md) · [Archi](./archi.md) · [ADR](./adr/) |
 | **Forge** | GitHub Actions — `.github/workflows/ci.yml` · `.github/workflows/nightly.yml` |
 | **Consommé par** | `CLAUDE.md` (phase `contract`), qui lit ses commandes ici plutôt que de les inventer |
@@ -22,28 +23,42 @@
 
 ## L'état du dépôt au moment où cette phase est jouée
 
-**Le dépôt ne porte aucun code** : ni `package.json`, ni `package-lock.json`, ni source. Il ne
-porte que le socle documentaire, `.github/allowed_signers` et, désormais, ce portail.
+> **Ce § est daté et se relit à chaque reprise.** Il ne décrit pas l'état du dépôt pour le plaisir :
+> il porte l'écart entre ce que la CI **dit** vérifier et ce qu'elle vérifie **réellement**, et cet
+> écart ne se lit nulle part ailleurs.
 
-Deux conséquences, toutes deux assumées :
+**Le dépôt porte du code depuis le 2026-08-15** (commit `27895a4`), posé par
+`specs/001-scaffold-projet` dont les deux lots — `R1` et `R2` — sont livrés : `package.json`,
+`package-lock.json`, `.npmrc`, les configurations (`astro.config.ts`, `tsconfig.json`,
+`vitest.config.ts`, `eslint.config.js`, `eslint.config.boundaries.js`, `knip.json`,
+`stryker.conf.json`, `wrangler.jsonc`), `instance.json`, la migration
+`migrations/0001_amorce.sql`, et les cinq zones de `docs/archi.md` amorcées sous `src/`.
 
-1. Les commandes du tableau ci-dessous sont **normatives, pas constatées** : elles fixent les noms
-   de scripts que le scaffold devra honorer. Le premier commit de code qui ne les fournit pas fera
-   échouer `build` ou `test` — c'est l'effet recherché.
-2. Les jobs qui en dépendent portent une **garde de scaffold** : ils testent la présence de
-   `package.json` et se déclarent hors portée tant qu'il n'existe pas. **Ils passent alors au vert
-   sans rien vérifier.** C'est un mensonge par construction, borné dans le temps, et il est écrit
-   ici pour qu'il ne soit pris pour une garantie par personne.
+Trois conséquences, et seule la dernière reste inconfortable :
 
-**Le gestionnaire de paquets retenu est `npm`**, arbitré le 2026-08-14 : `docs/stack.md` ne le
-tranche pas, et ce choix décide d'un contrôle entier — le cooldown de dépendances est une clé du
-résolveur, pas un job. Trois faits mesurés sur la machine de développement le 2026-08-14 :
-`npm 11.16.0` est présent et porte nativement `min-release-age` (en **jours**, `npm config ls -l` ;
-documentation embarquée `docs/content/using-npm/config.md` de la distribution installée) ;
-**`pnpm` n'est pas installé** ; `bun 1.3.14` est présent et son aide n'expose aucun équivalent. Le
-motif qui avait retenu pnpm au socle v1 — « le cooldown est une mécanique propre à pnpm » —
-n'est donc plus vrai. Si le scaffold retient un autre gestionnaire, **ce document et les workflows
-sont à reprendre ensemble**.
+1. **Les commandes du tableau ci-dessous sont constatées, elles ne sont plus normatives.** Les sept
+   scripts du portail existent dans `package.json` et s'exécutent ; la colonne `État` porte, pour
+   chacun, le code de sortie mesuré sur la machine de développement le **2026-08-19**.
+2. **La garde de scaffold est dormante.** `package.json` existe, donc l'étape `scaffold` des cinq
+   jobs qui la portent — `lint`, `boundaries`, `build`, `test`, `coverage` — rend `ok=true` et la
+   commande s'exécute réellement. Le « mensonge par construction » que ce § déclarait jusqu'au
+   2026-08-19 est levé. (`arch-invariants` ne porte pas cette garde : il lit les sources
+   directement, et n'en trouvait aucune.)
+3. **Ce qui l'a remplacé se voit moins bien.** Le dépôt ne porte **aucun fichier de test** :
+   `npm test` passe au vert par `--passWithNoTests`, `npm run coverage` produit un
+   `coverage/lcov.info` **vide** (0 octet), et `npm run mutation` refuse de démarrer — « No tests
+   were executed », `ConfigError`. Le vert de `test` et de `coverage` n'atteste donc que
+   l'existence du script. Sept fichiers sous `src/` — les cinq amorces de zone, la sonde de
+   développement et une déclaration de types — ne font pas davantage un corpus : c'est ce qui
+   commande le § « Pourquoi `sast`, `coverage` et `arch-invariants` ne sont pas bloquants ». Le
+   premier lot qui livre un test fera tomber ce point 3.
+
+**Le gestionnaire de paquets retenu est `npm`** — [ADR-0031](./adr/0031-gestionnaire-de-paquets-npm.md),
+accepté le 2026-08-14, qui porte le motif et les trois faits mesurés : `min-release-age` est une clé
+du **résolveur** et non un job, `npm 11.16.0` la porte nativement en jours, `pnpm` n'est pas
+installé et `bun 1.3.14` n'expose aucun équivalent. Ce document n'en garde que la conséquence
+opératoire : le jour où un autre gestionnaire serait retenu, **cet ADR, ce document et les
+workflows se reprennent ensemble**.
 
 ---
 
@@ -55,13 +70,13 @@ Ce tableau est la source unique. `CLAUDE.md` y renvoie, il ne le recopie pas.
 |---|---|---|
 | Installation | `npm ci` | Réelle — **jamais** `npm install` |
 | Run local | `npm run dev` (`astro dev`, liaisons D1 branchées via `wrangler.jsonc`) | **Réelle** — posée par `specs/001-scaffold-projet` (R2) ; sert la sonde `GET /_sonde` en développement seul (`FR-012`, `FR-024`) |
-| Build | `npm run build` | **Normative** — à honorer au scaffold |
-| Typage | `npm run typecheck` (`tsc --noEmit`, cf. [ADR-0010](./adr/0010-langage-typescript-strict.md)) | **Normative** |
-| Tests | `npm test` | **Normative** |
-| Couverture | `npm run coverage` → `coverage/lcov.info` | **Normative** |
-| Lint / format | `npm run lint` | **Normative** |
-| Code mort (nocturne) | `npm run knip` | **Normative** |
-| Mutation (nocturne) | `npm run mutation` | **Normative** |
+| Build | `npm run build` | **Réelle** — `astro build`, adaptateur `@astrojs/cloudflare` ; sortie 0 le 2026-08-19 |
+| Typage | `npm run typecheck` (`tsc --noEmit`, cf. [ADR-0010](./adr/0010-langage-typescript-strict.md)) | **Réelle** — sortie 0 le 2026-08-19 ; `typescript@6.0.3`, plafond de branche ci-dessous |
+| Tests | `npm test` (`vitest run --passWithNoTests`) | **Réelle, et vide** — sortie 0 le 2026-08-19 **sans aucun fichier de test** : ce vert n'atteste que l'existence du script (§ L'état du dépôt, point 3) |
+| Couverture | `npm run coverage` → `coverage/lcov.info` | **Réelle, et vide** — sortie 0 le 2026-08-19 ; le `lcov.info` produit fait **0 octet**, faute de test |
+| Lint / format | `npm run lint` (`eslint .`) | **Réelle** — sortie 0 le 2026-08-19 |
+| Code mort (nocturne) | `npm run knip` | **Réelle** — sortie **1** le 2026-08-19 : six fichiers inutilisés, soit les cinq amorces de zone plus la sonde de développement — inutilisés par construction. Job informatif, voir § Régime nocturne |
+| Mutation (nocturne) | `npm run mutation` | **Réelle, et inerte** — sortie **1** le 2026-08-19 : Stryker s'arrête avant de muter, « No tests were executed » |
 | Couverture du diff | `diff-cover coverage/lcov.info --compare-branch=origin/main` | Réelle (`diff-cover` 10.4.2) |
 | Invariants d'architecture | `bash .github/scripts/arch-invariants.sh` | **Réelle** — écrite par cette phase |
 | SCA | `google/osv-scanner-action/osv-scanner-action@v2.5.0` sur `package-lock.json` | Réelle |
@@ -128,10 +143,22 @@ l'installation, et son abaissement est gardé par `dependency-review` **et** par
 ### Pourquoi `sast`, `coverage` et `arch-invariants` ne sont pas bloquants
 
 La règle est explicite : *aucun contrôle dont le taux de faux positifs est inconnu ne devient
-bloquant*. Sur ce dépôt, aucun des trois n'a jamais tourné sur du code réel — il n'y a pas de code.
-Les rendre bloquants reviendrait à parier sur un chiffre qu'on n'a pas, et **un contrôle bruyant
-finit désactivé** : son efficacité théorique tombe alors à zéro, ce qui est pire que de l'assumer
+bloquant*. Les trois tournent sur du code réel depuis le 2026-08-15 — mais **le motif du report a
+changé de nature, il n'a pas disparu** : sept fichiers sous `src/` — cinq amorces de zone, une sonde
+de développement, une déclaration de types — et aucun test ne font pas un échantillon dont on tire
+un taux. Ce n'était « aucun code », c'est désormais « pas encore de corpus ». Les rendre bloquants
+reviendrait toujours à parier sur un chiffre qu'on n'a pas, et **un contrôle bruyant finit
+désactivé** : son efficacité théorique tombe alors à zéro, ce qui est pire que de l'assumer
 informatif.
+
+**Ce que le report engage, et qui n'est plus indolore.** Tant que le dépôt était vide, attendre ne
+coûtait rien. Cela coûte à partir du premier lot de code : un `arch-invariants` ou un `boundaries`
+rouge et ignoré vaut exactement zéro, et c'est le mode de défaillance principal d'un job informatif
+qui dure. La sortie est nommée, datée, et **désormais exécutable** — la mesure par rejeu sur
+l'historique du dépôt, portée par
+[`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`](./chantiers/en-attente/2026-08-14-durcissement-ci.md),
+qui promeut les invariants un par un. Il y a maintenant un historique à rejouer, ce qui n'était pas
+le cas quand cette phase a été écrite.
 
 Un job informatif **n'est simplement pas dans la liste des checks requis**. Il peut virer au rouge
 et annoter la PR sans la bloquer — aucun `continue-on-error` ne vient masquer son signal.
@@ -190,7 +217,8 @@ généralement retirées en quelques heures, la fenêtre d'attaque est couverte.
 **refuse** si la clé manque ou si la valeur est inférieure, dès que `package.json` existe.
 
 ```ini
-# .npmrc — à poser au scaffold
+# .npmrc — posé le 2026-08-15 (le fichier réel porte en outre un commentaire
+# rappelant que `npm ci` n'est pas concerné)
 min-release-age=7
 ```
 
@@ -311,10 +339,17 @@ traque. L'exclusion des tests n'ouvre aucun trou : `test-integrity` les couvre.
 ### La soupape — signature du commit
 
 Registre de clés : `.github/allowed_signers`
-État : **amorcé le 2026-08-08** (seconde clé enregistrée le 2026-08-10) · les deux entrées sont de
-type `ssh-ed25519`
+État : **amorcé le 2026-08-08** · **trois** entrées au 2026-08-19, toutes `ssh-ed25519`
 Vérification : **hors ligne**, dans le job `verifier-guard` · aucune action tierce, `git` suffit
 Base du diff : point de divergence avec `main` · le job déclare `fetch-depth: 0`
+
+**Des trois entrées, une seule signe encore** : `colibri-signing-3`, la seule sans `valid-before`.
+Les deux autres sont bornées à une date échue — `valid-before="20260810"` pour `colibri-signing`,
+`"20260816"` pour `colibri-signing-2` — et **ne valident plus aucun commit nouveau**. Elles restent
+au fichier parce que c'est le sens même de `valid-before` : elles couvrent les commits signés
+**pendant** leur fenêtre, et les retirer rendrait invérifiable l'historique qu'elles portent. Ce
+registre **croît donc et ne se nettoie pas** — la seule ligne qui autorise à signer aujourd'hui est
+celle qui n'a pas de borne.
 
 **Pourquoi pas un scope de commit.** `quality-config-guard` s'ouvre par un `chore(config):`, et cela
 suffit là-bas : le but est que le changement ne passe pas *en silence*. Ici, non — **un agent écrit
@@ -471,10 +506,12 @@ violations de contrat propres au projet, qu'aucun outil générique ne connaît.
 matrice des arêtes autorisées entre zones et le point d'entrée unique de `src/render/` se vérifient
 sur le **graphe d'imports résolu** — alias `tsconfig paths`, ré-exports, barils —, ce qu'un script
 maison ne fait pas sans recréer un résolveur. L'outil est la **chaîne ESLint** :
-`eslint-plugin-boundaries` (7.2.0) branché sur `eslint-import-resolver-typescript`, avec les
-parsers `astro-eslint-parser` et `svelte-eslint-parser` que le projet aura de toute façon. Son
-fichier de règles se pose au scaffold, dans `eslint.config.*`, avec le code. Elle tourne dans un
-job dédié, `boundaries` — et non dans `lint` — parce que `lint` couvre le style (mode 2) : y noyer
+`eslint-plugin-boundaries` (**7.1.0 installée** — l'écart avec la 7.2.0 du registre est expliqué au
+§ Maturité) branché sur `eslint-import-resolver-typescript`, avec les parsers `astro-eslint-parser`
+et `svelte-eslint-parser` que le projet a de toute façon. Son fichier de règles est posé depuis le
+2026-08-15 — `eslint.config.boundaries.js`, nommé pour rester sous le glob `eslint.config.*` de
+`quality-config-guard` — et il déclare **la matrice d'`I1` seule**. Elle tourne dans un job dédié,
+`boundaries` — et non dans `lint` — parce que `lint` couvre le style (mode 2) : y noyer
 `I1`/`I3` interdirait de les promouvoir en bloquant sans bloquer aussi sur le style, alors que le
 chantier de durcissement (`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`) promeut les
 invariants un par un. `I3` est rendu **à moitié** dès aujourd'hui, par `arch-invariants` — les
@@ -490,8 +527,15 @@ l'outil sous `boundaries`.
 > table de transpilation déclare `typescript >=2.0.0 <7.0.0`, quand `typescript@7.0.2` est la
 > version courante du registre depuis le 2026-07-08 ; sous TS 7, `depcruise --info` marque `.ts`
 > lui-même comme non pris en charge, et le mainteneur conditionne le support à `typescript@7.1.0`
-> livrant une API publique, qui n'existe pas. `ADR-0010` n'épingle aucune version de TypeScript :
-> le premier mur suffirait seul, le second dépend de ce que le scaffold installera.
+> livrant une API publique, qui n'existe pas. `ADR-0010` n'épingle aucune version de TypeScript,
+> mais **la question est fermée depuis le scaffold** : `typescript@6.0.3` est installée, et le
+> candidat ADR [« TypeScript est plafonné à la branche 6 »](./adr/_candidates/typescript-plafonne-a-la-branche-6.md)
+> (2026-08-15) en fait une **contrainte du job `boundaries`** et non un réglage de feature —
+> `typescript-eslint@8.66.0` déclare le pair `>=4.8.4 <6.1.0`, si bien que monter en branche 7
+> éteindrait la chaîne ESLint, donc `boundaries`, donc **la seule vérification d'`I1`**, sans
+> qu'aucun écran ne change de couleur. Le premier mur suffisait déjà à écarter dependency-cruiser ;
+> le second est devenu un plafond de flotte, à rouvrir le jour où `typescript-eslint` élargit son
+> pair.
 >
 > La chaîne ESLint ne touche pas à l'API du compilateur — `typescript-eslint` parse, le resolver
 > résout —, donc aucun des deux murs ne la concerne, et elle hérite du parsing `.astro`/`.svelte`
@@ -510,9 +554,11 @@ contrôles ; elle ne peut pas les rendre bloquants aujourd'hui, parce qu'un cont
 aucun taux de faux positifs mesuré et qu'un contrôle bruyant finit désactivé.
 
 **L'écart est nommé et daté, pas contourné** : le rejeu sur l'historique du dépôt est porté par
-`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`, et c'est lui qui les fera monter. Rien
-n'est perdu entre-temps, parce qu'il n'y a pas encore de code à garder — mais le jour où il y en
-aura, un `arch-invariants` rouge et ignoré vaudra exactement zéro.
+`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`, et c'est lui qui les fera monter.
+
+**La clause d'échéance que ce § portait est échue.** « Rien n'est perdu entre-temps, parce qu'il n'y
+a pas encore de code à garder » a cessé d'être vrai le 2026-08-15 : il y a du code à garder, et un
+`arch-invariants` rouge et ignoré vaut exactement zéro.
 
 Trois clauses ne sont rendues par **aucun** contrôle, et c'est déclaré plus bas : la composition
 inerte de l'e-mail acheminé (`ADR-0009`), l'effacement conjoint de la clé de fenêtre et des
@@ -539,8 +585,8 @@ action d'emballage : c'est une dépendance de moins, et c'est la couche qui meur
 | Semgrep (image) | 1.172.0, digest `sha256:65dcd440…` | LGPL-2.1 pour le moteur ; les règles du registre (`p/typescript`, `p/javascript`, `p/owasp-top-ten`) sont sous **Semgrep Rules License v.1.0**, non-OSI (« internal business use » seulement) | **Nuance, non confirmée par la doc officielle** — `semgrep scan --config=p/xxx` télécharge sans login apparent (identifiant anonyme auto-généré) ; la page `docs.semgrep.dev/licensing` ne le dit pas explicitement, seules des sources secondaires le confirment | 2026-08-08 — même correction de tag ; l'action d'emballage est **archivée**, on invoque le binaire |
 | zizmor (action) | v0.6.2, SHA `3dc1ecc9`, moteur 1.29.0 | MIT | Oui — binaire et action entièrement open source, aucun service cloud payant adossé | 2026-08-08, repris du socle v1 archivé |
 | diff-cover | 10.4.2 | Apache-2.0 | Oui — CLI Python pur, aucun palier payant | 2026-08-08, repris du socle v1 archivé |
-| `eslint-plugin-boundaries` (+ `eslint-import-resolver-typescript`) | 7.2.0 · 4.4.5 | MIT · **ISC** (le resolver n'est pas MIT, à ne pas arrondir) | Oui, les deux — paquets npm classiques | **2026-08-14**, registre npm par la campagne de recherche — 7.2.0 publiée vers le 9 août 2026, historique régulier (7.0.0 le 5 juil.), documentation dédiée ; le resolver en 4.4.5 du 1ᵉʳ juin 2026. Remplace dependency-cruiser 18.1.0, écarté le même jour (ni `.astro`, ni TypeScript 7) |
-| knip · Stryker | au scaffold | ISC · Apache-2.0 | Oui, les deux — knip a une page de sponsoring mais aucune fonctionnalité verrouillée derrière | indications reprises du socle v1 : knip 6.32.0, `@stryker-mutator/core` 9.6.1 (2026-08-08) |
+| `eslint-plugin-boundaries` (+ `eslint-import-resolver-typescript`) | **installée : 7.1.0** · 4.4.5 — registre : 7.2.0 | MIT · **ISC** (le resolver n'est pas MIT, à ne pas arrondir) | Oui, les deux — paquets npm classiques | **2026-08-14**, registre npm par la campagne de recherche ; **installée le 2026-08-15** — `package.json` déclare `^7.1.0`, le lockfile résout `7.1.0`. **L'écart d'une mineure n'est pas une dérive, c'est le gel de sept jours qui fonctionne** : `7.2.0` a été publiée le `2026-08-09T18:46:08Z` et n'avait que 5,2 jours à l'installation, donc `min-release-age=7` l'a écartée — même mécanique que la [pièce datée du 2026-08-15](./preuves/2026-08-15-gel-sept-jours.md). Elle est éligible depuis le 2026-08-16 ; sa montée passera par un commit `build(deps):`. Le resolver en 4.4.5 du 1ᵉʳ juin 2026. Remplace dependency-cruiser 18.1.0, écarté le 2026-08-14 (ni `.astro`, ni TypeScript 7) |
+| knip · Stryker | **installées : 6.32.0 · 9.6.1** | ISC · Apache-2.0 | Oui, les deux — knip a une page de sponsoring mais aucune fonctionnalité verrouillée derrière | indications reprises du socle v1 (2026-08-08), **confirmées à l'installation du 2026-08-15** : ce sont exactement les deux versions annoncées. Constaté le 2026-08-19 sur `node_modules` |
 
 > **Ces constats ont six jours et ne se re-vérifient pas depuis un document.** Toutes les lignes
 > datées du 2026-08-08 viennent de l'archive du socle v1, qui les avait mesurées sur le registre.
@@ -792,10 +838,13 @@ l'ablation no-op elle-même n'est pas posée : aucune commande réelle ne l'expr
 
 **Mode 5 — l'invariant qu'un grep ne rend pas.** Quatre trous nommés :
 
-- **`I1` et `I3`** exigent un graphe d'imports résolu — non posé, chaîne ESLint au scaffold.
-  dependency-cruiser, candidat initial, est écarté depuis le 2026-08-14 : ni `.astro`, ni
-  TypeScript 7. Et ce que son remplaçant ne rendra pas non plus : un import profond qui contourne
-  un baril, sauf règle dédiée.
+- **Le reliquat d'`I3`**, et lui seul depuis le 2026-08-15. La chaîne ESLint est posée
+  (`eslint.config.boundaries.js`) et le job `boundaries` rend la **matrice d'`I1`** : `I1` n'est
+  plus un trou, c'est un contrôle informatif, au registre ci-dessus. Ce qui reste ouvert est ce
+  qu'un contrôle littéral ne voit pas d'`I3` — ré-exports, barils, alias —, plus ce que la chaîne
+  elle-même ne rendra pas : un import profond qui contourne un baril, sauf règle dédiée
+  (`import-x/no-internal-modules`). dependency-cruiser, candidat initial, reste écarté depuis le
+  2026-08-14 : ni `.astro`, ni TypeScript 7.
 - **La composition inerte de l'e-mail acheminé** ([ADR-0009](./adr/0009-acheminement-email-routing-send-email.md))
   — texte seul, objet fixe, chaque donnée du visiteur derrière son étiquette. Le gabarit n'existe
   pas et son chemin n'est pas décidé : aucun motif ne se dérive sans l'inventer. **La cinquième
@@ -838,9 +887,13 @@ l'ablation no-op elle-même n'est pas posée : aucune commande réelle ne l'expr
   détectée par rien.
 - **Un secret détecté se *rotate*.** Il ne se supprime pas seulement de l'historique : tant qu'il
   est actif, il reste exploitable où qu'il ait fui.
-- **Tout ce que la garde de scaffold laisse passer**, tant qu'il n'y a pas de `package.json` :
-  `build`, `test`, `coverage`, `lint`, `dead-code` et `mutation` sont **verts sans avoir rien
-  exécuté**, et `arch-invariants` ne trouve aucune source à lire.
+- **Ce que la garde de scaffold laissait passer ne s'applique plus, et ce qui l'a remplacé se voit
+  moins bien.** `package.json` existe depuis le 2026-08-15 : les cinq jobs gardés — `build`, `test`,
+  `coverage`, `lint`, `boundaries` — entrent en portée et exécutent leur commande. Mais sans aucun
+  fichier de test, `test` et `coverage` restent **verts sans rien avoir vérifié**, et les deux
+  nocturnes ne rapportent rien d'exploitable : `mutation` s'arrête avant de muter, faute de test,
+  et `dead-code` ne signale que les amorces de zone et la sonde de développement. Le § « L'état du
+  dépôt » porte le constat daté.
 
 ---
 
