@@ -645,6 +645,54 @@ serait l'inventer.
 
 ---
 
+## Gardes de session
+
+<!-- Écrite et rafraîchie par /scd-sdd:guards, jamais par /scd-sdd:init. -->
+
+Les contrôles ci-dessus jugent une PR ; ceux-ci surveillent l'agent **pendant qu'il écrit**. Ils ne
+sont pas le backstop — le backstop est le check serveur sous protection de branche — mais ils
+déplacent le refus de la PR vers la frappe, et surtout ils **tracent la tentative**. La question à
+laquelle ce dispositif répond n'est pas *l'a-t-on empêché ?* mais **l'a-t-il essayé ?**
+
+Périmètre : **`.claude/guards.json`** — source unique, ne pas le recopier ici. Deux sources pour un
+même fait divergent au premier ajout.
+
+| | État |
+|---|---|
+| Couche 1 — chemins | **Posée le 2026-08-23** · 13 entrées déclarées, plus 3 protégées en dur (`guards.json`, `guard-log.jsonl`, `settings.json`) |
+| Couche 1b — écriture par Bash | Active, **best-effort assumé** : elle reconnaît un verbe d'écriture et un chemin littéral, pas une variable ni un heredoc |
+| Couche 2 — affaiblissement | **Bloquante** depuis le 2026-08-23 (avertissement seul auparavant, faute d'opt-in) |
+| Couche 3 — job CI | `verifier-guard`, `test-integrity`, `quality-config-guard`, `specs-integrity` — voir § Contrôles |
+| Trace | `.claude/guard-log.jsonl` — 0 tentative au 2026-08-23 |
+| Dérogations | **aucune** — une dérogation sans `raison` écrite est ignorée par le hook |
+
+`python3` est **exigé** : absent, les couches 1 et 2 ne tournent pas, et *sans message* — un hook qui
+ne démarre pas ne peut pas s'annoncer. Constaté en 3.14.4 le 2026-08-23. La couche 3 est le
+rattrapage.
+
+**Le périmètre reprend celui de `quality-config-guard`, moins ce que la couche 1 ne sait pas
+découper.** `package.json` en est **exclu** : il porte les scripts du portail *et* les dépendances,
+et un blocage par chemin les confondrait — c'est le volet b de `quality-config-guard` qui fait la
+version chirurgicale, sur les seules lignes des commandes de contrôle. `astro.config.ts` et
+`wrangler.jsonc` en sont exclus pour la même raison de double rôle : configuration de build *et* de
+l'application. Les fichiers de test ne sont pas protégés — c'est `/scd-sdd:run` qui les écrit, et
+`strict` casserait la boucle de son `test-writer` au premier ajustement ; l'invariant est tenu par
+le niveau implémentation, qui restaure tout test modifié, puis par `test-integrity`.
+
+**Un second jeu de gardes coexiste**, propre à ce dépôt : `.claude/hooks/garde-agent.py`, câblé en
+`PreToolUse` dans `.claude/settings.json`. Deux de ses quatre gardes doublent les couches 1 et 2 ;
+les deux autres ne sont couverts par rien d'autre — le refus de signer (`git commit -S`, `ssh-add`,
+`~/.ssh`, `user.signingkey`), qui protège la soupape de `verifier-guard`, et la réécriture d'un ADR
+**par Bash**, que le `block-adr-edits` du plugin ne voit pas puisqu'il ne matche que `Edit|Write`.
+Ce dernier est la seule catégorie qu'aucun contrôle de ce document ne rattrape.
+
+⚠️ La section **Blindage local** plus bas est **antérieure** à ce dispositif et n'a pas été reprise :
+elle se dit « non installé » et propose un `block-no-verify.sh` qui n'existe pas, ainsi qu'un bloc
+`settings.json` qui n'est pas celui qui est câblé. Elle appartient à `/scd-sdd:init`, pas à cette
+section. Son objet reste un trou réel — voir § Ce que ces contrôles ne couvrent pas.
+
+---
+
 ## Protection de branche
 
 Branche : `main` · Bypass : **interdit** · Force-push et suppression : **interdits**
