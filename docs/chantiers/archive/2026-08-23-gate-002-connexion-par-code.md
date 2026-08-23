@@ -1,6 +1,6 @@
 # Gate 002-connexion-par-code — 4 Critical · 8 Major
 
-Portée : 002-connexion-par-code · gate
+Portée : 002-connexion-par-code · hors-cycle (gate du cycle 1.x — commande retirée)
 Ouvert le 2026-08-23 · Actualisé le 2026-08-23 · branche `main` · HEAD `582135b`
 
 ## Objectif
@@ -8,9 +8,9 @@ Passer la gate de conformité de 002-connexion-par-code : zéro Critical. Cycle 
 premortem du 2026-08-23, qui a touché les trois documents après un `PRÊT`.
 
 ## Contexte à charger
-à lire  `specs/002-connexion-par-code/spec.md` — porte FR-024, FR-025, FR-040, FR-041, FR-045, FR-046, SC-007, SC-008, SC-014, SC-015, la table d'E/S et la Légende
-à lire  `specs/002-connexion-par-code/plan.md` — porte les décisions 8 et 14, la l. 562, les étapes **m**, **n**, **o**, **p**, la table de couverture
-à lire  `specs/002-connexion-par-code/tasks.md` — porte R5, R7, R11, T17, T21, T25, T40, T41, T46, T63
+à lire  `docs/1.x/specs/002-connexion-par-code/spec.md` — porte FR-024, FR-025, FR-040, FR-041, FR-045, FR-046, SC-007, SC-008, SC-014, SC-015, la table d'E/S et la Légende
+à lire  `docs/1.x/specs/002-connexion-par-code/plan.md` — porte les décisions 8 et 14, la l. 562, les étapes **m**, **n**, **o**, **p**, la table de couverture
+à lire  `docs/1.x/specs/002-connexion-par-code/tasks.md` — porte R5, R7, R11, T17, T21, T25, T40, T41, T46, T63
 
 ## À corriger
 ### Critical (4)

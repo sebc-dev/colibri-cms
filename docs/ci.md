@@ -5,7 +5,7 @@
 | **Statut** | Actif |
 | **Date** | 2026-08-14 |
 | **Amendé** | 2026-08-19 — lot A du traitement de l'audit `ci` (2 Critical, 4 Major) : le document décrivait l'avant-scaffold, le dépôt porte du code depuis le 2026-08-15 |
-| **Trace vers** | [Stack](./stack.md) · [Archi](./archi.md) · [ADR](./adr/) |
+| **Trace vers** | [Stack](./1.x/stack.md) · [Archi](./1.x/archi.md) · [ADR](./1.x/adr/) |
 | **Forge** | GitHub Actions — `.github/workflows/ci.yml` · `.github/workflows/nightly.yml` |
 | **Consommé par** | `CLAUDE.md` (phase `contract`), qui lit ses commandes ici plutôt que de les inventer |
 | **Documents liés** | [Socle de livraison](./socle-de-livraison.md) — le garde-fou du socle `C5` que le job `build` compte · [Chantier de durcissement](./chantiers/en-attente/2026-08-14-durcissement-ci.md) |
@@ -32,7 +32,7 @@
 `package-lock.json`, `.npmrc`, les configurations (`astro.config.ts`, `tsconfig.json`,
 `vitest.config.ts`, `eslint.config.js`, `eslint.config.boundaries.js`, `knip.json`,
 `stryker.conf.json`, `wrangler.jsonc`), `instance.json`, la migration
-`migrations/0001_amorce.sql`, et les cinq zones de `docs/archi.md` amorcées sous `src/`.
+`migrations/0001_amorce.sql`, et les cinq zones de `docs/1.x/archi.md` amorcées sous `src/`.
 
 Trois conséquences, et seule la dernière reste inconfortable :
 
@@ -53,7 +53,7 @@ Trois conséquences, et seule la dernière reste inconfortable :
    commande le § « Pourquoi `sast`, `coverage` et `arch-invariants` ne sont pas bloquants ». Le
    premier lot qui livre un test fera tomber ce point 3.
 
-**Le gestionnaire de paquets retenu est `npm`** — [ADR-0031](./adr/0031-gestionnaire-de-paquets-npm.md),
+**Le gestionnaire de paquets retenu est `npm`** — [ADR-0031](./1.x/adr/0031-gestionnaire-de-paquets-npm.md),
 accepté le 2026-08-14, qui porte le motif et les trois faits mesurés : `min-release-age` est une clé
 du **résolveur** et non un job, `npm 11.16.0` la porte nativement en jours, `pnpm` n'est pas
 installé et `bun 1.3.14` n'expose aucun équivalent. Ce document n'en garde que la conséquence
@@ -71,7 +71,7 @@ Ce tableau est la source unique. `CLAUDE.md` y renvoie, il ne le recopie pas.
 | Installation | `npm ci` | Réelle — **jamais** `npm install` |
 | Run local | `npm run dev` (`astro dev`, liaisons D1 branchées via `wrangler.jsonc`) | **Réelle** — posée par `specs/001-scaffold-projet` (R2) ; sert la sonde `GET /_sonde` en développement seul (`FR-012`, `FR-024`) |
 | Build | `npm run build` | **Réelle** — `astro build`, adaptateur `@astrojs/cloudflare` ; sortie 0 le 2026-08-19 |
-| Typage | `npm run typecheck` (`tsc --noEmit`, cf. [ADR-0010](./adr/0010-langage-typescript-strict.md)) | **Réelle** — sortie 0 le 2026-08-19 ; `typescript@6.0.3`, plafond de branche ci-dessous |
+| Typage | `npm run typecheck` (`tsc --noEmit`, cf. [ADR-0010](./1.x/adr/0010-langage-typescript-strict.md)) | **Réelle** — sortie 0 le 2026-08-19 ; `typescript@6.0.3`, plafond de branche ci-dessous |
 | Tests | `npm test` (`vitest run --passWithNoTests`) | **Réelle, et vide** — sortie 0 le 2026-08-19 **sans aucun fichier de test** : ce vert n'atteste que l'existence du script (§ L'état du dépôt, point 3) |
 | Couverture | `npm run coverage` → `coverage/lcov.info` | **Réelle, et vide** — sortie 0 le 2026-08-19 ; le `lcov.info` produit fait **0 octet**, faute de test |
 | Lint / format | `npm run lint` (`eslint .`) | **Réelle** — sortie 0 le 2026-08-19 |
@@ -124,11 +124,11 @@ vise.
 | 7 | `test-integrity` | Intégrité des tests | diff des tests | **Bloquant** | 2 — dans les tests |
 | 8 | `quality-config-guard` | Config qualité et fichiers d'agent figés | diff de la config | **Bloquant** | 2 — par la config |
 | 9 | `verifier-guard` | Extinction du vérificateur, sous signature | diff des **sources** | **Bloquant** | 2 — typage, lint et SAST éteints ligne à ligne |
-| 10 | `specs-integrity` | Documents de specs figés, sous signature | diff de `specs/**` — `spec.md`, `plan.md`, `tasks.md` | **Bloquant** | 2 — la **cible** réécrite pour correspondre au code |
+| 10 | `specs-integrity` | Documents de specs figés, sous signature | diff de `specs/**` — `SPEC.md`, tickets `NN-*.md` | **Bloquant** | 2 — la **cible** réécrite pour correspondre au code |
 | — | `lint` | Style | dépôt (garde de scaffold) | Informatif | **vérificateur** — cible du mode 2 (lisibilité) |
 | — | `coverage` | Couverture du **code nouveau**, sans seuil chiffré | diff | Informatif | **vérificateur** — mesure l'exécution, **jamais l'assertion** |
 | — | `sast` | Semgrep | dépôt | Informatif | **vérificateur** — cible du mode 2 (injection, XSS, traversée) |
-| — | `arch-invariants` | Invariants de `docs/archi.md` + les clauses d'ADR du registre ci-dessous | arbre courant | Informatif → bloquant après rejeu | 5 — le **gisement principal** |
+| — | `arch-invariants` | Invariants de `docs/1.x/archi.md` + les clauses d'ADR du registre ci-dessous | arbre courant | Informatif → bloquant après rejeu | 5 — le **gisement principal** |
 | — | `boundaries` | Graphe d'imports **résolu** — `I1` (sens descendant des dépendances entre zones) et le reliquat d'`I3` qu'un grep littéral ne peut pas voir (ré-exports, barils, alias) | dépôt (garde de scaffold) | Informatif → bloquant après rejeu | 5 — hors de portée d'`arch-invariants`, qui ne résout pas le graphe |
 | — | `dead-code` | knip (**nocturne**) | dépôt | Informatif | 4 — partiellement |
 | — | `mutation` | Stryker (**nocturne**) | code nouveau | Informatif | 1 — **statistiquement**, jamais prouvé |
@@ -165,7 +165,7 @@ et annoter la PR sans la bloquer — aucun `continue-on-error` ne vient masquer 
 
 Pour `coverage`, la conséquence est directe : pendant la fenêtre de mesure, **du code non testé
 peut atteindre `main` sans aucun refus**. C'est un arbitrage rendu le 2026-08-14, pas un oubli, et
-il ne contredit aucun ADR : [ADR-0013](./adr/0013-tests-vitest-dans-workerd.md) décide de
+il ne contredit aucun ADR : [ADR-0013](./1.x/adr/0013-tests-vitest-dans-workerd.md) décide de
 **l'authenticité de l'oracle** — ce contre quoi un test s'exécute —, jamais de la part de code
 qu'il traverse. Et le seuil, quand il viendra, portera sur le **code nouveau** : un seuil
 de couverture **globale** est un anti-pattern qui échoue indéfiniment sur du legacy et pousse à
@@ -322,7 +322,7 @@ Ajouter une dépendance touche `package.json` légitimement et ne doit pas faire
 `@ts-ignore` au-dessus de la ligne qui ne compile pas, un `as any` qui fait taire le typage, un
 `eslint-disable` sur la règle qui gêne, un `catch {}` vide qui avale l'erreur. Rien n'est rouge : le
 vérificateur a été débranché à l'endroit précis où il servait — et sur un socle dont
-[ADR-0010](./adr/0010-langage-typescript-strict.md) fait reposer la sûreté sur *TypeScript strict*,
+[ADR-0010](./1.x/adr/0010-langage-typescript-strict.md) fait reposer la sûreté sur *TypeScript strict*,
 c'est le geste qui vide l'ADR de son contenu.
 
 **Motifs traqués, dérivés de l'écosystème JS/TS** — ils ne s'inventent pas :
@@ -422,8 +422,8 @@ une extinction non signée.
 ## `specs-integrity` — la même soupape, sur ce contre quoi le code est jugé
 
 **Le mode de défaillance.** C'est le mode 2 sur un quatrième chemin, et le seul où le vérificateur
-n'est pas un outil mais un **texte**. `spec.md` porte les exigences contre lesquelles le code est
-jugé ; `plan.md`, l'approche qu'il doit suivre. Un agent qui les réécrit pour qu'elles décrivent ce
+n'est pas un outil mais un **texte**. `SPEC.md` porte les exigences contre lesquelles le code est
+jugé et l'approche qu'il doit suivre ; les tickets `NN-*.md`, les critères observables. Un agent qui les réécrit pour qu'elles décrivent ce
 qu'il vient de coder ne casse aucun contrôle et n'éteint aucun outil : il **déplace la cible**, et
 tout redevient vert — build, tests, lint compris. La trace est un commit `docs(specs):` d'apparence
 ordinaire au milieu d'une PR d'implémentation.
@@ -433,8 +433,8 @@ ordinaire au milieu d'une PR d'implémentation.
 
 | Chemin | Régime |
 |---|---|
-| `specs/**/spec.md`, `specs/**/plan.md` | **signature toujours** — aucune exception |
-| `specs/**/tasks.md` | **l'état des cases est libre** ; toute autre ligne sous signature |
+| `specs/**/SPEC.md` | **signature toujours** — aucune exception |
+| `specs/**/[0-9][0-9]-*.md` | **l'état des cases est libre** ; toute autre ligne sous signature |
 
 **La soupape est la signature**, pour la raison déjà écrite au § précédent et qu'on ne réécrit pas
 ici : un agent écrit `docs(specs):` aussi facilement qu'il écrit `as any`. La vérification passe par
@@ -442,8 +442,9 @@ le même script partagé, `.github/scripts/verify-signed-commits.sh`, et la ferm
 la même — base indéterminable ou registre absent valent refus.
 
 **Pourquoi l'exception sur les cases, et pourquoi elle ne s'élargit pas.** Elle est **mesurée** :
-sur le commit du lot `R2`, `tasks.md` ne change que par des lignes `- [ ]` → `- [x]`. Or
-`progress-recorder` coche à chaque lot, sans surveillance humaine et sans pouvoir signer — sans
+sur le commit du lot `R2` du cycle 1.x, `tasks.md` ne changeait que par des lignes `- [ ]` →
+`- [x]` ; la propriété se transporte telle quelle aux `## Critères` d'un ticket. Or
+`progress-recorder` coche à chaque ticket, sans surveillance humaine et sans pouvoir signer — sans
 cette exception, **tout run d'implémentation était bloqué**, ce qui aurait fait retirer le garde
 plutôt que cocher à la main.
 
@@ -469,7 +470,7 @@ scénario et le contrôle 1 serait à y rapatrier à l'identique.
 - **Un commit de specs signé ne survit pas à un rebase**, et le workflow d'implémentation en joue un
   à chaque lot : les SHA changent, les signatures tombent. Le chemin courant n'est pas touché — ce
   qui traverse une branche de lot, ce sont les coches de `progress-recorder`, précisément exemptées.
-  Mais un commit `spec.md` rebasé rougirait pour une raison **étrangère à son contenu**. La sortie
+  Mais un commit `SPEC.md` rebasé rougirait pour une raison **étrangère à son contenu**. La sortie
   est de re-signer après rebase, jamais d'assouplir le garde ; c'est le même motif qui réduit
   `allowed_merge_methods` à `["merge"]` au § Protection de branche.
 - **Une signature prouve un geste, pas une lecture** — limite déjà posée au § précédent, qui vaut
@@ -483,24 +484,24 @@ scénario et le contrôle 1 serait à y rapatrier à l'identique.
 
 Le mode 5 est le **gisement principal** : les défauts qui comptent dans du code généré sont des
 violations de contrat propres au projet, qu'aucun outil générique ne connaît. Les deux sources ont
-été lues — la table des invariants de `docs/archi.md`, et `docs/adr/` pour ce qu'elle ne couvre pas.
+été lues — la table des invariants de `docs/1.x/archi.md`, et `docs/1.x/adr/` pour ce qu'elle ne couvre pas.
 
 | ADR | Invariant | Source | Rendu par | Statut |
 |---|---|---|---|---|
-| [ADR-0021](./adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/archi.md` `I1` | `boundaries` — `npm run lint:boundaries` (`eslint.config.boundaries.js`, scaffold posé par `specs/001-scaffold-projet`) | **Rendu** depuis `specs/001-scaffold-projet` (R1) — même statut informatif que les autres lignes de ce registre, en attendant le rejeu de `docs/chantiers/en-attente/2026-08-14-durcissement-ci.md` |
-| [ADR-0022](./adr/0022-core-sans-framework-ni-plateforme.md) | `I2` — `src/core/` n'importe ni `astro`, ni `svelte`, ni `@astrojs/*`, ni `cloudflare:*` | `docs/archi.md` `I2` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0023](./adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/archi.md` `I3` | `arch-invariants` — **partiellement**, `boundaries` pour le reste, voir ci-dessous | Informatif depuis 2026-08-14 |
-| [ADR-0024](./adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/archi.md` `I4` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0025](./adr/0025-html-brut-confine-au-rendu-markdown.md) | `I5` — `{@html}` et `set:html` confinés à `src/render/markdown/` | `docs/archi.md` `I5` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0026](./adr/0026-garde-de-session-par-import-et-surface-publique-close.md) | `I6` — garde de session importé par toute route non publique ; aucun `multipart` sur la surface publique | `docs/archi.md` `I6` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0027](./adr/0027-objet-de-frequence-nomme-par-une-constante.md) · [ADR-0012](./adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md) | `I7` — `idFromName` ne reçoit qu'une constante littérale ; c'est aussi la moitié statique d'`ADR-0012` — rien de dérivé d'une origine ne survit à la fenêtre qui l'a fait naître | `docs/archi.md` `I7` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0028](./adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) | `I8` — les valeurs d'instance ne vivent que dans `instance.json` | `docs/archi.md` `I8` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0029](./adr/0029-prefixes-de-publication-en-constante-unique.md) | `I9` — `PREFIXES_AUTORISES` a un seul porteur, et `.github/` n'y figure pas | `docs/archi.md` `I9` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0032](./adr/0032-invariant-i10-restreint-a-la-configuration-astro.md) | `I10` — la configuration Astro lit `instance.json` ; la configuration du déploiement sort du périmètre (remplace [ADR-0030](./adr/0030-configurations-lisent-le-fichier-d-instance.md)) | `docs/archi.md` `I10` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0015](./adr/0015-en-tetes-de-reponse-deux-porteurs.md) | `run_worker_first` reste une liste **bornée** | `docs/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0015](./adr/0015-en-tetes-de-reponse-deux-porteurs.md) · [ADR-0024](./adr/0024-administration-sans-directive-client.md) | La CSP se définit par ses **interdits** : ni `unsafe-inline`, ni `unsafe-eval` dans les sources | `docs/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0006](./adr/0006-auth-implementation-maison-sur-d1.md) | Le cookie de session porte `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict` | `docs/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0008](./adr/0008-texte-riche-markdown-restreint.md) | Aller-retour de sérialisation Markdown · rejet d'une URL de schéma non autorisé | `docs/adr/` | `test` — épreuves à écrire au **niveau specs** | **Bloquant** par le job qui les portera |
+| [ADR-0021](./1.x/adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/1.x/archi.md` `I1` | `boundaries` — `npm run lint:boundaries` (`eslint.config.boundaries.js`, scaffold posé par `specs/001-scaffold-projet`) | **Rendu** depuis `specs/001-scaffold-projet` (R1) — même statut informatif que les autres lignes de ce registre, en attendant le rejeu de `docs/chantiers/en-attente/2026-08-14-durcissement-ci.md` |
+| [ADR-0022](./1.x/adr/0022-core-sans-framework-ni-plateforme.md) | `I2` — `src/core/` n'importe ni `astro`, ni `svelte`, ni `@astrojs/*`, ni `cloudflare:*` | `docs/1.x/archi.md` `I2` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0023](./1.x/adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/1.x/archi.md` `I3` | `arch-invariants` — **partiellement**, `boundaries` pour le reste, voir ci-dessous | Informatif depuis 2026-08-14 |
+| [ADR-0024](./1.x/adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/1.x/archi.md` `I4` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0025](./1.x/adr/0025-html-brut-confine-au-rendu-markdown.md) | `I5` — `{@html}` et `set:html` confinés à `src/render/markdown/` | `docs/1.x/archi.md` `I5` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0026](./1.x/adr/0026-garde-de-session-par-import-et-surface-publique-close.md) | `I6` — garde de session importé par toute route non publique ; aucun `multipart` sur la surface publique | `docs/1.x/archi.md` `I6` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0027](./1.x/adr/0027-objet-de-frequence-nomme-par-une-constante.md) · [ADR-0012](./1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md) | `I7` — `idFromName` ne reçoit qu'une constante littérale ; c'est aussi la moitié statique d'`ADR-0012` — rien de dérivé d'une origine ne survit à la fenêtre qui l'a fait naître | `docs/1.x/archi.md` `I7` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0028](./1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) | `I8` — les valeurs d'instance ne vivent que dans `instance.json` | `docs/1.x/archi.md` `I8` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0029](./1.x/adr/0029-prefixes-de-publication-en-constante-unique.md) | `I9` — `PREFIXES_AUTORISES` a un seul porteur, et `.github/` n'y figure pas | `docs/1.x/archi.md` `I9` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0032](./1.x/adr/0032-invariant-i10-restreint-a-la-configuration-astro.md) | `I10` — la configuration Astro lit `instance.json` ; la configuration du déploiement sort du périmètre (remplace [ADR-0030](./1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md)) | `docs/1.x/archi.md` `I10` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0015](./1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) | `run_worker_first` reste une liste **bornée** | `docs/1.x/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0015](./1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) · [ADR-0024](./1.x/adr/0024-administration-sans-directive-client.md) | La CSP se définit par ses **interdits** : ni `unsafe-inline`, ni `unsafe-eval` dans les sources | `docs/1.x/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0006](./1.x/adr/0006-auth-implementation-maison-sur-d1.md) | Le cookie de session porte `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict` | `docs/1.x/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0008](./1.x/adr/0008-texte-riche-markdown-restreint.md) | Aller-retour de sérialisation Markdown · rejet d'une URL de schéma non autorisé | `docs/1.x/adr/` | `test` — épreuves à écrire au **niveau specs** | **Bloquant** par le job qui les portera |
 
 **`I1` et `I3` résistent à l'expression régulière, et il faut le dire plutôt que le masquer.** La
 matrice des arêtes autorisées entre zones et le point d'entrée unique de `src/render/` se vérifient
@@ -529,7 +530,7 @@ l'outil sous `boundaries`.
 > lui-même comme non pris en charge, et le mainteneur conditionne le support à `typescript@7.1.0`
 > livrant une API publique, qui n'existe pas. `ADR-0010` n'épingle aucune version de TypeScript,
 > mais **la question est fermée depuis le scaffold** : `typescript@6.0.3` est installée, et le
-> candidat ADR [« TypeScript est plafonné à la branche 6 »](./adr/_candidates/typescript-plafonne-a-la-branche-6.md)
+> candidat ADR [« TypeScript est plafonné à la branche 6 »](./1.x/adr/_candidates/typescript-plafonne-a-la-branche-6.md)
 > (2026-08-15) en fait une **contrainte du job `boundaries`** et non un réglage de feature —
 > `typescript-eslint@8.66.0` déclare le pair `>=4.8.4 <6.1.0`, si bien que monter en branche 7
 > éteindrait la chaîne ESLint, donc `boundaries`, donc **la seule vérification d'`I1`**, sans
@@ -845,22 +846,22 @@ l'ablation no-op elle-même n'est pas posée : aucune commande réelle ne l'expr
   elle-même ne rendra pas : un import profond qui contourne un baril, sauf règle dédiée
   (`import-x/no-internal-modules`). dependency-cruiser, candidat initial, reste écarté depuis le
   2026-08-14 : ni `.astro`, ni TypeScript 7.
-- **La composition inerte de l'e-mail acheminé** ([ADR-0009](./adr/0009-acheminement-email-routing-send-email.md))
+- **La composition inerte de l'e-mail acheminé** ([ADR-0009](./1.x/adr/0009-acheminement-email-routing-send-email.md))
   — texte seul, objet fixe, chaque donnée du visiteur derrière son étiquette. Le gabarit n'existe
   pas et son chemin n'est pas décidé : aucun motif ne se dérive sans l'inventer. **La cinquième
   porte reste donc ouverte à la CI.**
 - **L'effacement conjoint de la clé de fenêtre et des entrées du compteur**
-  ([ADR-0012](./adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md)) —
-  `docs/archi.md` a écarté ses deux versants **faute de trace observable**, comme comportement à
+  ([ADR-0012](./1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md)) —
+  `docs/1.x/archi.md` a écarté ses deux versants **faute de trace observable**, comme comportement à
   l'exécution : rien ne le tient. C'est la seconde clause d'`ADR-0012` — rien de dérivé d'une
   origine ne survit à la fenêtre qui l'a fait naître — que tient la moitié statique, au registre
   ci-dessus via `I7` au même titre qu'`ADR-0027` : ce n'est **pas** un trou, malgré l'absence de
   ligne qui lui soit propre.
 - **Le jeton anti-CSRF doublé du contrôle d'`Origin`**
-  ([ADR-0006](./adr/0006-auth-implementation-maison-sur-d1.md)) — l'ADR verse cette propriété aux
+  ([ADR-0006](./1.x/adr/0006-auth-implementation-maison-sur-d1.md)) — l'ADR verse cette propriété aux
   contrôles bloquants au même titre que les attributs du cookie, mais les deux ne se lisent pas de
   la même façon : le cookie est une **chaîne littérale** dans une source, quand « sur **chaque**
-  écriture » est une propriété de **couverture**. Aucune route n'existe, `docs/archi.md` n'en tire
+  écriture » est une propriété de **couverture**. Aucune route n'existe, `docs/1.x/archi.md` n'en tire
   aucun invariant, et un grep qui trouverait un contrôle d'`Origin` quelque part ne dirait rien de
   la route qui l'oublie. Seule la moitié « cookie » est donc rendue, au registre ci-dessus ;
   l'autre attend l'épreuve `SC-021`, qui mesure l'ensemble au niveau specs.
@@ -871,7 +872,7 @@ l'ablation no-op elle-même n'est pas posée : aucune commande réelle ne l'expr
 
 - **La CSP et les en-têtes sur la réponse elle-même.** `arch-invariants` lit les **interdits** dans
   les sources ; que l'en-tête soit effectivement posé sur **toute** réponse d'administration est du
-  runtime. C'est la moitié que `docs/archi.md` n'a pas retenue en **classe 15** — la « posture de
+  runtime. C'est la moitié que `docs/1.x/archi.md` n'a pas retenue en **classe 15** — la « posture de
   sécurité de l'administration », propriété composite dont `I4` ne tient que le versant structurel
   —, et la quatrième porte n'a aucun repli : si la CSP tombait, l'invariant d'échappement `I5`
   resterait seul.

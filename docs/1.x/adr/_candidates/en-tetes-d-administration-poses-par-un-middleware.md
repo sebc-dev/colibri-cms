@@ -1,8 +1,8 @@
 # Candidat ADR : les en-têtes de sécurité de l'administration sont posés par un middleware logé dans une zone
 Statut : Candidat | Date : 2026-08-19 | Déposé par : `specs/002-connexion-par-code/plan.md` décision 3
-Trace vers : [ADR-0015](../../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) (deux porteurs d'en-têtes) ·
-[ADR-0024](../../1.x/adr/0024-administration-sans-directive-client.md) (`I4`, la CSP stricte définie par ses
-interdits) · [docs/archi.md](../../1.x/archi.md) § Vue d'ensemble (les cinq zones, et `src/pages/` qui
+Trace vers : [ADR-0015](../0015-en-tetes-de-reponse-deux-porteurs.md) (deux porteurs d'en-têtes) ·
+[ADR-0024](../0024-administration-sans-directive-client.md) (`I4`, la CSP stricte définie par ses
+interdits) · [docs/archi.md](../../archi.md) § Vue d'ensemble (les cinq zones, et `src/pages/` qui
 n'en est pas une)
 
 ## Contexte

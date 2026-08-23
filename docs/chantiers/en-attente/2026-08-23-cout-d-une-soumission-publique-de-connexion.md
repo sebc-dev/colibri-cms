@@ -9,8 +9,8 @@ la marge qui reste face aux quotas journaliers du palier gratuit, tant que le se
 par origine n'est pas livré.
 
 ## Contexte à charger
-à lire  `specs/002-connexion-par-code/plan.md` § décision 7 — le délai plancher et ce qu'il coûte
-à lire  `specs/002-connexion-par-code/spec.md` § NON inclus — le seuil par origine, hors périmètre
+à lire  `docs/1.x/specs/002-connexion-par-code/plan.md` § décision 7 — le délai plancher et ce qu'il coûte
+à lire  `docs/1.x/specs/002-connexion-par-code/spec.md` § NON inclus — le seuil par origine, hors périmètre
 
 ## Acquis
 - J'ai relevé qu'une soumission coûte au moins deux allers-retours D1 — le décompte de la fenêtre,
