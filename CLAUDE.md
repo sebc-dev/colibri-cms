@@ -2,15 +2,16 @@
 <!-- Propriétaire : @sebc-dev — Revue : /2 semaines — Règle : supprimer plus qu'on n'ajoute. Mettre à
      jour quand : erreur refaite une 2ᵉ fois · revue qui attrape ce que Claude aurait dû savoir ·
      même correction retapée · contexte qu'un nouveau coéquipier aurait cherché. Entretien :
-     /scd-sdd:revise-contract — ne PAS rejouer /scd-sdd:contract. Bloc retiré avant injection. -->
+     /scd-sdd:init — elle RÉVISE section par section, elle ne ré-assemble jamais. -->
 
 ## Vue d'ensemble
 - Objet : CMS auto-hébergé chez le client (Cloudflare, palier gratuit), pour un site vitrine
   statique éditable par une cliente non technicienne, qui survit à la disparition d'Isometria —
-  voir @docs/brief.md
-- Le "quoi" produit : @docs/prd.md — Les fondations techniques : @docs/stack.md
-- Ce que le code s'interdit : `docs/archi.md` — NE PAS franchir un invariant
-- Décisions figées : @docs/adr/ — NE PAS contredire un ADR accepté
+  voir `docs/1.x/brief.md` (archivé — cycle 1.x)
+- Le "quoi" produit : `docs/1.x/prd.md` — Les fondations techniques : `docs/1.x/stack.md`
+- Ce que le code s'interdit : `docs/1.x/archi.md` — NE PAS franchir un invariant
+- Décisions figées : `docs/adr/` — NE PAS contredire un ADR accepté ; les décisions héritées
+  sont dans `docs/1.x/adr/`, en attente de promotion depuis `docs/adr/_candidates/`
 - Ce qui est vérifié automatiquement : `docs/ci.md` — les contrôles bloquants font foi ; l'état de
   chaque contrôle (bloquant/informatif) y est explicite, ne pas le supposer
 
@@ -37,7 +38,7 @@
 
 ## Principes non-négociables & seuils (constitution fondue)
 - Diff descriptible en une phrase → direct. Multi-fichiers / nouveau comportement → cycle
-  `/scd-sdd:kickoff-feature` complet. Décision transverse → nouvel ADR.
+  `/scd-sdd:spec` puis `/scd-sdd:tickets`. Décision transverse → nouvel ADR.
 - Zéro traitement serveur sur une page publique hors l'envoi d'une demande de devis (FR-097) — le
   site public reste statique (FR-095/096). Toute nouvelle route serveur sur le public est un
   signal d'alerte à interroger avant d'écrire.
@@ -69,7 +70,7 @@
   `xdescribe(` ajouté à un test. Supprimer ou affaiblir un test reste possible mais exige un
   commit signé.
 - `specs-integrity` (bloquant) exige un commit signé pour toute modification de
-  `specs/**/spec.md` et `specs/**/plan.md`, et pour toute ligne de `specs/**/tasks.md` **autre
+  `specs/**/SPEC.md`, et pour toute ligne d'un ticket `specs/**/NN-*.md` **autre
   qu'une case** (`- [ ]` ↔ `- [x]`, libres) — ne jamais réécrire une exigence pour la faire
   correspondre au code écrit ; c'est la cible qu'on déplacerait, pas le code qu'on corrigerait.
 - `lint`, `coverage`, `sast`, `arch-invariants`, `boundaries` sont **informatifs**, pas bloquants

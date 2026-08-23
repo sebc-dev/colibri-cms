@@ -2,7 +2,7 @@
 #
 # Invariants d'architecture — mode 5 de la grille de docs/ci.md.
 #
-# Source : la table des invariants de docs/archi.md (I1..I10) et les clauses
+# Source : la table des invariants de docs/1.x/archi.md (I1..I10) et les clauses
 # d'ADR que le registre de docs/ci.md verse ici — ADR-0015, ADR-0024, ADR-0006.
 #
 # Le compte se fait en CLAUSES, jamais en ADR : six ADR adressent un contrôle
@@ -49,12 +49,12 @@ exists() { [ -n "$(files "$@")" ]; }
 
 SRC_EXT=('*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' '*.astro' '*.svelte')
 
-echo "── Invariants de docs/archi.md ───────────────────────────────────────────"
+echo "── Invariants de docs/1.x/archi.md ───────────────────────────────────────────"
 
 # ── I1 · sens descendant des dépendances entre zones ─────────────────────────
 # NON RENDU ICI, ET RENDU AILLEURS. La matrice des arêtes autorisées se vérifie
 # sur le graphe d'imports résolu — alias `tsconfig paths`, ré-exports, barils —,
-# ce à quoi une expression régulière ne suffit pas (docs/archi.md § I1).
+# ce à quoi une expression régulière ne suffit pas (docs/1.x/archi.md § I1).
 # Le moteur est la chaîne ESLint — eslint-plugin-boundaries sur
 # eslint-import-resolver-typescript —, POSÉE depuis le 2026-08-15 dans
 # eslint.config.boundaries.js et jouée par le job `boundaries`
@@ -214,7 +214,7 @@ else
 fi
 
 echo
-echo "── Contrôles réclamés par des ADR, hors table de docs/archi.md ───────────"
+echo "── Contrôles réclamés par des ADR, hors table de docs/1.x/archi.md ───────────"
 
 # ── ADR-0015 · la liste run_worker_first reste bornée ────────────────────────
 # Si elle passe globale, TOUTES les réponses sont générées par le code et le

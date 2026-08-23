@@ -72,14 +72,14 @@ git diff --cached -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.astro' '*.svelte' \
   echo "  • une extinction de vérificateur est introduite (verifier-guard)"; motifs=1; }
 git diff --cached --diff-filter=D --name-only -- '*.test.ts' '*.spec.ts' 'tests/**' \
   | grep -q . && { echo "  • un fichier de test est supprimé (test-integrity)"; motifs=1; }
-# `specs-integrity` : spec.md et plan.md sont figés sans exception ; dans
-# tasks.md, seul l'état des CASES est libre. La CI juge commit par commit sur
+# `specs-integrity` : SPEC.md est figé sans exception ; dans un ticket,
+# seul l'état des CASES est libre. La CI juge commit par commit sur
 # la PR, ici on juge l'INDEX : une réécriture rétablie plus loin dans la branche
 # échappe à cet affichage et rougira quand même en PR.
-git diff --cached --name-only -- ':(glob)specs/**/spec.md' ':(glob)specs/**/plan.md' \
+git diff --cached --name-only -- ':(glob)specs/**/SPEC.md' \
   | grep -q . && { echo "  • un document de specs figé est modifié (specs-integrity)"; motifs=1; }
 neutraliser() { sed -E 's/^([[:space:]]*[-*][[:space:]]+)\[[ xX]\]/\1[ ]/'; }
-d=$(git diff --cached --unified=0 -- ':(glob)specs/**/tasks.md')
+d=$(git diff --cached --unified=0 -- ':(glob)specs/**/[0-9][0-9]-*.md')
 avant=$(echo "$d" | grep -E '^-'  | grep -vE '^---'    | cut -c2- | neutraliser | sort) || true
 apres=$(echo "$d" | grep -E '^\+' | grep -vE '^\+\+\+' | cut -c2- | neutraliser | sort) || true
 [ "$avant" = "$apres" ] || {
