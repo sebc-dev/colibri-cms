@@ -17,8 +17,8 @@ exigence quand il porte à la fois son implémentation et sa vérification obser
 peut néanmoins **corroborer** cette exigence en ajoutant au parcours une étape qui n'était pas
 jouable plus tôt — l'étape **o** cherche le dernier code de l'étape **m**, et **m** naît quatre lots
 plus loin. Ces tâches-là portent le backref sans revendiquer l'exigence, et chacune dit en clair
-pourquoi elle atterrit là. Quatre existent : **o** (R10), **ℓ** (R5), le recâblage de **k** (R7) et
-le volet parcours-entier des absences (R11).
+pourquoi elle atterrit là. Cinq existent : **o** (R10), **ℓ** (R5), le recâblage de **k** (R7),
+le volet parcours-entier des absences (R11) et la survie de l'identifiant d'appareil (R5).
 
 **Ordre des lots.** R1 ouvre parce que rien ne se construit sans lui : `I6` veut que **tout** fichier
 de route sous `src/pages/admin/` importe la garde de session, donc la garde et la première route
@@ -212,14 +212,18 @@ Fichiers : `src/core/auth/code.ts`, `src/platform/auth/magasin.ts`,
       différents ; **aucune des deux réponses du `POST` d'adresse ne porte de `Set-Cookie`**, donc
       rien dont la présence ou la longueur dépende de l'adresse soumise
       _Requirements: FR-038_ ; bloqué par : T19, T21
-- [ ] T25 — Implémenter l'étape « adresse » de `src/pages/admin/connexion.astro` et
+- [ ] T25 — Écrire le test de la survie de l'identifiant d'appareil : le cookie posé au `GET` reste
+      présenté au-delà de l'expiration du dernier code demandé depuis cet appareil, si bien qu'un
+      code expiré rend `redemander` et jamais `autre-appareil`
+      _Requirements: FR-031, FR-032, SC-009_ ; bloqué par : T19, T21
+- [ ] T26 — Implémenter l'étape « adresse » de `src/pages/admin/connexion.astro` et
       `src/admin/connexion/FormulaireAdresse.astro` — le `GET` pose le cookie d'appareil (décision 6),
       le `POST` éprouve l'adresse puis engendre et écrit, et passe à l'étape suivante par une
       redirection `303` vers `?etape=code`, si bien qu'un rafraîchissement ne réémet pas ; un `POST`
       sans cookie d'appareil renvoie au formulaire sans rien engendrer. Critère d'acceptation :
       aucun des dix-huit termes de la Légende ne paraît dans les textes que cette tâche ajoute
       _Requirements: FR-003, FR-025, FR-029, FR-038_ ; bloqué par : T23, T24
-- [ ] T26 — Ajouter au parcours les étapes **a** (semer l'adresse autorisée dans la base locale —
+- [ ] T27 — Ajouter au parcours les étapes **a** (semer l'adresse autorisée dans la base locale —
       c'est le geste d'exploitation que la spec range hors produit, et l'étape en est la
       démonstration exécutable), **b-bis** (chacun des deux bocaux repart avec son cookie d'appareil,
       tiré au hasard et différent de l'autre), **c** (`POST` d'une adresse inconnue → la réponse, et
@@ -227,8 +231,8 @@ Fichiers : `src/core/auth/code.ts`, `src/platform/auth/magasin.ts`,
       et **aucune ligne écrite dans `code_connexion`** : aucun code n'existant à présenter, aucune
       session ne peut s'ouvrir) ; critère d'acceptation : les volets « aucun message émis » de **c**
       et de **n** se referment en R6, qui fait naître l'émission
-      _Requirements: FR-003, FR-029, FR-038, SC-010_ ; bloqué par : T25
-- [ ] T27 — Ajouter au parcours l'étape **ℓ** : un `POST` sur `/admin/connexion` portant une
+      _Requirements: FR-003, FR-029, FR-038, SC-010_ ; bloqué par : T26
+- [ ] T28 — Ajouter au parcours l'étape **ℓ** : un `POST` sur `/admin/connexion` portant une
       **origine étrangère** → `403`. Le contrôle est celui du framework (`security.checkOrigin`,
       `true` par défaut, mesuré) : aucune ligne de code ne le pose, et c'est là sa fragilité.
       Critère d'acceptation : l'assertion échoue quand on lui soumet un `security: { checkOrigin:
@@ -236,7 +240,7 @@ Fichiers : `src/core/auth/code.ts`, `src/platform/auth/magasin.ts`,
       que personne n'a posé et qu'un réglage peut retirer en silence. **Corroboration** : `FR-023`
       est livré par R1 (l'attribut `SameSite=Strict` du cookie) ; cette étape en couvre l'autre
       moitié, le refus d'origine, qui n'existe qu'à partir du premier `POST` — né ici
-      _Requirements: FR-023_ ; bloqué par : T25
+      _Requirements: FR-023_ ; bloqué par : T26
 
 ## R6 — Le message portant le code part vers la seule adresse autorisée
 _Livre : FR-001, FR-004, FR-036, FR-037 · SC-002_ · _vérif : TDD_ · _~170 lignes est._ ·
@@ -249,11 +253,11 @@ Fichiers : `src/platform/auth/emission.ts`, `src/platform/auth/expediteur.ts`, `
 > `src/platform/auth/emission.ts`. Ce sont les **deux** — et les seuls — porteurs de texte visible
 > du parcours.
 
-- [ ] T28 — Écrire le test de la composition du message : texte seul sans mise en forme, objet
+- [ ] T29 — Écrire le test de la composition du message : texte seul sans mise en forme, objet
       identique d'une émission à l'autre et dont aucune partie ne provient de la saisie, destination
       = l'adresse autorisée et **aucune autre**
       _Requirements: FR-001, FR-004, FR-036, FR-037_ ; dépend de : —
-- [ ] T29 — Implémenter `src/platform/auth/emission.ts` et `expediteur.ts` (adresse d'expédition
+- [ ] T30 — Implémenter `src/platform/auth/emission.ts` et `expediteur.ts` (adresse d'expédition
       dérivée d'`instance.json` par import, décision 10), et déclarer la liaison `ENVOI_CODE` dans
       `wrangler.jsonc` **avec `destination_address`** — la restriction rétablie par l'arbitrage
       humain du 2026-08-22 (décision 9) : elle avait été retirée sur le rouge d'un contrôle
@@ -264,67 +268,72 @@ Fichiers : `src/platform/auth/emission.ts`, `src/platform/auth/expediteur.ts`, `
       c'est **exactement** l'adresse que l'étape **a** sème, sans quoi la plateforme refuse
       l'émission et le parcours ne produit aucun `.eml` ; **(3)** aucun des dix-huit termes de la
       Légende ne paraît dans le texte du message
-      _Requirements: FR-001, FR-004, FR-025, FR-036, FR-037_ ; bloqué par : T28
-- [ ] T30 — Brancher l'émission sur l'étape « adresse » ; ajouter au parcours le **volet « un `.eml`
+      _Requirements: FR-001, FR-004, FR-025, FR-036, FR-037_ ; bloqué par : T29
+- [ ] T31 — Brancher l'émission sur l'étape « adresse » ; ajouter au parcours le **volet « un `.eml`
       apparaît » de l'étape d** (`POST` de l'adresse autorisée depuis le premier bocal — R9
       l'enrichira de l'assertion d'identité octet pour octet), l'étape **f** (le message est en texte
       seul, son objet est celui du produit et ne porte rien de la saisie ; le code en est extrait
       pour la suite) et les **volets « aucun message émis » des étapes c et n**
-      _Requirements: FR-001, FR-004, FR-036, FR-037, SC-002_ ; bloqué par : T29
+      _Requirements: FR-001, FR-004, FR-036, FR-037, SC-002_ ; bloqué par : T30
 
 ## R7 — Le code recopié sur l'appareil demandeur ouvre la session
-_Livre : FR-011, FR-012, FR-013, FR-016, FR-017, FR-024, FR-030, FR-032_ · _vérif : TDD_ ·
+_Livre : FR-011, FR-012, FR-013, FR-016, FR-017, FR-024, FR-030, FR-032, FR-046_ · _vérif : TDD_ ·
 _~360 lignes est._ · _6 concepts_ · dépend de : R6
 Fichiers : `src/core/auth/code.ts`, `src/core/auth/verdict.ts`, `src/platform/auth/magasin.ts`,
 `src/platform/session/index.ts`, `src/admin/connexion/FormulaireCode.astro`, `src/admin/textes.ts`,
 `src/pages/admin/connexion.astro`, `scripts/verif-connexion.sh`
 
-- [ ] T31 — Écrire le test de la normalisation d'une saisie : casse indifférente, séparateurs
+- [ ] T32 — Écrire le test de la normalisation d'une saisie : casse indifférente, séparateurs
       ignorés, `O` → `0`, `I` et `L` → `1` — c'est le versant lecture de l'alphabet sans confusables
       _Requirements: FR-011_ ; dépend de : —
-- [ ] T32 — Implémenter `normaliserSaisie` dans `src/core/auth/code.ts`
-      _Requirements: FR-011_ ; bloqué par : T31
-- [ ] T33 [P] — Écrire le test du verdict nominal et de la liaison à l'appareil : un code non
+- [ ] T33 — Implémenter `normaliserSaisie` dans `src/core/auth/code.ts`
+      _Requirements: FR-011_ ; bloqué par : T32
+- [ ] T34 [P] — Écrire le test du verdict nominal et de la liaison à l'appareil : un code non
       expiré, retrouvé **par le cookie de demande**, première présentation → `ouvrir` ; un appareil
       qui n'a **jamais** demandé de code → `autre-appareil`, et l'écran invite à reprendre sur
       l'appareil demandeur _Requirements: FR-011, FR-012, FR-032_ ; dépend de : —
-- [ ] T34 — Implémenter `src/core/auth/verdict.ts` et la lecture par appareil dans
+- [ ] T35 — Implémenter `src/core/auth/verdict.ts` et la lecture par appareil dans
       `src/platform/auth/magasin.ts` — `… where appareil = ? order by emis_le desc limit 1`,
       **sans aucune clause sur `expire_le`, `consomme`, `annule` ni `essais_restants`** : c'est
       `juger()` qui tranche à partir de l'état lu, et lui seul. Critère d'acceptation : un code
       expiré ou déjà consommé rend `redemander`, jamais `autre-appareil` — filtrer à la lecture
       renverrait l'éditrice sur un autre appareil pour un code qu'elle a bien demandé sur le sien
-      _Requirements: FR-011, FR-012, FR-032_ ; bloqué par : T33
-- [ ] T35 [P] — Écrire le test du brûlage à l'usage : un code qui a ouvert une session n'en ouvre
+      _Requirements: FR-011, FR-012, FR-032_ ; bloqué par : T34
+- [ ] T36 [P] — Écrire le test du brûlage à l'usage : un code qui a ouvert une session n'en ouvre
       pas une seconde _Requirements: FR-013_ ; dépend de : —
-- [ ] T36 — Implémenter `ouvrirSession` dans `src/platform/session/index.ts` et la consommation du
+- [ ] T37 — Implémenter `ouvrirSession` dans `src/platform/session/index.ts` et la consommation du
       code à l'ouverture ; critère d'acceptation : c'est cet appel qui rend honnête l'import du garde
       par `src/pages/admin/connexion.astro` (`I6`, décision 1) — importer sans appeler est
       exactement l'angle mort qu'`ADR-0026` déclare assumé
-      _Requirements: FR-011, FR-013_ ; bloqué par : T35
-- [ ] T37 — Écrire le test de l'étape « code » : un code juste ouvre une session et renvoie vers
+      _Requirements: FR-011, FR-013_ ; bloqué par : T36
+- [ ] T38 — Écrire le test de l'étape « code » : un code juste ouvre une session et renvoie vers
       l'accueil ; l'écran de saisie porte la mention **bornée à l'appareil** — « si un nouveau code a
       été demandé depuis cet appareil, seul le dernier **permet d'entrer** » —, et **deux bornes**
       tiennent cette phrase : « seul le dernier message reçu » serait faux pour qui a deux appareils
       en cours, et « ouvre une session » emploierait *session*, le premier des dix-huit termes que la
-      Légende de la spec interdit sur cet écran depuis que `FR-025` l'y couvre — l'étape **q** (T59)
+      Légende de la spec interdit sur cet écran depuis que `FR-025` l'y couvre — l'étape **q** (T64)
       le relèverait sur le texte rendu, et le lot échouerait sur sa propre prescription ; **sur les
       écrans que ce lot et les précédents servent** — connexion, saisie du code, accueil — aucun
       champ de mot de passe, aucun lien de création de compte, aucun renvoi vers un autre compte
-      _Requirements: FR-016, FR-017, FR-024, FR-030_ ; bloqué par : T32, T34, T36
-- [ ] T38 — Implémenter l'étape « code » de `src/pages/admin/connexion.astro` et
+      _Requirements: FR-016, FR-017, FR-024, FR-030_ ; bloqué par : T33, T35, T37
+- [ ] T39 — Implémenter l'étape « code » de `src/pages/admin/connexion.astro` et
       `src/admin/connexion/FormulaireCode.astro` (dont le premier des trois textes de refus, celui
       qui invite à reprendre sur l'appareil demandeur) ; critère d'acceptation : aucun des dix-huit
       termes de la Légende ne paraît dans les textes que cette tâche ajoute
-      _Requirements: FR-011, FR-016, FR-017, FR-024, FR-025, FR-030, FR-032_ ; bloqué par : T37
-- [ ] T39 — Ajouter au parcours les étapes **g** (présenter le code depuis le second bocal → refus,
+      _Requirements: FR-011, FR-016, FR-017, FR-024, FR-025, FR-030, FR-032_ ; bloqué par : T38
+- [ ] T40 — Implémenter dans `src/admin/textes.ts` et
+      `src/admin/connexion/FormulaireCode.astro` la mention de la durée d'utilisabilité du code, et
+      poser dans `scripts/verif-connexion.sh` l'assertion de sa présence sur l'écran de saisie ;
+      critère d'acceptation : aucun des dix-huit termes de la Légende ne paraît dans le texte ajouté
+      _Requirements: FR-025, FR-046_ ; bloqué par : T39
+- [ ] T41 — Ajouter au parcours les étapes **g** (présenter le code depuis le second bocal → refus,
       et le texte est celui qui invite à reprendre sur l'appareil demandeur) et **j** (présenter le
       bon code → `302` vers `/admin/`, cookie de session portant les quatre attributs ; le
       **rejouer** → refus) ; **et recâbler l'étape k** sur le cookie de session que **j** vient
       d'obtenir. Critère d'acceptation : plus aucune session n'est semée à la main dans le script —
       celle de R2 n'a tenu que le temps où rien ne l'ouvrait, et la laisser ferait passer **k** sur
       une session que le parcours n'a pas produite
-      _Requirements: FR-011, FR-012, FR-013, FR-018, FR-032_ ; bloqué par : T38
+      _Requirements: FR-011, FR-012, FR-013, FR-018, FR-032_ ; bloqué par : T39
 
 ## R8 — Un code refusé dit quoi faire
 _Livre : FR-014, FR-015, FR-027, FR-028, FR-031 · SC-004, SC-009_ · _vérif : TDD_ ·
@@ -332,59 +341,65 @@ _~250 lignes est._ · _3 concepts_ · dépend de : R7
 Fichiers : `src/core/auth/verdict.ts`, `src/core/auth/regles.ts`, `src/platform/auth/magasin.ts`,
 `src/admin/textes.ts`, `src/admin/connexion/FormulaireCode.astro`, `scripts/verif-connexion.sh`
 
-- [ ] T40 — Écrire le test des trois causes qui appellent le même geste, **à instant injecté** :
+- [ ] T42 — Écrire le test des trois causes qui appellent le même geste, **à instant injecté** :
       présenté au-delà de quinze minutes, déjà utilisé, annulé par une demande ultérieure faite
       **depuis le même appareil** → `redemander`
       _Requirements: FR-014, FR-027, FR-031_ ; dépend de : —
-- [ ] T41 — Implémenter l'expiration à quinze minutes (`src/core/auth/regles.ts`) et l'annulation,
+- [ ] T43 — Implémenter l'expiration à quinze minutes (`src/core/auth/regles.ts`) et l'annulation,
       **à l'émission** d'un nouveau code, des codes encore utilisables portant le **même identifiant
       d'appareil** ; critère d'acceptation : un code demandé depuis un **autre** appareil n'est pas
       touché et continue d'y ouvrir une session
-      _Requirements: FR-014, FR-027, FR-031_ ; bloqué par : T40
-- [ ] T42 — Écrire le test du brûlage à la cinquième erreur : les quatre premières
+      _Requirements: FR-014, FR-027, FR-031_ ; bloqué par : T42
+- [ ] T44 — Écrire le test du brûlage à la cinquième erreur : les quatre premières
       présentations erronées invitent à vérifier la saisie, la cinquième rend le code inutilisable
-      pour toute présentation ultérieure _Requirements: FR-015, FR-028_ ; bloqué par : T41
-- [ ] T43 — Implémenter le décompte des présentations restantes et le brûlage
-      _Requirements: FR-015, FR-028_ ; bloqué par : T42
-- [ ] T44 — Écrire le test du registre des refus : **cinq causes, trois réponses**, chaque cause
+      pour toute présentation ultérieure _Requirements: FR-015, FR-028_ ; bloqué par : T43
+- [ ] T45 — Implémenter le décompte des présentations restantes et le brûlage
+      _Requirements: FR-015, FR-028_ ; bloqué par : T44
+- [ ] T46 — Écrire le test du registre des refus : **cinq causes, trois réponses**, chaque cause
       rendant celle qui correspond au geste attendu, et **aucune** des quatre présentations
       fautives — rejeu, autre appareil, au-delà de quinze minutes, cinquième erreur — n'ouvrant de
-      session _Requirements: SC-004, SC-009_ ; bloqué par : T41, T43
-- [ ] T45 — Implémenter les deux textes de refus restants dans `src/admin/textes.ts` (vérifier la
+      session _Requirements: SC-004, SC-009_ ; bloqué par : T43, T45
+- [ ] T47 — Implémenter les deux textes de refus restants dans `src/admin/textes.ts` (vérifier la
       saisie ; demander un nouveau code) et leur rendu par `src/admin/connexion/FormulaireCode.astro` ;
       critère d'acceptation : aucun des dix-huit termes de la Légende ne paraît dans les textes que
-      cette tâche ajoute _Requirements: FR-025, FR-028, FR-031, SC-004, SC-009_ ; bloqué par : T44
-- [ ] T46 — Ajouter au parcours les étapes **h** (un code faux présenté cinq fois : les quatre
+      cette tâche ajoute _Requirements: FR-025, FR-028, FR-031, SC-004, SC-009_ ; bloqué par : T46
+- [ ] T48 — Ajouter au parcours les étapes **h** (un code faux présenté cinq fois : les quatre
       premiers invitent à retaper, le cinquième invite à demander un nouveau code et le code cesse
       d'être présentable) et **i** (redemander un code, puis présenter l'avant-dernier → refus,
       invitation à en demander un nouveau)
-      _Requirements: FR-015, FR-027, FR-028, FR-031, SC-004_ ; bloqué par : T45
+      _Requirements: FR-015, FR-027, FR-028, FR-031, SC-004_ ; bloqué par : T47
 
 ## R9 — La réponse de l'écran de connexion ne trahit rien par son délai
-_Livre : FR-005, FR-006, FR-007, FR-033 · SC-003, SC-012_ · _vérif : TDD_ · _~240 lignes est._ ·
-_4 concepts_ · dépend de : R8
+_Livre : FR-005, FR-006, FR-007, FR-033, FR-045 · SC-003, SC-012_ · _vérif : TDD_ ·
+_~240 lignes est._ · _4 concepts_ · dépend de : R8
 Fichiers : `src/core/auth/regles.ts`, `src/pages/admin/connexion.astro`,
 `scripts/verif-connexion.sh`
 
-- [ ] T47 — Écrire le test de l'émission non attendue : la réponse est rendue sans attendre l'issue
+- [ ] T49 — Écrire le test de l'émission non attendue : la réponse est rendue sans attendre l'issue
       de l'émission, et une émission qui échoue rend la **même** réponse qu'une émission qui aboutit
       _Requirements: FR-006, FR-007_ ; dépend de : —
-- [ ] T48 — Écrire le test de la réponse au contenu identique : l'adresse autorisée et une
+- [ ] T50 — Écrire le test de la réponse au contenu identique : l'adresse autorisée et une
       adresse inconnue rendent le **même corps** et les **mêmes champs d'en-tête** — c'est le
       périmètre que `FR-005` fixe, rien de plus, rien de moins
-      _Requirements: FR-005_ ; bloqué par : T47
-- [ ] T49 — Implémenter l'ordre imposé par les exigences : engendrer et **écrire le code en base**
+      _Requirements: FR-005_ ; bloqué par : T49
+- [ ] T51 — Écrire le test de l'échec interne : une écriture en base qui échoue rend le **même**
+      corps, les **mêmes** champs d'en-tête et le même délai plancher qu'une soumission qui aboutit
+      _Requirements: FR-045_ ; bloqué par : T50
+- [ ] T52 — Implémenter l'ordre imposé par les exigences : engendrer et **écrire le code en base**
       (attendu — sinon l'éditrice pourrait saisir un code que la base ignore encore), confier
       l'**émission** à `Astro.locals.cfContext.waitUntil`, attendre le solde du délai plancher,
       répondre — jamais un délai *supplémentaire* constant, dont le total varierait avec le travail
-      _Requirements: FR-005, FR-006, FR-007, FR-033_ ; bloqué par : T47, T48
-- [ ] T50 — Geler le délai plancher à **1 500 ms** dans `src/core/auth/regles.ts` ; critère
+      _Requirements: FR-005, FR-006, FR-007, FR-033_ ; bloqué par : T49, T50
+- [ ] T53 — Implémenter la retenue de l'échec interne dans l'ordre de la décision 7 : aucune erreur
+      ne remonte à la réponse, et le délai plancher est tenu dans les deux cas
+      _Requirements: FR-045_ ; bloqué par : T51
+- [ ] T54 — Geler le délai plancher à **1 500 ms** dans `src/core/auth/regles.ts` ; critère
       d'acceptation : la valeur est dérivée comme **budget d'étalement** (décision 7, redérivée le
       2026-08-22) — l'étalement toléré vaut la médiane divisée par vingt, soit 75 ms pour un plancher
       de 1 500 — et elle est écrite **avant que quoi que ce soit ne la mesure**, aucune étape de
       vérification ne la réécrivant : une mesure qui règle le seuil qu'elle juge ne peut jamais
-      échouer _Requirements: FR-033_ ; bloqué par : T49
-- [ ] T51 — Ajouter au parcours l'**assertion d'identité de l'étape d** (le `POST` de l'adresse
+      échouer _Requirements: FR-033_ ; bloqué par : T52
+- [ ] T55 — Ajouter au parcours l'**assertion d'identité de l'étape d** (le `POST` de l'adresse
       autorisée et celui d'une adresse inconnue rendent un corps identique **octet pour octet** et le
       même jeu de champs d'en-tête, `Date` excepté — faisable parce qu'aucune des deux ne porte de
       `Set-Cookie`, le cookie d'appareil étant posé au `GET`) et l'étape **e**, la campagne
@@ -397,9 +412,9 @@ Fichiers : `src/core/auth/regles.ts`, `src/pages/admin/connexion.astro`,
       vingtième de leur médiane** (`SC-012`). L'étape **se referme en rendant la suite jouable** :
       `code_connexion` et le répertoire des `.eml` sont vidés une dernière fois, puis un code est
       réémis depuis le bon bocal — c'est celui-là que **f** lit, et la fenêtre repart à un seul
-      envoi. Critère d'acceptation : l'étape **juge** le plancher gelé en T50 et ne le règle jamais —
+      envoi. Critère d'acceptation : l'étape **juge** le plancher gelé en T54 et ne le règle jamais —
       un rouge est un fait, et relever le plancher est une modification de source avec son commit
-      _Requirements: FR-005, FR-006, FR-033, SC-003, SC-012_ ; bloqué par : T50
+      _Requirements: FR-005, FR-006, FR-033, SC-003, SC-012_ ; bloqué par : T54
 
 ## R10 — Le plafond d'envois protège la boîte de la cliente
 _Livre : FR-008, FR-009, FR-010, FR-039 · SC-005, SC-013_ · _vérif : TDD_ · _~250 lignes est._ ·
@@ -408,13 +423,17 @@ Fichiers : `src/core/auth/regles.ts`, `src/platform/auth/magasin.ts`,
 `src/admin/connexion/FormulaireAdresse.astro`, `src/admin/textes.ts`,
 `src/pages/admin/connexion.astro`, `scripts/verif-connexion.sh`
 
-- [ ] T52 — Écrire le test du plafond **à instant injecté** : cinq messages déjà émis dans l'heure
+- [ ] T56 — Écrire le test du plafond **à instant injecté** : cinq messages déjà émis dans l'heure
       glissante n'en laissent émettre aucun de plus ; la fenêtre glisse et libère un envoi ; les
       lignes annulées comptent, l'exigence portant sur les **messages émis** et non sur les codes
       vivants ; et une rafale de cinq demandes depuis un même appareil — dont `FR-027` tue les quatre
       premières à mesure — atteint bien le plafond, les écritures successives n'ayant emporté aucune
       de ces lignes _Requirements: FR-008, SC-005_ ; dépend de : —
-- [ ] T53 — Implémenter le comptage sur `code_connexion`, **la garde du ramassage des lignes
+- [ ] T57 — Écrire le test du plafond **sous soumissions simultanées** : `N` soumissions de
+      l'adresse autorisée émises en parallèle dans une fenêtre vide n'émettent **au plus cinq**
+      messages ; critère d'acceptation : le test échoue sur une implémentation qui compte puis écrit
+      en deux gestes _Requirements: FR-008, SC-005_ ; bloqué par : T56
+- [ ] T58 — Implémenter le comptage sur `code_connexion`, **la garde du ramassage des lignes
       mortes** dans `src/platform/auth/magasin.ts` — une ligne n'est supprimée qu'une fois **sortie
       de l'heure glissante** (`… where emis_le < ?`), jamais sur son seul état — et l'épreuve du
       plafond **avant tout autre effet** : quand il est atteint la route ne touche à rien, donc
@@ -424,18 +443,18 @@ Fichiers : `src/core/auth/regles.ts`, `src/platform/auth/magasin.ts`,
       appareil, quatre des cinq lignes d'une rafale meurent avant la cinquième, le ramassage les
       emporte et **le plafond n'est jamais atteint** ; **(2)** la borne de l'heure glissante est
       **lue dans `src/core/auth/regles.ts`** et non recopiée, sans quoi un second réglage dériverait
-      de celui de `FR-008` _Requirements: FR-008, FR-010, SC-005_ ; bloqué par : T52
-- [ ] T54 — Écrire le test de l'annonce et de son indiscernabilité : le plafond atteint est indiqué
+      de celui de `FR-008` _Requirements: FR-008, FR-010, SC-005_ ; bloqué par : T56
+- [ ] T59 — Écrire le test de l'annonce et de son indiscernabilité : le plafond atteint est indiqué
       à qui soumet, **et** une adresse inconnue soumise sous plafond reçoit le même corps et les
       mêmes champs d'en-tête que l'adresse autorisée — sans quoi l'annonce serait le seul endroit du
       parcours qui désigne l'adresse autorisée
-      _Requirements: FR-009, FR-039, SC-013_ ; bloqué par : T53
-- [ ] T55 — Implémenter l'annonce (`?etape=plafond`) dans `src/admin/textes.ts` et
+      _Requirements: FR-009, FR-039, SC-013_ ; bloqué par : T58
+- [ ] T60 — Implémenter l'annonce (`?etape=plafond`) dans `src/admin/textes.ts` et
       `src/admin/connexion/FormulaireAdresse.astro` ; critères d'acceptation : le choix entre la
       réponse ordinaire et celle du plafond ne dépend que de l'état du plafond du déploiement, jamais
       de l'adresse soumise ; et aucun des dix-huit termes de la Légende ne paraît dans les textes que
-      cette tâche ajoute _Requirements: FR-009, FR-025, FR-039_ ; bloqué par : T54
-- [ ] T56 — Ajouter au parcours l'étape **m** et son **second tir**. Elle s'ouvre en **vidant la
+      cette tâche ajoute _Requirements: FR-009, FR-025, FR-039_ ; bloqué par : T59
+- [ ] T61 — Ajouter au parcours l'étape **m** et son **second tir**. Elle s'ouvre en **vidant la
       fenêtre de comptage**, sans quoi elle ne compte rien — **e** et **i** ont laissé des émissions
       dans l'heure glissante, et six soumissions n'en produiraient plus que trois. Critère
       d'acceptation : la fenêtre se vide en **reculant `emis_le`** de plus d'une heure
@@ -447,19 +466,19 @@ Fichiers : `src/core/auth/regles.ts`, `src/platform/auth/magasin.ts`,
       → **cinq `.eml` seulement**, la sixième réponse annonce le plafond, et le dernier code reçu
       ouvre encore une session ; puis, **le plafond toujours atteint**, une soumission d'une
       **adresse inconnue** → même corps et mêmes champs d'en-tête que la sixième
-      _Requirements: FR-008, FR-009, FR-010, FR-039, SC-005, SC-013_ ; bloqué par : T55
-- [ ] T57 — Ajouter au parcours l'étape **o** : déverser les trois tables de la base locale dans un
+      _Requirements: FR-008, FR-009, FR-010, FR-039, SC-005, SC-013_ ; bloqué par : T60
+- [ ] T62 — Ajouter au parcours l'étape **o** : déverser les trois tables de la base locale dans un
       fichier et y chercher **littéralement le dernier code de m** — celui qui vient d'ouvrir une
       session. Aucune occurrence. Critères d'acceptation : **(1)** le code cherché est celui de
       **m**, jamais celui de **f** — la ligne de **f** est morte depuis **h**, donc sortie de la
       fenêtre et ramassée bien avant ici, et l'assertion serait restée verte quand bien même le code
       y aurait été écrit en clair ; celle de **m** vient d'être écrite, n'a pas quitté l'heure
-      glissante, la garde de T53 interdit de la ramasser avant cette sortie, et elle a traversé
+      glissante, la garde de T58 interdit de la ramasser avant cette sortie, et elle a traversé
       **les deux** écritures de la vie d'un code, l'émission et la consommation ; **(2)** ce que
       l'étape prouve reste borné par la décision 14 — la conservation, jamais l'irréversibilité
       calculatoire. **Corroboration** : `FR-040` et `SC-015` sont livrés par R5 (T22 les vérifie,
       T23 les implémente) ; l'étape n'est jouable qu'ici, parce qu'elle lit le dernier code que
-      **m** produit et que **m** naît dans ce lot _Requirements: FR-040, SC-015_ ; bloqué par : T56
+      **m** produit et que **m** naît dans ce lot _Requirements: FR-040, SC-015_ ; bloqué par : T61
 
 ## R11 — Vérification bout-en-bout
 _Livre : FR-025, FR-026 · SC-001, SC-007, SC-008, SC-016_ · _vérif : **check** — aucune de ces
@@ -474,10 +493,10 @@ Fichiers : `scripts/verif-connexion.sh`
 > prouve les exigences ; ne restent ici que ce qui ne peut se constater qu'une fois tout écrit.
 
 > **`FR-025` est transverse, et c'est dit plutôt que caché.** Ses textes naissent partout où du
-> texte visible s'écrit — T10, T25, T29, T38, T45, T55 —, et **chacune de ces tâches porte
+> texte visible s'écrit — T10, T26, T30, T39, T40, T47, T60 —, et **chacune de ces tâches porte
 > désormais son propre critère d'acceptation** : aucun des dix-huit termes de la Légende dans les
 > textes qu'elle ajoute. Ce qui reste ici est ce qu'aucune d'elles ne peut faire seule : l'assertion
-> sur le parcours **entier** (T59) et la relecture de ce que la liste n'a pas prévu (T61). C'est la
+> sur le parcours **entier** (T64) et la relecture de ce que la liste n'a pas prévu (T66). C'est la
 > seule exigence de la feature dont l'implémentation et la vérification ne tiennent pas dans un même
 > lot.
 
@@ -487,12 +506,12 @@ Fichiers : `scripts/verif-connexion.sh`
 > sont exactement les chaînes de ces deux modules —, et c'est pourquoi la relecture les nomme tous
 > les deux.
 
-- [ ] T58 — Ajouter l'étape **4** : aucune source de `src/pages/` ni de `src/admin/` n'écrit dans
+- [ ] T63 — Ajouter l'étape **4** : aucune source de `src/pages/` ni de `src/admin/` n'écrit dans
       `adresse_autorisee` — l'exigence est une **absence de route**, et elle ne s'atteste qu'une
       fois toutes les routes écrites ; critère d'acceptation : l'assertion échoue si on lui soumet
       une écriture injectée, et le script complet sort à `0` sur un dépôt propre
       _Requirements: FR-026_ ; dépend de : —
-- [ ] T59 — Ajouter l'étape **q**, le vocabulaire sur les textes **réellement rendus** : le script
+- [ ] T64 — Ajouter l'étape **q**, le vocabulaire sur les textes **réellement rendus** : le script
       conserve le corps de chaque écran qu'il a demandé — le formulaire d'adresse de **b-bis**, le
       formulaire de code et ses trois refus de **g**, **h** et **i**, l'annonce du plafond de **m**,
       l'écran d'accueil de **k** — et le `.eml` de **f** ; il en retire le balisage, puis cherche,
@@ -500,26 +519,26 @@ Fichiers : `scripts/verif-connexion.sh`
       énumère sous « terme de développeur » : aucune occurrence. Critère d'acceptation : l'assertion
       porte sur ce qui a été **rendu**, jamais sur les sources — un terme employé dans un commentaire
       ou dans un nom de variable n'est pas un texte visible, et l'y chercher rendrait le contrôle
-      faux dans les deux sens _Requirements: FR-025, SC-007_ ; bloqué par : T58
-- [ ] T60 — Ajouter au script le volet **parcours entier** des absences : sur tous les écrans du
+      faux dans les deux sens _Requirements: FR-025, SC-007_ ; bloqué par : T63
+- [ ] T65 — Ajouter au script le volet **parcours entier** des absences : sur tous les écrans du
       parcours — connexion, saisie du code et ses trois refus, annonce du plafond, accueil —, aucun
       ne demande la connexion à un compte autre que l'administration : aucun champ de mot de passe,
       aucun lien de création de compte, aucun renvoi vers un autre compte. Critère d'acceptation :
       l'assertion ne se joue qu'ici — R7 a constaté les écrans qu'il servait, mais R8 et R10 en ont
       ajouté après lui, et « sur tout le parcours » était faux tant qu'ils manquaient
-      _Requirements: SC-008_ ; bloqué par : T59
-- [ ] T61 — Relire l'intégralité des textes visibles du parcours et constater qu'aucun terme de
+      _Requirements: SC-008_ ; bloqué par : T64
+- [ ] T66 — Relire l'intégralité des textes visibles du parcours et constater qu'aucun terme de
       développeur n'y paraît **au-delà de ceux qu'énumère la Légende** — la liste est un plancher,
-      T59 prouve mécaniquement qu'elle est tenue, cette relecture couvre ce qu'elle n'a pas prévu ;
+      T64 prouve mécaniquement qu'elle est tenue, cette relecture couvre ce qu'elle n'a pas prévu ;
       critère d'acceptation : la relecture porte sur `src/admin/textes.ts` **et**
       `src/platform/auth/emission.ts`, les deux porteurs que `I1` empêche de réunir, elle épuise donc
-      ces textes, et son constat est consigné _Requirements: SC-016_ ; bloqué par : T59
-- [ ] T62 — Faire ouvrir l'administration par une personne qui n'a jamais vu le produit, à partir
+      ces textes, et son constat est consigné _Requirements: SC-016_ ; bloqué par : T64
+- [ ] T67 — Faire ouvrir l'administration par une personne qui n'a jamais vu le produit, à partir
       de la seule adresse autorisée ; **le message émis lui est remis intégralement et tel quel**, à
       la place de la boîte e-mail que cette feature ne livre pas, et elle ne reçoit **aucune autre
       assistance** ; critère d'acceptation : elle repère seule le code dans le message, le recopie
       sans le confondre, comprend l'écran et entre — sans mot de passe et sans créer de compte —, et
-      l'observation est consignée _Requirements: SC-001_ ; bloqué par : T58, T60, T61
+      l'observation est consignée _Requirements: SC-001_ ; bloqué par : T63, T65, T66
 
 ---
 

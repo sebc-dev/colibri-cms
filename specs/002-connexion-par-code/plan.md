@@ -171,6 +171,12 @@ Aucun script `npm` n'est ajouté, et **aucune dépendance nouvelle** : la seule 
   `migrations/0001_amorce.sql` (le commentaire dit ce que la migration prouve et ce qu'elle
   n'introduit pas).
 
+**Contrat d'exploitation supposé, hors de ce lot.** `migrations/0002_connexion.sql` doit être
+appliquée sur la base de l'instance **avant** la mise en ligne du code qui l'exige : sans les trois
+tables, l'administration est close et aucun écran ne le signale — l'écran de connexion répondrait
+comme il répond à une base sans adresse autorisée. Le geste et son porteur restent hors du lot, qui
+ne déploie rien ; c'est une ligne de recette de livraison, versée à `/scd-sdd:premortem socle`.
+
 ### `src/core/auth/` — la logique, sans framework ni plateforme (`I2`)
 
 - `src/core/auth/code.ts` — l'alphabet de trente-deux caractères, l'engendrement d'un code de huit
@@ -308,11 +314,18 @@ Les deux portent les mêmes attributs — `__Host-`, `HttpOnly`, `Secure`, `Same
 
 | Cookie | Valeur | Durée | Sert |
 |---|---|---|---|
-| `__Host-colibri-appareil` | un identifiant opaque tiré au hasard, qui ne désigne que le navigateur | quinze minutes, rafraîchies à chaque `GET` du formulaire | `FR-011`, `FR-012`, `FR-027`, `FR-032` |
+| `__Host-colibri-appareil` | un identifiant opaque tiré au hasard, qui ne désigne que le navigateur | au moins égale à la présentabilité d'un code comptée depuis son **émission**, rafraîchies à chaque `GET` du formulaire | `FR-011`, `FR-012`, `FR-027`, `FR-032` |
 | `__Host-colibri-session` | l'identifiant opaque de la session | trente jours | `FR-018` à `FR-023` |
 
 `Path=/` **sans restriction** : `ADR-0006` en donne le motif — restreindre le chemin casserait
 `FR-082`, l'aperçu vivant sur la même origine sous une autre route.
+
+**La durée du cookie d'appareil ne peut pas être plus courte que celle d'un code.** Les deux
+horloges ne partent pas du même instant : le cookie se rafraîchit au `GET` du formulaire, le code
+expire quinze minutes après son **émission** (`FR-014`). Un identifiant d'appareil disparu avant le
+code qu'il porte fait rendre `null` à la lecture par appareil, donc `autre-appareil` par la règle 1
+de `juger()`, là où `FR-031` et `SC-009` exigent « demandez-en un nouveau ». C'est le défaut que la
+lecture sans filtre d'état ferme côté SQL, réintroduit par l'autre bout.
 
 ### Schéma D1 (`migrations/0002_connexion.sql`)
 
@@ -346,6 +359,12 @@ CREATE TABLE session_admin (
 **Le plafond n'a pas de table à lui** : chaque émission engendre une ligne de `code_connexion`, et
 `FR-008` se lit en comptant les lignes dont `emis_le` tombe dans l'heure glissante. Les lignes
 annulées comptent — c'est ce qu'exige « cinq **messages** émis », et non « cinq codes vivants ».
+
+**Le comptage et l'écriture ne se laissent pas séparer.** Le point d'entrée est public et sans seuil
+par origine : rien n'empêche `N` soumissions de compter la même fenêtre avant qu'aucune n'ait écrit
+sa ligne, et `FR-008` tombe alors à `N` messages au lieu de cinq. L'épreuve du plafond et l'écriture
+de la ligne se font en un seul geste indivisible ; la même forme vaut pour `FR-013` et `FR-015`,
+dont la consommation et le décompte se lisent puis s'écrivent de même.
 
 **Aucune tâche planifiée n'efface rien** : l'expiration se calcule à la lecture (`FR-014`, `FR-020`,
 `FR-021`), et les lignes mortes sont supprimées à l'occasion de l'écriture suivante — **mais une
@@ -898,7 +917,7 @@ textes visibles du parcours sont exactement les chaînes de ces deux modules, et
 
 ## Couverture des exigences
 
-Les **44** `FR` de la spec sont couverts. Sept sont nés de la passe de correction du 2026-08-21 et
+Les **46** `FR` de la spec sont couverts. Sept sont nés de la passe de correction du 2026-08-21 et
 sont marqués **✦**.
 
 | `FR` | Porté par |
@@ -907,6 +926,7 @@ sont marqués **✦**.
 | `FR-002` `FR-034` | `src/core/auth/code.ts` ; test unitaire, `SC-011` |
 | `FR-003` `FR-029` | `src/platform/auth/magasin.ts` (lecture de l'adresse autorisée) ; étapes 3c, 3n |
 | `FR-005` `FR-006` `FR-007` `FR-033` | `src/pages/admin/connexion.astro` — réponse unique, `waitUntil`, plancher gelé (décision 7) ; étapes 3d, 3e |
+| `FR-045` | `src/pages/admin/connexion.astro` — aucune erreur interne ne remonte à la réponse, le plancher étant tenu dans les deux cas (ordre de la décision 7) ; test d'une écriture en base qui échoue |
 | ✦ `FR-038` | aucun `Set-Cookie` sur la réponse au `POST` d'adresse — décision 6 ; étape 3d |
 | `FR-008` `FR-009` `FR-010` | `src/core/auth/regles.ts` + comptage sur `code_connexion`, **et la garde du ramassage** qui empêche ce comptage de perdre ses lignes annulées (§ Schéma D1) ; étape 3m |
 | ✦ `FR-039` | réponse `B` choisie sur l'état du plafond seul, jamais sur l'adresse — § contrats ; étape 3m, second tir |
@@ -922,6 +942,7 @@ sont marqués **✦**.
 | `FR-026` | aucune route ne l'écrit ; étape 4 |
 | `FR-027` | annulation, à l'émission, des lignes vivantes portant l'identifiant d'appareil ; étape 3i |
 | `FR-030` | `src/admin/connexion/FormulaireCode.astro` ; assertion de présence du texte, étape 3 |
+| `FR-046` | `src/admin/textes.ts` + `src/admin/connexion/FormulaireCode.astro` ; assertion de présence du texte, étape 3 |
 | `FR-036` `FR-037` | `src/platform/auth/emission.ts` ; étape 3f |
 | ✦ `FR-040` | colonnes `sel` et `empreinte` de `code_connexion`, décision 14 ; étape 3o, **sur le dernier code de (m)** — le seul dont la ligne soit certainement encore là |
 | ✦ `FR-041` `FR-042` `FR-043` `FR-044` | `src/platform/entetes/middleware.ts`, décision 3 ; étape 3p, les trois formes tirées séparément |

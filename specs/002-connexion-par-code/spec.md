@@ -177,6 +177,11 @@ devient jamais perpétuelle.
   quelle que soit l'issue de l'émission. _(PRD: FR-008 ; SC-021 — la tolérance et le rapport que ce
   plancher doit tenir sont chiffrés par `SC-003` et `SC-012` ; ce critère porte la propriété, ceux-là
   portent les nombres)_
+- **FR-045** : If une opération interne nécessaire au traitement d'une soumission de l'écran de
+  connexion échoue, then the system shall rendre la même réponse, au terme du même délai plancher,
+  que si elle avait abouti. _(PRD: FR-008 ; FR-005, FR-007, FR-033 — `FR-007` ne couvre que l'échec
+  de l'**émission** ; le travail interne n'existe que sur la branche de l'adresse autorisée, si bien
+  qu'un échec y ferait de l'écran l'oracle que `SC-021` du PRD existe pour fermer)_
 
 ### Plafond d'envois
 
@@ -221,6 +226,11 @@ devient jamais perpétuelle.
   session » : depuis que `FR-025` couvre cet écran, *session* est le premier des termes que la
   Légende y interdit — dicter cette phrase-là reviendrait à exiger le mot que `SC-007` cherche pour
   réfuter `FR-025`.)_
+- **FR-046** : The system shall indiquer, sur l'écran de saisie du code, la durée pendant laquelle
+  le code reçu reste utilisable. _(PRD: SC-003, SC-015 ; FR-014, FR-030 — aucune exigence du PRD ne
+  demande ce guidage ; il sert « seule, sans aide et du premier coup », et c'est lui qui retient la
+  redemande qui consomme le plafond de `FR-008`. Comme `FR-030`, il énonce le **sens** du texte et
+  jamais sa phrase.)_
 - **FR-028** : If un code erroné est présenté alors qu'il lui reste des présentations, then the
   system shall inviter à vérifier la saisie. _(PRD: SC-003, SC-015, FR-122 — même écart que
   `FR-030`)_
@@ -425,6 +435,13 @@ puisque `FR-041` est rédigé sur les réponses et non sur les routes.
   déjà le **réamorçage** de l'adresse après incident (`FR-119` du PRD), mais **aucune ligne pour la
   poser la première fois**. À verser à `/scd-sdd:premortem socle`, seul à pouvoir ajouter une ligne
   de recette.
+- **Le chemin par lequel l'éditrice atteint son administration.** Cette feature sert l'écran de
+  connexion ; elle ne livre aucune page publique et rien ne rappelle à l'éditrice où entrer. C'est un
+  geste de livraison, consigné au dossier d'instance. **Ce que son absence laisse ouvert** : une
+  navigation venue d'un autre site n'emporte pas la session ouverte — `SameSite=Strict` (`ADR-0006`)
+  — et retombe sur l'écran de connexion, où un nouveau code consomme un envoi du plafond (`FR-008`).
+  *Signalement de trou au socle* : la recette de livraison ne porte aucune ligne pour consigner ce
+  chemin. À verser à `/scd-sdd:premortem socle`.
 
 ## Critères de succès mesurables
 
