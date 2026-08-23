@@ -1,12 +1,22 @@
 # Plan technique : Connexion de l'éditrice par code
 Trace vers : [spec.md](./spec.md) · [docs/stack.md](../../docs/stack.md) ·
 [docs/archi.md](../../docs/archi.md) · [docs/ci.md](../../docs/ci.md) · [docs/adr/](../../docs/adr/)
-Corrigé : 2026-08-21 — gate `analyze` (2 Critical de phase `plan`, 2 Major)
+Corrigé : 2026-08-21 — gate `analyze` (2 Critical de phase `plan`, 2 Major) ·
+2026-08-22 — gate `analyze` (1 Critical de phase `plan`, 2 Major, et les répercussions des
+corrections rendues par `specify` sur `SC-003`, `SC-012`, `SC-016`, `FR-030`) ·
+2026-08-22 — gate `analyze` (Major « étape o » : garde du ramassage au § Schéma D1 et étape 3o
+reportée sur le dernier code de (m) ; descente du Critical `FR-030` sur le texte prescrit à
+`FormulaireCode.astro`)
 
 > **Les faits de plateforme de ce plan ont été mesurés le 2026-08-19**, sur un dépôt jetable
 > (`$CLAUDE_JOB_DIR/tmp/probe`) portant les `node_modules` du dépôt — `astro@7.2.0`,
 > `@astrojs/cloudflare@14.2.0`, `@cloudflare/vitest-pool-workers@0.20.3`, `wrangler@4.120.0`.
 > Chaque mesure est citée à l'endroit où elle décide. Une mesure non citée ne décide rien.
+>
+> **Passe de correction du 2026-08-22** — gate `analyze`, passe 2. Trois mesures nouvelles, faites
+> sur **ce dépôt** : la collision du contrôle `I8` rejouée dans les deux sens (décision 9), la
+> forme et l'acceptation d'`assets.run_worker_first` par `wrangler@4.120.0` (décision 16), et le
+> bilan courant d'`arch-invariants.sh`, qui fixe le point de départ de l'assertion de l'étape 2.
 >
 > **Passe de correction du 2026-08-21** — gate `analyze`, entrées de phase `plan`. Deux mesures
 > nouvelles, faites sur **ce dépôt** et non sur un jetable : la collision entre le contrôle `I8` et
@@ -26,8 +36,10 @@ expédié au navigateur** : deux formulaires HTML natifs, rendus par le serveur.
 La logique qui décide — l'alphabet du code, l'expiration, le brûlage, le plafond, les bornes de
 session — vit dans `src/core/auth/`, sans base, sans horloge et sans plateforme : elle reçoit
 l'instant et les octets d'aléa en paramètres. `src/platform/` porte les trois adaptateurs — D1, le
-cookie et la garde de session, l'envoi du message — et `src/admin/` les gabarits et **le seul
-fichier qui porte du texte visible**, ce qui rend `FR-025` relisable d'un coup d'œil.
+cookie et la garde de session, l'envoi du message — et `src/admin/` les gabarits et **le fichier
+qui porte tout le texte visible des écrans** — le texte du message reste avec sa composition dans
+`src/platform/`, `I1` interdisant à cette zone d'importer `src/admin/`. Deux porteurs, donc, et
+c'est ce qui rend `FR-025` relisable d'un coup d'œil, puis vérifiable mécaniquement (étape 3q).
 
 Trois propriétés ne sont tenues par aucun écran et ne se voient qu'à l'attaque : le délai plancher
 constant (`FR-033`), la CSP stricte sur **toute** réponse d'administration, et les quatre attributs
@@ -68,7 +80,11 @@ structurant de cette confrontation :
   c'est-à-dire exactement l'angle mort qu'`ADR-0026` déclare assumé — « importer le garde n'est pas
   l'appeler ». Le second volet d'`I6` (aucun corps `multipart` sur la surface publique) passe à
   vide : ce lot ne crée **aucun** fichier sous `src/pages/api/`, donc le sous-arbre public reste
-  absent.
+  absent. **Et le périmètre qu'`ADR-0026` invoque cesse d'être une supposition** : cet ADR fonde le
+  périmètre d'`I6` sur « la liste bornée de chemins que `run_worker_first` impose déjà par
+  ailleurs », or cette liste n'existait **nulle part** dans le dépôt — constaté le 2026-08-22. Le
+  lot l'écrit (`assets.run_worker_first: ["/admin/*"]`, décision 16), si bien que le préfixe gardé
+  par `I6` et le préfixe servi par le code sont désormais **le même, et déclaré**.
 - **Le contrôle `ADR-0006` d'`arch-invariants` s'allume avec `src/platform/session/`.** Il cherche,
   dans les fichiers de cette zone qui portent `Set-Cookie` ou `__Host-`, les quatre chaînes
   `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`. C'est la raison pour laquelle les **deux**
@@ -90,12 +106,15 @@ qui est une valeur d'instance : l'écrire en dur serait rapporté en fuite par l
 cherche les valeurs d'`instance.json` dans les sources et les configurations. Elle est donc
 **dérivée** par un import du fichier d'instance (décision 10, mesurée).
 
-En sens inverse, la **destination d'acheminement** est bien affectée par `I8` à la configuration du
+En sens inverse, la **destination d'acheminement** est affectée par `I8` à la configuration du
 déploiement — « rattachement D1 et destination d'acheminement dans la configuration du
-déploiement ». L'y écrire ne serait donc pas une dérogation. Mais le contrôle qui **rend** `I8`
-cherche chaque valeur d'`instance.json` **en sous-chaîne** dans `wrangler.*`, et une adresse
-hébergée sur le domaine de l'instance contient ce domaine. *Mesuré le 2026-08-21 sur ce dépôt,
-arbre restauré ensuite* :
+déploiement ». L'y écrire **est donc l'application de l'invariant**, et non une dérogation : c'est
+le lieu que le socle lui ouvre.
+
+Mais le contrôle qui **rend** `I8` cherche chaque valeur d'`instance.json` **en sous-chaîne** dans
+`wrangler.*`, et une adresse hébergée sur le domaine de l'instance contient ce domaine. *Mesuré le
+2026-08-21, puis rejoué le 2026-08-22 sur ce dépôt, arbre restauré par `git checkout` à chaque
+fois* :
 
 | Ce que porte `wrangler.jsonc` | Bilan d'`arch-invariants.sh` |
 |---|---|
@@ -103,12 +122,24 @@ arbre restauré ensuite* :
 | `"destination_address": "contact@boite-de-la-cliente.fr"` | `✓ I8` · 0 violation(s) |
 | la liaison sans `destination_address` | `✓ I8` · 0 violation(s) |
 
-Le verdict du contrôle ne dépend alors d'aucune ligne du dépôt : il dépend de **la boîte que la
-cliente utilise**. L'exemple que le PRD donne lui-même — `contact@patisserie.fr` sur le site
-`patisserie.fr` — tombe du mauvais côté. **Arbitrage humain du 2026-08-21 : la liaison perd sa
-restriction** (décision 9 récrite), et `wrangler.jsonc` ne porte plus aucune valeur d'instance.
-Ce n'est toujours pas une dérogation à `I8` : c'est le lieu qui se vide, pas la frontière qui se
-franchit.
+Le verdict ne dépend alors d'aucune ligne du dépôt : il dépend de **la boîte que la cliente
+utilise**. L'exemple que le PRD donne lui-même — `contact@patisserie.fr` sur le site
+`patisserie.fr` — tombe du mauvais côté.
+
+**Arbitrage humain du 2026-08-22, qui défait celui du 2026-08-21 : la liaison garde sa
+restriction** (décision 9 récrite une seconde fois). Le motif du retrait était le rouge d'un
+contrôle **informatif** (`docs/ci.md` : `arch-invariants` n'est pas bloquant à ce jour), et retirer
+une restriction de sécurité réelle parce qu'un contrôle non bloquant se trompe prend le problème
+par le mauvais bout. **Le défaut du contrôle n'est pas réparé ici** — le corriger demanderait de
+toucher `.github/scripts/arch-invariants.sh` depuis un plan de feature, donc de déplacer en silence
+la falsification qu'`archi` écrit pour `I8` ; il est **signalé** au chantier de gate et part à
+`/scd-sdd:audit archi`, seul à en avoir l'autorité.
+
+**Ce que ce choix oblige ce plan à écrire**, et qui n'existerait pas sans lui : le dépôt du produit
+porte une adresse d'exemple **hors du domaine d'instance**, ce qui le laisse au vert et rend
+l'assertion de bilan de l'étape 2 tenable ; et le semis de la base locale (étape 3a) doit poser
+**la même adresse** que celle de la liaison, faute de quoi la plateforme refuse l'émission et le
+parcours ne produit aucun `.eml`.
 
 **ADR contraignants qui décident ici et qu'on n'instruit pas :** `ADR-0006` (les quatre mécanismes,
 et la borne 40 bits), `ADR-0009` (la liaison `send_email` vers l'adresse vérifiée, et la forme
@@ -121,10 +152,15 @@ par le code), `ADR-0026` (`I6`), `ADR-0028` (`I8`).
 
 | Fichier | Ce qui change | Patron / motif |
 |---|---|---|
-| `wrangler.jsonc` | liaison `send_email` nommée `ENVOI_CODE`, **sans `destination_address`** | forme du schéma **mesurée** — seul `name` est requis ; la restriction est retirée par la décision 9, et le fichier reste vierge de valeur d'instance (`I8`) |
+| `wrangler.jsonc` | liaison `send_email` nommée `ENVOI_CODE`, **avec `destination_address`** · bloc `assets` portant `run_worker_first: ["/admin/*"]` | forme du schéma **mesurée** des deux côtés — `destination_address` restreint la liaison à une adresse vérifiée (décision 9), et `run_worker_first` est le champ qu'`ADR-0015` et `ADR-0026` supposent déjà (décision 16) |
 | `package.json` · `package-lock.json` | `@cloudflare/vitest-pool-workers` de `^0.20.3` à `^0.21.3` | alignement sur la famille qu'`ADR-0013` retient ; décision 15 |
 | `astro.config.ts` | inscription du middleware d'en-têtes par `addMiddleware` | l'intégration `sondeDev()` déjà dans ce fichier est le patron exact ; entrypoint en `new URL(…, import.meta.url)`, **mesuré** (décision 3) |
 | `vitest.config.ts` | `readD1Migrations` + liaison de test `MIGRATIONS` | **mesuré** : sans elle, `applyD1Migrations` échoue (décision 11) |
+
+Le bloc `assets` **ne porte pas `directory`** : *mesuré* le 2026-08-22, `wrangler@4.120.0` accepte
+`assets: { run_worker_first: [...] }` seul — la commande `wrangler d1 migrations list DB --local
+--config …` s'exécute sans réserve sur cette configuration. Câbler le déploiement (`main`,
+`assets.directory`) reste hors de ce lot, qui ne déploie rien.
 
 Aucun script `npm` n'est ajouté, et **aucune dépendance nouvelle** : la seule ligne de
 `package.json` qui bouge est une montée de version déjà décidée par un ADR (décision 15).
@@ -158,7 +194,16 @@ Aucun script `npm` n'est ajouté, et **aucune dépendance nouvelle** : la seule 
   `ADR-0006`, qui ne lit que cette zone.
 - `src/platform/session/magasin.ts` — les lectures et écritures D1 des sessions.
 - `src/platform/auth/magasin.ts` — D1 : l'adresse autorisée, les codes, le comptage des émissions
-  sur l'heure glissante.
+  sur l'heure glissante. **La lecture d'un code se fait par l'identifiant d'appareil seul** —
+  `… where appareil = ? order by emis_le desc limit 1`, **sans clause sur `expire_le`, `consomme`,
+  `annule` ni `essais_restants`** : c'est `juger()` qui tranche à partir de l'état lu, et lui seul.
+  Filtrer ici rendrait `null` un code expiré ou déjà consommé, donc `autre-appareil` là où
+  `FR-031` et `SC-009` exigent « demandez-en un nouveau » — l'écran renverrait l'éditrice sur un
+  autre appareil pour un code qu'elle a bien demandé sur le sien.
+  **Ce module porte aussi le ramassage des lignes mortes**, et la garde que le § Schéma D1 lui
+  impose : `… where emis_le < ?` sur la borne de l'heure glissante, **jamais** sur le seul état de
+  la ligne. La borne est celle de `regles.ts`, lue et non recopiée : c'est ce qui fait qu'aucun
+  second réglage ne peut dériver de celui de `FR-008`.
 - `src/platform/auth/emission.ts` — la composition du message et son envoi par la liaison
   `send_email` (`cloudflare:email`). Texte seul, objet fixe (`FR-036`, `FR-037`).
 - `src/platform/auth/expediteur.ts` — l'adresse d'expédition, dérivée d'`instance.json`
@@ -178,13 +223,22 @@ Aucun script `npm` n'est ajouté, et **aucune dépendance nouvelle** : la seule 
 - `src/admin/Page.astro` — la coquille HTML commune. **Aucun bloc `<style>`** (décision 4).
 - `src/admin/connexion/FormulaireAdresse.astro` — le formulaire d'adresse, et l'annonce du plafond
   (`FR-009`).
-- `src/admin/connexion/FormulaireCode.astro` — le formulaire de code, la mention « seul le dernier
-  message reçu ouvre une session » (`FR-030`) et les trois textes de refus.
+- `src/admin/connexion/FormulaireCode.astro` — le formulaire de code, la mention **bornée à
+  l'appareil** que `FR-030` exige depuis la correction du 2026-08-22 — « si un nouveau code a été
+  demandé depuis cet appareil, seul le dernier **permet d'entrer** » —, et les trois textes de refus.
+  **Deux bornes tiennent cette phrase, et aucune n'est un détail de rédaction.** *L'appareil* :
+  « seul le dernier message reçu » serait **faux** pour qui a deux appareils en cours, `FR-027`
+  n'annulant que sur l'appareil demandeur. *Le vocabulaire* : « ouvre une session » — la formulation
+  que ce plan prescrivait jusqu'au 2026-08-22 — emploie le **premier** des termes que la Légende de
+  la spec interdit sur cet écran depuis que `FR-025` l'y couvre. L'étape 3q la relèverait sur le
+  texte rendu : le lot échouerait sur sa propre prescription.
 - `src/admin/accueil/Accueil.astro` — l'écran d'accueil, vide de fonction (frontière de la spec).
-- `src/admin/textes.ts` — **tout** le texte visible du parcours, en un seul module. C'est ce qui
-  rend `FR-025` et `SC-007` relisables : `docs/archi.md` range la conformité sémantique du nommage
-  hors des invariants (classe 12), donc la seule vérification possible est une relecture — autant
-  qu'elle porte sur un fichier et non sur six.
+- `src/admin/textes.ts` — **tout** le texte visible des écrans, en un seul module. Avec
+  `src/platform/auth/emission.ts`, qui porte celui du message, ce sont les **deux** — et les seuls —
+  porteurs de texte visible du parcours ; ils ne se réunissent pas, `I1` interdisant l'arête
+  `platform → admin`. C'est ce qui rend `SC-016` énumérable : une relecture de ces deux modules
+  épuise les textes visibles. `SC-007`, lui, ne s'y lit plus — depuis que la Légende de la spec
+  énumère les termes interdits, il se vérifie sur les textes **rendus** (étape 3q).
 - `public/admin.css` — la feuille de style de l'administration, servie en asset statique
   (décision 4).
 
@@ -204,8 +258,11 @@ Aucun script `npm` n'est ajouté, et **aucune dépendance nouvelle** : la seule 
 - `scripts/verif-bout-en-bout.sh` — **une ligne à corriger, et elle est déjà rouge** : son étape 3
   compare le bilan d'`arch-invariants.sh` à la chaîne
   `── Bilan : 9 contrôle(s) au vert · 4 hors portée · 0 violation(s)`. Ce lot déplace ces nombres
-  (§ étape de vérification), **et la comparaison échoue déjà aujourd'hui** — mesuré le 2026-08-19,
-  le script rend `9 contrôle(s) au vert · 1 vérifié(s) ailleurs · 4 hors portée · 0 violation(s)`.
+  (§ étape de vérification), **et la comparaison échoue déjà aujourd'hui** — mesuré le 2026-08-19 et
+  rejoué le 2026-08-22, le script rend `9 contrôle(s) au vert · 1 vérifié(s) ailleurs · 4 hors
+  portée · 0 violation(s)`. La ligne 171 prend donc la valeur que l'étape 2 ci-dessous exige :
+  `── Bilan : 12 contrôle(s) au vert · 1 vérifié(s) ailleurs · 2 hors portée · 0 violation(s)` —
+  **la même chaîne des deux côtés**, les deux scripts jugeant le même dépôt.
   L'état `AILLEURS` a été introduit par `d2bc478` (« aligner les en-têtes de `ci.yml` et
   `arch-invariants.sh` sur `docs/ci.md` »), postérieur à l'écriture du script (`3f7aace`) : la
   dérive est **antérieure à cette feature**, et ce lot la referme parce qu'il touche la même ligne
@@ -291,7 +348,18 @@ CREATE TABLE session_admin (
 annulées comptent — c'est ce qu'exige « cinq **messages** émis », et non « cinq codes vivants ».
 
 **Aucune tâche planifiée n'efface rien** : l'expiration se calcule à la lecture (`FR-014`, `FR-020`,
-`FR-021`), et les lignes mortes sont supprimées à l'occasion de l'écriture suivante.
+`FR-021`), et les lignes mortes sont supprimées à l'occasion de l'écriture suivante — **mais une
+ligne de `code_connexion` n'est ramassable qu'une fois sortie de l'heure glissante**, morte ou non.
+
+**Cette garde n'est pas une précaution : sans elle, ce paragraphe défait celui qui le précède.**
+`FR-027` annule le code précédent à chaque nouvelle demande du même appareil, si bien que quatre des
+cinq lignes d'une rafale sont mortes avant que la cinquième soit écrite. Un ramassage qui ne
+regarderait que la mort les emporterait au fil des écritures, le compte de `FR-008` ne dépasserait
+jamais une ou deux, et **le plafond ne serait jamais atteint** : `FR-008`, `FR-009`, `FR-010` et
+`FR-039` deviendraient inapplicables, `SC-005` et `SC-013` invérifiables, et l'étape 3m lirait six
+messages là où elle en exige cinq. Une ligne survit donc à sa mort exactement le temps que le
+plafond la compte — c'est la même heure glissante qui décide des deux, et il n'y a pas de second
+réglage à tenir.
 
 ### Modules
 
@@ -302,10 +370,27 @@ export function engendrerCode(octets: Uint8Array): string;   // 8 signes = 2^40 
 export function normaliserSaisie(saisie: string): string;
 
 // src/core/auth/verdict.ts
+export type EtatCode = {
+  expireLe: number;        // ms epoch
+  essaisRestants: number;
+  consomme: boolean;
+  annule: boolean;         // remplacé par une demande ultérieure du même appareil (FR-027)
+};
 export type Verdict = 'ouvrir' | 'retaper' | 'redemander' | 'autre-appareil';
 export function juger(etat: EtatCode | null, saisieValide: boolean, instant: number): Verdict;
-// `etat` vaut null quand le cookie d'appareil est absent ou ne porte aucune ligne vivante :
-// c'est ce cas-là qui rend `autre-appareil` (FR-012, FR-032), sans comparaison de plus.
+// `etat` est la ligne de `code_connexion` la plus récente portant l'identifiant d'appareil
+// présenté, cherchée SANS AUCUN FILTRE D'ÉTAT (voir la requête ci-dessous). Il ne vaut `null`
+// que si le cookie d'appareil est absent ou si cet appareil n'a JAMAIS demandé de code : c'est
+// ce cas-là, et lui seul, qui rend `autre-appareil` (FR-012, FR-032).
+//
+// Les quatre règles, dans cet ordre :
+//   1. etat === null                                         → 'autre-appareil'  (FR-012, FR-032)
+//   2. consomme | annule | instant >= expireLe | essaisRestants <= 0
+//                                                            → 'redemander'      (FR-013, FR-014,
+//                                                                                 FR-015, FR-027,
+//                                                                                 FR-031, SC-009)
+//   3. !saisieValide                                         → 'retaper'         (FR-028)
+//   4. sinon                                                 → 'ouvrir'          (FR-011)
 
 // src/platform/session/index.ts  — chemin imposé par ADR-0026
 export function exigerSession(contexte: APIContext): Promise<SessionOuverte | Response>;
@@ -425,22 +510,38 @@ removed in Astro v6. Use 'Astro.locals.cfContext' instead.`), et l'interface `Ru
 `@astrojs/cloudflare` le type déjà (`cfContext: ExecutionContext`), donc rien à déclarer.
 *Mesuré aussi* : `scheduler.wait` est une fonction dans `workerd`.
 
-**Le plancher vaut 1 500 ms, et il est dérivé d'un budget de travail, jamais d'une bande
-observée.** La spec fixe deux bornes et laisse le chiffre à ce plan : `SC-012` impose un **rapport**
-— le plancher vaut au moins **vingt fois** le travail le plus long observé sur une soumission — et
-`SC-003` une **tolérance** — écart des 95ᵉ centiles ≤ 25 ms sur cent tirs par adresse. Le travail
-d'une soumission est de **trois allers-retours D1** (compter la fenêtre glissante, lire l'adresse
-autorisée, écrire la ligne de code) plus un hachage. À 25 ms l'aller-retour — l'ordre de grandeur
-d'un D1 de production, et non celui du D1 local sur lequel l'étape 3 mesure —, le travail plafonne
-vers 75 ms, et 20 × 75 = 1 500.
+**Le plancher vaut 1 500 ms, et le chiffre est dérivé d'un budget d'écart, jamais d'une bande
+observée.** La spec fixe deux bornes et laisse le chiffre à ce plan. `SC-003` donne une
+**tolérance** — écart des 95ᵉ centiles des deux séries ≤ 25 ms. `SC-012`, **récrit le 2026-08-22**,
+donne un **rapport portant sur une grandeur observable** : l'étalement des délais — l'écart entre
+leur 5ᵉ et leur 95ᵉ centile, les deux séries confondues — vaut au plus le **vingtième de leur
+médiane**. Le travail lui-même n'est plus la grandeur jugée, et c'est le point : de l'extérieur on
+n'observe que le plus long du plancher et du travail, si bien qu'un critère écrit sur le travail
+n'aurait pas eu d'instrument.
+
+Le calcul se lit alors dans l'autre sens. Quand le plancher domine le travail, la **médiane** des
+délais vaut le plancher, et le vingtième de la médiane est le **budget d'étalement** que les deux
+séries doivent tenir. Un plancher de 1 500 ms ouvre donc un budget de **75 ms**, dans lequel doivent
+tenir la gigue de la mise en attente et la queue des soumissions dont le travail dépasserait le
+plancher. Ce budget est calibré sur le même ordre de grandeur que le travail : **trois allers-retours
+D1** (compter la fenêtre glissante, lire l'adresse autorisée, écrire la ligne de code) plus un
+hachage, soit environ 75 ms à 25 ms l'aller-retour — l'ordre de grandeur d'un D1 de production, et
+non celui du D1 local sur lequel l'étape 3 mesure. Choisir un plancher plus bas rétrécit le budget
+d'étalement dans la même proportion, sans rien retirer à la gigue : c'est par là qu'un plancher trop
+court se dénonce.
+
+**Ce que `SC-012` attrape et que `SC-003` seul manquerait** — et c'est ce qui justifie de porter
+deux critères plutôt qu'un : plancher retiré, l'écart entre les deux branches reste du même ordre,
+donc `SC-003` continue de passer alors que la protection a disparu. Le rapport, lui, s'effondre — la
+médiane tombe au niveau du travail quand l'étalement, lui, ne bouge pas.
 
 **La constante est gelée dans `src/core/auth/regles.ts` avant que quoi que ce soit ne la mesure**,
-et l'étape 3e ne fait que la **juger** : elle relève le travail le plus long sur les mêmes cent
-tirs, consigne ce relevé comme `SC-012` l'exige, et échoue si le rapport tombe sous vingt. Aucune
-étape ne réécrit la constante. L'y autoriser rendrait le contrôle circulaire — une mesure qui règle
-le seuil qu'elle juge ne peut jamais échouer —, et c'est le constat `Critical` que la gate du
-2026-08-21 a porté sur `T39`. Un rouge est donc un **fait**, et relever le plancher est une
-modification de source, avec son commit.
+et l'étape 3e ne fait que la **juger** : elle calcule les deux centiles et la médiane **sur les mêmes
+deux cents mesures** que `SC-003` — ni instrument, ni campagne de plus, comme la spec l'exige — et
+échoue si l'étalement dépasse le vingtième de la médiane. Aucune étape ne réécrit la constante. L'y
+autoriser rendrait le contrôle circulaire — une mesure qui règle le seuil qu'elle juge ne peut
+jamais échouer —, et c'est le constat `Critical` que la gate du 2026-08-21 a porté sur `T39`. Un
+rouge est donc un **fait**, et relever le plancher est une modification de source, avec son commit.
 
 **Ce que le chiffre coûte, et pourquoi c'est peu.** L'éditrice attend une seconde et demie après
 avoir saisi son adresse, sur le seul écran du produit qui le fasse, et le Brief pose qu'elle se
@@ -461,38 +562,66 @@ Quand cinq messages ont déjà été émis dans l'heure glissante, la route **ne
 n'engendre pas de code, donc n'annule pas le précédent (`FR-027` n'agit qu'à l'émission), donc « le
 dernier code émis ouvre encore une session » est vrai sans qu'aucune ligne ne le prévoie.
 
-**9. La liaison `send_email` ne porte pas de destination restreinte.** *Mesuré* sur le schéma de
-`wrangler@4.120.0` : seul `name` est requis ; `destination_address` est décrite comme « if this
-binding should be restricted to a specific verified address ». **La forme restreinte a d'abord été
-retenue, puis retirée par l'arbitrage humain du 2026-08-21** : le contrôle qui rend `I8` cherche les
-valeurs d'`instance.json` **en sous-chaîne** dans `wrangler.*`, si bien qu'une adresse hébergée sur
-le domaine de l'instance — `contact@patisserie.fr` sur le site `patisserie.fr`, l'exemple du PRD —
-rend `ko I8` (mesuré, § Réutilisation du socle). Le verdict du contrôle dépendrait alors de la boîte
-que la cliente utilise, et l'assertion de bilan de l'étape 2 devrait tolérer une violation connue,
-donc cesser d'attraper les autres.
+**9. La liaison `send_email` porte sa destination restreinte, et le contrôle `I8` qui s'en plaint
+est signalé plutôt que contourné.** *Mesuré* sur le schéma de `wrangler@4.120.0` : seul `name` est
+requis ; `destination_address` est décrite comme « if this binding should be restricted to a
+specific verified address ». La forme restreinte est retenue, **et c'est le second arbitrage rendu
+sur cette ligne** : elle avait été retirée le 2026-08-21, elle est rétablie le 2026-08-22.
 
-**Ce que le retrait coûte, et ce qui l'amortit.** Le garde-fou de plateforme pour `FR-004` s'élargit
-d'« une adresse » à « les adresses vérifiées du compte » ; sur un compte mono-client — « un
-déploiement = un site = un client », `FR-104` du PRD — il n'y en a qu'une, et la perte est donc
-théorique. Ce qui tient `FR-004` reste ce qui le tenait déjà : la destination est **lue en D1**,
-c'est l'adresse autorisée et rien d'autre, et la plateforme refuse de toute façon toute adresse non
-vérifiée du compte.
+**Pourquoi le retrait était le mauvais geste.** Son motif unique était le rouge du contrôle qui rend
+`I8` — un `grep` en **sous-chaîne** qui prend une adresse hébergée sur le domaine de l'instance pour
+une fuite du domaine (mesuré, § Réutilisation du socle). Or ce contrôle est **informatif**
+(`docs/ci.md`) : son rouge ne bloque aucune PR. Une restriction de sécurité effacée pour éteindre un
+avertissement non bloquant, c'est le vérificateur qui décide du produit, et dans le mauvais sens.
+`ADR-0009` énonce d'ailleurs cette restriction comme un acquis — « `send_email` n'écrit qu'à une
+destination **vérifiée** : c'est la plateforme elle-même qui tient `FR-005`, et non seulement le
+code » — et `I8` lui **ouvre explicitement** la configuration du déploiement comme lieu. La porter
+là est donc l'application du socle ; l'en retirer en était le déplacement, et c'est ce déplacement,
+non la restriction, qui aurait exigé un candidat ADR.
+
+**Ce que le rétablissement coûte, et où le coût est payé.** Chez une cliente dont la boîte est
+hébergée sur son propre domaine — `contact@patisserie.fr` sur `patisserie.fr`, l'exemple du PRD —,
+`arch-invariants` rapportera `ko I8` sur **son** dépôt d'instance. C'est un avertissement, pas un
+blocage, et il est faux. Le **dépôt du produit**, lui, reste au vert : l'adresse d'exemple qu'il
+porte est hors du domaine d'`instance.json`, ce que la deuxième ligne du tableau mesure — l'étape 2
+peut donc continuer d'exiger `0 violation(s)` sans tolérer aucune violation connue, ce qui est la
+propriété qui lui permet d'attraper les autres.
+
+**Le défaut du contrôle est signalé, jamais réparé ici.** Le corriger demanderait de toucher
+`.github/scripts/arch-invariants.sh` depuis un plan de feature ; or la falsification qu'`archi`
+écrit pour `I8` est « l'occurrence du domaine ou de la clé publique Turnstile, hors
+d'`instance.json` », qu'une adresse sur ce domaine **est** littéralement. Assouplir le script sans
+l'autorité de `/scd-sdd:audit archi` — puis de `/scd-sdd:technique`, seul à pouvoir amender un
+invariant — ferait dériver `I8` en silence. Le signalement vit au chantier
+de gate et part à `/scd-sdd:audit archi`.
+
+**Deux conséquences que ce choix impose au reste du plan.** La destination de la liaison et
+l'adresse autorisée lue en D1 doivent **coïncider**, sinon la plateforme refuse l'émission : l'étape
+3a sème donc en base exactement l'adresse que porte `wrangler.jsonc`. Et le semis reste ce qu'il
+était — un geste d'exploitation hors produit, que la spec range en § NON inclus.
+
 *Mesuré* : la liaison est simulée localement par Miniflare — `env.ENVOI_CODE` est présent sous
 `astro dev`, `new EmailMessage(from, to, brut)` importé de `cloudflare:email` aboutit, et le message
 est écrit tel quel en `.eml` sous `.wrangler/tmp/email/**`. C'est ce qui rend l'étape 3 réellement
-bout-en-bout.
-Écarté : **corriger le contrôle `I8`** pour qu'il cesse de mordre sur une valeur incluse dans un
-jeton plus long — il faudrait toucher `.github/scripts/arch-invariants.sh` depuis un plan de
-feature, et la falsification qu'`archi` écrit pour `I8` est « l'occurrence du domaine ou de la clé
-publique Turnstile, hors d'`instance.json` », qu'une adresse sur ce domaine **est** littéralement :
-assouplir le script sans l'autorité de `/scd-sdd:archi` ferait dériver l'invariant en silence.
-**Résidu à verser à `/scd-sdd:premortem socle`** : l'adresse de la cliente existe en **deux lieux**
-— en D1 pour l'autorisation, dans le compte Cloudflare comme destination vérifiée d'Email Routing —
-et **rien ne les tient synchronisées**. Une dérive ne casse aucun écran : l'émission est refusée par
-la plateforme, `FR-007` rend la même réponse qu'en cas de succès, et la porte se ferme en silence.
-C'est une ligne de recette de livraison, pas un contrôle — et la recette n'en porte aucune
-aujourd'hui. **Le retrait de la restriction ne crée pas ce résidu : il en déplace le second lieu**,
-de la configuration du déploiement vers le compte Cloudflare.
+bout-en-bout. **Ce que cette mesure ne couvre pas** : elle a été faite sur la liaison **non
+restreinte**. Que Miniflare fasse respecter `destination_address` localement — et refuse donc une
+destination autre — n'est pas établi, et se constate au **premier essai d'émission** du lot qui
+fait partir le message ; si la simulation locale ignore la
+restriction, celle-ci reste vraie en production et l'étape 3 n'en souffre pas.
+
+Écarté : **retirer la restriction et déposer un candidat ADR** actant que le lieu ouvert par `I8`
+reste vide — c'est l'autre issue que la gate laissait ouverte. Elle est cohérente, mais elle grave
+dans un ADR, **immuable une fois promu**, un affaiblissement dont l'unique cause est un `grep`
+réparable. Écarté aussi : **corriger le contrôle `I8`** — hors de l'autorité d'un plan de feature,
+voir ci-dessus.
+
+**Résidu à verser à `/scd-sdd:premortem socle`, et le rétablissement ne le referme pas** : l'adresse
+de la cliente existe désormais en **trois lieux** — en D1 pour l'autorisation, dans la configuration
+du déploiement comme destination de la liaison, dans le compte Cloudflare comme adresse vérifiée
+d'Email Routing — et **rien ne les tient synchronisées**. Une dérive ne casse aucun écran :
+l'émission est refusée par la plateforme, `FR-007` rend la même réponse qu'en cas de succès, et la
+porte se ferme en silence. C'est une ligne de recette de livraison, pas un contrôle — et la recette
+n'en porte aucune aujourd'hui.
 
 **10. L'adresse d'expédition est dérivée d'`instance.json` par un import.** *Mesuré* :
 `import instance from '../../../instance.json' with { type: 'json' }` depuis `src/platform/` — la
@@ -568,6 +697,40 @@ déplace.
 ouverte, et elle coûte deux décisions mesurées sur une version que le socle ne retient pas, plus une
 montée à faire de toute façon avant le premier déploiement.
 
+**16. `assets.run_worker_first` déclare `/admin/*`, parce que deux ADR le supposent déjà écrit.**
+`ADR-0015` fait porter les en-têtes de l'administration **par le code**, le fichier `_headers` ne
+s'appliquant qu'aux réponses que le Worker ne génère pas ; et `ADR-0026` écrit que le périmètre
+gardé par `I6` « n'est pas choisi : c'est la liste bornée de chemins que `run_worker_first` impose
+déjà par ailleurs, `/api/*` et l'administration ». *Constaté le 2026-08-22* : cette liste **n'existe
+nulle part** dans le dépôt — `wrangler.jsonc` ne porte aucun bloc `assets`, et le contrôle
+`ADR-0015 (a)` d'`arch-invariants` passe au vert **parce qu'il ne cherche qu'un fourre-tout**
+(`run_worker_first` à `true` ou à `/*`), jamais une absence. La prémisse des deux ADR est donc
+tenue par rien.
+
+**Ce que la déclaration achète, et ce n'est pas une précaution de style.** `FR-041` exige la
+politique de sécurité sur **toute** réponse servie sous l'administration. Sans `run_worker_first`,
+cette propriété repose sur une coïncidence : aucun fichier de `public/` ne tombe aujourd'hui sous
+`/admin/`. Le jour où l'un y tombe, il est servi en asset statique, donc **hors du Worker, donc hors
+du middleware de la décision 3** — et il repart avec les en-têtes du site public, sans qu'aucun
+écran ne change et sans qu'aucun contrôle ne bronche. Déclarer `/admin/*` fait de « toute réponse
+sous l'administration passe par le code » un fait de configuration au lieu d'une propriété de
+l'arborescence. C'est aussi pourquoi la feuille de style de la décision 4 vit en `public/admin.css`
+— servie à `/admin.css` — et non sous `public/admin/` : la déclarer sous le préfixe gardé lui ferait
+consommer une requête de Worker pour rien.
+
+*Mesuré le 2026-08-22 sur ce dépôt* : `wrangler@4.120.0` accepte `assets: { run_worker_first:
+["/admin/*"] }`, **`directory` compris ou omis** — `wrangler d1 migrations list DB --local --config …`
+s'exécute sans réserve sur les deux formes (arbre restauré ensuite). Le champ vit sous `assets` et
+non à la racine, et son schéma admet un tableau de motifs ou le booléen `true`. La liste reste
+**bornée** au sens du contrôle : un seul motif, jamais `true` ni `/*`, donc `ADR-0015 (a)` reste au
+vert et le fichier `_headers` continue de couvrir les pages publiques.
+Écarté : **ne rien déclarer et écrire que c'est inutile** — l'autre issue que la gate laissait
+ouverte. Elle est vraie **aujourd'hui**, et c'est exactement ce qui la disqualifie : elle fait
+dépendre `FR-041` de ce qu'aucune feature future ne posera de fichier sous `public/admin/`, ce
+qu'aucun contrôle ne vérifie. Écarté aussi : **déclarer `/api/*` en même temps** — le lot ne crée
+aucun fichier sous `src/pages/api/`, et déclarer un préfixe que rien ne sert ferait de cette ligne
+une intention plutôt qu'une configuration ; elle arrive avec la première route d'API.
+
 **Contraintes de livraison, à ne pas découvrir en PR.** Le lot touche `vitest.config.ts`, surveillé
 par `quality-config-guard` : la PR **doit** porter le label `config-change`, ou le commit qui y
 touche un scope `chore(config):`. Il touche aussi `package.json` et le lockfile (décision 15) : ce
@@ -590,7 +753,9 @@ Elle enchaîne et refuse au premier écart :
    `docs/ci.md` note encore « réelle, et vide ».
 2. **`bash .github/scripts/arch-invariants.sh`** — code de sortie nul, et le bilan **exact** :
    `── Bilan : 12 contrôle(s) au vert · 1 vérifié(s) ailleurs · 2 hors portée · 0 violation(s)`.
-   Le déplacement est le fait du lot et se lit invariant par invariant. `I6` est **un seul** état
+   Le point de départ est **mesuré le 2026-08-22 sur ce dépôt** — `9 contrôle(s) au vert ·
+   1 vérifié(s) ailleurs · 4 hors portée · 0 violation(s)` — et le déplacement est le fait du lot ;
+   il se lit invariant par invariant. `I6` est **un seul** état
    hors portée tant que `src/pages/api/` et `src/pages/admin/` sont absents, mais **deux** états au
    vert dès que l'un existe — `I6 (a)`, l'import du garde, et `I6 (b)`, l'absence de corps
    `multipart` sur la surface publique ; `src/pages/admin/` naît ici, donc un hors portée devient
@@ -599,13 +764,22 @@ Elle enchaîne et refuse au premier écart :
    portée**. Ne restent hors portée qu'`I7` et `I9`. **L'assertion attrape les deux sens** : un `I6` retombé
    hors portée dirait que les routes ont été déplacées hors du préfixe gardé ; un `ADR-0006`
    rapporté en violation dirait qu'un des quatre attributs du cookie a disparu — c'est-à-dire
-   `FR-022` ou `FR-023` cassé sans qu'aucun écran ne change.
+   `FR-022` ou `FR-023` cassé sans qu'aucun écran ne change. **Deux états restent au vert et ne
+   doivent pas en bouger** : `I8`, parce que l'adresse d'exemple que porte `destination_address` est
+   hors du domaine d'`instance.json` (décision 9) — un rouge ici dirait qu'on a écrit dans
+   `wrangler.jsonc` l'adresse d'une vraie cliente ; et `ADR-0015 (a)`, parce que
+   `run_worker_first` ne porte qu'un motif borné (décision 16) — un rouge dirait qu'il est passé à
+   `true` ou à `/*`, et que le fichier `_headers` a cessé en silence de couvrir les pages
+   publiques.
 3. **Le parcours réel, sur `npm run dev`**, avec deux bocaux à cookies distincts. *Mesuré* : `curl`
    renvoie bien un cookie `Secure` sur `http://localhost`, donc la marche entière est jouable sans
    TLS.
    - **a.** semer l'adresse autorisée dans la base locale
      (`wrangler d1 execute DB --local --command "insert into adresse_autorisee …"`) — c'est le geste
-     d'exploitation que la spec range hors produit, et l'étape en est la démonstration exécutable ;
+     d'exploitation que la spec range hors produit, et l'étape en est la démonstration exécutable.
+     **L'adresse semée est exactement celle que porte `destination_address`** (décision 9) : la
+     liaison est restreinte, donc toute autre adresse ferait refuser l'émission par la plateforme et
+     le parcours ne produirait aucun `.eml` ;
    - **b.** `GET /admin/` sans cookie → **302** vers `/admin/connexion`, **et la réponse porte la
      CSP stricte** (`FR-019`, `FR-035`, décision 3) ;
    - **b-bis.** `GET /admin/connexion` dans **chacun des deux bocaux** → **200**, et chacun repart
@@ -621,11 +795,23 @@ Elle enchaîne et refuse au premier écart :
      réponses ne porte de `Set-Cookie` — le cookie d'appareil est posé au `GET` (décision 6) ; c'est
      le périmètre que la gate du 2026-08-21 demandait de trancher, et il est celui de `FR-005` :
      le corps et les champs d'en-tête, rien de plus, rien de moins ;
-   - **e.** **cent soumissions de chaque adresse** : l'écart entre les **95ᵉ centiles** des deux
-     séries est **≤ 25 ms** (`SC-003`) ; et le travail le plus long observé sur une soumission est
-     relevé, puis **consigné comme pièce**, le plancher gelé à 1 500 ms dans
-     `src/core/auth/regles.ts` devant valoir **au moins vingt fois** ce relevé (`SC-012`).
-     L'étape **juge** la constante et ne la règle jamais (décision 7) (`FR-006`, `FR-033`) ;
+   - **e.** **la campagne d'indiscernabilité — deux cents soumissions, aucune sous plafond.** Cent
+     tirs de l'adresse autorisée et cent d'une adresse inconnue, **alternés**, conduits en
+     **vingt-cinq salves de quatre paires**, la table `code_connexion` étant **vidée avant chaque
+     salve** (`wrangler d1 execute DB --local --command "delete from code_connexion"`). Au plus
+     quatre émissions cohabitent donc dans l'heure glissante : **aucun tir n'atteint le plafond**,
+     ce que `SC-003` exige désormais explicitement, et les deux branches font chacune tout leur
+     travail — l'autorisée engendre, écrit et remet à `waitUntil`, l'inconnue ne fait rien. Sans
+     cette conduite, le plafond coupait la série autorisée au sixième tir et les
+     quatre-vingt-quinze suivants basculaient sur la branche qui ne travaille pas : le centile
+     devenait trivial et la fenêtre restait saturée pour tout ce qui suit. **Deux assertions sur ces
+     mêmes deux cents délais**, et aucun instrument de plus : l'écart des **95ᵉ centiles** des deux
+     séries est **≤ 25 ms** (`SC-003`), et l'**étalement** des deux cents — l'écart entre leur 5ᵉ et
+     leur 95ᵉ centile — est **au plus le vingtième de leur médiane** (`SC-012`). L'étape **juge** le
+     plancher gelé à 1 500 ms dans `src/core/auth/regles.ts` et ne le règle jamais (décision 7)
+     (`FR-006`, `FR-033`). **Elle se referme en rendant la suite jouable** : `code_connexion` et le
+     répertoire des `.eml` sont vidés une dernière fois, puis un code est réémis depuis le bon bocal
+     — c'est celui-là que (f) lit, et la fenêtre de comptage repart à un seul envoi ;
    - **f.** le `.eml` est en **texte seul**, son objet est celui du produit et ne porte rien de la
      saisie (`FR-036`, `FR-037`) ; le code en est extrait pour la suite ;
    - **g.** présenter le code **depuis le second bocal** → refus, et le texte est celui qui invite à
@@ -639,18 +825,34 @@ Elle enchaîne et refuse au premier écart :
      attributs (`FR-011`, `FR-022`, `FR-023`) ; le **rejouer** → refus (`FR-013`) ;
    - **k.** `GET /admin/` avec le cookie → **200**, l'écran d'accueil (`FR-018`) ;
    - **l.** `POST` sur `/admin/connexion` avec une origine étrangère → **403** (§ contrats) ;
-   - **m.** six soumissions d'affilée de l'adresse autorisée → **cinq `.eml` seulement**, la sixième
-     réponse annonce le plafond, et le dernier code reçu ouvre encore une session (`FR-008`,
-     `FR-009`, `FR-010`, `SC-005`) ; puis, **le plafond toujours atteint**, une soumission d'une
-     **adresse inconnue** → même corps et mêmes champs d'en-tête que la sixième (`FR-039`,
-     `SC-013`). Sans ce second tir, l'annonce du plafond serait le seul endroit du parcours qui
-     désigne l'adresse autorisée — et la mesure ne le verrait pas ;
+   - **m.** **d'abord vider la fenêtre de comptage**, sans quoi cette étape ne compte rien : (e) et
+     (i) ont laissé deux émissions dans l'heure glissante, et six soumissions n'en produiraient plus
+     que trois. Elle se vide en **reculant `emis_le`** de plus d'une heure
+     (`update code_connexion set emis_le = emis_le - 3700000`) plutôt qu'en supprimant les lignes :
+     reculer sort les anciennes de la fenêtre **et** les rend ramassables du même geste, ce qui met
+     l'étape dans l'état que le § Schéma D1 décrit au lieu d'un état que rien ne produirait en
+     exploitation. Le répertoire des `.eml` est vidé pour que le décompte porte sur cette étape
+     seule. Puis six soumissions d'affilée de
+     l'adresse autorisée → **cinq `.eml` seulement**, la sixième réponse annonce le plafond, et le
+     dernier code reçu ouvre encore une session (`FR-008`, `FR-009`, `FR-010`, `SC-005`) ; puis,
+     **le plafond toujours atteint**, une soumission d'une **adresse inconnue** → même corps et
+     mêmes champs d'en-tête que la sixième (`FR-039`, `SC-013`). Sans ce second tir, l'annonce du
+     plafond serait le seul endroit du parcours qui désigne l'adresse autorisée — et la mesure ne le
+     verrait pas ;
    - **n.** vider `adresse_autorisee`, `POST` → réponse `A`, aucun `.eml`, aucune session
      (`FR-029`, `SC-010`) ;
-   - **o.** vider les trois tables de la base locale dans un fichier, et y chercher
-     **littéralement** le code extrait en (f) : aucune occurrence (`FR-040`, `SC-015`). Ce que
-     l'étape prouve est borné par la décision 14 — la conservation, jamais l'irréversibilité
-     calculatoire ;
+   - **o.** **déverser** les trois tables de la base locale dans un fichier, et y chercher
+     **littéralement le dernier code de (m)** — celui qui vient d'ouvrir une session : aucune
+     occurrence (`FR-040`, `SC-015`). **C'est le choix du code qui rend l'assertion non vide**, et il
+     a changé le 2026-08-22 : cherché sur le code de (f), le contrôle passait pour la mauvaise
+     raison — sa ligne était morte depuis (h), donc ramassée bien avant ici, et l'étape serait
+     restée verte quand bien même le code y aurait été écrit en clair. Le dernier code de (m), lui,
+     est **certainement présent** : sa ligne a été écrite quelques instants plus tôt, donc n'a pas
+     quitté l'heure glissante, et le § Schéma D1 interdit de ramasser avant cette sortie — morte de
+     sa consommation, elle est là quand même. Elle a de surcroît traversé **les deux** écritures de
+     la vie d'un code, l'émission et la consommation, là où celle de (f) n'aurait porté que la
+     première. Ce que l'étape prouve reste borné par la décision 14 — la conservation, jamais
+     l'irréversibilité calculatoire ;
    - **p.** les **trois formes de réponse de l'administration** — l'écran servi de (k), le renvoi de
      (b), et un `GET /admin/chemin-inconnu` — portent toutes trois la politique de sécurité,
      `X-Content-Type-Options: nosniff` et `Referrer-Policy: no-referrer` ; et **aucune des trois**
@@ -658,7 +860,15 @@ Elle enchaîne et refuse au premier écart :
      lui-même (`FR-041` à `FR-044`, `SC-014`). Les trois sont tirées séparément parce que c'est
      exactement ce que `SC-014` compte : une politique posée sur l'écran mais absente du renvoi ou
      de l'erreur laisse deux réponses nues sur l'origine commune ;
-   - **q.** `astro dev stop`.
+   - **q.** **le vocabulaire, sur les textes réellement rendus.** Le script conserve le corps de
+     chaque écran qu'il a demandé — le formulaire d'adresse de (b-bis), le formulaire de code et ses
+     trois refus de (g), (h) et (i), l'annonce du plafond de (m), l'écran d'accueil de (k) — et le
+     `.eml` de (f) ; il en retire le balisage, puis cherche, **sans égard à la casse ni aux
+     accents**, chacun des termes que la Légende de la spec énumère sous « terme de développeur » :
+     **aucune occurrence** (`FR-025`, `SC-007`). L'assertion porte sur ce qui a été **rendu**, et
+     non sur les sources : un terme employé dans un commentaire ou dans un nom de variable n'est pas
+     un texte visible, et l'y chercher rendrait le contrôle faux dans les deux sens ;
+   - **r.** `astro dev stop`.
 4. **Une absence, vérifiée comme telle** : aucune source de `src/pages/` ni de `src/admin/` n'écrit
    dans `adresse_autorisee` (`FR-026`). L'exigence est une absence de route ; seule une assertion
    sur les sources la rend falsifiable.
@@ -668,9 +878,23 @@ Elle enchaîne et refuse au premier écart :
 à **instant injecté** — les attendre en temps réel serait un test qui dure un mois. `FR-016`,
 `FR-017` et `FR-024` sont des **absences dans un formulaire** (aucun champ de mot de passe, aucun
 lien de création de compte, aucun renvoi vers un autre compte) et se lisent dans `src/admin/`.
-`FR-025` et `SC-007` relèvent de la classe 12 de `docs/archi.md` — conformité sémantique, hors
-d'atteinte d'un grep : la relecture est le seul moyen, et `src/admin/textes.ts` est ce qui la rend
-praticable. `SC-001` est un test d'usage observé, avec une personne.
+`SC-016` est une **relecture intégrale** des textes visibles : la liste de la Légende est un
+plancher, et ce qu'elle n'a pas prévu ne se cherche pas — c'est la classe 12 de `docs/archi.md`,
+conformité sémantique, hors d'atteinte d'un grep. `SC-001` est un test d'usage observé, avec une
+personne.
+
+**Ce qui a cessé d'appartenir à cette liste, et c'est la correction du 2026-08-22 :** `FR-025` et
+`SC-007`. Depuis que la Légende de la spec **énumère** les termes interdits, l'interdit se falsifie
+mécaniquement, et l'étape 3q le fait — sur les textes rendus, jamais sur les sources. Seule la
+**complétude** de la liste reste du jugement, et c'est `SC-016` qui la porte.
+
+**Les textes visibles ont deux porteurs, et c'est `I1` qui l'impose** — non un relâchement. Tout le
+texte des écrans vit dans `src/admin/textes.ts` ; le texte du message vit dans
+`src/platform/auth/emission.ts`, avec la composition dont `ADR-0009` fait une propriété (texte seul,
+objet fixe, chaque donnée derrière son étiquette). Les réunir demanderait à `platform/` d'importer
+`admin/`, arête que la matrice d'`I1` interdit. C'est ce qui rend `SC-016` **énumérable** : les
+textes visibles du parcours sont exactement les chaînes de ces deux modules, et une relecture les
+épuise — ce que la tâche de relecture nomme déjà comme ses deux seuls porteurs.
 
 ## Couverture des exigences
 
@@ -684,7 +908,7 @@ sont marqués **✦**.
 | `FR-003` `FR-029` | `src/platform/auth/magasin.ts` (lecture de l'adresse autorisée) ; étapes 3c, 3n |
 | `FR-005` `FR-006` `FR-007` `FR-033` | `src/pages/admin/connexion.astro` — réponse unique, `waitUntil`, plancher gelé (décision 7) ; étapes 3d, 3e |
 | ✦ `FR-038` | aucun `Set-Cookie` sur la réponse au `POST` d'adresse — décision 6 ; étape 3d |
-| `FR-008` `FR-009` `FR-010` | `src/core/auth/regles.ts` + comptage sur `code_connexion` ; étape 3m |
+| `FR-008` `FR-009` `FR-010` | `src/core/auth/regles.ts` + comptage sur `code_connexion`, **et la garde du ramassage** qui empêche ce comptage de perdre ses lignes annulées (§ Schéma D1) ; étape 3m |
 | ✦ `FR-039` | réponse `B` choisie sur l'état du plafond seul, jamais sur l'adresse — § contrats ; étape 3m, second tir |
 | `FR-011` `FR-013` | `src/platform/session/index.ts` + `magasin.ts` ; étape 3j |
 | `FR-012` `FR-032` | cookie d'appareil, décision 6 ; étapes 3b-bis, 3g |
@@ -694,21 +918,43 @@ sont marqués **✦**.
 | `FR-018` | `src/pages/admin/index.astro` + `src/admin/accueil/Accueil.astro` ; étape 3k |
 | `FR-019` `FR-035` | `exigerSession` ; étape 3b |
 | `FR-022` `FR-023` | `src/platform/session/cookies.ts` ; étape 3j **et** contrôle `ADR-0006`, étape 2 |
-| `FR-025` | `src/admin/textes.ts`, porteur unique ; relecture (`SC-007`) |
+| `FR-025` | `src/admin/textes.ts` (écrans) + `src/platform/auth/emission.ts` (message), ses deux porteurs ; étape 3q pour la liste énumérée (`SC-007`), relecture pour le reste (`SC-016`) |
 | `FR-026` | aucune route ne l'écrit ; étape 4 |
 | `FR-027` | annulation, à l'émission, des lignes vivantes portant l'identifiant d'appareil ; étape 3i |
 | `FR-030` | `src/admin/connexion/FormulaireCode.astro` ; assertion de présence du texte, étape 3 |
 | `FR-036` `FR-037` | `src/platform/auth/emission.ts` ; étape 3f |
-| ✦ `FR-040` | colonnes `sel` et `empreinte` de `code_connexion`, décision 14 ; étape 3o |
+| ✦ `FR-040` | colonnes `sel` et `empreinte` de `code_connexion`, décision 14 ; étape 3o, **sur le dernier code de (m)** — le seul dont la ligne soit certainement encore là |
 | ✦ `FR-041` `FR-042` `FR-043` `FR-044` | `src/platform/entetes/middleware.ts`, décision 3 ; étape 3p, les trois formes tirées séparément |
 
-Les **15** `SC` sont couverts par les mêmes porteurs, et **quatre sont nés de la même passe** :
-`SC-012` (le rapport de vingt, étape 3e — c'est lui qui interdit de rogner le plancher, là où
-`SC-003` seul ne le verrait pas), `SC-013` (le second tir de l'étape 3m), `SC-014` (l'étape 3p) et
-`SC-015` (l'étape 3o, dans les bornes que la décision 14 écrit).
+Les **16** `SC` sont couverts par les mêmes porteurs. **Trois n'étaient portés par aucune ligne
+nommée et le sont désormais** : `SC-004` (quatre présentations fautives, aucune session) par les
+étapes 3g, 3h et 3j, sa quatrième cause — les quinze minutes — se jouant contre `src/core/auth/` à
+instant injecté ; `SC-006` (aucune route d'administration servie sans session) par l'étape 3b **et**
+par le contrôle `I6` de l'étape 2, qui en tient le versant structurel ; `SC-008` (aucun écran ne
+demande un autre compte) par l'absence de champ et de lien dans `src/admin/connexion/`, comme
+`FR-024`. Quatre sont nés de la passe du 2026-08-21 :
+`SC-012`, `SC-013` (le second tir de l'étape 3m), `SC-014` (l'étape 3p) et `SC-015` (l'étape 3o,
+dans les bornes que la décision 14 écrit). **La passe du 2026-08-22 en déplace trois et en ajoute
+un** :
 
-## Candidat ADR déposé
+| `SC` | Ce qui change, et où il est porté |
+|---|---|
+| `SC-003` | la campagne se conduit **hors plafond** — vingt-cinq salves, table vidée avant chacune : étape 3e, qui dit aussi dans quel état elle laisse la fenêtre pour la suite |
+| `SC-012` | récrit sur une grandeur **observable** — étalement p5–p95 ≤ médiane / 20, sur les **mêmes** deux cents mesures que `SC-003`, sans instrument ni campagne de plus : même étape 3e, et la dérivation du plancher est refaite en conséquence (décision 7) |
+| `SC-007` | quitte la relecture pour l'**étape 3q** — la Légende énumérant les termes, l'interdit se falsifie sur les textes rendus |
+| `SC-016` | **nouveau** — la relecture intégrale, sur les **deux** porteurs de texte visible ; c'est lui qui couvre ce que la liste n'a pas prévu |
 
+## Candidats ADR
+
+**Un seul, déposé le 2026-08-19 et inchangé** :
 [« Les en-têtes de sécurité de l'administration sont posés par un middleware logé dans une
 zone »](../../docs/adr/_candidates/en-tetes-d-administration-poses-par-un-middleware.md) —
 décision 3. Il reste un **brouillon** tant qu'un humain ne l'a pas promu par `/scd-sdd:adr`.
+
+**Aucun candidat n'est déposé pour la décision 9, et c'est le sens de l'arbitrage du 2026-08-22.**
+La gate laissait deux issues au retrait de `destination_address` : déposer un candidat actant le
+déplacement de la partition d'`I8`, ou remonter le défaut du contrôle. Rétablir la restriction ferme
+les deux — il n'y a plus de déplacement à graver, puisque la destination retourne dans le lieu
+qu'`I8` lui ouvre, et le défaut du contrôle part à `/scd-sdd:audit archi` par le chantier de gate.
+La décision 16 n'en appelle pas davantage : `ADR-0015` et `ADR-0026` **supposent déjà** la liste
+`run_worker_first` bornée ; ce plan l'écrit là où elle manquait, il ne la décide pas.

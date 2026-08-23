@@ -4,7 +4,8 @@ FR-117, FR-118, FR-120 à FR-122 ; SC-003, SC-006, SC-015, SC-021) · ADR-0006 (
 mécanismes) · ADR-0009 (forme du courriel — inerte et étiqueté) · ADR-0015 et ADR-0024 (en-têtes de réponse,
 politique stricte de l'administration) · ADR-0020 (configuration d'instance — quatre lieux) · ADR-0026 (garde de
 session par import)
-Clarifié : 2026-08-19 | Corrigé : 2026-08-21 — gate `analyze` (3 Critical, 5 Major)
+Clarifié : 2026-08-19 | Corrigé : 2026-08-21 — gate `analyze` (3 Critical, 5 Major) ·
+2026-08-22 — gate `analyze` (3 Critical, 4 Major) · 2026-08-22 — gate `analyze` (1 Critical)
 
 ## Légende
 - **EARS** (*Easy Approach to Requirements Syntax*) — la forme normée des critères : cinq patterns,
@@ -28,6 +29,20 @@ Clarifié : 2026-08-19 | Corrigé : 2026-08-21 — gate `analyze` (3 Critical, 5
   la même pour toute adresse soumise, quelle que soit la nature du travail effectué. Sa **valeur**
   n'est pas fixée ici : `SC-003` et `SC-012` en fixent les deux bornes observables, et le plan en
   déduit le chiffre.
+- **Route d'administration** — toute adresse servie sous l'administration, **à l'exception de
+  l'écran de connexion**. L'exception n'est pas un confort : l'écran de connexion est la destination
+  du renvoi de `FR-035`, si bien que l'exiger derrière une session le renverrait à lui-même. Un
+  **chemin inconnu** sous l'administration n'est pas une route non plus — rien n'y est servi —, donc
+  ni `FR-019` ni `FR-035` ne le visent ; c'est `FR-041`, rédigé sur les **réponses** et non sur les
+  routes, qui lui impose les en-têtes.
+- **Terme de développeur** — au sens de `FR-117` du PRD, et pour ce parcours : *session*, *cookie*,
+  *jeton*, *token*, *requête*, *serveur*, *base de données*, *API*, *URL*, *HTTP*, *404*, *403*,
+  *hachage*, *empreinte*, *commit*, *branche*, *build*, *déploiement*, ainsi que leurs variantes de
+  nombre et de genre. **Cette liste est un plancher, jamais un plafond** : `SC-007` prouve
+  mécaniquement qu'elle est tenue, `SC-016` couvre ce qu'elle n'a pas prévu. L'interdit lie aussi
+  les **exigences** : un critère qui prescrit un texte visible en énonce le **sens**, jamais une
+  phrase portant un de ces termes — sans quoi il dicte ce que `SC-007` cherche pour le réfuter.
+  C'est ce qui a fait réécrire la mention de `FR-030` le 2026-08-22.
 - **Politique de sécurité d'une réponse** — la consigne qu'une réponse joint à elle-même pour dire
   au navigateur ce qu'il a le droit d'exécuter et de charger en la lisant. `ADR-0015` et `ADR-0024`
   en fixent la forme **stricte** pour l'administration, et la définissent par ses interdits.
@@ -121,10 +136,12 @@ devient jamais perpétuelle.
   n'engendrer aucun code. _(PRD: FR-002)_
 - **FR-004** : The system shall n'émettre de message vers aucune adresse autre que l'adresse
   autorisée. _(PRD: FR-005)_
-- **FR-026** : The system shall n'offrir aucun écran ni aucune route permettant de poser ou de
-  modifier l'adresse autorisée. _(ADR-0020 ; § NON inclus — `FR-013` du PRD, le remplacement de
-  l'adresse depuis une session ouverte, est hors périmètre de cette feature et sans porteur en
-  Stack ; ce critère décrit la porte telle qu'elle est livrée ici, il ne referme pas `FR-013`)_
+- **FR-026** : Where seule la connexion par code est livrée, the system shall n'offrir aucun écran
+  ni aucune route permettant de poser ou de modifier l'adresse autorisée. _(ADR-0020 ; § NON inclus
+  — `FR-013` du PRD, le remplacement de l'adresse depuis une session ouverte, est **différé et non
+  refusé** : il est hors périmètre de cette feature et sans porteur en Stack. La précondition
+  `Where` borne l'énoncé à ce que **cette** feature livre — sans elle, un `shall` permanent ferait
+  de la livraison future de `FR-013` une violation de ce contrat.)_
 - **FR-029** : If aucune adresse autorisée n'est enregistrée, then the system shall n'émettre aucun
   message et refuser toute ouverture de session. _(PRD: FR-002 ; FR-026)_
 - **FR-034** : The system shall composer chaque code de huit signes pris dans un alphabet de
@@ -195,9 +212,15 @@ devient jamais perpétuelle.
   shall rendre ce code précédent inutilisable **sur cet appareil**. _(PRD: FR-120 ; ADR-0006 — le
   code n'ouvre de session que sur l'appareil demandeur, et cet appareil n'en porte qu'un à la fois ;
   un code demandé depuis un **autre** appareil n'est pas touché et continue d'y ouvrir une session)_
-- **FR-030** : The system shall indiquer, sur l'écran de saisie du code, que seul le dernier message
-  reçu ouvre une session. _(PRD: SC-003, SC-015 ; FR-027 — aucune exigence du PRD ne demande ce
-  guidage ; il sert « seule, sans aide et du premier coup », dont il est la condition sur cet écran)_
+- **FR-030** : The system shall indiquer, sur l'écran de saisie du code, que si un nouveau code a
+  été demandé depuis cet appareil, seul le dernier **permet d'entrer**. _(PRD: SC-003, SC-015 ;
+  FR-027 — aucune exigence du PRD ne demande ce guidage ; il sert « seule, sans aide et du premier
+  coup », dont il est la condition sur cet écran. La mention est **bornée à l'appareil**, comme
+  `FR-027` : un code demandé ailleurs n'est pas touché, et annoncer « seul le dernier message reçu »
+  serait faux pour qui a deux appareils en cours. Elle dit « permet d'entrer » et non « ouvre une
+  session » : depuis que `FR-025` couvre cet écran, *session* est le premier des termes que la
+  Légende y interdit — dicter cette phrase-là reviendrait à exiger le mot que `SC-007` cherche pour
+  réfuter `FR-025`.)_
 - **FR-028** : If un code erroné est présenté alors qu'il lui reste des présentations, then the
   system shall inviter à vérifier la saisie. _(PRD: SC-003, SC-015, FR-122 — même écart que
   `FR-030`)_
@@ -214,7 +237,8 @@ devient jamais perpétuelle.
 - **FR-018** : While une session valide est présentée, the system shall donner accès à l'écran
   d'accueil de l'administration. _(PRD: FR-001)_
 - **FR-019** : If une route d'administration est demandée sans session valide, then the system
-  shall en refuser l'accès. _(PRD: FR-001, FR-002 ; ADR-0026)_
+  shall en refuser l'accès. _(PRD: FR-001, FR-002 ; ADR-0026 ; Légende — « route d'administration »
+  excepte l'écran de connexion et ne vise pas un chemin inconnu)_
 - **FR-035** : If une route d'administration est demandée sans session valide, then the system shall
   renvoyer vers l'écran de connexion. _(PRD: SC-003, SC-015 ; FR-019)_
 - **FR-020** : If une session est restée sept jours sans usage, then the system shall la fermer.
@@ -247,14 +271,15 @@ devient jamais perpétuelle.
 
 - **FR-024** : While l'éditrice parcourt l'écran de connexion et l'écran d'accueil, the system
   shall n'exiger la connexion à aucun compte autre que son administration. _(PRD: FR-004 ; SC-006)_
-- **FR-025** : The system shall n'employer aucun terme de développeur dans les textes visibles de
-  l'écran de connexion, de l'écran d'accueil et du message portant le code. _(PRD: FR-117)_
+- **FR-025** : The system shall n'employer aucun terme de développeur — au sens de la Légende, qui
+  en énumère la liste — dans les textes visibles de l'écran de connexion, de l'écran de saisie du
+  code, de l'écran d'accueil et du message portant le code. _(PRD: FR-117)_
 
 ## Cas limites & comportements indésirables (unwanted behavior)
 
 - **Le code n'arrive pas, l'éditrice en redemande.** Chaque demande consomme un envoi du plafond
   (`FR-008`) **et rend inutilisable, sur cet appareil, le code qu'il portait** (`FR-027`) : depuis
-  cet appareil, seul le dernier message reçu ouvre une session, et l'écran de saisie le lui dit
+  cet appareil, seul le dernier message reçu ouvre une session, et l'écran de saisie l'en avertit
   (`FR-030`). Au cinquième envoi, l'écran annonce le plafond (`FR-009`) — la même annonce que pour
   n'importe quelle autre adresse (`FR-039`) — et elle attend que la fenêtre glisse. **Le dernier
   code reçu n'ouvre une session que jusqu'à son expiration**, soit quinze minutes après son émission
@@ -339,17 +364,21 @@ Les refus se répartissent en **trois réponses, une par geste attendu** — ret
 nouveau code, revenir sur l'appareil demandeur : les causes qui appellent le même geste partagent le
 même texte.
 
-**Demande d'une route d'administration**
+**Demande sous l'administration**
 
 | Entrée | Sortie observable |
 |---|---|
-| session valide | la route est servie · la réponse porte la politique de sécurité et ses trois interdits (`FR-041`, `FR-042`), le refus de réinterprétation du type de contenu (`FR-043`) et le refus de transmettre l'adresse consultée (`FR-044`) |
-| aucune session, session expirée, session fermée | accès refusé (`FR-019`) · renvoi vers l'écran de connexion (`FR-035`) · **la réponse de renvoi porte les mêmes en-têtes** (`FR-041`) |
-| chemin inconnu sous l'administration | réponse d'erreur · **elle porte les mêmes en-têtes** (`FR-041`) |
+| **route d'administration**, session valide | la route est servie · la réponse porte la politique de sécurité et ses trois interdits (`FR-041`, `FR-042`), le refus de réinterprétation du type de contenu (`FR-043`) et le refus de transmettre l'adresse consultée (`FR-044`) |
+| **route d'administration**, aucune session, session expirée, session fermée | accès refusé (`FR-019`) · renvoi vers l'écran de connexion (`FR-035`) · **la réponse de renvoi porte les mêmes en-têtes** (`FR-041`) |
+| **écran de connexion**, avec ou sans session | servi · **il n'est pas une route d'administration** (Légende) : `FR-019` ne le refuse pas, et il porte les mêmes en-têtes (`FR-041`) |
+| **chemin inconnu** sous l'administration | réponse d'erreur · **il n'est pas une route** — rien n'y est servi, donc ni `FR-019` ni `FR-035` ne le visent · **elle porte les mêmes en-têtes** (`FR-041`) |
 
-Les trois lignes disent la même chose sous trois formes, et c'est délibéré : une politique posée
-sur l'écran servi mais absente du renvoi ou de l'erreur laisse deux réponses nues sur l'origine que
-partagent le site public et l'administration. C'est ce que `SC-014` compte.
+**Trois lignes sur quatre disent la même chose sous trois formes, et c'est délibéré** : une politique
+posée sur l'écran servi mais absente du renvoi ou de l'erreur laisse deux réponses nues sur l'origine
+que partagent le site public et l'administration. C'est ce que `SC-014` compte. La quatrième ligne,
+l'écran de connexion, est l'**exception que la Légende écrit** : il est la destination du renvoi, donc
+l'exiger derrière une session le renverrait à lui-même — et il porte les en-têtes comme les autres,
+puisque `FR-041` est rédigé sur les réponses et non sur les routes.
 
 ## NON inclus (frontière de périmètre)
 
@@ -400,20 +429,40 @@ partagent le site public et l'administration. C'est ce que `SC-014` compte.
 ## Critères de succès mesurables
 
 - **SC-001** : Une personne qui n'a jamais vu le produit ouvre l'administration à partir de la seule
-  adresse autorisée, sans aide, sans mot de passe et sans créer de compte. _(PRD: SC-006 ; FR-003)_
+  adresse autorisée, sans mot de passe et sans créer de compte. Le message émis lui est remis
+  **intégralement et tel quel**, à la place de la boîte e-mail que cette feature ne livre pas ; elle
+  ne reçoit **aucune autre assistance**. _(PRD: SC-003, SC-006 ; FR-003 du PRD ; FR-016, FR-017,
+  FR-030, FR-034 — remettre le message n'est pas de l'aide sur le produit : c'est le canal manquant
+  qu'on remplace, la **réception réelle** étant hors périmètre. Elle doit toujours repérer le code
+  dans le message, le recopier sans le confondre et comprendre l'écran — ce que servent les huit
+  signes lisibles de `FR-034` et la mention de `FR-030`. Sans cette borne, l'épreuve se réfutait
+  elle-même : la seule façon de la jouer aurait été de lui tendre le code, donc de l'aider.)_
 - **SC-002** : Sur un balayage d'adresses non autorisées, **zéro** message est émis vers une adresse
   autre que l'adresse autorisée. _(PRD: SC-021 ; FR-005 du PRD)_
 - **SC-003** : Sur **cent soumissions de chaque adresse** — l'adresse autorisée et une adresse
-  inconnue —, l'écart entre les **95ᵉ centiles** des deux séries de délais de réponse est
-  **inférieur ou égal à 25 ms**, et les deux séries rendent le même corps et les mêmes champs
-  d'en-tête. _(PRD: SC-021 ; FR-008 du PRD ; FR-005, FR-033, FR-038)_
-- **SC-012** : Le **délai plancher** retenu est **au moins vingt fois** le temps du travail le plus
-  long mesuré sur une soumission — comptage de la fenêtre, constitution du code, écriture — et la
-  mesure qui l'établit est consignée. **Sans cette seconde borne, `SC-003` resterait vrai après le
+  inconnue —, la campagne étant conduite de sorte qu'**aucun tir n'atteigne le plafond d'envois**,
+  l'écart entre les **95ᵉ centiles** des deux séries de délais de réponse est **inférieur ou égal à
+  25 ms**, et les deux séries rendent le même corps et les mêmes champs d'en-tête. _(PRD: SC-021 ;
+  FR-008 du PRD ; FR-005, FR-033, FR-038 — la condition « hors plafond » est ce qui rend l'épreuve
+  exécutable : sans elle, le plafond de `FR-008` coupe la série autorisée au sixième tir et les
+  quatre-vingt-quinze suivants basculent sur une branche qui ne travaille pas et rend l'**autre**
+  réponse, si bien que le centile devient trivial. Ainsi conduite, la campagne oppose les deux
+  branches qui diffèrent réellement par le travail — engendrer, écrire et émettre d'un côté, rien de
+  l'autre. L'égalité **sous** plafond, où aucune des deux branches ne travaille, est mesurée par
+  `SC-013`. Comment le plafond est tenu à l'écart, et comment la campagne laisse la fenêtre de
+  comptage dans un état où le reste de la vérification peut encore se jouer, sont des moyens
+  tranchés au plan.)_
+- **SC-012** : Sur l'ensemble des délais mesurés par la campagne de `SC-003`, l'**étalement** —
+  l'écart entre le 5ᵉ et le 95ᵉ centile, les deux séries confondues — est **au plus le vingtième de
+  la médiane** de ces mêmes délais. **Sans cette seconde borne, `SC-003` resterait vrai après le
   retrait pur et simple du plancher** : l'écart entre les deux branches est du même ordre avec et
   sans lui, si bien qu'une tolérance sur l'écart, seule, ne verrait pas disparaître la protection
-  qu'elle est censée mesurer. C'est ce rapport, et non la tolérance, qui interdit de rogner le
-  plancher. _(PRD: SC-021 ; FR-033)_
+  qu'elle est censée mesurer. Le rapport, lui, s'effondre — plancher retiré, la médiane tombe au
+  niveau du travail quand l'étalement, lui, ne bouge pas. _(PRD: SC-021 ; FR-033, SC-003 — ce
+  critère se juge sur les **mêmes deux cents mesures** que `SC-003` : il n'appelle ni instrument ni
+  campagne de plus. Il borne l'**écart entre les branches** plutôt que le travail lui-même, et c'est
+  délibéré : de l'extérieur on n'observe que le plus long du plancher et du travail, si bien que le
+  travail seul n'est pas une grandeur observable — et c'est l'écart, non le travail, qui fuit.)_
 - **SC-004** : Quatre présentations fautives d'un code — rejeu, autre appareil, au-delà de quinze
   minutes, cinquième erreur — n'ouvrent **aucune** session : quatre cas, quatre refus.
   _(PRD: SC-021 ; FR-120 à FR-122 du PRD)_
@@ -421,8 +470,16 @@ partagent le site public et l'administration. C'est ce que `SC-014` compte.
   émis par heure glissante. _(PRD: SC-021 ; FR-006 du PRD)_
 - **SC-006** : Aucune route d'administration n'est servie sans session valide. _(PRD: FR-001 ;
   ADR-0026)_
-- **SC-007** : Le parcours complet — écran de connexion, message portant le code, saisie du code,
-  écran d'accueil — n'expose aucun terme de développeur. _(PRD: FR-117 ; FR-025)_
+- **SC-007** : Sur le parcours complet — écran de connexion, message portant le code, saisie du
+  code, écran d'accueil —, **aucun** des termes que la Légende énumère sous « terme de développeur »
+  ne paraît dans les textes visibles. _(PRD: FR-117 ; FR-025 — la recherche des termes de la liste
+  prouve ou réfute le respect sans jugement ; c'est ce qui manquait à l'interdit, qui ne se
+  falsifiait pas)_
+- **SC-016** : L'intégralité des textes visibles de ce parcours est relue, et n'y paraît aucun terme
+  de développeur au-delà de ceux qu'énumère la Légende. _(PRD: FR-117 ; FR-025, SC-007 — la liste
+  est un plancher : `SC-007` prouve mécaniquement qu'elle est tenue, celui-ci couvre ce qu'elle n'a
+  pas prévu. Il suppose que ces textes soient **énumérables** ; comment ils le sont est un moyen,
+  tranché au plan.)_
 - **SC-008** : Aucun écran de ce parcours ne demande la connexion à un compte autre que
   l'administration. _(PRD: SC-006 ; FR-004 du PRD)_
 - **SC-009** : Un code refusé produit l'une des **trois** réponses réglées sur le geste attendu, et
