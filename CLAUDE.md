@@ -28,22 +28,21 @@
   `.github/workflows/**`, `CLAUDE.md`…) porte un scope explicite (`chore(config):`, `chore(ci):`,
   `build(ci):`, `chore(agent):`) ou la PR porte le label `config-change` — **parce que**
   `quality-config-guard` bloque sinon toute modification silencieuse de ce qui contraint l'agent.
+  Ce scope est la soupape **de la CI** : en session, l'écriture sur ces fichiers est refusée à la
+  source (périmètre dans `.claude/guards.json`), donc la modification passe par l'humain.
 - Commit touchant le lockfile ou les dépendances porte `build(deps):`, `chore(deps):` ou
   `fix(deps):`, ou le label `deps` — **parce que** `dependency-review` distingue ainsi une
   évolution déclarée d'une dérive silencieuse.
 
-## Workflow imposé
-- Explorer + planifier AVANT de coder (plan mode) pour toute tâche multi-fichiers
-- Typecheck + tests + lint AVANT de considérer une tâche terminée
-
 ## Principes non-négociables & seuils (constitution fondue)
-- Diff descriptible en une phrase → direct. Multi-fichiers / nouveau comportement → cycle
-  `/scd-sdd:spec` puis `/scd-sdd:tickets`. Décision transverse → nouvel ADR.
+- Diff descriptible en une phrase → direct. Multi-fichiers / nouveau comportement → explorer et
+  planifier AVANT de coder (plan mode), puis le cycle `/scd-sdd:spec` et `/scd-sdd:tickets`.
+  Décision transverse → nouvel ADR.
 - Zéro traitement serveur sur une page publique hors l'envoi d'une demande de devis (FR-097) — le
   site public reste statique (FR-095/096). Toute nouvelle route serveur sur le public est un
   signal d'alerte à interroger avant d'écrire.
 - Aucun identifiant appartenant à Isometria dans le code ou la config — chaque secret introduit
-  est un secret du compte client (invariants `I1`/`I4` du Brief), sinon la révocation des accès
+  est un secret du compte client (invariants socle `I1`/`I4` du Brief), sinon la révocation des accès
   d'Isometria casse le site (SC-012, SC-013).
 - Aucun terme de développeur (commit, branche, build, déploiement…) dans un texte visible par
   l'éditrice — elle n'a aucune notion technique (FR-117).
@@ -61,8 +60,8 @@
   `npm run coverage` produit un `coverage/lcov.info` de 0 octet. Le vert de `test` et de `coverage`
   n'atteste que l'existence du script, jamais qu'une assertion a tourné.
 - `.npmrc` porte `min-release-age=7` (voir `docs/ci.md`) : une dépendance publiée il y a moins de
-  7 jours est inutilisable à la résolution. L'assouplir exige un commit
-  `chore(config):` (ou label `config-change`), jamais en silence.
+  7 jours est inutilisable à la résolution. L'assouplir m'est refusé en session (chemin protégé)
+  et exige côté humain un commit `chore(config):` (ou label `config-change`), jamais en silence.
 - `verifier-guard` (bloquant) refuse tout `@ts-ignore`, `eslint-disable`, `as any`, `catch {}`
   vide, `nosemgrep`… non accompagné d'un commit signé SSH (clé dans `.github/allowed_signers`) —
   ne jamais neutraliser un vérificateur sans signature humaine.
@@ -80,8 +79,6 @@
   règles dans `eslint.config.boundaries.js`. Le reliquat d'`I3` qu'un contrôle littéral ne voit pas
   (ré-exports, barils, alias) reste `[à compléter]` dans `docs/ci.md` : trou de la phase `ci`, pas à
   inventer ici.
-- Merge GitHub en mode `merge` uniquement — jamais squash/rebase dans l'UI : ça casserait la
-  chaîne de signature dont dépendent `verifier-guard`, `specs-integrity` et `test-integrity`.
 - Un seul Worker sert le site public et l'administration (même origine) : tout script tiers
   chargé n'importe où est un risque XSS same-origin contre le cookie de session admin.
 - Médias : JPEG/PNG/WebP seuls, reconnus sur les octets d'en-tête (jamais l'extension ni le
