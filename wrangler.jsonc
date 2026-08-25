@@ -4,6 +4,10 @@
   // I10, elle ne porte que des liaisons de plateforme (ADR-0020), aucune
   // valeur propre à l'instance (FR-022). Le domaine et la clé publique
   // Turnstile vivent dans instance.json (I8), lu par astro.config.ts seul.
+  // Lue par défaut (`wrangler d1 migrations apply DB --local`) et par
+  // `@cloudflare/vitest-pool-workers` (`vitest.config.ts`, configPath
+  // explicite) — jamais par Astro lui-même, qui lit `wrangler.astro.jsonc`
+  // (ticket 01, voir `astro.config.ts`).
   "name": "colibri-cms",
   // Bornée par le binaire workerd figé au lockfile (1.20260801.1, plus haute
   // date supportée 2026-08-08) — au-delà, workerd refuse de démarrer et toute
@@ -15,5 +19,15 @@
       "database_name": "colibri",
       "migrations_dir": "migrations"
     }
-  ]
+  ],
+  // Couture de test (ticket 01 — la porte close, ADR-0003) : `SELF.fetch`
+  // (`@cloudflare/vitest-pool-workers`) exige `poolOptions.workers.main`, et
+  // `vitest.config.ts` (protégé) donne un `configPath` explicite à CE
+  // fichier — voir `scripts/preparer-worker-de-test.mjs` pour le pourquoi de
+  // `.wrangler/test-worker/` plutôt que `dist/` directement.
+  "main": "./.wrangler/test-worker/server/entry.mjs",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./.wrangler/test-worker/client"
+  }
 }

@@ -7,9 +7,13 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "prebuild": "node scripts/preparer-worker-de-test.mjs --avant",
     "build": "astro build",
+    "postbuild": "node scripts/preparer-worker-de-test.mjs --apres",
     "typecheck": "tsc --noEmit",
+    "pretest": "npm run build",
     "test": "vitest run --passWithNoTests",
+    "precoverage": "npm run build",
     "coverage": "vitest run --coverage --passWithNoTests",
     "lint": "eslint .",
     "lint:boundaries": "eslint --config eslint.config.boundaries.js .",
