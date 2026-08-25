@@ -51,6 +51,20 @@ git diff --cached --stat
 echo
 echo "── Pourquoi une signature est exigée ───────────────────────"
 motifs=0
+# Ce script est-il encore à jour ? Les motifs ci-dessous COPIENT la logique des
+# jobs de la CI, et une copie dérive : `specs-integrity` est né 28 commits après
+# ce script, qui a donc conseillé de ne PAS signer là où c'était obligatoire
+# (2026-08-23). Ce garde ne devine pas le motif manquant — il retire au script
+# le droit de rassurer. Un motif ajouté ci-dessous s'inscrit dans COUVERTS.
+COUVERTS=' verifier-guard test-integrity specs-integrity '
+retard=0
+for j in $(awk '/^  [a-z0-9-]+:$/ { j=$1; sub(/:$/, "", j) }
+                /verify-signed-commits\.sh/ { print j }' \
+           $(find .github/workflows -maxdepth 1 -name '*.y*ml' 2>/dev/null) /dev/null | sort -u); do
+  case "$COUVERTS" in *" $j "*) ;;
+    *) echo "  ⚠ le job « $j » de la CI exige une signature, et ce script n'en sait rien."; retard=1 ;;
+  esac
+done
 git diff --cached --name-only -- .github/allowed_signers | grep -q . && {
   echo "  • le registre des clés est modifié (verifier-guard)"; motifs=1; }
 git diff --cached -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.astro' '*.svelte' \
@@ -58,7 +72,23 @@ git diff --cached -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.astro' '*.svelte' \
   echo "  • une extinction de vérificateur est introduite (verifier-guard)"; motifs=1; }
 git diff --cached --diff-filter=D --name-only -- '*.test.ts' '*.spec.ts' 'tests/**' \
   | grep -q . && { echo "  • un fichier de test est supprimé (test-integrity)"; motifs=1; }
-[ "$motifs" -eq 0 ] && echo "  • aucune — un commit ORDINAIRE n'a pas besoin d'être signé."
+# `specs-integrity` : SPEC.md est figé sans exception ; dans un ticket,
+# seul l'état des CASES est libre. La CI juge commit par commit sur
+# la PR, ici on juge l'INDEX : une réécriture rétablie plus loin dans la branche
+# échappe à cet affichage et rougira quand même en PR.
+git diff --cached --name-only -- ':(glob)specs/**/SPEC.md' \
+  | grep -q . && { echo "  • un document de specs figé est modifié (specs-integrity)"; motifs=1; }
+neutraliser() { sed -E 's/^([[:space:]]*[-*][[:space:]]+)\[[ xX]\]/\1[ ]/'; }
+d=$(git diff --cached --unified=0 -- ':(glob)specs/**/[0-9][0-9]-*.md')
+avant=$(echo "$d" | grep -E '^-'  | grep -vE '^---'    | cut -c2- | neutraliser | sort) || true
+apres=$(echo "$d" | grep -E '^\+' | grep -vE '^\+\+\+' | cut -c2- | neutraliser | sort) || true
+[ "$avant" = "$apres" ] || {
+  echo "  • le texte des tâches est modifié, hors cases (specs-integrity)"; motifs=1; }
+if [ "$motifs" -eq 0 ] && [ "$retard" -eq 0 ]; then
+  echo "  • aucune — un commit ORDINAIRE n'a pas besoin d'être signé."
+elif [ "$motifs" -eq 0 ]; then
+  echo "  • VERDICT SUSPENDU — décide en lisant .github/workflows/, pas ce script."
+fi
 
 echo
 echo "── Message ─────────────────────────────────────────────────"

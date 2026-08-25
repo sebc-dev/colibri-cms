@@ -7,7 +7,10 @@
 #
 # Bloquants   : build · test · sca · secrets · dependency-review
 #               workflow-integrity · test-integrity · quality-config-guard
-#               verifier-guard
+#               verifier-guard · specs-integrity
+#               (DIX — le même compte que les dix contextes requis du ruleset
+#                et que le § Contrôles de docs/ci.md ; tout garde ajouté ici
+#                se termine dans le ruleset, sinon il ne bloque rien)
 # Informatifs : lint · coverage · sast · arch-invariants · boundaries
 #               (ils annotent la PR, ils ne sont pas exigés — aucun
 #                continue-on-error ne vient masquer leur signal)
@@ -16,10 +19,13 @@
 # DIGEST : un tag est mobile et peut être repointé sous le même nom.
 # `workflow-integrity` (zizmor) refuse toute référence mobile.
 #
-# GARDE DE SCAFFOLD : le dépôt ne porte encore aucun code. Les jobs qui en
-# dépendent testent la présence de package.json et se déclarent HORS PORTÉE
-# tant qu'il n'existe pas. Ils passent alors AU VERT SANS RIEN VÉRIFIER —
-# c'est un coût assumé et déclaré (docs/ci.md § L'état du dépôt), pas un oubli.
+# GARDE DE SCAFFOLD : DORMANTE depuis le 2026-08-15. package.json existe, donc
+# les cinq jobs qui la portent — lint · boundaries · build · test · coverage —
+# entrent en portée et exécutent réellement leur commande. Le mécanisme reste
+# en place : il redeviendrait actif sur un arbre sans package.json.
+# CE QUI L'A REMPLACÉE SE VOIT MOINS BIEN : le dépôt ne porte aucun fichier de
+# test, donc `test` et `coverage` sont verts sans rien vérifier. Coût assumé et
+# daté (docs/ci.md § L'état du dépôt), pas un oubli.
 
 name: CI
 
@@ -70,7 +76,7 @@ jobs:
   # ── Informatif · INVARIANTS D'ARCHITECTURE — le mode 5 ──────────────────────
   # Le gisement principal : les défauts qui comptent dans du code généré sont
   # des violations de contrat propres au projet, qu'aucun outil générique ne
-  # connaît. Dérivé de la table de docs/archi.md (I1..I10) et de six ADR.
+  # connaît. Dérivé de la table de docs/1.x/archi.md (I1..I10) et de six ADR.
   #
   # INFORMATIF, et ce n'est pas un provisoire mal assumé : un contrôle maison
   # neuf n'a aucun taux de faux positifs connu. Six ADR acceptés demandent
@@ -151,7 +157,7 @@ jobs:
         run: npm run build
       # ── Garde-fou C5 · le plafond porte sur la SORTIE du build ──────────────
       # Une photographie produit 5 fichiers avec la configuration d'images
-      # retenue (docs/stack.md § Le garde-fou C5). Le mur de la plateforme est
+      # retenue (docs/1.x/stack.md § Le garde-fou C5). Le mur de la plateforme est
       # à 20 000 fichiers ; l'alerte du socle de livraison à 15 000.
       - if: steps.scaffold.outputs.ok == 'true'
         run: |
@@ -614,8 +620,9 @@ jobs:
 
   # ── Bloquant · diff des DOCUMENTS DE SPECS, sous signature — mode 2 ─────────
   # Le quatrième chemin du mode 2, et le seul où le vérificateur n'est pas un
-  # outil mais un TEXTE : `spec.md` porte les exigences contre lesquelles le
-  # code est jugé, `plan.md` l'approche qu'il doit suivre. Un agent qui les
+  # outil mais un TEXTE : `SPEC.md` porte les exigences contre lesquelles le
+  # code est jugé et l'approche qu'il doit suivre, les tickets `NN-*.md` les
+  # critères observables. Un agent qui les
   # réécrit pour qu'elles décrivent ce qu'il vient de coder ne casse aucun
   # contrôle — il déplace la cible, et tout redevient vert.
   #
@@ -624,8 +631,8 @@ jobs:
   # réécrit un critère. C'est une SIGNATURE SSH, vérifiée hors ligne par le
   # script partagé. Fermeture par défaut.
   #
-  # EXCEPTION, mesurée et non concédée : dans `tasks.md`, l'état des cases
-  # (`- [ ]` ↔ `- [x]`) est libre. `progress-recorder` coche à chaque lot, sans
+  # EXCEPTION, mesurée et non concédée : dans un ticket, l'état des cases
+  # (`- [ ]` ↔ `- [x]`) est libre. `progress-recorder` coche à chaque ticket, sans
   # surveillance et sans pouvoir signer ; sans cette exception, tout run était
   # bloqué. Le TEXTE des tâches, lui, reste sous signature — c'est la
   # comparaison marqueur neutralisé qui sépare les deux, et non un grep.
@@ -662,22 +669,22 @@ jobs:
 
           # Globs NORMATIFS, comme ceux de `test-integrity` : un document de
           # specs écrit ailleurs échappe au contrôle.
-          STRICT=(':(glob)specs/**/spec.md' ':(glob)specs/**/plan.md')
-          CASES=(':(glob)specs/**/tasks.md')
+          STRICT=(':(glob)specs/**/SPEC.md')
+          CASES=(':(glob)specs/**/[0-9][0-9]-*.md')
 
           coupables=()
 
-          # ── 1. spec.md et plan.md — AUCUNE exception ───────────────────────
+          # ── 1. SPEC.md — AUCUNE exception ─────────────────────────────────
           # Commit par commit, jamais sur le diff net : une réécriture suivie
           # d'un rétablissement ne laisse aucun diff net et doit rougir quand
           # même. Leçon déjà payée par `quality-config-guard`.
           for c in $(git rev-list --no-merges "$BASE_SHA..HEAD" -- "${STRICT[@]}"); do
-            echo "── $c — $(git log -1 --format=%s "$c") [spec.md / plan.md]"
+            echo "── $c — $(git log -1 --format=%s "$c") [SPEC.md]"
             git show --format= --stat "$c" -- "${STRICT[@]}" | sed 's/^/    /'
             coupables+=("$c")
           done
 
-          # ── 2. tasks.md — les cases sont libres, le texte ne l'est pas ─────
+          # ── 2. tickets — les cases sont libres, le texte ne l'est pas ─────
           # On neutralise le marqueur de case des deux côtés du diff. Si les
           # lignes retirées et les lignes ajoutées coïncident alors, SEUL l'état
           # des cases a bougé. Une case cochée en même temps qu'un texte de
@@ -691,7 +698,7 @@ jobs:
               echo "  ✓ $c — cases seules, texte des tâches intact"
               continue
             fi
-            echo "── $c — $(git log -1 --format=%s "$c") [tasks.md, hors cases]"
+            echo "── $c — $(git log -1 --format=%s "$c") [ticket, hors cases]"
             echo "$d" | grep -E '^[-+]' | grep -vE '^(\-\-\-|\+\+\+)' | sed 's/^/    /' || true
             coupables+=("$c")
           done
@@ -701,7 +708,7 @@ jobs:
             exit 0
           fi
 
-          # Un commit qui touche spec.md ET tasks.md est entré deux fois.
+          # Un commit qui touche SPEC.md ET un ticket est entré deux fois.
           mapfile -t coupables < <(printf '%s\n' "${coupables[@]}" | sort -u)
 
           echo "Signature exigée — ${#coupables[@]} commit(s) modifient un document de specs :"

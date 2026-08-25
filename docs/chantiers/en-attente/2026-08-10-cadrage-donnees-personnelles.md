@@ -12,7 +12,7 @@ PRD hors du chemin ; il n'a pas fait le cadrage lui-même.
 
 ## Contexte à charger
 
-à lire      `docs/brief.md` § Questions ouvertes — « Données personnelles des demandes de devis » (5 l.)
+à lire      `docs/1.x/brief.md` § Questions ouvertes — « Données personnelles des demandes de devis » (5 l.)
 à déléguer  `docs/research/2026-08-10-retention-donnees-demandes-devis.md` — 135 l., demander D1, D2 et la table des durées circulantes
 à situer    `docs/audit-brief-prd.md` § A-04 — l'arbitrage rendu, ne pas rejouer
 à situer    `docs/socle-de-livraison.md` — c'est là que le volet D2 atterrira

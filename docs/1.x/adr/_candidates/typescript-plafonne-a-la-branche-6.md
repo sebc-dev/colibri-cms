@@ -1,7 +1,7 @@
 # Candidat ADR : TypeScript est plafonné à la branche 6, et le plafond est une contrainte de flotte
 Statut : Candidat | Date : 2026-08-15 | Déposé par : `specs/001-scaffold-projet/plan.md` décision 1
-Trace vers : [docs/ci.md](../../ci.md) § L'état du dépôt · [ADR-0010](../../1.x/adr/0010-langage-typescript-strict.md)
-(mode strict, aucune version) · [ADR-0021](../../1.x/adr/0021-sens-descendant-des-dependances-entre-zones.md)
+Trace vers : [docs/ci.md](../../ci.md) § L'état du dépôt · [ADR-0010](../0010-langage-typescript-strict.md)
+(mode strict, aucune version) · [ADR-0021](../0021-sens-descendant-des-dependances-entre-zones.md)
 (`I1`, rendu par la chaîne ESLint)
 
 ## Contexte

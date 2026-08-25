@@ -20,37 +20,59 @@ Trace vers : [plan.md](./plan.md) (fichiers) · [spec.md](./spec.md) (FR/SC/SHAL
 > constate le résultat. C'est ce qui empêche qu'une observation soit faite deux fois — une fois à la
 > main, une fois retranscrite. `R1` écrit ainsi les étapes 1 à 5, `R2` la 6ᵉ.
 
-> **Pourquoi aucun lot n'est en `TDD`.** La spec exclut explicitement toute unité de logique métier
-> — « aucune unité de logique métier, donc aucun test » (§ NON inclus) : ce scaffold pose
-> l'outillage qui *permettra* d'écrire des tests, il n'a lui-même rien à tester. Les deux lots sont
-> donc en `inhérent`, et leur preuve est le code de sortie du script, jamais une affirmation.
+> **Pourquoi aucun lot n'est en `TDD`, et pourquoi aucun n'est en `inhérent` seul.** La spec exclut
+> explicitement toute unité de logique métier — « aucune unité de logique métier, donc aucun test »
+> (§ NON inclus) : ce scaffold pose l'outillage qui *permettra* d'écrire des tests, il n'a lui-même
+> rien à tester. Le mode dominant des deux lots est donc `inhérent`, et sa preuve est le code de
+> sortie du script, jamais une affirmation. Mais le script ne constate pas tout : le gel
+> d'approvisionnement, l'issue des jobs d'intégration et les éditions de `docs/ci.md` se constatent
+> **ailleurs**, et ces tâches-là sont en `check`. Chaque lot déclare donc ses **deux** modes et dit
+> lesquelles de ses tâches relèvent du second — un mode unique laisserait cinq tâches de `R1` et une
+> de `R2` sans forme de preuve déclarée.
 
 ---
 
 ## R1 — Le dépôt devient un projet où les commandes de `docs/ci.md` s'exécutent réellement
-_Livre : FR-001 à FR-011, FR-013 à FR-023, FR-025 à FR-027 ; SC-001 à SC-005, SC-007 à SC-010_ · _vérif : inhérent (le script de vérification **est** la preuve : son code de sortie nul atteste les critères, et un test écrit par-dessus ne ferait que le redire)_ · _~570 lignes est. (hors `package-lock.json` engendré)_ · _26 concepts_ · dépend de : —
+_Livre : FR-001 à FR-011, FR-013 à FR-023, FR-025 à FR-027 ; SC-001 à SC-005, SC-007 à SC-010_ · _vérif : **inhérent** pour les tâches dont l'assertion vit dans les étapes 1 à 5 du script (le script **est** la preuve : son code de sortie nul atteste ces critères-là, et un test écrit par-dessus ne ferait que le redire) · **check** pour les cinq qui se constatent hors de lui — `T5` et `T41` (le gel d'approvisionnement : une pièce datée et une déclaration lue dans un fichier de configuration, ni l'une ni l'autre n'ayant de code de sortie), `T6` (l'issue des jobs d'intégration, qui se lit sur la forge et non sur la machine) et `T15`/`T16` (une édition documentaire)_ · _~570 lignes est. (hors `package-lock.json` engendré)_ · _26 concepts_ · dépend de : —
 Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/core/zone.ts`, `src/render/zone.ts`, `src/platform/zone.ts`, `src/site/zone.ts`, `src/admin/zone.ts`, `eslint.config.js`, `eslint.config.boundaries.js`, `vitest.config.ts`, `knip.json`, `stryker.conf.json`, `astro.config.ts`, `instance.json`, `wrangler.jsonc`, `migrations/0001_amorce.sql`, `scripts/verif-bout-en-bout.sh` (étapes 1 à 5), `docs/preuves/`, `docs/ci.md` (le job de graphe d'imports, deux endroits)
 
 > **Un seul sujet, et c'est le scaffold lui-même.** Ce lot ne fait qu'une chose : rendre réelles, sur
 > un dépôt qui n'en portait aucune, les commandes que `docs/ci.md` déclare normatives — leur
 > installation, leur configuration, et le squelette de sources sans lequel elles n'auraient rien à
-> vérifier. Le build, la base migrée et la configuration de déploiement n'en sont pas des sujets
-> distincts : ce sont les conditions sans lesquelles ces commandes ne s'exécutent pas.
+> vérifier. Le build et la configuration de déploiement n'en sont pas des sujets distincts : ce
+> sont les conditions sans lesquelles ces commandes ne s'exécutent pas, et la liste de `bloqué par`
+> de `T6` les nomme. **La base migrée n'est pas de celles-là**, et il faut le dire plutôt que le
+> laisser croire : elle ne figure pas dans cette liste, aucune commande de `docs/ci.md` n'en dépend.
+> Elle est dans ce lot par l'autre bout — c'est l'étape 5 du script unique qui la constate, et `T42`,
+> qui porte à elle seule la preuve du lot, est bloquée par `T32` et `T33`. Un lot séparé aurait donc
+> à réécrire cette preuve pour la moitié qui lui resterait.
 
 > **Ce que la gate a retiré de ce lot, et pourquoi le reste tient — arbitré le 2026-08-15.**
 > La tranche « serveur de développement local » **en est sortie** et forme `R2`. Le motif de fusion
-> ne la couvrait pas : il tient à ce qu'aucune coupure ne laisse les jobs bloquants verts, or la
-> mesure du plan montre que la sonde est injectée sous `command === 'dev'` et que le build « repasse
-> à 0 page(s) / 3 fichiers » — la retirer ne rougit donc **rien**.
+> ne la couvrait pas : il tient à ce qu'aucune coupure ne laisse un job bloquant **rouge**, or la
+> sonde est injectée sous `command === 'dev'` et le build produit **le même répertoire de sortie
+> avec ou sans elle** — 15 fichiers de part et d'autre, module d'entrée serveur compris (mesure du
+> plan). La retirer ne rougit donc **rien**.
 >
-> Pour ce qui reste, le motif tient tel quel : la garde de scaffold des jobs CI teste
-> `-f package.json` et se lève **dès que le manifeste est posé**, si bien que `build` et `test` —
-> tous deux **bloquants** — s'exécuteraient pour de vrai avant que `astro.config.ts` et
-> `wrangler.jsonc` n'aient atterri. Scinder plus avant ne fermerait pas la fenêtre rouge, ça la
-> **déplacerait** ; et sous protection de branche, une PR dont un job bloquant est rouge ne se merge
-> pas. Le dépassement des signaux de scission (~570 lignes contre ~400, 26 concepts contre ~7) est
-> donc **assumé et documenté**, jamais silencieux. **`T6` est l'endroit où ce motif se vérifie** :
-> sa liste de `bloqué par` est exactement la raison pour laquelle ces tranches-là n'en font qu'une.
+> Pour ce qui reste, le motif tient, et il a **deux branches** : une même garde, deux conséquences.
+> La garde de scaffold des jobs CI teste `-f package.json` et se lève **dès que le manifeste est
+> posé**. Pour `build` et `test` — tous deux **bloquants** —, la conséquence est directe : ils
+> s'exécuteraient pour de vrai avant que `astro.config.ts` et `wrangler.jsonc` n'aient atterri, et
+> sous protection de branche, une PR dont un job bloquant est rouge ne se merge pas. Scinder plus
+> avant ne fermerait pas cette fenêtre rouge, ça la **déplacerait**.
+>
+> Les quatre autres configurations de `T6` — `eslint.config.boundaries.js`, `eslint.config.js`,
+> `knip.json`, `stryker.conf.json` — servent des jobs **informatifs** (`lint`, `boundaries`) ou
+> **nocturnes** (code mort, mutation), dont le rouge ne bloque aucune PR : la première branche ne
+> les couvre pas, et le prétendre serait faux. Elles sont ici pour une **seconde** raison, qui est
+> `FR-008` : la seule vérification observable de cette exigence est `T6` — « chaque job concerné
+> exécute sa commande réelle au lieu de sa garde » —, et cette observation ne se fait qu'une fois
+> **toutes** les configurations posées. Les extraire scinderait la vérification de `FR-008` entre
+> deux lots, quand la couverture veut qu'une exigence vive dans un seul.
+>
+> Le dépassement des signaux de scission (~570 lignes contre ~400, 26 concepts contre ~7) est donc
+> **assumé et documenté**, jamais silencieux. **`T6` est l'endroit où ce motif se vérifie** : sa
+> liste de `bloqué par` est exactement la raison pour laquelle ces tranches-là n'en font qu'une.
 
 ### Installation verrouillée et gelée
 
@@ -128,9 +150,13 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
   deux endroits qui portent la même affirmation se corrigent ensemble : la ligne « Graphe d'imports »
   du § Commandes du projet, et la ligne `ADR-0021` du § Registre des ADR vérifiés en CI, dont la
   colonne « Non rendu » cesse d'être vraie _Requirements: FR-025_ ; bloqué par : T12
-- [x] T16 — Vérif : le document dit de lui-même que cette case n'est refermée **que pour moitié** —
-  aucune des lignes touchées ne laisse croire le job clos, et le reliquat d'`I3` y reste porté comme
-  restant à poser _Requirements: FR-025_ ; bloqué par : T15
+- [x] T16 — Vérif : les deux lignes touchées portent **littéralement** la moitié qui reste ouverte,
+  et cela se lit sans jugement. Sur la ligne « Graphe d'imports » du § Commandes du projet : la
+  chaîne `[à compléter]` est toujours présente et attachée au reliquat d'`I3`, quand la matrice
+  `I1` y est donnée pour posée. Sur la ligne `ADR-0021` du § Registre des ADR vérifiés en CI : la
+  colonne ne porte plus « Non rendu », et le « Rendu » qui l'y remplace nomme `I1` comme sa portée.
+  Une ligne « Graphe d'imports » d'où `[à compléter]` aurait disparu dirait le job clos
+  _Requirements: FR-025_ ; bloqué par : T15
 
 ### Les commandes de mesure, correctes sur un dépôt sans test
 
@@ -202,7 +228,7 @@ Fichiers : `.npmrc`, `package.json`, `package-lock.json`, `tsconfig.json`, `src/
 ---
 
 ## R2 — Le serveur de développement local démarre et lit la base migrée
-_Livre : FR-012, FR-024 ; SC-006_ · _vérif : inhérent (le script rejoué de bout en bout **est** la preuve, son code de sortie nul attestant à la fois la nouvelle étape et les cinq précédentes sur l'arbre augmenté)_ · _~90 lignes est._ · _5 concepts_ · dépend de : R1
+_Livre : FR-012, FR-024 ; SC-006_ · _vérif : **inhérent** pour `T34`, `T35`, `T36` et `T43` (le script rejoué de bout en bout **est** la preuve, son code de sortie nul attestant à la fois la nouvelle étape et les cinq précédentes sur l'arbre augmenté) · **check** pour `T37`, l'édition de `docs/ci.md`, que le script ne lit pas_ · _~90 lignes est._ · _5 concepts_ · dépend de : R1
 Fichiers : `src/platform/d1/sonde-dev.ts`, `astro.config.ts` (injection de route conditionnelle), `scripts/verif-bout-en-bout.sh` (étape 6), `docs/ci.md` (la ligne « Run local », à créer)
 
 > **Pourquoi cette tranche est un lot à elle seule.** Elle livre une capacité nommable en une
@@ -216,9 +242,13 @@ Fichiers : `src/platform/d1/sonde-dev.ts`, `astro.config.ts` (injection de route
 - [x] T35 — Vérif : la commande de run local démarre un serveur HTTP joignable sur la machine du
   développeur, et sa route de sonde rend le résultat lu sur la base même que `T32` a migrée
   _Requirements: FR-012, SC-006_ ; bloqué par : T34
-- [x] T36 — Vérif : la commande de build ne produit pas cette route — le répertoire de sortie ne
-  porte aucun fichier d'entrée serveur, et le nom de la sonde n'y apparaît nulle part ; constaté sur
-  l'arbre même qui vient de servir `T35` _Requirements: FR-024_ ; bloqué par : T35
+- [x] T36 — Vérif : la commande de build ne produit pas cette route, et la forme falsifiable est la
+  **double absence** dans le répertoire de sortie — aucun fichier dérivé de `sonde-dev.ts`, et
+  aucune occurrence de la chaîne `_sonde`. Le module d'entrée serveur, lui, **est émis avec ou sans
+  la sonde** : `output: 'server'` l'écrit quel que soit le nombre de routes servies, et le plan l'a
+  mesuré à 15 fichiers de part et d'autre. Son absence ne se constate donc sur aucune
+  implémentation correcte, et une assertion écrite dessus échouerait toujours. Constaté sur l'arbre
+  même qui vient de servir `T35` _Requirements: FR-024_ ; bloqué par : T35
 - [x] T37 — Reporter la commande de run local dans `docs/ci.md` § Commandes du projet : **créer** la
   ligne « Run local », qui n'existe pas, **et retirer** le paragraphe qui la suit — « Aucune commande
   de run local n'existe […] Elle se pose au scaffold, dans ce tableau » —, faux dès l'instant où la

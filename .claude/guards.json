@@ -1,0 +1,22 @@
+{
+  "protected": [
+    ".github/workflows/**",
+    ".github/scripts/**",
+    ".github/allowed_signers",
+    "eslint.config.*",
+    "tsconfig*.json",
+    "vitest.config.*",
+    "stryker.conf.*",
+    "knip.*",
+    ".npmrc",
+    "CLAUDE.md",
+    ".claude/**",
+    "scripts/signer-commit.sh",
+    { "glob": "specs/**/SPEC.md", "mode": "no-rewrite" }
+  ],
+  "weakening": {
+    "block": true,
+    "allow": []
+  },
+  "log": ".claude/guard-log.jsonl"
+}

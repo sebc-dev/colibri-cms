@@ -2,11 +2,12 @@
 #
 # Vérification bout-en-bout — specs/001-scaffold-projet.
 #
-# Mode `inhérent` (tasks.md § R1/R2, docs/ci.md § L'état du dépôt) : la spec
-# exclut toute unité de logique métier, donc aucun test à écrire — la preuve
-# EST le code de sortie de ce script. Il naît par morceaux, une étape par lot
-# qui la constate (plan.md § Étape de vérification bout-en-bout) : R1 pose
-# les étapes 1 à 5 ci-dessous ; R2 y ajoute la 6ᵉ.
+# Mode `inhérent` (docs/1.x/specs/001-scaffold-projet/tasks.md § R1/R2,
+# docs/ci.md § L'état du dépôt) : la spec exclut toute unité de logique métier,
+# donc aucun test à écrire — la preuve EST le code de sortie de ce script. Il
+# naît par morceaux, une étape par lot qui la constate (même archive, plan.md
+# § Étape de vérification bout-en-bout) : R1 pose les étapes 1 à 5 ci-dessous ;
+# R2 y ajoute la 6ᵉ. Les documents cités sont archivés — cycle 1.x.
 #
 # Patron : .github/scripts/arch-invariants.sh — set -uo pipefail, un état par
 # contrôle, le commentaire dit le pourquoi. Ce script-ci NE remplace PAS

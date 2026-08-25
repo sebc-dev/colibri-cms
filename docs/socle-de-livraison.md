@@ -12,7 +12,7 @@
 
 > ✅ **Revalidé le 2026-08-10 par la phase Stack.** Le bandeau qui précédait marquait comme
 > périmée toute mention de D1, de Worker, de dépôt Git ou d'un système de build : ces mentions
-> ont été confrontées aux arbitrages de [`docs/stack.md`](./stack.md) et corrigées ici — § 3
+> ont été confrontées aux arbitrages de [`docs/1.x/stack.md`](./1.x/stack.md) et corrigées ici — § 3
 > (topologie), § 5 (`C6`), annexe A et sa réserve 1. `C1`, `C8` et le § 6 sont **confirmés
 > sans retouche** : D1 porte bien les brouillons, l'état publié et le compteur de demandes.
 >
@@ -413,8 +413,8 @@ vers 3 000 photographies dans la configuration retenue.
 | # | Sujet | Où ça se tranche |
 |---|---|---|
 | 1 | **Le périmètre écrit du carnet**, dont le sort de l'épreuve annuelle de réversibilité (§5) | Décision d'exploitation, hors chaîne rampstack |
-| 2 | ~~Le service d'envoi du formulaire~~ — **tranché** le 2026-08-10 : Cloudflare Email Routing, binding `send_email` vers l'adresse de destination vérifiée, gratuit sans carte | [`docs/stack.md`](./stack.md) |
+| 2 | ~~Le service d'envoi du formulaire~~ — **tranché** le 2026-08-10 : Cloudflare Email Routing, binding `send_email` vers l'adresse de destination vérifiée, gratuit sans carte | [`docs/1.x/stack.md`](./1.x/stack.md) |
 | 3 | **La mesure réelle du nombre de fichiers par photographie**, à reporter en annexe A | Premier déploiement |
-| 4 | ~~Choix du système de build~~ — **tranché** le 2026-08-10 : un Worker unique bâti par *Workers Builds*. La cible et le système de build ne font qu'un choix, la CI hébergée de Cloudflare étant couplée à la cible | [`docs/stack.md`](./stack.md) |
+| 4 | ~~Choix du système de build~~ — **tranché** le 2026-08-10 : un Worker unique bâti par *Workers Builds*. La cible et le système de build ne font qu'un choix, la CI hébergée de Cloudflare étant couplée à la cible | [`docs/1.x/stack.md`](./1.x/stack.md) |
 | 5 | **Relecture juridique du clausier §4**, dont le « refus temporaire » du § 4.1 appliqué aux quotas de build, qui n'est pas sourcé (voir réserve 1) | Avant la première signature |
-| 6 | ~~Durée de vie du jeton d'écriture GitHub~~ — **tranché** le 2026-08-11, par mesure : un jeton à portée fine sur compte personnel peut n'avoir aucune expiration, et `Contents: Read and write` suffit à toute l'écriture de la publication. Reste le retrait après un an sans usage, couvert par un appel périodique depuis le compte de la cliente | [`docs/stack.md`](./stack.md) |
+| 6 | ~~Durée de vie du jeton d'écriture GitHub~~ — **tranché** le 2026-08-11, par mesure : un jeton à portée fine sur compte personnel peut n'avoir aucune expiration, et `Contents: Read and write` suffit à toute l'écriture de la publication. Reste le retrait après un an sans usage, couvert par un appel périodique depuis le compte de la cliente | [`docs/1.x/stack.md`](./1.x/stack.md) |
