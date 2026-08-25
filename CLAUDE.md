@@ -15,6 +15,22 @@
 - Ce qui est vérifié automatiquement : `docs/ci.md` — les contrôles bloquants font foi ; l'état de
   chaque contrôle (bloquant/informatif) y est explicite, ne pas le supposer
 
+## Glossaire du domaine (les mots du métier, pas ceux du code)
+- **Éditrice** — la cliente, seule utilisatrice de l'administration, sans notion technique.
+- **Intégrateur** — Isometria : pose les gabarits et les emplacements, hors administration.
+- **Emplacement** — zone éditable posée par l'intégrateur dans un gabarit ; l'éditrice la remplit,
+  elle n'en crée aucune et ne compose aucune page.
+- **Brouillon** — état non publié d'une **page**, d'un **réglage** ou d'un **formulaire** : les
+  trois — et seuls — objets publiables du produit.
+- **Aperçu** — le brouillon rendu tel qu'il sera publié, jamais atteignable du site public.
+- **Publication** — le geste explicite qui met le site public à jour ; rien ne part en ligne sans lui.
+- **Demande** — une soumission du formulaire de devis, acheminée à l'adresse autorisée ET inscrite
+  dans une liste où elle porte une **suite** que l'éditrice renseigne (sans suite, devis envoyé,
+  commande).
+- **Adresse autorisée** — l'unique adresse e-mail qui ouvre l'administration et reçoit les demandes.
+- **Moyen de reprise** — secret non e-mail remis à la livraison, qui ouvre l'administration le jour
+  où l'adresse autorisée ne répond plus.
+
 ## Commandes (reprises de docs/ci.md — s'y reporter, ne pas diverger)
 - Installation : `npm ci` — jamais `npm install`
 - Build : `npm run build`
