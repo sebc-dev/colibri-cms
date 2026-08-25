@@ -1,30 +1,31 @@
-# Candidat ADR : Acheminement des demandes — Email Routing et `send_email` vers l'adresse de destination vérifiée, e-mail inerte et étiqueté
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0009-acheminement-email-routing-send-email.md` (ADR-0009 accepté sous le cycle 1.x)
+# ADR-0002 : Acheminement des demandes — Email Routing et `send_email` vers l'adresse de destination vérifiée, e-mail inerte et étiqueté
+Statut : Accepté | Date : 2026-08-25
 
-> Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+Promu depuis `docs/1.x/adr/0009-acheminement-email-routing-send-email.md` — ADR-0009, accepté sous le cycle 1.x.
 
+> Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/1.x/` : ce ne sont
+> pas des noms de fichier.
 
 ## Contexte
 
 `FR-063` fait acheminer chaque demande par e-mail à l'adresse de la cliente, et `FR-064` fait
 porter à cet e-mail le détail des sélections et le total indicatif. `SC-007` en mesure
 l'arrivée. La contrainte de coût est l'invariant `I5` du
-[socle de livraison](../../socle-de-livraison.md) — aucun prélèvement possible sans un acte du
+[socle de livraison](../socle-de-livraison.md) — aucun prélèvement possible sans un acte du
 client — et sa contrainte `C9`, rien n'exige un moyen de paiement.
 
 Une contrainte de sécurité s'y superpose, et elle n'était pas visible au départ : la
 destination de l'acheminement **est la boîte qui reçoit les codes de connexion**
-([ADR-0006](../../1.x/adr/0006-auth-implementation-maison-sur-d1.md)), et le formulaire de devis est ouvert
+([ADR-0006](../1.x/adr/0006-auth-implementation-maison-sur-d1.md)), et le formulaire de devis est ouvert
 à l'internet anonyme (`FR-057`), borné en fréquence seulement (`FR-062`). Un inconnu peut donc
 déposer du texte à côté des vrais messages du produit, déclencher lui-même l'envoi d'un code
 depuis l'écran public, et maquiller sa demande en message de service pour récolter le code.
 
 Faits sourcés :
-[`docs/research/2026-08-10-acheminement-demandes-envoi-email.md`](../../research/2026-08-10-acheminement-demandes-envoi-email.md)
+[`docs/research/2026-08-10-acheminement-demandes-envoi-email.md`](../research/2026-08-10-acheminement-demandes-envoi-email.md)
 et
-[`docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md`](../../research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md).
+[`docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md`](../research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md).
 
 ## Décision
 

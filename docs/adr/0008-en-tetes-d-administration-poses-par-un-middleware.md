@@ -1,8 +1,11 @@
-# Candidat ADR : les en-têtes de sécurité de l'administration sont posés par un middleware logé dans une zone
-Statut : Candidat | Date : 2026-08-19 | Déposé par : `specs/002-connexion-par-code/plan.md` décision 3
-Trace vers : [ADR-0015](../../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) (deux porteurs d'en-têtes) ·
-[ADR-0024](../../1.x/adr/0024-administration-sans-directive-client.md) (`I4`, la CSP stricte définie par ses
-interdits) · [docs/archi.md](../../1.x/archi.md) § Vue d'ensemble (les cinq zones, et `src/pages/` qui
+# ADR-0008 : les en-têtes de sécurité de l'administration sont posés par un middleware logé dans une zone
+Statut : Accepté | Date : 2026-08-25
+
+Déposé en candidat le 2026-08-19 par le plan de la feature `002-connexion-par-code` du cycle 1.x.
+
+Trace vers : [ADR-0015](../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) (deux porteurs d'en-têtes) ·
+[ADR-0024](../1.x/adr/0024-administration-sans-directive-client.md) (`I4`, la CSP stricte définie par ses
+interdits) · [docs/archi.md](../1.x/archi.md) § Vue d'ensemble (les cinq zones, et `src/pages/` qui
 n'en est pas une)
 
 ## Contexte
@@ -83,6 +86,14 @@ au même endroit et par le même patron que l'injection de route déjà en place
   fichier qui voit passer toutes les réponses.
 - **Poser les en-têtes dans chaque fichier de route** : écartée car la répétition est ce que
   l'oubli exploite, et parce qu'elle ne couvre toujours pas les pages d'erreur.
+
+## Vérifiable ?
+
+Oui — trace observable en deux points : le fichier de middleware existe sous
+`src/platform/entetes/`, et `astro.config.ts` l'inscrit par le hook d'intégration
+`addMiddleware`. Un contrôle littéral voit les deux. Ce qu'il ne voit pas, en revanche, c'est
+que le middleware pose bien TOUS les en-têtes attendus : cela reste une couverture, comme pour
+[ADR-0001](./0001-auth-implementation-maison-sur-d1.md) (authentification maison sur D1).
 
 ## Contexte agent (optionnel)
 

@@ -1,10 +1,11 @@
-# Candidat ADR : Le garde de session est tenu par l'import, et la surface publique est close
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0026-garde-de-session-par-import-et-surface-publique-close.md` (ADR-0026 accepté sous le cycle 1.x)
+# ADR-0007 : Le garde de session est tenu par l'import, et la surface publique est close
+Statut : Accepté | Date : 2026-08-25
 
-> Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+Promu depuis `docs/1.x/adr/0026-garde-de-session-par-import-et-surface-publique-close.md` — ADR-0026, accepté sous le cycle 1.x.
 
+> Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/1.x/` : ce ne sont
+> pas des noms de fichier.
 
 ## Contexte
 
@@ -55,9 +56,9 @@ et l'**appel de `request.formData()`**, dans un fichier de `src/pages/api/public
   l'épreuve `SC-021`. C'est un angle mort assumé, en échange de la falsifiabilité.
 - **Le périmètre est lié à `run_worker_first`.** Ajouter un troisième préfixe servi par le code
   élargirait la surface **sans que cet invariant le sache** : c'est pourquoi
-  [ADR-0015](../../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) doit garder cette liste bornée.
+  [ADR-0015](../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) doit garder cette liste bornée.
 - **La route d'aperçu doit vivre sous `src/pages/admin/`** — conséquence déjà portée par
-  [ADR-0023](../../1.x/adr/0023-rendu-partage-par-le-publie-et-l-apercu.md).
+  [ADR-0023](../1.x/adr/0023-rendu-partage-par-le-publie-et-l-apercu.md).
 - **Le second volet est nominatif** : il nomme `request.formData()`. Une autre façon de lire un
   corps `multipart` passerait le contrôle.
 

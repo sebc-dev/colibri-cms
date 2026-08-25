@@ -1,14 +1,15 @@
-# Candidat ADR : Tests — Vitest dans `workerd`, Playwright pour les parcours, épreuve de réversibilité scriptée
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0013-tests-vitest-dans-workerd.md` (ADR-0013 accepté sous le cycle 1.x)
+# ADR-0003 : Tests — Vitest dans `workerd`, Playwright pour les parcours, épreuve de réversibilité scriptée
+Statut : Accepté | Date : 2026-08-25
 
-> Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+Promu depuis `docs/1.x/adr/0013-tests-vitest-dans-workerd.md` — ADR-0013, accepté sous le cycle 1.x.
 
+> Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/1.x/` : ce ne sont
+> pas des noms de fichier.
 
 ## Contexte
 
-Le [Brief](../../1.x/brief.md) pose que « le code entrant n'est pas relu ligne à ligne » : la confiance
+Le [Brief](../1.x/brief.md) pose que « le code entrant n'est pas relu ligne à ligne » : la confiance
 vient de vérifications mécaniques. La question n'est donc pas *quel outil de test*, mais **quel
 oracle** — ce qui décide si un test dit vrai.
 
@@ -21,7 +22,7 @@ rejouable et non une manipulation. Exigences servies : toutes, et nommément `SC
 `SC-011`, `SC-016`.
 
 Relevé versé :
-[`docs/research/2026-08-12-vitest-pool-workers-liaisons.md`](../../research/2026-08-12-vitest-pool-workers-liaisons.md)
+[`docs/research/2026-08-12-vitest-pool-workers-liaisons.md`](../research/2026-08-12-vitest-pool-workers-liaisons.md)
 + trace brute rejouable.
 
 ## Décision

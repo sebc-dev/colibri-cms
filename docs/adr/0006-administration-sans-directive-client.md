@@ -1,21 +1,22 @@
-# Candidat ADR : Aucun gabarit de `src/admin/` ne porte de directive `client:*`
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0024-administration-sans-directive-client.md` (ADR-0024 accepté sous le cycle 1.x)
+# ADR-0006 : Aucun gabarit de `src/admin/` ne porte de directive `client:*`
+Statut : Accepté | Date : 2026-08-25
 
-> Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+Promu depuis `docs/1.x/adr/0024-administration-sans-directive-client.md` — ADR-0024, accepté sous le cycle 1.x.
 
+> Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/1.x/` : ce ne sont
+> pas des noms de fichier.
 
 ## Contexte
 
-[ADR-0015](../../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) a retenu une **CSP stricte propre à
+[ADR-0015](../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) a retenu une **CSP stricte propre à
 l'administration**, définie par ses interdits : aucun `unsafe-inline`, aucun `unsafe-eval`,
 aucune source tierce hors Turnstile. C'est, avec l'invariant d'échappement, l'une des **deux
 seules** parades au XSS same-origin — celui que la liste des demandes rend possible, puisque du
 texte d'inconnus y atteint un écran d'administration.
 
 Or l'**hydratation des îlots Svelte produit du script en ligne**
-([ADR-0011](../../1.x/adr/0011-ilots-svelte-5.md)). Il faudrait donc un nonce à chaque réponse — et Astro ne
+([ADR-0011](../1.x/adr/0011-ilots-svelte-5.md)). Il faudrait donc un nonce à chaque réponse — et Astro ne
 sait pas en poser.
 
 > *Sourcé le 2026-08-13.* Astro sait poser une politique de sécurité depuis `astro@6.0.0`, et
