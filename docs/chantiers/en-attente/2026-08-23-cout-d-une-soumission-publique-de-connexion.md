@@ -9,8 +9,10 @@ la marge qui reste face aux quotas journaliers du palier gratuit, tant que le se
 par origine n'est pas livré.
 
 ## Contexte à charger
-à lire  `docs/1.x/specs/002-connexion-par-code/plan.md` § décision 7 — le délai plancher et ce qu'il coûte
-à lire  `docs/1.x/specs/002-connexion-par-code/spec.md` § NON inclus — le seuil par origine, hors périmètre
+à extraire  `docs/1.x/specs/002-connexion-par-code/plan.md` › `**7.` L521-577 — 981 l. au
+            total ; le délai plancher et ce qu'il coûte
+à extraire  `docs/1.x/specs/002-connexion-par-code/spec.md` › `## NON inclus` L393-520 — 520 l.
+            au total ; le seuil par origine, hors périmètre
 
 ## Acquis
 - J'ai relevé qu'une soumission coûte au moins deux allers-retours D1 — le décompte de la fenêtre,
@@ -22,7 +24,7 @@ par origine n'est pas livré.
   continue de tourner. Rien n'a l'air cassé.
 
 ## Prochaine étape
-Mesurer, sur `src/pages/admin/connexion.astro` et `src/platform/auth/magasin.ts`, le nombre de
+Mesurer, sur `src/pages/admin/connexion.astro` et `src/platform/session/magasin.ts`, le nombre de
 requêtes Worker et d'accès D1 qu'une soumission consomme, et le rapporter aux quotas journaliers de
 l'Annexe A de `docs/socle-de-livraison.md`.
 
