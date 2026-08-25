@@ -51,6 +51,11 @@ reports/
 # surveillé par `quality-config-guard` ; la variante `.local` ne l'est pas.
 .claude/settings.local.json
 
+# Trace des tentatives bloquées par les gardes de session — propre à la machine,
+# en ajout continu, et personne n'a le droit de l'éditer pour résoudre un
+# conflit de merge. Le périmètre, lui, est versionné : `.claude/guards.json`.
+.claude/guard-log.jsonl
+
 # Copie locale de l'ancien socle, conservée hors du dépôt : git en garde déjà
 # l'historique, et sans cette ligne un `git add -A` la réintroduirait.
 # Ancré à la racine : sans la barre oblique, le motif matchait aussi

@@ -2,11 +2,19 @@
 #
 # Invariants d'architecture — mode 5 de la grille de docs/ci.md.
 #
-# Source : la table des invariants de docs/archi.md (I1..I10) et les clauses
+# Source : la table des invariants de docs/1.x/archi.md (I1..I10) et les clauses
 # d'ADR que le registre de docs/ci.md verse ici — ADR-0015, ADR-0024, ADR-0006.
-# Des six ADR qui adressent un contrôle bloquant à docs/ci.md, les trois autres
-# n'y passent pas : ADR-0008 revient au job `test`, ADR-0009 et ADR-0012 ne sont
-# rendus par aucun contrôle. Le registre le dit ligne par ligne.
+#
+# Le compte se fait en CLAUSES, jamais en ADR : six ADR adressent un contrôle
+# bloquant à docs/ci.md, pour HUIT clauses. Cinq sont rendues ; TROIS ne le
+# sont par aucun contrôle, et docs/ci.md les nomme une par une —
+#   ADR-0009  la composition inerte de l'e-mail acheminé
+#   ADR-0012  l'effacement conjoint de la clé de fenêtre et des entrées
+#   ADR-0006  le jeton anti-CSRF doublé du contrôle d'Origin
+# ADR-0006 est donc ici À MOITIÉ : les attributs du cookie sont une chaîne
+# littérale, qui se lit ; « sur CHAQUE écriture » est une couverture, qui ne se
+# grep pas. ADR-0008, lui, revient au job `test`. Le registre de docs/ci.md le
+# dit ligne par ligne.
 #
 # CE SCRIPT EST INFORMATIF. Son taux de faux positifs n'est pas mesuré : un
 # contrôle maison neuf n'en a aucun de connu, et un contrôle bruyant finit
@@ -16,19 +24,22 @@
 # Il porte sur l'ARBRE COURANT, pas sur le diff : un invariant violé par une
 # ligne qu'aucune PR ne touche reste violé.
 #
-# Trois états par contrôle :
+# Quatre états par contrôle :
 #   OK        le chemin existe et rien ne le viole
 #   HORS      le chemin n'existe pas encore — le contrôle n'a rien à dire
+#   AILLEURS  l'invariant EST vérifié, mais par un autre job — à ne pas
+#             confondre avec HORS, qui ne vérifie rien nulle part
 #   VIOLATION avec le fichier et la ligne
 #
 # `git ls-files` et non `find` : seul ce qui est versionné compte.
 set -uo pipefail
 
 fail=0
-declare -i n_ok=0 n_hors=0
+declare -i n_ok=0 n_hors=0 n_ailleurs=0
 
-ok()   { echo "  ✓ $1"; n_ok+=1; }
-hors() { echo "  · $1 — HORS PORTÉE ($2 absent du dépôt)"; n_hors+=1; }
+ok()      { echo "  ✓ $1"; n_ok+=1; }
+hors()    { echo "  · $1 — HORS PORTÉE ($2 absent du dépôt)"; n_hors+=1; }
+ailleurs(){ echo "  → $1 — VÉRIFIÉ AILLEURS : $2"; n_ailleurs+=1; }
 ko()   { echo "::warning title=Invariant $1::$2"; printf '      %s\n' "${@:3}"; fail=1; }
 
 # Les fichiers versionnés d'un chemin donné, ou rien.
@@ -38,17 +49,22 @@ exists() { [ -n "$(files "$@")" ]; }
 
 SRC_EXT=('*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs' '*.astro' '*.svelte')
 
-echo "── Invariants de docs/archi.md ───────────────────────────────────────────"
+echo "── Invariants de docs/1.x/archi.md ───────────────────────────────────────────"
 
 # ── I1 · sens descendant des dépendances entre zones ─────────────────────────
-# NON RENDU ICI. La matrice des arêtes autorisées se vérifie sur le graphe
-# d'imports résolu — alias `tsconfig paths`, ré-exports, barils —, ce à quoi une
-# expression régulière ne suffit pas (docs/archi.md § I1).
+# NON RENDU ICI, ET RENDU AILLEURS. La matrice des arêtes autorisées se vérifie
+# sur le graphe d'imports résolu — alias `tsconfig paths`, ré-exports, barils —,
+# ce à quoi une expression régulière ne suffit pas (docs/1.x/archi.md § I1).
 # Le moteur est la chaîne ESLint — eslint-plugin-boundaries sur
-# eslint-import-resolver-typescript ; ses règles se posent au scaffold dans
-# eslint.config.*. dependency-cruiser est écarté depuis le 2026-08-14 : ni
-# .astro, ni TypeScript 7 (docs/ci.md § Registre des ADR vérifiés en CI).
-echo "  ! I1 (sens descendant des dépendances entre zones) — NON RENDU : exige un graphe d'imports résolu (chaîne ESLint, à poser au scaffold)"
+# eslint-import-resolver-typescript —, POSÉE depuis le 2026-08-15 dans
+# eslint.config.boundaries.js et jouée par le job `boundaries`
+# (npm run lint:boundaries). I1 n'est donc pas un trou : il est vérifié par un
+# autre job, informatif comme celui-ci. Ce qui reste ouvert est le reliquat
+# d'I3 — ce qu'un contrôle littéral ne voit pas. dependency-cruiser est écarté
+# depuis le 2026-08-14 : ni .astro, ni TypeScript 7
+# (docs/ci.md § Registre des ADR vérifiés en CI).
+ailleurs "I1 (sens descendant des dépendances entre zones)" \
+         "exige un graphe d'imports résolu — job \`boundaries\`, npm run lint:boundaries"
 
 # ── I2 · src/core/ n'importe ni framework ni plateforme ──────────────────────
 if exists 'src/core/*'; then
@@ -198,7 +214,7 @@ else
 fi
 
 echo
-echo "── Contrôles réclamés par des ADR, hors table de docs/archi.md ───────────"
+echo "── Contrôles réclamés par des ADR, hors table de docs/1.x/archi.md ───────────"
 
 # ── ADR-0015 · la liste run_worker_first reste bornée ────────────────────────
 # Si elle passe globale, TOUTES les réponses sont générées par le code et le
@@ -249,7 +265,7 @@ else
 fi
 
 echo
-echo "── Bilan : ${n_ok} contrôle(s) au vert · ${n_hors} hors portée · $([ $fail -eq 0 ] && echo 0 || echo 'au moins 1') violation(s)"
+echo "── Bilan : ${n_ok} contrôle(s) au vert · ${n_ailleurs} vérifié(s) ailleurs · ${n_hors} hors portée · $([ $fail -eq 0 ] && echo 0 || echo 'au moins 1') violation(s)"
 if [ "$n_ok" -eq 0 ]; then
   echo "::notice title=Aucun code::Le dépôt ne porte encore aucune source — ce contrôle n'a rien vérifié (docs/ci.md § L'état du dépôt)."
 fi
