@@ -1,0 +1,22 @@
+---
+/**
+ * L'écran d'accueil de l'administration (ticket 01 — la porte close).
+ *
+ * Derrière la garde : `verifierSession` refuse tout à ce ticket (aucune
+ * session ne peut exister), donc toute requête est renvoyée vers l'écran de
+ * connexion et le contenu ci-dessous n'est jamais atteint (C1, C4). Il ne
+ * porte lui-même aucune fonction — ni lien, ni action — il n'est que le
+ * point d'arrivée du parcours.
+ */
+import Gabarit from '../../admin/Gabarit.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+
+const session = verifierSession(Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+---
+
+<Gabarit titre="Administration">
+  <p>Vous êtes connectée.</p>
+</Gabarit>

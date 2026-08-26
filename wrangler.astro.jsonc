@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Couture de test (ticket 01 — la porte close) : Astro (dev ET build) lit
+  // CE fichier — `astro.config.ts` le lui donne via `adapter: cloudflare({
+  // configPath: './wrangler.astro.jsonc' })` — et non `wrangler.jsonc`
+  // (racine). Les deux portent les mêmes liaisons de plateforme (ADR-0020) ;
+  // la racine porte EN PLUS `main`/`assets`, dont
+  // `scripts/preparer-worker-de-test.mjs` explique le pourquoi. Si les deux
+  // fichiers portaient `main`, Astro bâtirait DEPUIS ce champ au lieu de son
+  // propre graphe de pages — mesuré, pas supposé.
+  "name": "colibri-cms",
+  "compatibility_date": "2026-08-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "colibri",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

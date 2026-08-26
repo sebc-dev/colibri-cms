@@ -49,7 +49,13 @@ export default defineConfig({
   // `'compile'` est ce qui produit réellement les variantes au build, comme
   // ADR-0019 le décide (le calcul des 5 fichiers par photographie y suppose
   // un service d'images local).
-  adapter: cloudflare({ imageService: 'compile' }),
+  // `configPath` : Astro (dev et build) lit `wrangler.astro.jsonc`, jamais
+  // `wrangler.jsonc` (racine) — ticket 01 (la porte close). La racine porte
+  // en plus `main`/`assets`, lus par `@cloudflare/vitest-pool-workers` seul
+  // (`vitest.config.ts`, protégé) ; si Astro les lisait aussi, il bâtirait
+  // depuis ce champ au lieu de son propre graphe de pages (mesuré : voir
+  // `scripts/preparer-worker-de-test.mjs`).
+  adapter: cloudflare({ imageService: 'compile', configPath: './wrangler.astro.jsonc' }),
   // ADR-0019 : les variantes d'images sont produites au build, un seul
   // format, sur les trois largeurs mesurées contre le garde-fou C5.
   image: {

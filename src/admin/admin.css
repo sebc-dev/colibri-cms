@@ -1,0 +1,16 @@
+/*
+ * Feuille de style de l'administration (ADR-0006, ADR-0008) — liée par
+ * `src/admin/Gabarit.astro` via un import ESM, jamais un bloc <style> en
+ * ligne : c'est ce qui rend `script-src 'self'` (et son pendant CSS) tenable
+ * sans nonce ni empreinte calculée à chaque réponse.
+ */
+
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+}

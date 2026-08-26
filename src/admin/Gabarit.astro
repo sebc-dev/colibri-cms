@@ -1,0 +1,30 @@
+---
+/**
+ * Le gabarit commun de l'administration (ticket 01 — la porte close).
+ *
+ * Aucune directive `client:*`, aucune balise de style en ligne (ADR-0006) :
+ * la feuille de style est un asset lié, importée ici et non écrite dans ce
+ * fichier — Astro la regroupe et pose elle-même le lien qui la sert.
+ * Les en-têtes de sécurité (ADR-0008) sont posés par un middleware, pas par
+ * ce gabarit : ce lot ne les pose pas encore (ticket 02).
+ */
+import '../admin/admin.css';
+
+interface Props {
+  titre: string;
+}
+
+const { titre } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titre}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

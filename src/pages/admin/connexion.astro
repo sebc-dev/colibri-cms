@@ -1,0 +1,24 @@
+---
+/**
+ * L'écran de connexion (ticket 01 — la porte close).
+ *
+ * Il importe le garde de session comme toute route d'administration
+ * (ADR-0007), mais il n'est pas une route gardée (SPEC.md) : c'est ce qui
+ * rend la porte atteignable. Le verdict n'est donc jamais utilisé pour
+ * bloquer l'accès — l'écran se sert identiquement avec ou sans session.
+ */
+import Gabarit from '../../admin/Gabarit.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+
+verifierSession(Astro.request);
+---
+
+<Gabarit titre="Connexion">
+  <h1>Connexion</h1>
+  <p>Saisissez l’adresse déjà connue pour recevoir un code.</p>
+  <form method="post">
+    <label for="adresse">Adresse</label>
+    <input id="adresse" name="adresse" type="email" required />
+    <button type="submit">Recevoir un code</button>
+  </form>
+</Gabarit>
