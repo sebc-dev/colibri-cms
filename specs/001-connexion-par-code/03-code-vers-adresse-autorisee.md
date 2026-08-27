@@ -20,10 +20,10 @@ le ticket 09 (le parcours joué contre le serveur local) qui l'établit, et la s
 
 ## Critères
 
-- [ ] afficher l'écran pose un identifiant d'appareil s'il manque, et laisse intact celui qui est déjà là
-- [ ] la durée de vie de cet identifiant n'est pas plus courte que celle d'un code
-- [ ] soumettre l'adresse autorisée écrit un code et demande son expédition à la plateforme
-- [ ] soumettre toute autre adresse n'écrit aucun code et ne demande aucune expédition
-- [ ] le code fait huit signes d'un alphabet de trente-deux caractères sans confusables
-- [ ] la base ne conserve du code qu'une empreinte salée — le code tel qu'il a été engendré ne s'y retrouve pas
-- [ ] le code écrit porte l'identifiant d'appareil de la soumission qui l'a demandé
+- [x] afficher l'écran pose un identifiant d'appareil s'il manque, et laisse intact celui qui est déjà là
+- [x] la durée de vie de cet identifiant n'est pas plus courte que celle d'un code
+- [x] soumettre l'adresse autorisée écrit un code et demande son expédition à la plateforme
+- [x] soumettre toute autre adresse n'écrit aucun code et ne demande aucune expédition
+- [x] le code fait huit signes d'un alphabet de trente-deux caractères sans confusables
+- [x] la base ne conserve du code qu'une empreinte salée — le code tel qu'il a été engendré ne s'y retrouve pas
+- [x] le code écrit porte l'identifiant d'appareil de la soumission qui l'a demandé
