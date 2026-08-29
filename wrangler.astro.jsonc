@@ -20,7 +20,7 @@
   "send_email": [
     {
       "name": "EXPEDITEUR_CODE_CONNEXION",
-      "destination_address": "editrice@exemple.colibri.test"
+      "destination_address": "editrice@example.com"
     }
   ]
 }
