@@ -47,3 +47,17 @@ Error: agent({agentType}): agent type 'scd-sdd:review-context' not found. Availa
     at processTicksAndRejections (native:7:39)
 ```
 Run ID `wf_76ff3129-dd5` · transcripts sous `…/subagents/workflows/wf_76ff3129-dd5`.
+
+## Issue
+Fermé le 2026-08-29 — **livré**. Le blocage était bien un désync du registre plugin (agents
+`review-context` + six reviewers absents) : levé côté humain, les sept agents présents au registre.
+
+- Run relancé sur arbre propre (travail en vol remisé, régénéré par le run) : `wf_641e0d13-229` →
+  `done`, mode `test`, 26 tests au vert. Les 7 critères du ticket cochés.
+- **PR #35 ready** → `main` (non empilée) : https://github.com/sebc-dev/colibri-cms/pull/35.
+  Commit d'implémentation `d534a52`. Diff signalé `oversized` (review en deux passes).
+- Retour de review appliqué : `DUREE_DE_VIE_CODE_MS` dérivé de `core/auth/code.ts` au lieu d'être
+  redéclaré — commit `7ecfec0` (typecheck + build + tests au vert, tests intacts).
+
+Le `resumeFromRunId` de la prochaine étape n'était pas jouable : *same-session only*, et le run
+bloqué appartenait à une autre session. Un run frais l'a remplacé.
