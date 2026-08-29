@@ -11,11 +11,11 @@
  * valeur de retour d'`ecrireCode`, à la charge de l'appelant de le porter
  * jusqu'à `demanderExpeditionDuCode` sans le persister ailleurs.
  */
-import { engendrerCode } from '../../core/auth/code.ts';
+import { engendrerCode, DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
 
 const TABLE_ADRESSES = 'adresses_autorisees';
 const TABLE_CODES = 'codes_connexion';
-const DUREE_DE_VIE_CODE_MS = 15 * 60 * 1000; // ADR-0001 — cf. src/core/auth/code.ts.
+const DUREE_DE_VIE_CODE_MS = DUREE_DE_VIE_CODE_SECONDES * 1000; // ADR-0001 — dérivé de core/auth/code.ts (source unique).
 
 /** Le sous-ensemble de D1 dont ce magasin a besoin (duck-typé, cf. D1Database). */
 export interface DB {
