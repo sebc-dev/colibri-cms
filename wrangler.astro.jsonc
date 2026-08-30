@@ -16,5 +16,11 @@
       "database_name": "colibri",
       "migrations_dir": "migrations"
     }
+  ],
+  "send_email": [
+    {
+      "name": "EXPEDITEUR_CODE_CONNEXION",
+      "destination_address": "editrice@example.com"
+    }
   ]
 }

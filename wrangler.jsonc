@@ -20,6 +20,20 @@
       "migrations_dir": "migrations"
     }
   ],
+  // Liaison d'expédition (ADR-0002, ticket 03) : `send_email` n'écrit qu'à
+  // une destination vérifiée — c'est la plateforme elle-même qui tient
+  // FR-005. `destination_address` reste un espace réservé neutre qui NE
+  // réutilise PAS le domaine d'`instance.json` (I8/ADR-0028 : le domaine ne
+  // vit que dans le fichier d'instance, sinon il fuit ici) et reste donc
+  // identique d'un dépôt de cliente à l'autre (SC-008). La vraie adresse
+  // vérifiée est un geste d'exploitation propre à chaque instance, jamais un
+  // identifiant d'Isometria (CLAUDE.md, I1/I4 du socle).
+  "send_email": [
+    {
+      "name": "EXPEDITEUR_CODE_CONNEXION",
+      "destination_address": "editrice@example.com"
+    }
+  ],
   // Couture de test (ticket 01 — la porte close, ADR-0003) : `SELF.fetch`
   // (`@cloudflare/vitest-pool-workers`) exige `poolOptions.workers.main`, et
   // `vitest.config.ts` (protégé) donne un `configPath` explicite à CE
