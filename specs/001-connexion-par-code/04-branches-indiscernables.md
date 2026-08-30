@@ -24,9 +24,9 @@ contre le serveur local) mesure les temps.
 
 ## Critères
 
-- [ ] sur une soumission donnée, le corps de la réponse est identique pour l'adresse autorisée et pour toute autre
-- [ ] les champs d'en-tête de la réponse sont identiques pour les deux branches
-- [ ] la réponse n'est rendue qu'au terme d'un délai plancher, et ce délai est une constante des sources
-- [ ] l'expédition est remise à la plateforme après que la réponse est rendue, jamais avant
-- [ ] une expédition qui échoue ne change ni le corps, ni les champs d'en-tête, ni le moment de la réponse
-- [ ] quand aucune adresse autorisée n'est enregistrée, la réponse reste la même — l'écran ne se comporte pas autrement sur une instance non semée
+- [x] sur une soumission donnée, le corps de la réponse est identique pour l'adresse autorisée et pour toute autre
+- [x] les champs d'en-tête de la réponse sont identiques pour les deux branches
+- [x] la réponse n'est rendue qu'au terme d'un délai plancher, et ce délai est une constante des sources
+- [x] l'expédition est remise à la plateforme après que la réponse est rendue, jamais avant
+- [x] une expédition qui échoue ne change ni le corps, ni les champs d'en-tête, ni le moment de la réponse
+- [x] quand aucune adresse autorisée n'est enregistrée, la réponse reste la même — l'écran ne se comporte pas autrement sur une instance non semée

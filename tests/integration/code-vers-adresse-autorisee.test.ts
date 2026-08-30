@@ -144,15 +144,32 @@ afterEach(async () => {
  * exactement le cas que la règle des doubles réserve au mock en dernier
  * recours.
  */
-function creerExpediteurEspion(): { expediteur: { send(message: unknown): void }; appels: unknown[] } {
+function creerExpediteurEspion(): {
+  expediteur: { send(message: unknown): void };
+  appels: unknown[];
+  demande: Promise<void>;
+} {
   const appels: unknown[] = [];
+  // `demande` résout au moment précis où la route invoque `send`. Point de
+  // synchronisation devenu nécessaire au ticket 04 : l'expédition est remise
+  // à la plateforme *après* la réponse (ADR-0007, `ctx.waitUntil`), donc
+  // `SELF.fetch` peut revenir avant qu'elle ait eu lieu. Sans ce point
+  // d'attente, un `expect` posé aussitôt après `soumettreAdresse` mesurerait
+  // l'instant de retour du handler, jamais celui de la remise différée, et
+  // n'observerait jamais l'appel (même idiome que branches-indiscernables).
+  let resoudreDemande: () => void;
+  const demande = new Promise<void>((resolve) => {
+    resoudreDemande = resolve;
+  });
   return {
     expediteur: {
       send(message: unknown): void {
         appels.push(message);
+        resoudreDemande();
       },
     },
     appels,
+    demande,
   };
 }
 
@@ -284,11 +301,15 @@ it('soumettre l’adresse autorisée demande une expédition à la plateforme, v
   const db = await assurerSchema();
   await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
   const identifiantAppareil = await obtenirIdentifiantAppareil();
-  const { expediteur, appels } = creerExpediteurEspion();
+  const { expediteur, appels, demande } = creerExpediteurEspion();
   const precedent = poserExpediteurEspion(expediteur);
 
   try {
     await soumettreAdresse(ADRESSE_AUTORISEE, identifiantAppareil);
+    // L'expédition est remise après la réponse (ticket 04, `ctx.waitUntil`) :
+    // attendre qu'elle ait eu lieu avant d'observer, sinon l'espion n'a pas
+    // encore été appelé au seul retour de `SELF.fetch`.
+    await demande;
   } finally {
     restaurerLiaisonExpedition(precedent);
   }
