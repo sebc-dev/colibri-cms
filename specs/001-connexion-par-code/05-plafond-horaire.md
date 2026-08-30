@@ -23,10 +23,10 @@ au-delà d'une soumission.
 
 ## Critères
 
-- [ ] le sixième code d'une heure glissante n'est pas écrit, et rien n'est demandé à la plateforme
-- [ ] le plafond compte les codes écrits, jamais les expéditions abouties
-- [ ] une ligne annulée ou brûlée reste comptée tant qu'elle n'est pas sortie de l'heure
-- [ ] une ligne sortie de l'heure cesse d'être comptée, et une soumission redevient possible
-- [ ] l'épreuve du plafond et l'écriture du code sont indivisibles : deux soumissions concurrentes n'écrivent pas un sixième code
-- [ ] le plafond atteint s'annonce à l'écran, identiquement pour l'adresse autorisée et pour toute autre
-- [ ] aucun terme de développeur ne paraît dans l'annonce
+- [x] le sixième code d'une heure glissante n'est pas écrit, et rien n'est demandé à la plateforme
+- [x] le plafond compte les codes écrits, jamais les expéditions abouties
+- [x] une ligne annulée ou brûlée reste comptée tant qu'elle n'est pas sortie de l'heure
+- [x] une ligne sortie de l'heure cesse d'être comptée, et une soumission redevient possible
+- [x] l'épreuve du plafond et l'écriture du code sont indivisibles : deux soumissions concurrentes n'écrivent pas un sixième code
+- [x] le plafond atteint s'annonce à l'écran, identiquement pour l'adresse autorisée et pour toute autre
+- [x] aucun terme de développeur ne paraît dans l'annonce

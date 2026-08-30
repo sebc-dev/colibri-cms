@@ -1,7 +1,9 @@
 /**
  * Les règles qui rendent les deux branches de connexion indiscernables —
  * ticket 04 (specs/001-connexion-par-code/04-branches-indiscernables.md),
- * SPEC.md § Décisions d'implémentation, ADR-0007.
+ * SPEC.md § Décisions d'implémentation, ADR-0007 — et le plafond de la
+ * fenêtre glissante — ticket 05 (specs/001-connexion-par-code/
+ * 05-plafond-horaire.md).
  *
  * Zone `core` (docs/archi.md, I1) : zéro dépendance, y compris vers un
  * autre fichier de `core/` (la matrice ne fait aucune exception). `setTimeout`
@@ -40,3 +42,21 @@ export function attendre(ms: number): Promise<void> {
     setTimeout(resolve, ms);
   });
 }
+
+/**
+ * Le plafond de messages par fenêtre glissante (ticket 05) : au plus ce
+ * nombre de codes peut être écrit dans `FENETRE_PLAFOND_MS` qui précède —
+ * ce que ça protège d'abord, c'est la boîte de la cliente (un dommage
+ * durable), pas la disponibilité de l'administration (SPEC.md § Ce que ça
+ * livre).
+ */
+export const PLAFOND_CODES_PAR_HEURE = 5;
+
+/**
+ * La largeur de la fenêtre glissante, en millisecondes : une ligne écrite
+ * avant `maintenant - FENETRE_PLAFOND_MS` cesse d'être comptée, qu'elle soit
+ * saine, brûlée ou annulée (`src/platform/auth/magasin.ts` ne filtre ni
+ * `essais` ni `annule_le` — une ligne morte reste comptée tant qu'elle n'est
+ * pas sortie de la fenêtre, SPEC.md § Décisions d'implémentation).
+ */
+export const FENETRE_PLAFOND_MS = 60 * 60 * 1000;
