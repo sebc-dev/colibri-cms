@@ -24,10 +24,10 @@ zéro.
 
 ## Critères
 
-- [ ] le code recopié sur l'appareil qui l'a demandé ouvre une session et renvoie vers l'accueil
-- [ ] l'accueil s'affiche alors, et ne porte toujours aucune fonction
-- [ ] la saisie est normalisée : casse indifférente, séparateurs ignorés, confusables ramenés à leur signe
-- [ ] le même code présenté une seconde fois n'ouvre pas de session
-- [ ] un code présenté au-delà de quinze minutes n'ouvre pas de session — jugé à instant injecté
-- [ ] le cookie de session porte le préfixe `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict` et `Path=/`, et rien de la session ne s'y lit
-- [ ] l'écran de saisie dit combien de temps le code reste bon, sans aucun terme de développeur
+- [x] le code recopié sur l'appareil qui l'a demandé ouvre une session et renvoie vers l'accueil
+- [x] l'accueil s'affiche alors, et ne porte toujours aucune fonction
+- [x] la saisie est normalisée : casse indifférente, séparateurs ignorés, confusables ramenés à leur signe
+- [x] le même code présenté une seconde fois n'ouvre pas de session
+- [x] un code présenté au-delà de quinze minutes n'ouvre pas de session — jugé à instant injecté
+- [x] le cookie de session porte le préfixe `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict` et `Path=/`, et rien de la session ne s'y lit
+- [x] l'écran de saisie dit combien de temps le code reste bon, sans aucun terme de développeur

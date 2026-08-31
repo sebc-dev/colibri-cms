@@ -40,3 +40,30 @@ export function engendrerCode(): string {
   }
   return code;
 }
+
+// Les quatre signes que l'alphabet ci-dessus exclut, ramenés au signe que la
+// recopie manuelle leur substitue le plus souvent (ticket 06, c3).
+const CONFUSABLES: Readonly<Record<string, string>> = {
+  O: '0',
+  I: '1',
+  L: '1',
+  U: 'V',
+};
+
+/**
+ * Normalise une saisie avant de la comparer à un code engendré par
+ * `engendrerCode` (ticket 06, c3, specs/001-connexion-par-code/
+ * 06-code-ouvre-la-session.md) : casse indifférente, tout signe hors
+ * chiffres/lettres ignoré (séparateurs), puis les confusables ci-dessus
+ * ramenés à leur signe. N'importe rien : elle vit ici pour rester la seule
+ * source de vérité sur ce que l'alphabet exclut, plutôt que de le dupliquer
+ * là où une saisie doit être comparée.
+ */
+export function normaliserCode(saisie: string): string {
+  const nettoyee = saisie.toUpperCase().replace(/[^0-9A-Z]/g, '');
+  let normalisee = '';
+  for (const caractere of nettoyee) {
+    normalisee += CONFUSABLES[caractere] ?? caractere;
+  }
+  return normalisee;
+}
