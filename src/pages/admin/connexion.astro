@@ -55,7 +55,7 @@
  * est le ticket 07, qui dépend de celui-ci.
  */
 import Gabarit from '../../admin/Gabarit.astro';
-import { verifierSession } from '../../platform/session/index.ts';
+import { verifierSession, enteteCookieSession } from '../../platform/session/index.ts';
 import { env } from 'cloudflare:workers';
 import { DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
 import { DELAI_PLANCHER_MS, PLAFOND_CODES_PAR_HEURE, attendre } from '../../core/auth/regles.ts';
@@ -70,7 +70,6 @@ import { demanderExpeditionDuCode } from '../../platform/email/index.ts';
 await verifierSession(env.DB, Astro.request);
 
 const NOM_COOKIE_APPAREIL = 'identifiant-appareil';
-const NOM_COOKIE_SESSION = '__Host-session';
 const estSoumission = Astro.request.method === 'POST';
 
 let identifiantAppareil = Astro.cookies.get(NOM_COOKIE_APPAREIL)?.value;
@@ -95,13 +94,9 @@ if (estSoumission) {
     if (identifiantAppareil) {
       const jeton = await ouvrirSessionSiCodeValide(env.DB, identifiantAppareil, codeSaisi, Date.now());
       if (jeton) {
-        Astro.cookies.set(NOM_COOKIE_SESSION, jeton, {
-          path: '/',
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-        });
-        return Astro.redirect('/admin/');
+        const reponse = Astro.redirect('/admin/');
+        reponse.headers.append('Set-Cookie', enteteCookieSession(jeton));
+        return reponse;
       }
     }
     // Code refusé (introuvable, déjà utilisé, expiré, annulé ou mauvais

@@ -29,6 +29,20 @@ export interface Session {
   readonly id: string;
 }
 
+/**
+ * Compose l'en-tête `Set-Cookie` qui ouvre la session, avec les cinq
+ * attributs qu'ADR-0006 impose : le préfixe `__Host-` (porté par le nom),
+ * `Path=/`, `HttpOnly`, `Secure`, `SameSite=Strict`. La pose vit ici, dans
+ * l'adaptateur de session, plutôt qu'inline dans la route : le nom du cookie
+ * n'est défini qu'à un seul endroit, et les attributs de sécurité — dont
+ * l'absence ne se voit qu'à l'attaque (ADR-0006 § Conséquences) — sont
+ * auditables d'un seul regard. Le jeton est opaque (base32, sans caractère à
+ * échapper), il entre tel quel dans la valeur.
+ */
+export function enteteCookieSession(jeton: string): string {
+  return `${NOM_COOKIE_SESSION}=${jeton}; Path=/; HttpOnly; Secure; SameSite=Strict`;
+}
+
 /** Le sous-ensemble de D1 dont ce garde a besoin (duck-typé, cf. D1Database). */
 export interface DB {
   prepare(query: string): {
