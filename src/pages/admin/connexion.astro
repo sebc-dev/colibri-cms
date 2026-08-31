@@ -178,8 +178,8 @@ if (estSoumission) {
           <input id="adresse" name="adresse" type="email" required />
           <button type="submit">Recevoir un code</button>
         </form>
-        <p set:html={TEXTE_ANNONCE_PORTEE_CODE} />
-        {raisonRefusCode && <p set:html={texteDuRefus(raisonRefusCode)} />}
+        <p>{TEXTE_ANNONCE_PORTEE_CODE}</p>
+        {raisonRefusCode && <p>{texteDuRefus(raisonRefusCode)}</p>}
         <form method="post">
           <label for="code">Code</label>
           <input id="code" name="code" type="text" required />

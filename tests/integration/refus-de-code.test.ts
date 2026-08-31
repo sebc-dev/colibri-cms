@@ -80,7 +80,9 @@ const CLE_LIAISON_EXPEDITION = 'EXPEDITEUR_CODE_CONNEXION';
 // --- Contrat supposé des trois gestes (voir en-tête de fichier) ---
 const GESTE_RETAPER = 'retapez-le';
 const GESTE_REDEMANDER = 'demandez un nouveau code';
-const GESTE_CHANGER_APPAREIL = "revenez sur l'appareil";
+// Ancre sans apostrophe : le HTML rendu échappe l'apostrophe droite (l&#39;),
+// et seul ce geste commence par « revenez sur » dans les textes de refus.
+const GESTE_CHANGER_APPAREIL = 'revenez sur';
 
 interface DBLike {
   exec(query: string): Promise<unknown>;
