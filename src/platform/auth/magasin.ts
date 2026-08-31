@@ -30,7 +30,7 @@
  */
 import { engendrerCode, normaliserCode, DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
 import { PLAFOND_CODES_PAR_HEURE, FENETRE_PLAFOND_MS } from '../../core/auth/regles.ts';
-import { rendreVerdict } from '../../core/auth/verdict.ts';
+import { rendreVerdict, SEUIL_ESSAIS_BRULAGE, type RaisonRefus } from '../../core/auth/verdict.ts';
 
 const TABLE_ADRESSES = 'adresses_autorisees';
 const TABLE_CODES = 'codes_connexion';
@@ -109,6 +109,14 @@ export async function compterCodesDansLaFenetre(db: DB, maintenant: number): Pro
  *
  * Rend le code en clair si la ligne a été écrite — à charge pour l'appelant
  * de le transmettre à l'expédition sans le conserver.
+ *
+ * Ticket 07 — l'annulation : si une ligne a bien été écrite, tout code
+ * antérieur du même appareil, encore non annulé, est marqué `annule_le`
+ * (`creee_le < maintenant` exclut naturellement la ligne qui vient d'être
+ * insérée) — un code demandé depuis un autre appareil n'est jamais touché.
+ * Rien n'est annulé si le plafond est atteint (aucune ligne écrite) : le
+ * code précédent de l'appareil, seul recours de l'éditrice, doit rester
+ * utilisable.
  */
 export async function ecrireCodeSiPlafondNonAtteint(
   db: DB,
@@ -137,7 +145,16 @@ export async function ecrireCodeSiPlafondNonAtteint(
     )
     .run();
 
-  return resultat.meta.changes > 0 ? code : null;
+  if (resultat.meta.changes === 0) return null;
+
+  await db
+    .prepare(
+      `update ${TABLE_CODES} set annule_le = ?1 where identifiant_appareil = ?2 and creee_le < ?1 and annule_le is null`,
+    )
+    .bind(maintenant, identifiantAppareil)
+    .run();
+
+  return code;
 }
 
 function jetonAleatoire(): string {
@@ -175,20 +192,22 @@ interface LigneCodeBrute {
   expire_le: number;
   utilise_le: number | null;
   annule_le: number | null;
+  essais: number;
 }
+
+const COLONNES_LIGNE_CODE =
+  'id, identifiant_appareil, empreinte, sel, expire_le, utilise_le, annule_le, essais';
 
 /**
  * Rend la ligne de `codes_connexion` dont l'empreinte salée correspond au
  * code normalisé soumis, ou `null` si aucune ne correspond — sur tout
  * l'historique, jamais filtrée par appareil (ticket 07 § « le piège à ne
- * pas ouvrir ») : c'est `rendreVerdict` qui juge l'appareil, à partir de la
- * ligne entière.
+ * pas ouvrir ») : c'est `rendreVerdict` qui juge l'appareil (et le
+ * brûlage), à partir de la ligne entière.
  */
 async function trouverLigneParCode(db: DB, codeNormalise: string): Promise<LigneCodeBrute | null> {
   const resultat = await db
-    .prepare(
-      `select id, identifiant_appareil, empreinte, sel, expire_le, utilise_le, annule_le from ${TABLE_CODES} order by creee_le desc`,
-    )
+    .prepare(`select ${COLONNES_LIGNE_CODE} from ${TABLE_CODES} order by creee_le desc`)
     .bind()
     .all<LigneCodeBrute>();
   for (const ligne of resultat.results) {
@@ -199,9 +218,55 @@ async function trouverLigneParCode(db: DB, codeNormalise: string): Promise<Ligne
 }
 
 /**
+ * Rend la ligne active (non annulée) la plus récente de l'appareil, ou
+ * `null` s'il n'en a aucune — sert, ticket 07, à trouver la ligne contre
+ * laquelle compter une saisie fautive qui ne correspond à aucun code connu
+ * (T10) : le code soumis étant faux, il ne peut jamais désigner lui-même la
+ * ligne à pénaliser.
+ */
+async function trouverLigneActiveDeLAppareil(db: DB, identifiantAppareil: string): Promise<LigneCodeBrute | null> {
+  const resultat = await db
+    .prepare(
+      `select ${COLONNES_LIGNE_CODE} from ${TABLE_CODES} where identifiant_appareil = ?1 and annule_le is null order by creee_le desc limit 1`,
+    )
+    .bind(identifiantAppareil)
+    .all<LigneCodeBrute>();
+  return resultat.results[0] ?? null;
+}
+
+/**
+ * Incrémente `essais` d'une ligne d'une unité et rend le compte qui en
+ * résulte — appelée une fois par saisie fautive contre la ligne active de
+ * l'appareil (ticket 07, T10). `rendreVerdict` (et non cette fonction) juge
+ * si ce nouveau compte atteint le seuil de brûlage.
+ */
+async function incrementerEssais(db: DB, id: number): Promise<number> {
+  await db.prepare(`update ${TABLE_CODES} set essais = essais + 1 where id = ?1`).bind(id).run();
+  const resultat = await db
+    .prepare(`select essais from ${TABLE_CODES} where id = ?1`)
+    .bind(id)
+    .all<{ essais: number }>();
+  return resultat.results[0]?.essais ?? SEUIL_ESSAIS_BRULAGE;
+}
+
+/** Le résultat d'une soumission de code (ticket 07) : la session ouverte, ou la raison du refus. */
+export type ResultatSoumissionCode =
+  | { readonly reussi: true; readonly jeton: string }
+  | { readonly reussi: false; readonly raison: RaisonRefus };
+
+/**
  * Ouvre une session si le code soumis (normalisé, ticket 06 c3) correspond,
- * pour l'appareil courant, à une ligne non expirée, non déjà utilisée, non
- * annulée de `codes_connexion` (c1/c4/c5) — sinon rend `null`.
+ * pour l'appareil courant, à une ligne non brûlée, non expirée, non déjà
+ * utilisée, non annulée de `codes_connexion` (c1/c2/c4/c5) — sinon rend la
+ * raison du refus (ticket 07), pour que l'écran dise quel geste reprendre.
+ *
+ * Ticket 07, T10 — quand le code soumis ne correspond à aucune ligne
+ * connue, c'est une saisie fautive : elle est comptée contre la ligne
+ * active de l'appareil (`trouverLigneActiveDeLAppareil`), jamais contre la
+ * ligne que le code faux prétendrait désigner (il n'en désigne aucune). Si
+ * ce compte atteint le seuil, la ligne est brûlée (`rendreVerdict` le juge
+ * à la prochaine lecture, cette fonction ne filtre jamais à l'écriture) et
+ * la raison rendue ici l'annonce immédiatement, sans attendre une relecture.
  *
  * La consommation (poser `utilise_le`) est une seule requête conditionnelle
  * (`update … where utilise_le is null and annule_le is null and expire_le >
@@ -217,31 +282,41 @@ export async function ouvrirSessionSiCodeValide(
   identifiantAppareilCourant: string,
   codeSaisi: string,
   maintenant: number,
-): Promise<string | null> {
+): Promise<ResultatSoumissionCode> {
   const codeNormalise = normaliserCode(codeSaisi);
   const ligne = await trouverLigneParCode(db, codeNormalise);
 
+  if (!ligne) {
+    const ligneActive = await trouverLigneActiveDeLAppareil(db, identifiantAppareilCourant);
+    if (ligneActive) {
+      const essaisApres = await incrementerEssais(db, ligneActive.id);
+      if (essaisApres >= SEUIL_ESSAIS_BRULAGE) {
+        return { reussi: false, raison: 'brule' };
+      }
+    }
+    return { reussi: false, raison: 'introuvable' };
+  }
+
   const verdict = rendreVerdict({
-    ligne: ligne
-      ? {
-          identifiantAppareil: ligne.identifiant_appareil,
-          expireLe: ligne.expire_le,
-          utiliseLe: ligne.utilise_le,
-          annuleLe: ligne.annule_le,
-        }
-      : null,
+    ligne: {
+      identifiantAppareil: ligne.identifiant_appareil,
+      expireLe: ligne.expire_le,
+      utiliseLe: ligne.utilise_le,
+      annuleLe: ligne.annule_le,
+      essais: ligne.essais,
+    },
     identifiantAppareilCourant,
     maintenant,
   });
-  if (!verdict.valide || !ligne) return null;
+  if (!verdict.valide) return { reussi: false, raison: verdict.raison };
 
   const consommation = await db
     .prepare(
-      `update ${TABLE_CODES} set utilise_le = ?1 where id = ?2 and utilise_le is null and annule_le is null and expire_le > ?3`,
+      `update ${TABLE_CODES} set utilise_le = ?1 where id = ?2 and utilise_le is null and annule_le is null and expire_le > ?3 and essais < ?4`,
     )
-    .bind(maintenant, ligne.id, maintenant)
+    .bind(maintenant, ligne.id, maintenant, SEUIL_ESSAIS_BRULAGE)
     .run();
-  if (consommation.meta.changes === 0) return null;
+  if (consommation.meta.changes === 0) return { reussi: false, raison: 'introuvable' };
 
   await assurerTableSessions(db);
   const jeton = jetonAleatoire();
@@ -249,5 +324,5 @@ export async function ouvrirSessionSiCodeValide(
     .prepare(`insert into ${TABLE_SESSIONS} (id, identifiant_appareil, creee_le) values (?1, ?2, ?3)`)
     .bind(jeton, identifiantAppareilCourant, maintenant)
     .run();
-  return jeton;
+  return { reussi: true, jeton };
 }

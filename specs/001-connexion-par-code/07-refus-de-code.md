@@ -24,10 +24,10 @@ qu'elle a bien demandé sur le sien.
 
 ## Critères
 
-- [ ] une saisie fautive invite à retaper, et aucune session ne s'ouvre
-- [ ] la cinquième saisie fautive rend le code inutilisable pour toute présentation ultérieure, et invite à demander un nouveau code
-- [ ] un code présenté depuis un appareil qui n'en a jamais demandé invite à revenir sur l'appareil demandeur — jamais à en demander un nouveau
-- [ ] une nouvelle demande depuis le même appareil rend inutilisable le code précédent de cet appareil ; un code demandé depuis un autre appareil reste utilisable
-- [ ] un code expiré, déjà utilisé ou annulé invite à demander un nouveau code — jamais à revenir sur un autre appareil
-- [ ] l'écran de saisie annonce que seul le dernier code demandé depuis cet appareil permet d'entrer
-- [ ] aucun terme de développeur ne paraît dans les textes de refus
+- [x] une saisie fautive invite à retaper, et aucune session ne s'ouvre
+- [x] la cinquième saisie fautive rend le code inutilisable pour toute présentation ultérieure, et invite à demander un nouveau code
+- [x] un code présenté depuis un appareil qui n'en a jamais demandé invite à revenir sur l'appareil demandeur — jamais à en demander un nouveau
+- [x] une nouvelle demande depuis le même appareil rend inutilisable le code précédent de cet appareil ; un code demandé depuis un autre appareil reste utilisable
+- [x] un code expiré, déjà utilisé ou annulé invite à demander un nouveau code — jamais à revenir sur un autre appareil
+- [x] l'écran de saisie annonce que seul le dernier code demandé depuis cet appareil permet d'entrer
+- [x] aucun terme de développeur ne paraît dans les textes de refus
