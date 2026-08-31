@@ -60,3 +60,34 @@ export const PLAFOND_CODES_PAR_HEURE = 5;
  * pas sortie de la fenêtre, SPEC.md § Décisions d'implémentation).
  */
 export const FENETRE_PLAFOND_MS = 60 * 60 * 1000;
+
+/**
+ * Fin de session (ticket 08 — la session s'éteint d'elle-même,
+ * specs/001-connexion-par-code/08-fin-de-session.md) : l'ordinateur partagé
+ * n'a aucun geste de déconnexion explicite (FR-117 : rien de technique ne se
+ * demande à l'éditrice), la seule protection qui reste est que la porte se
+ * referme d'elle-même.
+ */
+const UN_JOUR_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * L'échéance glissante : une session sans le moindre accès depuis ce délai
+ * cesse d'être valide (c1) — chaque accès dans la fenêtre la repousse (c3).
+ */
+export const EXPIRATION_GLISSANTE_SESSION_MS = 7 * UN_JOUR_MS;
+
+/**
+ * La butée absolue, comptée depuis l'ouverture de la session : au-delà,
+ * l'accès est refusé quoi qu'il arrive, même à un rythme d'usage quotidien
+ * qui n'aurait jamais laissé l'échéance glissante se déclencher (c2).
+ */
+export const BUTEE_ABSOLUE_SESSION_MS = 30 * UN_JOUR_MS;
+
+/**
+ * Le budget d'écriture du rafraîchissement (ADR-0001) : `dernier_usage_le`
+ * n'est réécrit que si le précédent remonte à plus de cet intervalle — une
+ * rafale de requêtes rapprochées ne déclenche donc pas une écriture à
+ * chacune d'elles (c4), sans quoi chaque page de l'administration coûterait
+ * une écriture D1.
+ */
+export const RAFRAICHISSEMENT_SESSION_INTERVALLE_MIN_MS = 60 * 60 * 1000;

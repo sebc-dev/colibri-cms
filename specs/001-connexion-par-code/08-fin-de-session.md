@@ -20,8 +20,8 @@ ouverte finit par se refermer seule.
 
 ## Critères
 
-- [ ] une session restée sept jours sans usage ne donne plus accès à l'accueil, et la demande est renvoyée vers l'écran de connexion — jugé à instant injecté
-- [ ] une session de plus de trente jours ne donne plus accès, même utilisée chaque jour depuis son ouverture — jugé à instant injecté
-- [ ] un usage à l'intérieur de la fenêtre repousse l'échéance des sept jours
-- [ ] le rafraîchissement n'écrit pas en base à chaque requête
-- [ ] plusieurs sessions ouvertes coexistent sans que rien ne les compte ni ne les ferme
+- [x] une session restée sept jours sans usage ne donne plus accès à l'accueil, et la demande est renvoyée vers l'écran de connexion — jugé à instant injecté
+- [x] une session de plus de trente jours ne donne plus accès, même utilisée chaque jour depuis son ouverture — jugé à instant injecté
+- [x] un usage à l'intérieur de la fenêtre repousse l'échéance des sept jours
+- [x] le rafraîchissement n'écrit pas en base à chaque requête
+- [x] plusieurs sessions ouvertes coexistent sans que rien ne les compte ni ne les ferme
