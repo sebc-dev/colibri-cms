@@ -3,21 +3,30 @@
  * L'écran de connexion (ticket 01 — la porte close ; ticket 03 —
  * specs/001-connexion-par-code/03-code-vers-adresse-autorisee.md ; ticket 04
  * — égalité de réponse ; ticket 05 — le plafond de la fenêtre glissante,
- * specs/001-connexion-par-code/05-plafond-horaire.md).
+ * specs/001-connexion-par-code/05-plafond-horaire.md ; ticket 06 — le code
+ * recopié ouvre la session, specs/001-connexion-par-code/
+ * 06-code-ouvre-la-session.md).
  *
  * Il importe le garde de session comme toute route d'administration
  * (ADR-0007), mais il n'est pas une route gardée (SPEC.md) : c'est ce qui
  * rend la porte atteignable. Le verdict n'est donc jamais utilisé pour
  * bloquer l'accès — l'écran se sert identiquement avec ou sans session.
+ * L'appeler réellement (plutôt que l'importer sans jamais l'invoquer) est ce
+ * que le ticket 06 rend honnête (ADR-0007 § angle mort assumé).
  *
  * Une seule route porte les deux étapes (SPEC.md § Décisions
  * d'implémentation) : le GET pose l'identifiant d'appareil (cookie
  * `identifiant-appareil`) s'il manque, jamais le POST — posé à la
  * soumission, il ne le serait que pour l'adresse autorisée et sa seule
  * présence la trahirait ; réémis à chaque affichage, deux onglets ouverts
- * s'annuleraient. Le POST traite la soumission d'adresse : il n'écrit un
- * code que si l'adresse correspond à l'adresse autorisée (FR-005) — toute
- * autre adresse n'a aucun effet sur ce qui est écrit.
+ * s'annuleraient. Le POST distingue les deux étapes par le champ soumis
+ * (contrat posé par le test du ticket 06, faute d'antériorité) : `adresse`
+ * déclenche l'écriture d'un code (FR-005) ; `code` déclenche l'ouverture
+ * d'une session. L'écran affiche les deux formulaires ensemble, toujours
+ * dans le même état (hors plafond) : c'est ce qui garde intact le contrat
+ * gelé par le ticket 04 (le marqueur du formulaire d'adresse reste présent
+ * après toute soumission, quelle que soit l'adresse) tout en annonçant la
+ * durée de validité du code (ticket 06, c7) au même endroit.
  *
  * Ticket 04 — égalité de réponse (`src/core/auth/
  * regles.ts`) : la réponse n'est jamais rendue avant le délai plancher
@@ -26,7 +35,9 @@
  * liaison `EXPEDITEUR_CODE_CONNEXION` qu'après, jamais avant, via
  * `Astro.locals.cfContext.waitUntil` (l'exécution différée d'un délai nul
  * garantit qu'aucun de ses effets, y compris l'appel `send` lui-même, ne se
- * produit avant que la réponse ait quitté cette route).
+ * produit avant que la réponse ait quitté cette route). Ce plancher ne
+ * s'applique qu'à la soumission d'adresse — rien n'exige d'égalité de temps
+ * de réponse entre deux soumissions de code (hors-périmètre de ce ticket).
  *
  * Ticket 05 — le plafond se juge **avant** de savoir si l'adresse est
  * reconnue, et rend le même verdict d'écran quelle que soit l'adresse
@@ -36,9 +47,15 @@
  * (`ecrireCodeSiPlafondNonAtteint`, c5) ; pour toute autre adresse, rien ne
  * s'écrit jamais et une simple lecture (`compterCodesDansLaFenetre`) suffit
  * à savoir si l'écran doit annoncer le plafond.
+ *
+ * Ticket 06 — un code valide (c1) pose le cookie `__Host-session` (préfixe,
+ * `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` — c6) et redirige vers
+ * l'accueil ; un code refusé (c4 déjà utilisé, c5 expiré) ne pose rien et
+ * réaffiche le même écran — le détail du refus (« quel geste reprendre »)
+ * est le ticket 07, qui dépend de celui-ci.
  */
 import Gabarit from '../../admin/Gabarit.astro';
-import { verifierSession } from '../../platform/session/index.ts';
+import { verifierSession, enteteCookieSession } from '../../platform/session/index.ts';
 import { env } from 'cloudflare:workers';
 import { DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
 import { DELAI_PLANCHER_MS, PLAFOND_CODES_PAR_HEURE, attendre } from '../../core/auth/regles.ts';
@@ -46,10 +63,11 @@ import {
   estAdresseAutorisee,
   ecrireCodeSiPlafondNonAtteint,
   compterCodesDansLaFenetre,
+  ouvrirSessionSiCodeValide,
 } from '../../platform/auth/magasin.ts';
 import { demanderExpeditionDuCode } from '../../platform/email/index.ts';
 
-verifierSession(Astro.request);
+await verifierSession(env.DB, Astro.request);
 
 const NOM_COOKIE_APPAREIL = 'identifiant-appareil';
 const estSoumission = Astro.request.method === 'POST';
@@ -69,45 +87,61 @@ if (!identifiantAppareil && !estSoumission) {
 let plafondAtteint = false;
 
 if (estSoumission) {
-  const debut = Date.now();
   const donnees = await Astro.request.formData();
-  const adresse = String(donnees.get('adresse') ?? '');
 
-  let demandeExpedition: (() => Promise<void>) | null = null;
-  try {
+  if (donnees.has('code')) {
+    const codeSaisi = String(donnees.get('code') ?? '');
     if (identifiantAppareil) {
-      const maintenant = Date.now();
-      if (await estAdresseAutorisee(env.DB, adresse)) {
-        const code = await ecrireCodeSiPlafondNonAtteint(env.DB, identifiantAppareil, maintenant);
-        if (code) {
-          demandeExpedition = () => demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, adresse, code);
-        } else {
-          plafondAtteint = true;
-        }
-      } else {
-        plafondAtteint = (await compterCodesDansLaFenetre(env.DB, maintenant)) >= PLAFOND_CODES_PAR_HEURE;
+      const jeton = await ouvrirSessionSiCodeValide(env.DB, identifiantAppareil, codeSaisi, Date.now());
+      if (jeton) {
+        const reponse = Astro.redirect('/admin/');
+        reponse.headers.append('Set-Cookie', enteteCookieSession(jeton));
+        return reponse;
       }
     }
-  } catch {
-    demandeExpedition = null;
-  }
+    // Code refusé (introuvable, déjà utilisé, expiré, annulé ou mauvais
+    // appareil) : aucune session ne s'ouvre, l'écran de saisie du code se
+    // réaffiche. Le détail du refus est le ticket 07.
+  } else {
+    const debut = Date.now();
+    const adresse = String(donnees.get('adresse') ?? '');
 
-  // Le plancher (ticket 04, SPEC.md § Décisions d'implémentation) : la
-  // réponse ne part jamais avant lui, que l'adresse soit reconnue ou non —
-  // c'est ce qui rend le temps de réponse indépendant du travail fait, donc
-  // de l'adresse soumise.
-  const reste = DELAI_PLANCHER_MS - (Date.now() - debut);
-  if (reste > 0) await attendre(reste);
+    let demandeExpedition: (() => Promise<void>) | null = null;
+    try {
+      if (identifiantAppareil) {
+        const maintenant = Date.now();
+        if (await estAdresseAutorisee(env.DB, adresse)) {
+          const code = await ecrireCodeSiPlafondNonAtteint(env.DB, identifiantAppareil, maintenant);
+          if (code) {
+            demandeExpedition = () => demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, adresse, code);
+          } else {
+            plafondAtteint = true;
+          }
+        } else {
+          plafondAtteint = (await compterCodesDansLaFenetre(env.DB, maintenant)) >= PLAFOND_CODES_PAR_HEURE;
+        }
+      }
+    } catch {
+      demandeExpedition = null;
+    }
 
-  if (demandeExpedition) {
-    // Remise à la plateforme différée au-delà de cette réponse : `waitUntil`
-    // maintient seulement le worker vivant le temps que la promesse se
-    // termine, il ne diffère pas à lui seul l'appel qu'on lui passe —
-    // `attendre(0)` avant l'appel réel garantit qu'aucun de ses effets (y
-    // compris l'appel `send` lui-même) ne s'exécute avant que la réponse ait
-    // quitté cette route. Une expédition qui échoue ne change donc jamais ce
-    // qui a déjà été rendu (le `.catch` l'absorbe silencieusement).
-    Astro.locals.cfContext.waitUntil(attendre(0).then(demandeExpedition).catch(() => {}));
+    // Le plancher (ticket 04, SPEC.md § Décisions d'implémentation) : la
+    // réponse ne part jamais avant lui, que l'adresse soit reconnue ou non —
+    // c'est ce qui rend le temps de réponse indépendant du travail fait, donc
+    // de l'adresse soumise.
+    const reste = DELAI_PLANCHER_MS - (Date.now() - debut);
+    if (reste > 0) await attendre(reste);
+
+    if (demandeExpedition) {
+      // Remise à la plateforme différée au-delà de cette réponse : `waitUntil`
+      // maintient seulement le worker vivant le temps que la promesse se
+      // termine, il ne diffère pas à lui seul l'appel qu'on lui passe —
+      // `attendre(0)` avant l'appel réel garantit qu'aucun de ses effets (y
+      // compris l'appel `send` lui-même) ne s'exécute avant que la réponse ait
+      // quitté cette route. Une expédition qui échoue ne change donc jamais ce
+      // qui a déjà été rendu (le `.catch` l'absorbe silencieusement).
+      Astro.locals.cfContext.waitUntil(attendre(0).then(demandeExpedition).catch(() => {}));
+    }
   }
 }
 ---
@@ -130,6 +164,12 @@ if (estSoumission) {
           <label for="adresse">Adresse</label>
           <input id="adresse" name="adresse" type="email" required />
           <button type="submit">Recevoir un code</button>
+        </form>
+        <p>Vous avez déjà reçu un code ? Il reste bon pendant quinze minutes : recopiez-le ci-dessous.</p>
+        <form method="post">
+          <label for="code">Code</label>
+          <input id="code" name="code" type="text" required />
+          <button type="submit">Se connecter</button>
         </form>
       </>
     )
