@@ -2,7 +2,8 @@
 /**
  * L'écran de connexion (ticket 01 — la porte close ; ticket 03 —
  * specs/001-connexion-par-code/03-code-vers-adresse-autorisee.md ; ticket 04
- * — égalité de réponse).
+ * — égalité de réponse ; ticket 05 — le plafond de la fenêtre glissante,
+ * specs/001-connexion-par-code/05-plafond-horaire.md).
  *
  * Il importe le garde de session comme toute route d'administration
  * (ADR-0007), mais il n'est pas une route gardée (SPEC.md) : c'est ce qui
@@ -26,13 +27,26 @@
  * `Astro.locals.cfContext.waitUntil` (l'exécution différée d'un délai nul
  * garantit qu'aucun de ses effets, y compris l'appel `send` lui-même, ne se
  * produit avant que la réponse ait quitté cette route).
+ *
+ * Ticket 05 — le plafond se juge **avant** de savoir si l'adresse est
+ * reconnue, et rend le même verdict d'écran quelle que soit l'adresse
+ * soumise (SPEC.md § Ce que ça livre : « cette annonce est la même quelle
+ * que soit l'adresse soumise »). Pour l'adresse autorisée, l'épreuve et
+ * l'écriture ne font qu'une requête indivisible
+ * (`ecrireCodeSiPlafondNonAtteint`, c5) ; pour toute autre adresse, rien ne
+ * s'écrit jamais et une simple lecture (`compterCodesDansLaFenetre`) suffit
+ * à savoir si l'écran doit annoncer le plafond.
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { env } from 'cloudflare:workers';
 import { DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
-import { DELAI_PLANCHER_MS, attendre } from '../../core/auth/regles.ts';
-import { estAdresseAutorisee, ecrireCode } from '../../platform/auth/magasin.ts';
+import { DELAI_PLANCHER_MS, PLAFOND_CODES_PAR_HEURE, attendre } from '../../core/auth/regles.ts';
+import {
+  estAdresseAutorisee,
+  ecrireCodeSiPlafondNonAtteint,
+  compterCodesDansLaFenetre,
+} from '../../platform/auth/magasin.ts';
 import { demanderExpeditionDuCode } from '../../platform/email/index.ts';
 
 verifierSession(Astro.request);
@@ -52,6 +66,8 @@ if (!identifiantAppareil && !estSoumission) {
   });
 }
 
+let plafondAtteint = false;
+
 if (estSoumission) {
   const debut = Date.now();
   const donnees = await Astro.request.formData();
@@ -59,9 +75,18 @@ if (estSoumission) {
 
   let demandeExpedition: (() => Promise<void>) | null = null;
   try {
-    if (identifiantAppareil && (await estAdresseAutorisee(env.DB, adresse))) {
-      const code = await ecrireCode(env.DB, identifiantAppareil);
-      demandeExpedition = () => demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, adresse, code);
+    if (identifiantAppareil) {
+      const maintenant = Date.now();
+      if (await estAdresseAutorisee(env.DB, adresse)) {
+        const code = await ecrireCodeSiPlafondNonAtteint(env.DB, identifiantAppareil, maintenant);
+        if (code) {
+          demandeExpedition = () => demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, adresse, code);
+        } else {
+          plafondAtteint = true;
+        }
+      } else {
+        plafondAtteint = (await compterCodesDansLaFenetre(env.DB, maintenant)) >= PLAFOND_CODES_PAR_HEURE;
+      }
     }
   } catch {
     demandeExpedition = null;
@@ -88,11 +113,25 @@ if (estSoumission) {
 ---
 
 <Gabarit titre="Connexion">
-  <h1>Connexion</h1>
-  <p>Saisissez l’adresse déjà connue pour recevoir un code.</p>
-  <form method="post">
-    <label for="adresse">Adresse</label>
-    <input id="adresse" name="adresse" type="email" required />
-    <button type="submit">Recevoir un code</button>
-  </form>
+  {
+    plafondAtteint ? (
+      <>
+        <h1>Connexion</h1>
+        <p>
+          Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter un
+          moment avant de réessayer.
+        </p>
+      </>
+    ) : (
+      <>
+        <h1>Connexion</h1>
+        <p>Saisissez l’adresse déjà connue pour recevoir un code.</p>
+        <form method="post">
+          <label for="adresse">Adresse</label>
+          <input id="adresse" name="adresse" type="email" required />
+          <button type="submit">Recevoir un code</button>
+        </form>
+      </>
+    )
+  }
 </Gabarit>
