@@ -24,9 +24,9 @@ hors du périmètre de la feature.
 
 ## Critères
 
-- [ ] le parcours joué contre le serveur local conduit de l'écran de connexion jusqu'à l'accueil, sans intervention manuelle
-- [ ] soumettre l'adresse autorisée fait partir un message ; soumettre une autre adresse n'en fait partir aucun
-- [ ] le message part en texte seul, sans HTML, et porte un objet fixe posé par le produit
-- [ ] deux cents soumissions, conduites hors plafond et la fenêtre vidée entre les salves, ne laissent pas distinguer les deux branches par leur temps de réponse
-- [ ] la relecture des textes du parcours — connexion, saisie, refus, plafond, accueil — et du message n'y trouve aucun terme de développeur
-- [ ] la preuve est capturée et datée : la sortie du script est rejouable telle quelle
+- [x] le parcours joué contre le serveur local conduit de l'écran de connexion jusqu'à l'accueil, sans intervention manuelle
+- [x] soumettre l'adresse autorisée fait partir un message ; soumettre une autre adresse n'en fait partir aucun
+- [x] le message part en texte seul, sans HTML, et porte un objet fixe posé par le produit
+- [x] deux cents soumissions, conduites hors plafond et la fenêtre vidée entre les salves, ne laissent pas distinguer les deux branches par leur temps de réponse
+- [x] la relecture des textes du parcours — connexion, saisie, refus, plafond, accueil — et du message n'y trouve aucun terme de développeur
+- [x] la preuve est capturée et datée : la sortie du script est rejouable telle quelle
