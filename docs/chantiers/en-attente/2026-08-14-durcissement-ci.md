@@ -3,6 +3,7 @@
 Portée : socle
 Ouvert le 2026-08-14 · branche `work/reprise-socle-v2` · HEAD `00927eb`
 Actualisé le 2026-08-14 par le reversement de la campagne de recherche · HEAD `388cca0`
+Actualisé le 2026-08-31 par un faux positif confirmé d'`arch-invariants` (ADR-0006, cookie) · HEAD `6dafd32`
 
 ## Objectif
 Faire monter en bloquant ce que la phase `ci` a dû laisser informatif, sur mesure et non sur
@@ -38,6 +39,22 @@ conviction — et poser les trois contrôles qu'elle n'a pas su écrire faute de
 - J'avais noté que six ADR acceptés — `0006`, `0008`, `0009`, `0012`, `0015`, `0024` — écrivent au
   présent qu'un contrôle **bloquant** porte leur propriété. Huit clauses. C'est ce chantier qui
   ferme l'écart, et rien d'autre.
+- **Premier faux positif confirmé, 2026-08-31 (`arch-invariants`, contrôle ADR-0006 des attributs
+  du cookie).** Sur la PR du ticket 06 de `001-connexion-par-code`, le contrôle a crié
+  « le cookie de session ne porte pas tous ses attributs » sur `src/platform/session/index.ts`
+  alors que le cookie était posé correctement (tests d'intégration verts sur l'en-tête runtime).
+  Deux cécités cumulées, à corriger au rejeu : (1) il **élit le mauvais fichier** — il grep
+  `Set-Cookie|__Host-` sous `src/platform/session/*` et tombe sur le **garde qui *lit*** la session
+  (il y trouve la constante `'__Host-session'`), pas sur le **poseur** réel, qui vivait alors dans
+  la route `src/pages/admin/connexion.astro` ; (2) il cherche l'**orthographe de l'en-tête HTTP
+  brut** (`HttpOnly`, `SameSite=Strict`) quand le poseur peut passer par l'API Astro
+  (`Astro.cookies.set({ httpOnly, sameSite: 'strict' })`), qu'Astro ne sérialise qu'au runtime.
+  **Contournement retenu côté feature** (commit `refactor(connexion-par-code)`) : centraliser la
+  pose dans l'adaptateur `platform/session` via un helper qui compose l'en-tête canonique — ce qui
+  a rendu le contrôle vert **légitimement**, mais laisse sa cécité intacte pour la prochaine feature
+  qui posera un cookie ailleurs. Le vrai correctif appartient à ce rejeu : viser le poseur réel et
+  accepter la forme Astro, **sans** ouvrir la porte à un faux négatif (un cookie mal posé qui
+  passerait).
 
 ## Prochaine étape
 Rejouer `.github/scripts/arch-invariants.sh` sur l'historique du dépôt une fois le scaffold posé,
