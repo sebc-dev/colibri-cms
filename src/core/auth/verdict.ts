@@ -18,6 +18,7 @@
 /** Pourquoi un code soumis est refusé. */
 export type RaisonRefus =
   | 'introuvable'
+  | 'brule'
   | 'deja-utilise'
   | 'annule'
   | 'expire'
@@ -25,19 +26,33 @@ export type RaisonRefus =
 
 export type Verdict = { readonly valide: true } | { readonly valide: false; readonly raison: RaisonRefus };
 
+/**
+ * Le seuil de saisies fautives, contre la ligne active d'un appareil, au-delà
+ * duquel un code cesse d'être présentable (ticket 07, brûlage) — c'est ce qui
+ * oppose une résistance à qui essaierait les codes un par un, l'entropie
+ * seule n'y suffisant pas. Posé ici (plutôt que dans `core/auth/regles.ts`,
+ * qui porte les autres constantes de la feature) parce que ce module
+ * n'importe rien, y compris d'un autre fichier de `core/` (voir en-tête).
+ */
+export const SEUIL_ESSAIS_BRULAGE = 5;
+
 /** Ce que porte la ligne de `codes_connexion` dont l'empreinte a été reconnue. */
 export interface LigneCode {
   readonly identifiantAppareil: string;
   readonly expireLe: number;
   readonly utiliseLe: number | null;
   readonly annuleLe: number | null;
+  readonly essais: number;
 }
 
 /**
  * Rend le verdict d'un code dont l'empreinte a été reconnue (`ligne`, ou
- * `null` si aucune ligne ne correspond) — trois bornes tranchent, dans cet
- * ordre : déjà utilisé, annulé, puis expiré ; enfin, seul l'appareil qui l'a
- * demandé peut le présenter.
+ * `null` si aucune ligne ne correspond) — quatre bornes tranchent, dans cet
+ * ordre : brûlé (ticket 07), déjà utilisé, annulé, puis expiré ; enfin, seul
+ * l'appareil qui l'a demandé peut le présenter. Le brûlage est jugé en
+ * premier : une ligne qui a atteint le seuil de saisies fautives reste
+ * refusée quel que soit son autre état (SPEC.md § le piège à ne pas ouvrir —
+ * c'est ce verdict, à partir de l'état lu en entier, qui tranche).
  */
 export function rendreVerdict(params: {
   ligne: LigneCode | null;
@@ -46,6 +61,7 @@ export function rendreVerdict(params: {
 }): Verdict {
   const { ligne, identifiantAppareilCourant, maintenant } = params;
   if (!ligne) return { valide: false, raison: 'introuvable' };
+  if (ligne.essais >= SEUIL_ESSAIS_BRULAGE) return { valide: false, raison: 'brule' };
   if (ligne.utiliseLe !== null) return { valide: false, raison: 'deja-utilise' };
   if (ligne.annuleLe !== null) return { valide: false, raison: 'annule' };
   if (ligne.expireLe <= maintenant) return { valide: false, raison: 'expire' };

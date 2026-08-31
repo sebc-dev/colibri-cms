@@ -51,14 +51,22 @@
  * Ticket 06 — un code valide (c1) pose le cookie `__Host-session` (préfixe,
  * `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` — c6) et redirige vers
  * l'accueil ; un code refusé (c4 déjà utilisé, c5 expiré) ne pose rien et
- * réaffiche le même écran — le détail du refus (« quel geste reprendre »)
- * est le ticket 07, qui dépend de celui-ci.
+ * réaffiche le même écran.
+ *
+ * Ticket 07 (specs/001-connexion-par-code/07-refus-de-code.md) — le détail
+ * du refus : `ouvrirSessionSiCodeValide` rend désormais la raison du refus
+ * (`RaisonRefus`, `core/auth/verdict.ts`) plutôt que `null`, et cette route
+ * la porte jusqu'à l'écran via `src/admin/textes.ts` (aucun fichier de
+ * route n'étant listé au ticket, le texte y est centralisé ; cette route ne
+ * fait qu'importer et afficher). L'écran de saisie du code annonce en plus,
+ * en toute circonstance, la portée par appareil du dernier code (c6).
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession, enteteCookieSession } from '../../platform/session/index.ts';
 import { env } from 'cloudflare:workers';
 import { DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
 import { DELAI_PLANCHER_MS, PLAFOND_CODES_PAR_HEURE, attendre } from '../../core/auth/regles.ts';
+import type { RaisonRefus } from '../../core/auth/verdict.ts';
 import {
   estAdresseAutorisee,
   ecrireCodeSiPlafondNonAtteint,
@@ -66,6 +74,7 @@ import {
   ouvrirSessionSiCodeValide,
 } from '../../platform/auth/magasin.ts';
 import { demanderExpeditionDuCode } from '../../platform/email/index.ts';
+import { TEXTE_ANNONCE_PORTEE_CODE, texteDuRefus } from '../../admin/textes.ts';
 
 await verifierSession(env.DB, Astro.request);
 
@@ -85,6 +94,7 @@ if (!identifiantAppareil && !estSoumission) {
 }
 
 let plafondAtteint = false;
+let raisonRefusCode: RaisonRefus | null = null;
 
 if (estSoumission) {
   const donnees = await Astro.request.formData();
@@ -92,16 +102,19 @@ if (estSoumission) {
   if (donnees.has('code')) {
     const codeSaisi = String(donnees.get('code') ?? '');
     if (identifiantAppareil) {
-      const jeton = await ouvrirSessionSiCodeValide(env.DB, identifiantAppareil, codeSaisi, Date.now());
-      if (jeton) {
+      const resultat = await ouvrirSessionSiCodeValide(env.DB, identifiantAppareil, codeSaisi, Date.now());
+      if (resultat.reussi) {
         const reponse = Astro.redirect('/admin/');
-        reponse.headers.append('Set-Cookie', enteteCookieSession(jeton));
+        reponse.headers.append('Set-Cookie', enteteCookieSession(resultat.jeton));
         return reponse;
       }
+      // Code refusé (introuvable, brûlé, déjà utilisé, expiré, annulé ou
+      // mauvais appareil, ticket 07) : aucune session ne s'ouvre, l'écran
+      // de saisie du code se réaffiche avec le geste à reprendre.
+      raisonRefusCode = resultat.raison;
+    } else {
+      raisonRefusCode = 'introuvable';
     }
-    // Code refusé (introuvable, déjà utilisé, expiré, annulé ou mauvais
-    // appareil) : aucune session ne s'ouvre, l'écran de saisie du code se
-    // réaffiche. Le détail du refus est le ticket 07.
   } else {
     const debut = Date.now();
     const adresse = String(donnees.get('adresse') ?? '');
@@ -165,7 +178,8 @@ if (estSoumission) {
           <input id="adresse" name="adresse" type="email" required />
           <button type="submit">Recevoir un code</button>
         </form>
-        <p>Vous avez déjà reçu un code ? Il reste bon pendant quinze minutes : recopiez-le ci-dessous.</p>
+        <p>{TEXTE_ANNONCE_PORTEE_CODE}</p>
+        {raisonRefusCode && <p>{texteDuRefus(raisonRefusCode)}</p>}
         <form method="post">
           <label for="code">Code</label>
           <input id="code" name="code" type="text" required />
