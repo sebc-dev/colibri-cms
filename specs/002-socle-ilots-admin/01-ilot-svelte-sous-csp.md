@@ -13,11 +13,11 @@ répond à une interaction, sans déclencher aucune violation de la CSP stricte 
 ligne que la CSP interdit.
 
 ## Critères
-- [ ] `npm run typecheck` puis `npm run build` passent, Svelte 5 intégré à Astro et câblé pour la
+- [x] `npm run typecheck` puis `npm run build` passent, Svelte 5 intégré à Astro et câblé pour la
       seule administration.
-- [ ] Un écran d'administration monte un îlot Svelte minimal par un point d'entrée externe (script
+- [x] Un écran d'administration monte un îlot Svelte minimal par un point d'entrée externe (script
       bundlé chargé via `<script src>`), sans directive `client:*` d'hydratation en ligne.
-- [ ] Cet écran est servi avec la CSP stricte inchangée (`script-src 'self'`, `style-src 'self'`) —
+- [x] Cet écran est servi avec la CSP stricte inchangée (`script-src 'self'`, `style-src 'self'`) —
       `src/platform/entetes/middleware.ts` n'est pas modifié par ce ticket.
-- [ ] Au rendu de cet écran, la console ne rapporte aucune violation CSP et l'îlot répond à une
+- [x] Au rendu de cet écran, la console ne rapporte aucune violation CSP et l'îlot répond à une
       interaction (preuve capturée).
