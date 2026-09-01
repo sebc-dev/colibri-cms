@@ -6,8 +6,10 @@ ColibriCMS est un CMS auto-hébergé chez le client, sur le palier gratuit de Cl
 site vitrine statique éditable par une cliente non technicienne. Il tient trois propriétés
 qu'aucun outil existant ne réunit : **aucun outil de développeur exposé à l'éditrice**, **un coût
 d'hébergement nul**, et **un site qui survit à la disparition de son prestataire** — Isometria.
-Tout ce qui fait le site appartient déjà au client ; une séparation ne demande aucun transfert. Le
-site convertit ses visiteurs en prospects par un formulaire de devis que l'éditrice règle seule.
+Tout ce qui fait le site appartient déjà au client ; une séparation ne demande aucun transfert —
+la promesse tient par une topologie de déploiement, et tombe au premier objet qui vit ailleurs que
+chez le client. Le site convertit ses visiteurs en prospects par un formulaire de devis dont
+l'intégrateur pose la structure et dont l'éditrice règle seule les options, les prix et les libellés.
 Le test unique dont tout découle : *si Isometria disparaît demain, que reste-t-il au client ?*
 
 ## Exigences fonctionnelles (FR)
@@ -167,38 +169,39 @@ l'architecture restent valides.
 Ce qui prouve que le produit valait le coup — distinct des `FR` : le `FR` est ce qu'on fait, le
 `SC` la preuve. Numérotation reprise du PRD 1.x.
 
-- **SC-001** — 0 €/mois par site en conditions nominales ; à la livraison, aucun moyen de paiement enregistré, aucun abonnement payant.
+- **SC-001** — 0 €/mois par site en conditions nominales ; à la livraison, aucun moyen de paiement enregistré sur le compte du client, aucun abonnement payant.
 - **SC-002** — Le site de la pâtisserie est en production sur ColibriCMS.
-- **SC-003** — L'éditrice modifie un texte et remplace une image, seule, sans aide et du premier coup, lors d'un test d'usage observé.
+- **SC-003** — L'éditrice modifie un texte et remplace une image, seule, sans aide et du premier coup, lors d'un test d'usage réel observé.
 - **SC-004** — Une modification publiée est visible en ligne en moins de 5 minutes après « Publier ».
-- **SC-005** — Score Lighthouse Performance ≥ 95 en mobile, mesuré sur le HTML réellement bâti des pages de contenu.
-- **SC-006** — Comptes auxquels l'éditrice doit se connecter pour éditer ou publier : zéro, hors son administration ouverte par son adresse e-mail.
-- **SC-007** — L'éditrice change seule le prix d'une option et ajoute un parfum, publie ; une demande de visiteuse l'incluant lui parvient par e-mail, apparaît dans la liste, et elle y note seule la suite.
+- **SC-005** — Score Lighthouse Performance ≥ 95 en mobile, mesuré sur le HTML réellement bâti des pages de contenu publiées.
+- **SC-006** — Comptes auxquels l'éditrice doit se connecter pour éditer ou publier : zéro, hors son administration ouverte par son adresse e-mail ; les comptes portés par son nom sont ouverts par l'intégrateur et jamais visités par elle.
+- **SC-007** — L'éditrice change seule le prix d'une option et ajoute un parfum, publie ; une demande de visiteuse l'incluant lui parvient par e-mail — détail des sélections, total indicatif, coordonnées de la visiteuse —, apparaît dans la liste, et elle y note seule la suite.
 - **SC-008** — Une nouvelle version se déploie sur une instance existante sans code spécifique à ce client et sans perte de contenu.
-- **SC-009** — Après avoir écrasé un contenu par erreur, l'éditrice retrouve seule la version publiée, et le site public redevient identique.
-- **SC-010** — L'éditrice remplace l'image d'un emplacement par une image déjà présente ; après toute suppression depuis l'écran Médias, aucune page publiée n'affiche d'image manquante.
-- **SC-011** — Épreuve de réversibilité : dans un environnement neuf, depuis les seuls objets du client et sans l'intégrateur, la reconstruction documentée produit le site complet équivalent au site en ligne. Sortie conservée, datée.
+- **SC-009** — Après avoir écrasé un contenu par erreur, l'éditrice retrouve seule la version publiée, et le site public redevient identique à ce qu'il était avant sa modification.
+- **SC-010** — L'éditrice remplace l'image d'un emplacement par une image déjà présente, retrouvée depuis l'écran Médias sans la re-téléverser ; après toute suppression depuis l'écran Médias — l'image utilisée ou non —, aucune page publiée n'affiche d'image manquante.
+- **SC-011** — Épreuve de réversibilité : dans un environnement neuf, depuis les seuls objets du client et sans l'intégrateur, la reconstruction documentée produit le site complet, médias compris, équivalent au site en ligne pour un visiteur — mêmes contenus, mêmes médias aux mêmes emplacements, mêmes pages au même rendu, sans exiger l'identité binaire des fichiers. Sortie conservée, datée.
 - **SC-012** — Après révocation de tous les accès de l'intégrateur, le site est servi, l'administration s'ouvre, une publication aboutit.
 - **SC-013** — À la livraison, l'inventaire des identifiants et liaisons ne contient aucun identifiant de l'intégrateur, et rien n'y permet de reconstituer le moyen de reprise.
 - **SC-014** — Épreuve de passation : un prestataire tiers, avec les seuls accès du client et le dossier d'instance, redéploie et publie une modification en ligne, sans question à l'intégrateur. Sortie conservée, datée.
-- **SC-015** — Après au moins trois mois sans usage, l'éditrice modifie et publie seule, sans aide ni réapprentissage.
-- **SC-016** — Le récapitulatif avant publication liste exactement les pages, réglages, formulaires publiés et les images effacées : aucune omission, aucun élément en trop.
+- **SC-015** — Après au moins trois mois sans usage, l'éditrice modifie et publie seule, sans aide ni réapprentissage — même épreuve que SC-003.
+- **SC-016** — Le récapitulatif avant publication liste exactement les pages, réglages, formulaires publiés et les images effacées : sur un jeu de brouillons connu, aucune omission, aucun élément en trop.
 - **SC-017** — L'éditrice modifie seule le texte de la mention d'information, présenté aux visiteurs de tous les formulaires après publication.
-- **SC-018** — L'éditrice saisit seule la description d'une image, servie avec elle sur toutes les pages publiées où elle est posée.
-- **SC-019** — Sur un jeu de demandes avec retraits ordinaires et indésirables, l'écran affiche présent / commandes / retirées pour le site et par formulaire, les indésirables dans aucun, les ventilations sommant au total.
+- **SC-018** — L'éditrice saisit seule, depuis l'écran Médias, la description d'une image, servie avec elle sur toutes les pages publiées où elle est posée.
+- **SC-019** — Sur un jeu de demandes connu, avec retraits ordinaires et retraits déclarés indésirables, l'écran affiche présent / commandes / retirées pour le site et par formulaire, les indésirables dans aucun, les ventilations sommant au total.
 - **SC-020** — Boîte e-mail rendue inaccessible, l'éditrice ouvre seule son administration par le moyen de reprise et consulte la liste des demandes.
-- **SC-021** — Épreuve de résistance de la connexion : une campagne de sollicitations n'ouvre aucune session, n'envoie aucun message vers une adresse non autorisée, et ne produit — sous plafond — aucune différence de réponse ni de délai. Sortie conservée, datée.
+- **SC-021** — Épreuve de résistance de la connexion : une campagne de sollicitations — adresses balayées une à une, même adresse répétée jusqu'au plafond, preuves erronées en série, preuve valide rejouée puis présentée depuis un autre appareil — n'ouvre aucune session, n'envoie aucun message vers une adresse non autorisée, et ne produit — sous plafond — aucune différence de réponse ni de délai. Sortie conservée, datée.
 
 ## Domaines transverses (base des ADR)
 
 Les préoccupations durables par domaine — le *quoi* qu'on doit réussir. La **décision** reste un
 ADR (`docs/adr/`), qui cite la préoccupation ; on n'inscrit ici aucun invariant, aucun chemin, aucune
-décision. La plupart sont déjà tranchées en ADR ; celles marquées **(ouverte)** attendent
-`/scd-sdd:adr`.
+décision. La plupart sont déjà tranchées — par un ADR du cycle courant (`docs/adr/`) ou par un ADR
+hérité du 1.x en attente de promotion depuis `docs/adr/_candidates/` ; celles marquées **(ouverte)**
+ne le sont nulle part et attendent `/scd-sdd:adr`.
 
 ### Architecture
 - **ARCH-1** — Reconstructibilité : le site public se rebâtit sans le produit ni l'intégrateur, depuis les seuls fichiers déposés chez le client.
-- **ARCH-2** — Origine commune : un seul Worker sert le public et l'administration ; la frontière entre zones ne tient que par le placement des fichiers et le sens des imports.
+- **ARCH-2** — Confinement de l'origine commune : le public et l'administration partagent la même origine, et aucune frontière entre zones ne peut être tenue par le déploiement — le confinement se tient de l'intérieur du dépôt.
 - **ARCH-3** — Fidélité de l'aperçu : le rendu d'un emplacement n'existe qu'en un lieu, atteint identiquement par le publié et par l'aperçu.
 - **ARCH-4** — Uniformité de la flotte : une version se déploie sur toute instance sans code propre au client ; ce qui diffère reste de la configuration.
 - **ARCH-5** — Testabilité sans plateforme : la logique métier s'instancie et se vérifie sans base, sans HTTP, sans Worker.
@@ -207,26 +210,29 @@ décision. La plupart sont déjà tranchées en ADR ; celles marquées **(ouvert
 - **SEC-1** — Le cookie de session d'administration vit sur l'origine commune : tout script tiers chargé où que ce soit est un risque XSS contre lui.
 - **SEC-2** — Les surfaces exposées au public (connexion, envoi d'une demande) résistent à l'abus sans compte visiteur, sans friction disproportionnée, sans consommer les quotas gratuits.
 - **SEC-3** — Zéro secret appartenant à l'intégrateur : tout identifiant est créé au nom du client, jeton d'écriture du CMS compris.
-- **SEC-4** — L'écran de connexion ne trahit pas quelle adresse ouvre l'administration : réponse et délai indépendants de l'adresse saisie.
-- **SEC-5** — Ingestion des médias sur les octets d'en-tête (JPEG/PNG/WebP), jamais l'extension ni le Content-Type ; SVG refusé.
+- **SEC-4** — L'écran de connexion ne trahit pas quelle adresse ouvre l'administration : réponse et délai indépendants de l'envoi effectif d'un message, tant que le plafond n'est pas atteint — sans traiter l'adresse autorisée comme un secret.
+- **SEC-5** — Un média téléversé est servi sur l'origine commune avant toute publication, avec un type que le code choisit : un fichier qui ment sur sa nature y devient du contenu exécutable.
 - **SEC-6** — Le texte riche de l'éditrice et les données des visiteurs finissent rendus dans des pages servies sur l'origine commune : toute saisie devenue HTML exécutable est un XSS de l'intérieur, sans script tiers.
 - **SEC-7** — L'acheminement des demandes ouvre à l'internet anonyme un canal d'écriture vers la boîte même qui ouvre l'administration : un message acheminé ne doit jamais pouvoir se faire passer pour un message du produit.
 - **SEC-8** — Une session d'administration volée use des mêmes portes que l'éditrice : son rayon d'action doit rester énuméré et borné, sans qu'elle puisse détruire le contenu de référence publié.
 
 ### UX/UI
-- **UX-1** — Aucun terme de développeur (commit, branche, build, déploiement) dans un texte visible par l'éditrice.
+- **UX-1** — Aucun terme de développeur dans un texte visible par l'éditrice — session, cookie, requête, 404, commit, build… : la liste des termes proscrits est un plancher, jamais un plafond.
 - **UX-2** — L'éditrice agit seule, sans notion technique, y compris à sa première édition après des mois sans usage.
-- **UX-3** — L'éditrice ne peut pas casser la mise en page : gabarits figés, aucun geste de création ou de composition de page.
+- **UX-3** — L'éditrice ne peut rien casser : gabarits de pages et structures de formulaires figés à l'intégration, aucun geste de création ou de composition.
 
 ### Données personnelles
-- **DAT-1** — Chaque demande transporte les coordonnées d'un visiteur, conservées dans l'instance et acheminées par e-mail : information du visiteur, durée de rétention et effacement restent à cadrer avant la première mise en ligne. **(ouverte)**
-- **DAT-2** — L'acheminement des demandes peut cesser en silence (compte suspendu, palier, délivrabilité) : comment l'éditrice s'en aperçoit avec ses seuls moyens, sans surveillance hébergée par l'intégrateur, reste à trancher. **(ouverte)**
+- **DAT-1** — Chaque demande transporte les coordonnées d'un visiteur, conservées dans l'instance et acheminées par e-mail : l'information du visiteur, la politique de durée et le cadre juridique restent à cadrer avant la première mise en ligne — le versant produit (effacement praticable, aucune purge d'office) est déjà arrêté au PRD. **(ouverte)**
+- **DAT-2** — L'acheminement des demandes peut cesser en silence (compte suspendu, palier, délivrabilité) : comment l'éditrice s'en aperçoit avec ses seuls moyens, sans surveillance hébergée par l'intégrateur, reste à trancher — la phase Stack a esquissé un état d'acheminement porté par chaque demande, sans exigence porteuse à ce jour. **(ouverte)**
+- **DAT-3** — La défense anti-abus compte par origine, et une « même origine » est une adresse IP, donc une donnée personnelle : la protection du site ne doit pas créer un fichier des visiteurs.
 
 ## Découpage — epics
 
 L'epic nomme ses features par `NNN` quand elles sont sur le disque ; sinon, par leur intention.
 Une seule feature existe aujourd'hui (`001`) ; le reste est de la planification — son `NNN` sera
 attribué par `/scd-sdd:spec`. L'avancement réel se lit par `/scd-sdd:status`, jamais ici.
+Deux identifiants ne sont rattachés à aucune feature, à dessein : FR-117 (langage de l'interface)
+s'impose à toutes, et SC-002 (le site en production) est le critère-somme du produit entier.
 
 ### Epic A — Entrer et éditer · Now
 Le cœur du produit : l'éditrice entre, remplit ses pages, gère ses images, règle ses formulaires, prévisualise et publie.
@@ -262,6 +268,9 @@ Features :
 
 ### Epic D — Flotte & réversibilité · Later
 Ce qui rend la promesse commerciale vraie et exécutable : déployer, maintenir, et partir sans rien perdre.
+Later dans l'ordre de construction, pas dans l'échéance : rien n'entre en production (SC-002) sans
+instance déployée au nom du client, et la reconstruction s'éprouve « à la livraison, pas plus
+tard » (SC-011) — l'epic se solde avant la première mise en ligne.
 Résultats-clés :
 - Une instance se déploie et se met à jour selon une convention identique, sans code par client.
 - Un tiers reconstruit et reprend le site depuis les seuls objets du client, sans l'intégrateur.
