@@ -191,6 +191,29 @@ Ce qui prouve que le produit valait le coup — distinct des `FR` : le `FR` est 
 - **SC-020** — Boîte e-mail rendue inaccessible, l'éditrice ouvre seule son administration par le moyen de reprise et consulte la liste des demandes.
 - **SC-021** — Épreuve de résistance de la connexion : une campagne de sollicitations — adresses balayées une à une, même adresse répétée jusqu'au plafond, preuves erronées en série, preuve valide rejouée puis présentée depuis un autre appareil — n'ouvre aucune session, n'envoie aucun message vers une adresse non autorisée, et ne produit — sous plafond — aucune différence de réponse ni de délai. Sortie conservée, datée.
 
+## Stack
+
+Sur quoi le produit est bâti — un **constat scannable**, pas un registre de décisions (celui-là est
+`docs/1.x/stack.md`, archivé). Le *pourquoi* de chaque choix structurant est un ADR : promu dans
+`docs/adr/` (cité par son numéro), ou hérité du 1.x et en attente de promotion dans
+`docs/adr/_candidates/` (cité par son intitulé — la numérotation 2.x lui est attribuée à la
+promotion, par `/scd-sdd:adr`). Aucune version exacte : les manifestes du dépôt et `docs/ci.md` les
+portent, une copie dériverait ici.
+
+- **Langage** — TypeScript en mode strict, partout (candidat `langage-typescript-strict`).
+- **Générateur du site public et de l'aperçu** — Astro : chaque page publique est un document complet bâti à la publication (candidat `generateur-astro-7`).
+- **Îlots interactifs** — Svelte 5 dans Astro, pour le formulaire de devis public comme pour l'administration (candidat `ilots-svelte-5`). Base de composants des **îlots d'administration**, gestion du contenu comprise : **registre shadcn-svelte** — composants copiés dans le dépôt, non dépendance opaque (ADR-0009).
+- **Hébergement et exécution** — un Worker Cloudflare unique sert le public et l'administration sur la **même origine**, sur le palier gratuit ; build par Workers Builds (candidat `cible-de-deploiement-worker-unique-workers-builds`).
+- **Données** — Cloudflare D1 : brouillons, état publié, demandes, sessions et médias en brouillon (candidats `magasin-d1-brouillons-etat-publie-et-demandes`, `acces-aux-donnees-api-d1-native-et-migrations-wrangler`).
+- **Contenu et médias publiés** — dépôt GitHub : contenu en fichiers, médias sur une branche dédiée ; écriture additive par l'API git data (candidats `format-du-contenu-un-repertoire-par-objet`, `medias-deux-magasins-un-par-etat`, `forge-github-api-git-data-jeton-a-portee-fine`).
+- **Ingestion et pipeline des médias** — liste blanche JPEG/PNG/WebP reconnue sur les octets, SVG refusé ; variantes d'images produites au build (candidats `ingestion-des-medias-liste-blanche-sur-octets`, `pipeline-d-images-variantes-au-build`).
+- **Texte riche** — éditeur TipTap sérialisé en Markdown restreint (candidat `texte-riche-markdown-restreint`).
+- **Authentification** — implémentation maison sur D1 : code à saisir, session opaque, moyen de reprise (ADR-0001 ; candidat `moyen-de-reprise-code-128-bits-hache`).
+- **Services Cloudflare** — Email Routing achemine chaque demande (ADR-0002) ; Turnstile et un compteur de fréquence tiennent l'anti-abus (candidat `anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre`).
+- **En-têtes et CSP** — deux porteurs (`_headers` pour le public, middleware pour l'administration), CSP stricte propre à l'administration (ADR-0004, ADR-0008).
+- **Tests** — Vitest dans `workerd`, Playwright pour les parcours, épreuve de réversibilité scriptée (ADR-0003).
+- **Configuration d'instance** — quatre lieux, un par nature de valeur ; aucun secret dans le dépôt (ADR-0005).
+
 ## Domaines transverses (base des ADR)
 
 Les préoccupations durables par domaine — le *quoi* qu'on doit réussir. La **décision** reste un

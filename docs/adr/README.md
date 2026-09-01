@@ -29,9 +29,12 @@ règle de lecture tient en une ligne :
 | [0006](./0006-administration-sans-directive-client.md) | 0024 | Administration sans directive `client:*` |
 | [0007](./0007-garde-de-session-par-import-et-surface-publique-close.md) | 0026 | Garde de session par l'import, surface publique close |
 | [0008](./0008-en-tetes-d-administration-poses-par-un-middleware.md) | — | En-têtes d'administration posés par un middleware |
+| [0009](./0009-base-de-composants-des-ilots-shadcn-svelte.md) | — | Base de composants des îlots d'administration — shadcn-svelte |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
-la feature `002-connexion-par-code`, et promu directement.
+la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
+introduite en session `/scd-sdd:vision` le 2026-09-01 (base de composants des îlots
+d'administration).
 
 ## Ce qui n'est pas encore promu
 
