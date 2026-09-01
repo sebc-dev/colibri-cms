@@ -33,7 +33,7 @@ l'architecture restent valides.
 - **FR-014** — Une adresse ne devient l'adresse autorisée qu'après preuve de sa maîtrise.
 - **FR-118** — Fermer toute session restée sept jours sans usage, et toute session ouverte depuis trente jours.
 - **FR-120** — Une preuve de maîtrise n'ouvre de session que sur l'appareil depuis lequel elle a été demandée.
-- **FR-121** — Une preuve de maîtrise n'ouvre qu'une seule session et cesse d'ouvrir au-delà d'une durée bornée.
+- **FR-121** — Une preuve de maîtrise n'ouvre qu'une seule session et cesse d'ouvrir au-delà d'une durée bornée après son émission.
 - **FR-122** — Rendre inutilisable une preuve de maîtrise après un nombre borné de présentations erronées.
 
 ### Pages et emplacements
@@ -150,7 +150,7 @@ l'architecture restent valides.
 - **FR-109** — La procédure de reconstruction est documentée avec les fichiers déposés.
 
 ### Dossier d'instance
-- **FR-110** — Chaque instance est accompagnée d'un dossier déposé dans un espace du client, dont l'accès n'est pas plus ouvert que les comptes qu'il décrit.
+- **FR-110** — Chaque instance est accompagnée d'un dossier déposé dans un espace du client et connu de lui, dont l'accès n'est pas plus ouvert que les comptes et les rangements qu'il décrit.
 - **FR-111** — Le dossier recense les comptes ouverts pour l'instance et le nom au titre duquel chacun l'est.
 - **FR-112** — Le dossier indique, pour chaque identifiant — le moyen de reprise compris —, où il est rangé, sans sa valeur.
 - **FR-113** — Le dossier recense les comptes dont la récupération dépend de la boîte e-mail de l'éditrice.
@@ -209,6 +209,9 @@ décision. La plupart sont déjà tranchées en ADR ; celles marquées **(ouvert
 - **SEC-3** — Zéro secret appartenant à l'intégrateur : tout identifiant est créé au nom du client, jeton d'écriture du CMS compris.
 - **SEC-4** — L'écran de connexion ne trahit pas quelle adresse ouvre l'administration : réponse et délai indépendants de l'adresse saisie.
 - **SEC-5** — Ingestion des médias sur les octets d'en-tête (JPEG/PNG/WebP), jamais l'extension ni le Content-Type ; SVG refusé.
+- **SEC-6** — Le texte riche de l'éditrice et les données des visiteurs finissent rendus dans des pages servies sur l'origine commune : toute saisie devenue HTML exécutable est un XSS de l'intérieur, sans script tiers.
+- **SEC-7** — L'acheminement des demandes ouvre à l'internet anonyme un canal d'écriture vers la boîte même qui ouvre l'administration : un message acheminé ne doit jamais pouvoir se faire passer pour un message du produit.
+- **SEC-8** — Une session d'administration volée use des mêmes portes que l'éditrice : son rayon d'action doit rester énuméré et borné, sans qu'elle puisse détruire le contenu de référence publié.
 
 ### UX/UI
 - **UX-1** — Aucun terme de développeur (commit, branche, build, déploiement) dans un texte visible par l'éditrice.
@@ -231,7 +234,7 @@ Résultats-clés :
 - L'éditrice édite et publie seule, sans aide et sans vocabulaire technique.
 - Aucune fausse manœuvre ne peut casser la mise en page ni laisser un trou dans une page publiée.
 Features :
-- **001** — Connexion de l'éditrice par code   (FR-001→008, FR-118, FR-120→122 · SC-006, SC-021)
+- **001** — Connexion de l'éditrice par code   (FR-001→006, FR-008, FR-118, FR-120→122 · SC-006, SC-021)
 - Remplir et corriger les emplacements d'une page   (FR-015→026 · SC-003, SC-015)
 - Bibliothèque de médias   (FR-027→040 · SC-010, SC-018)
 - Réglages transverses   (FR-041→044 · SC-017)
@@ -244,7 +247,7 @@ Résultats-clés :
 - Une visiteuse compose une demande chiffrée et l'envoie ; l'éditrice la reçoit et la suit.
 - Le site public reste statique et rapide — un seul traitement serveur, l'envoi d'une demande.
 Features :
-- Composer et envoyer une demande de devis   (FR-052→062 · SC-007)
+- Composer et envoyer une demande de devis   (FR-007, FR-052→062 · SC-007) — porte FR-007, le seuil par origine que le SPEC de 001 déclare hors-périmètre et lui délègue
 - Réception et suivi des demandes   (FR-063→079 · SC-007, SC-019)
 - Site public rapide et complet   (FR-095→097 · SC-005)
 
