@@ -38,10 +38,10 @@ Le site public reste hors de cette base.
   utilitaires (`tailwind-variants`, `clsx`, `tailwind-merge`, icônes lucide), sous
   `min-release-age=7` de `.npmrc`. Elles se propagent à toute la flotte (FR-105/SC-008 : aucun code
   propre à une cliente).
-- Réconciliation CSP à figer : les primitives bits-ui posent des `style="…"` en ligne, interdits
-  par la CSP stricte de l'administration (ADR-0004, ADR-0008) sans nonce ni empreinte. Décision
-  structurante déposée en candidat (`csp-administration-styles-inline-bits-ui`) — le socle
-  l'applique, il ne la tranche pas ici.
+- Réconciliation CSP figée par ADR-0010 (CSP de l'administration — attributs de style en ligne
+  autorisés par `style-src-attr 'unsafe-inline'`, `script-src` maintenu strict) : elle réconcilie
+  les `style="…"` en ligne des primitives bits-ui avec la CSP stricte (ADR-0004, ADR-0008), sans
+  rouvrir `script-src` (SEC-1 préservé). Le socle l'applique.
 
 ## Décisions de test
 - Couture : le graphe d'imports entre zones (`eslint.config.boundaries.js`, contrôle `boundaries`,
@@ -62,5 +62,5 @@ Le site public reste hors de cette base.
   SC-005 : ils gardent des îlots minimaux, sans Tailwind ni bits-ui.
 - Toute feature d'administration qui consommera ce socle (emplacements, médias, réglages,
   formulaires, publication, demandes) — features distinctes de l'Epic A.
-- Le mécanisme de réconciliation CSP lui-même (nonce, empreinte, ou `style-src` maîtrisé) — c'est
-  l'ADR candidat, tranché par `/scd-sdd:adr`.
+- Le mécanisme de réconciliation CSP lui-même — tranché hors de cette spec par ADR-0010
+  (`style-src-attr 'unsafe-inline'`).
