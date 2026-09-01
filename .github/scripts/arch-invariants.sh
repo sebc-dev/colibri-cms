@@ -234,9 +234,14 @@ fi
 # interdits qui se vérifient. La moitié statique est greppable ; la présence de
 # l'en-tête sur chaque réponse, elle, est du runtime — voir docs/ci.md
 # § Ce que ces contrôles ne couvrent pas.
+#
+# Le motif cible la forme APOSTROPHÉE, seule syntaxe CSP effective d'une source
+# `'unsafe-inline'` / `'unsafe-eval'` (un token non quoté est ignoré par les
+# navigateurs) : un mot nu en commentaire (backticks) ou dans une assertion de
+# test (regex) n'est pas une directive relâchée, et ne doit pas être compté.
 if exists 'src/*'; then
   relachee=$(files "${SRC_EXT[@]}" 'public/_headers' \
-             | xargs -r grep -nE "unsafe-inline|unsafe-eval" 2>/dev/null) || true
+             | xargs -r grep -nE "'unsafe-inline'|'unsafe-eval'" 2>/dev/null) || true
   [ -n "$relachee" ] \
     && ko ADR-0024 "une directive CSP relâchée dans les sources — la seconde des deux parades de la quatrième porte s'ouvre en silence, et cette porte n'a aucun repli" "$relachee" \
     || ok "ADR-0015 (b) / ADR-0024 — ni unsafe-inline ni unsafe-eval dans les sources"

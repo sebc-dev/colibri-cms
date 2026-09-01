@@ -24,6 +24,27 @@ function sondeDev(): AstroIntegration {
   };
 }
 
+// ADR-0008 : les en-têtes de sécurité de l'administration sont posés par un
+// middleware unique, jamais gabarit par gabarit — inscrit ici par le hook
+// `addMiddleware`, seul endroit où « toute réponse d'administration » (page
+// servie, renvoi de la garde de session, chemin inconnu) passe par un même
+// porteur. L'entrypoint est donné sous la forme `new URL(...,
+// import.meta.url)` : une chaîne relative y est résolue comme un module nu
+// et échoue à l'exécution (mesuré, ADR-0008).
+function entetesAdmin(): AstroIntegration {
+  return {
+    name: 'entetes-admin',
+    hooks: {
+      'astro:config:setup': ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: new URL('./src/platform/entetes/middleware.ts', import.meta.url),
+          order: 'post',
+        });
+      },
+    },
+  };
+}
+
 // I10 (docs/archi.md) : la configuration Astro lit instance.json au moment où
 // elle s'évalue, sans outil intermédiaire — c'est le seul porteur de cet
 // invariant depuis ADR-0032 (la configuration de déploiement en sort). Seul
@@ -62,5 +83,5 @@ export default defineConfig({
     layout: 'constrained',
     breakpoints: [640, 960, 1280],
   },
-  integrations: [sondeDev()],
+  integrations: [sondeDev(), entetesAdmin()],
 });
