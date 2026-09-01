@@ -18,9 +18,9 @@ livre, la deuxième des trois formes n'existe pas et rien ne la mesure.
 
 ## Critères
 
-- [ ] l'écran de connexion servi porte la politique de sécurité, le refus de reniflage de type, une politique de référent et le refus d'être mis en cadre
-- [ ] le renvoi rendu par le garde porte exactement les mêmes champs d'en-tête, aux mêmes valeurs
-- [ ] un chemin inconnu sous `/admin/` porte exactement les mêmes champs d'en-tête, aux mêmes valeurs
-- [ ] la politique ne porte ni `unsafe-inline`, ni `unsafe-eval`, ni aucune source tierce — le ticket dit explicitement s'il ouvre dès maintenant celle qu'ADR-0004 réserve à Turnstile, dont le mécanisme est hors du périmètre de cette feature
-- [ ] `astro.config.ts` inscrit le middleware par le hook `addMiddleware`, son entrée donnée sous la forme `new URL(…, import.meta.url)` — une chaîne relative y est résolue comme un module nu et échoue (ADR-0008)
-- [ ] aucun gabarit servi sous `/admin/` ne porte de bloc `<style>` : la politique est la même en développement et en production, et le serveur de développement rend ces blocs en ligne
+- [x] l'écran de connexion servi porte la politique de sécurité, le refus de reniflage de type, une politique de référent et le refus d'être mis en cadre
+- [x] le renvoi rendu par le garde porte exactement les mêmes champs d'en-tête, aux mêmes valeurs
+- [x] un chemin inconnu sous `/admin/` porte exactement les mêmes champs d'en-tête, aux mêmes valeurs
+- [x] la politique ne porte ni `unsafe-inline`, ni `unsafe-eval`, ni aucune source tierce — le ticket dit explicitement s'il ouvre dès maintenant celle qu'ADR-0004 réserve à Turnstile, dont le mécanisme est hors du périmètre de cette feature
+- [x] `astro.config.ts` inscrit le middleware par le hook `addMiddleware`, son entrée donnée sous la forme `new URL(…, import.meta.url)` — une chaîne relative y est résolue comme un module nu et échoue (ADR-0008)
+- [x] aucun gabarit servi sous `/admin/` ne porte de bloc `<style>` : la politique est la même en développement et en production, et le serveur de développement rend ces blocs en ligne
