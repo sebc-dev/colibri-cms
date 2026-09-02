@@ -47,3 +47,13 @@ observée (fixture d'import délibéré site→admin, capture de l'erreur `lint:
 ## Contexte à charger
 à lire  `specs/002-socle-ilots-admin/03-graphe-imports-svelte.md` — les 3 critères observables
 à lire  `specs/002-socle-ilots-admin/SPEC.md` — hors-périmètre + couture de test (graphe d'imports)
+
+## Issue
+Débloqué le 2026-09-02 par geste humain — l'édition de la config qualité était, comme attendu,
+réservée à l'humain. Le blocage était structurel (le livrable = éditer `eslint.config.boundaries.js`),
+pas transitoire.
+- Config : `148ce53` (`chore(config):` — scan `.svelte`/`.astro`, matrice I1 inchangée).
+- Deps : `4f133ff` (`svelte-eslint-parser`, `astro-eslint-parser`).
+- Cases : `3eb8455` (les 3 critères cochés).
+Preuve observée capturée : `lint:boundaries` flague `site → admin` et laisse `admin → platform` ;
+build sans route publique (C3 vacuement vrai). Livré par la PR de `impl/socle-ilots-admin-03`.
