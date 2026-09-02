@@ -111,12 +111,15 @@ it('un chemin inconnu sous /admin/ porte exactement les mêmes en-têtes de séc
   expect(enTetesDeSecurite(cheminInconnu)).toEqual(enTetesReference);
 });
 
-it('la Content-Security-Policy ne porte pas unsafe-inline', async () => {
+it('la Content-Security-Policy ne porte pas unsafe-inline dans script-src', async () => {
   const reponse = await SELF.fetch('https://example.com/admin/connexion');
   const csp = reponse.headers.get('content-security-policy');
 
   expect(csp, 'une Content-Security-Policy devrait être posée').toBeTruthy();
-  expect(csp).not.toMatch(/unsafe-inline/);
+  // ADR-0010 : style-src-attr 'unsafe-inline' pour les primitives
+  expect(csp).toMatch(/style-src-attr 'unsafe-inline'/);
+  // Mais script-src reste strict
+  expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
 });
 
 it('la Content-Security-Policy ne porte pas unsafe-eval', async () => {

@@ -4,6 +4,7 @@ import { defineConfig } from 'astro/config';
 import type { AstroIntegration } from 'astro';
 import cloudflare from '@astrojs/cloudflare';
 import svelte from '@astrojs/svelte';
+import tailwindcss from '@tailwindcss/vite';
 
 // FR-012, FR-024 (plan § décision 4) : la route de sonde (`src/platform/d1/
 // sonde-dev.ts`) ne doit exister qu'en développement — jamais dans
@@ -107,4 +108,13 @@ export default defineConfig({
   // (jamais `is:inline`), et c'est ce fichier bundlé, jamais du script en
   // ligne, que `<script src>` charge dans la page.
   integrations: [sondeDev(), entetesAdmin(), svelte()],
+  // ADR-0009 : Tailwind CSS (v4, CSS-first — aucun `tailwind.config.js`)
+  // entre dans la chaîne de build pour la seule administration (ticket 02).
+  // Le plugin Vite transforme le `@import 'tailwindcss'` posé par
+  // `src/admin/admin.css` ; aucune page publique n'importe cette feuille
+  // (ADR-0009 § Le site public n'est pas concerné, SC-005), donc rien du
+  // site statique n'embarque de CSS Tailwind.
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

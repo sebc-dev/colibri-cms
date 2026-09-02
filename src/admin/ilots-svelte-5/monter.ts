@@ -15,6 +15,7 @@
  */
 import { mount } from 'svelte';
 import Compteur from './Compteur.svelte';
+import ActionRapide from './ActionRapide.svelte';
 
 /**
  * Monte l'îlot `Compteur` sur le premier élément portant l'identifiant donné.
@@ -26,4 +27,16 @@ export function monterCompteur(idCible: string): void {
   if (!cible) return;
 
   mount(Compteur, { target: cible });
+}
+
+/**
+ * Monte l'îlot `ActionRapide` (ticket 02) — premier îlot bâti sur un
+ * composant de la base shadcn-svelte. Même garde d'absence que
+ * `monterCompteur` ci-dessus.
+ */
+export function monterActionRapide(idCible: string): void {
+  const cible = document.getElementById(idCible);
+  if (!cible) return;
+
+  mount(ActionRapide, { target: cible });
 }

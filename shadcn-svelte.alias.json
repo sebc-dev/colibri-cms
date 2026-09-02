@@ -1,0 +1,24 @@
+{
+  // Fichier de calcul interne pour la seule CLI shadcn-svelte (ticket 02,
+  // specs/002-socle-ilots-admin/02-composant-shadcn-sous-csp.md).
+  //
+  // La CLI shadcn-svelte (`npx shadcn-svelte add …`) exige, pour calculer où
+  // copier le source d'un composant, un fichier TypeScript qui porte un champ
+  // `compilerOptions.paths` non vide (voir `components.json` § `typescript.
+  // config`, qui pointe ici). `tsconfig.json` est le porteur réel du typage du
+  // projet (`npm run typecheck`) — protégé en session (config qualité déjà
+  // versionnée, `.claude/guards.json`) et volontairement sans alias : tout le
+  // reste du dépôt importe en chemins relatifs (voir `src/admin/zone.ts`,
+  // `src/admin/ilots-svelte-5/monter.ts`). Cet alias `$admin/*` ne sert donc
+  // JAMAIS à `tsc` ni à Vite/Astro (aucun fichier réel ne l'importe) : dès
+  // qu'un composant est copié, ses imports `$admin/…` sont réécrits à la main
+  // en chemins relatifs avant d'entrer dans la chaîne de build — ce fichier
+  // n'est qu'un bouchon pour que la CLI accepte de s'exécuter sans toucher au
+  // tsconfig protégé.
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "$admin/*": ["src/admin/*"]
+    }
+  }
+}
