@@ -14,10 +14,10 @@ la base `src/admin` est falsifié statiquement. Le poids envoyé sur les pages p
 pas du fait du socle d'administration, comme SC-005 le mesure.
 
 ## Critères
-- [ ] `eslint.config.boundaries.js` (contrôle `boundaries`) classe et scanne les fichiers `.svelte`,
+- [x] `eslint.config.boundaries.js` (contrôle `boundaries`) classe et scanne les fichiers `.svelte`,
       pas seulement `src/**/*.ts`.
-- [ ] Un import délibéré, depuis un îlot de `src/site`, d'un composant de `src/admin` est signalé en
+- [x] Un import délibéré, depuis un îlot de `src/site`, d'un composant de `src/admin` est signalé en
       erreur par `npm run lint:boundaries` (preuve capturée) ; l'import légitime
       admin → (render | core | platform) reste accepté.
-- [ ] Les pages publiques bâties ne référencent aucun composant de la base d'administration ni
+- [x] Les pages publiques bâties ne référencent aucun composant de la base d'administration ni
       Tailwind (constat sur l'artefact de build : le poids public n'augmente pas).
