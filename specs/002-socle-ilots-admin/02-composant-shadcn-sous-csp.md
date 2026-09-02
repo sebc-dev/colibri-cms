@@ -18,14 +18,14 @@ attributs `style="…"` des primitives, `script-src` maintenu strict, sans viola
 bloqué.
 
 ## Critères
-- [ ] `npm run typecheck` puis `npm run build` passent avec Tailwind CSS et bits-ui (plus
+- [x] `npm run typecheck` puis `npm run build` passent avec Tailwind CSS et bits-ui (plus
       `tailwind-variants`, `clsx`, `tailwind-merge`, icônes lucide) ajoutés, cantonnés à
       l'administration.
-- [ ] La CLI shadcn-svelte est initialisée et le source d'au moins un composant est copié dans la
+- [x] La CLI shadcn-svelte est initialisée et le source d'au moins un composant est copié dans la
       zone `src/admin` (versionné dans le dépôt), pas dans un `src/lib` générique.
-- [ ] Un écran d'administration monte un îlot bâti sur ce composant shadcn-svelte.
-- [ ] La CSP de l'administration porte `style-src-attr 'unsafe-inline'` (ADR-0010) et conserve
+- [x] Un écran d'administration monte un îlot bâti sur ce composant shadcn-svelte.
+- [x] La CSP de l'administration porte `style-src-attr 'unsafe-inline'` (ADR-0010) et conserve
       `script-src` strict (sans `unsafe-inline`), par le seul porteur
       `src/platform/entetes/middleware.ts`.
-- [ ] Au rendu de cet écran, la console ne rapporte aucune violation CSP et aucun style de primitive
+- [x] Au rendu de cet écran, la console ne rapporte aucune violation CSP et aucun style de primitive
       n'est bloqué (preuve capturée).

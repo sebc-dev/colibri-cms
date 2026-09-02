@@ -1,0 +1,18 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema.json",
+  "style": "new-york",
+  "tailwind": {
+    "css": "src/admin/admin.css",
+    "baseColor": "neutral"
+  },
+  "aliases": {
+    "lib": "$admin/lib",
+    "components": "$admin/composants",
+    "utils": "$admin/lib/utils",
+    "ui": "$admin/composants/ui"
+  },
+  "typescript": {
+    "config": "shadcn-svelte.alias.json"
+  },
+  "iconLibrary": "lucide"
+}

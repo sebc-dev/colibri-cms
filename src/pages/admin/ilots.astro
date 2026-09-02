@@ -16,6 +16,13 @@
  * `unsafe-inline`, ADR-0008) exige. La CSP elle-même n'est pas modifiée ici
  * — `src/platform/entetes/middleware.ts` reste tel quel, posé par
  * `astro.config.ts` (ADR-0008).
+ *
+ * Ticket 02 (specs/002-socle-ilots-admin/02-composant-shadcn-sous-csp.md) —
+ * cet écran monte en plus `ActionRapide` (`src/admin/ilots-svelte-5/
+ * ActionRapide.svelte`), le premier îlot bâti sur un composant de la base
+ * shadcn-svelte (`Button`). C'est cet écran, servi sous les en-têtes réels
+ * de `src/platform/entetes/middleware.ts` (CSP augmentée de `style-src-attr
+ * 'unsafe-inline'`, ADR-0010), que la preuve observée du ticket rend.
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession } from '../../platform/session/index.ts';
@@ -29,9 +36,11 @@ if (!session) {
 
 <Gabarit titre="Administration">
   <div id="ilot-compteur"></div>
+  <div id="ilot-action-rapide"></div>
   <script>
-    import { monterCompteur } from '../../admin/ilots-svelte-5/monter.ts';
+    import { monterCompteur, monterActionRapide } from '../../admin/ilots-svelte-5/monter.ts';
 
     monterCompteur('ilot-compteur');
+    monterActionRapide('ilot-action-rapide');
   </script>
 </Gabarit>

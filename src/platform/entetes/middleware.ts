@@ -36,6 +36,16 @@
  * `unsafe-inline`) impose donc qu'aucun gabarit d'administration n'en porte
  * (couvert par `tests/static/gabarits-admin.test.ts` et
  * `tests/static/politique-de-securite-statique.test.ts`).
+ *
+ * ADR-0010 (ticket 02, specs/002-socle-ilots-admin/
+ * 02-composant-shadcn-sous-csp.md) : `style-src-attr 'unsafe-inline'`
+ * réconcilie les attributs `style="…"` en ligne, calculés à l'exécution, que
+ * posent certaines primitives bits-ui (positionnement de sur-couches,
+ * animations) — un nonce ne blanchit pas un attribut, et les valeurs étant
+ * dynamiques, un jeu d'empreintes n'est pas borné (ADR-0010 § Alternatives
+ * considérées). Cette tolérance est bornée à cette seule directive :
+ * `script-src` reste strict, sans `unsafe-inline`, et `style-src` (les
+ * éléments `<style>`/`<link>`) reste inchangé.
  */
 import { defineMiddleware } from 'astro/middleware';
 
@@ -43,6 +53,10 @@ const POLITIQUE_DE_SECURITE = [
   "default-src 'none'",
   "script-src 'self'",
   "style-src 'self'",
+  // ADR-0010 : seuls les attributs `style="…"` en ligne des primitives
+  // bits-ui sont tolérés — `style-src` (ci-dessus) reste sans
+  // `unsafe-inline`, et `script-src` (ci-dessus) n'est jamais rouvert.
+  "style-src-attr 'unsafe-inline'",
   "img-src 'self'",
   "font-src 'self'",
   "form-action 'self'",

@@ -3,11 +3,78 @@
  * `src/admin/Gabarit.astro` via un import ESM, jamais un bloc <style> en
  * ligne : c'est ce qui rend `script-src 'self'` (et son pendant CSS) tenable
  * sans nonce ni empreinte calculée à chaque réponse.
+ *
+ * Ticket 02 (specs/002-socle-ilots-admin/02-composant-shadcn-sous-csp.md,
+ * ADR-0009) : Tailwind CSS entre ici, cantonné à cette seule feuille — le
+ * site public n'importe jamais ce fichier (ADR-0009 § Le site public n'est
+ * pas concerné). `@import "tailwindcss"` (v4, sans fichier de config JS) est
+ * traité au build par le plugin `@tailwindcss/vite` (astro.config.ts) ; la
+ * CSS produite reste servie en `<link>` externe par `build: { inlineStylesheets:
+ * 'never' }` (voir Gabarit.astro), jamais en ligne.
+ *
+ * Les variables `--*` ci-dessous sont le thème « neutral » du registre
+ * shadcn-svelte (`components.json` § tailwind.baseColor), une palette
+ * standard et publique — reprises telles quelles depuis le registre
+ * (https://shadcn-svelte.com/registry/colors/neutral.json). Un seul jeu de
+ * valeurs (pas de variante sombre) : l'administration reste `color-scheme:
+ * light` seule, comme avant ce ticket.
  */
+@import 'tailwindcss';
 
 :root {
   color-scheme: light;
   font-family: system-ui, sans-serif;
+
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+}
+
+/*
+ * Correspondance entre les variables ci-dessus et les tokens de thème
+ * Tailwind (v4, CSS-first) : c'est ce bloc qui fait exister les utilitaires
+ * `bg-primary`, `text-muted-foreground`, `rounded-[var(--radius-md)]`… que
+ * les composants shadcn-svelte copiés dans `src/admin/composants/` utilisent.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 body {
