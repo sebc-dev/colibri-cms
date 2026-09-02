@@ -1,0 +1,37 @@
+---
+/**
+ * Le premier écran d'administration qui monte un îlot Svelte (ticket 01,
+ * specs/002-socle-ilots-admin/01-ilot-svelte-sous-csp.md).
+ *
+ * Route gardée comme toute route d'administration (ADR-0007) : le garde de
+ * session est importé et son verdict conditionne l'accès, à l'identique de
+ * `src/pages/admin/index.astro`.
+ *
+ * Aucune directive `client:*` (ADR-0006) : l'îlot ne se monte pas par la
+ * syntaxe d'île d'Astro mais par le `<script>` de module ci-dessous, qui
+ * importe le point d'entrée externe `src/admin/ilots-svelte-5/monter.ts`.
+ * Ce `<script>` n'est pas `is:inline` : Astro/Vite le bundle en un fichier
+ * externe et la réponse ne porte que `<script type="module" src="…">`,
+ * jamais de script en ligne — ce que `script-src 'self'` (sans
+ * `unsafe-inline`, ADR-0008) exige. La CSP elle-même n'est pas modifiée ici
+ * — `src/platform/entetes/middleware.ts` reste tel quel, posé par
+ * `astro.config.ts` (ADR-0008).
+ */
+import Gabarit from '../../admin/Gabarit.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+---
+
+<Gabarit titre="Administration">
+  <div id="ilot-compteur"></div>
+  <script>
+    import { monterCompteur } from '../../admin/ilots-svelte-5/monter.ts';
+
+    monterCompteur('ilot-compteur');
+  </script>
+</Gabarit>

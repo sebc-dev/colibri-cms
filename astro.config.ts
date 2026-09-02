@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import type { AstroIntegration } from 'astro';
 import cloudflare from '@astrojs/cloudflare';
+import svelte from '@astrojs/svelte';
 
 // FR-012, FR-024 (plan § décision 4) : la route de sonde (`src/platform/d1/
 // sonde-dev.ts`) ne doit exister qu'en développement — jamais dans
@@ -83,5 +84,15 @@ export default defineConfig({
     layout: 'constrained',
     breakpoints: [640, 960, 1280],
   },
-  integrations: [sondeDev(), entetesAdmin()],
+  // ADR-0009 : Svelte 5 entre dans la chaîne de build pour la seule
+  // administration (ticket 01, specs/002-socle-ilots-admin). L'intégration
+  // n'ouvre ici que la compilation des fichiers `.svelte` par Vite — aucun
+  // îlot du produit ne se monte par une directive `client:*` (incompatible
+  // avec la CSP stricte de l'administration, `script-src 'self'` sans
+  // `unsafe-inline` : Astro écrirait le bootstrap d'hydratation en ligne
+  // dans la page). Le montage se fait par un point d'entrée externe, un
+  // `<script>` de module qu'Astro/Vite bundle lui-même en un fichier séparé
+  // (jamais `is:inline`), et c'est ce fichier bundlé, jamais du script en
+  // ligne, que `<script src>` charge dans la page.
+  integrations: [sondeDev(), entetesAdmin(), svelte()],
 });
