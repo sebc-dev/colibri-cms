@@ -60,6 +60,18 @@ const instance = JSON.parse(readFileSync(instancePath, 'utf-8')) as {
 export default defineConfig({
   site: `https://${instance.domain}`,
   output: 'server',
+  // ADR-0008 : la CSP de l'administration est `style-src 'self'` sans
+  // `unsafe-inline` (ni nonce, ni empreinte calculée par réponse). Le défaut
+  // d'Astro `inlineStylesheets: 'auto'` inline les petites feuilles AU BUILD :
+  // la feuille liée par `src/admin/Gabarit.astro` (`admin.css`, ~120 octets)
+  // ressortait alors en bloc `<style>` inline dans le HTML bâti — refusé par
+  // cette CSP (admin rendu sans style, violation en console), en contradiction
+  // directe avec le critère de
+  // `specs/001-connexion-par-code/02-politique-de-securite.md` (« aucun gabarit
+  // servi sous /admin/ ne porte de bloc <style> », que le source respecte mais
+  // que le build défaisait). `'never'` force le service de toute CSS en `<link>`
+  // externe même origine, autorisé par `'self'`.
+  build: { inlineStylesheets: 'never' },
   // Le produit ne se sert pas de l'API de session d'Astro (la session
   // d'administration est opaque en D1, ADR-0006) ; sans cette ligne
   // l'adaptateur active son pilote KV par défaut et l'artefact bâti exige
