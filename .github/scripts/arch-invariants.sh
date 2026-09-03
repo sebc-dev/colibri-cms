@@ -259,24 +259,50 @@ if exists 'src/*'; then
     || ok "ADR-0015 (b) / ADR-0024 — seule l'exception ADR-0010 style-src-attr 'unsafe-inline' est admise"
 fi
 
-# ── ADR-0006 · les quatre attributs du cookie de session ─────────────────────
-# Quatre attributs dont l'absence ne casse aucun écran : elle ne se voit qu'à
-# l'attaque. Ils sont statiques, donc lisibles dans les sources.
-if exists 'src/platform/session/*'; then
-  porteur=$(files 'src/platform/session/*' | xargs -r grep -lE 'Set-Cookie|__Host-' 2>/dev/null) || true
-  if [ -n "$porteur" ]; then
-    manquants=""
-    for a in '__Host-' 'HttpOnly' 'Secure' 'SameSite=Strict'; do
-      grep -qF -- "$a" $porteur || manquants="${manquants} ${a}"
-    done
-    [ -n "$manquants" ] \
-      && ko ADR-0006 "le cookie de session ne porte pas tous ses attributs —${manquants}" "$porteur" \
-      || ok "ADR-0006 — le cookie de session porte __Host-, HttpOnly, Secure et SameSite=Strict"
+# ── ADR-0006 · les attributs du cookie de session, sur le POSEUR réel ────────
+# Réécrit au rejeu du 2026-09-03 (chantier durcissement-ci). Corrige les deux
+# cécités confirmées : (1) il élisait le fichier par présence de chaîne, pas le
+# poseur ; (2) il ne connaissait que la forme en-tête littérale, pas la forme
+# API Astro. SANS ouvrir de faux négatif — ET sans crier avant qu'un cookie soit posé.
+#
+# Le poseur canonique est enteteCookieSession() (src/platform/session/index.ts,
+# refactor 3f846b7). Trois cas, dans cet ordre :
+#   - le helper existe          -> il doit porter les quatre attributs (forme
+#                                  en-tête OU Astro), et AUCUN autre fichier ne
+#                                  doit poser __Host-session en direct (sinon un
+#                                  poseur mal formé passerait : le FN que la fiche vise) ;
+#   - pas de helper, pose ailleurs -> poseur sauvage, violation (la pose doit
+#                                  passer par le helper — cas 7600c8f, forme Astro) ;
+#   - personne ne pose          -> HORS PORTÉE (rien tant qu'aucune session ne
+#                                  s'ouvre : ne crie pas sur l'adaptateur-liseur seul).
+POSEUR='src/platform/session/index.ts'
+
+# Une pose de __Host-session hors du poseur canonique : en-tête brut, set() par
+# nom littéral, ou set() par la constante NOM_COOKIE_SESSION. Le site d'appel
+# légitime — headers.append('Set-Cookie', enteteCookieSession(...)) — ne cite pas
+# le nom et n'appelle pas set() : il n'est pas capturé.
+motif_sauvage="Set-Cookie[^\"']*__Host-session|cookies\.set\([[:space:]]*(['\"]__Host-session|NOM_COOKIE_SESSION\b)"
+sauvage=$(files "${SRC_EXT[@]}" | grep -v "^${POSEUR}\$" \
+          | xargs -r grep -nE "$motif_sauvage" 2>/dev/null) || true
+
+if [ -f "$POSEUR" ] && grep -q 'enteteCookieSession' "$POSEUR"; then
+  corps=$(cat "$POSEUR")
+  manquants=""
+  grep -qF -- '__Host-'                                    <<<"$corps" || manquants="${manquants} __Host-"
+  grep -qE "HttpOnly|httpOnly:[[:space:]]*true"            <<<"$corps" || manquants="${manquants} HttpOnly"
+  grep -qE "; ?Secure|secure:[[:space:]]*true"             <<<"$corps" || manquants="${manquants} Secure"
+  grep -qE "SameSite=Strict|sameSite:[[:space:]]*'strict'" <<<"$corps" || manquants="${manquants} SameSite=Strict"
+  if [ -n "$manquants" ]; then
+    ko ADR-0006 "le poseur canonique du cookie de session ne compose pas tous ses attributs —${manquants}" "$POSEUR"
+  elif [ -n "$sauvage" ]; then
+    ko ADR-0006 "le cookie __Host-session est posé hors du poseur canonique enteteCookieSession() — ses attributs échappent au contrôle" "$sauvage"
   else
-    hors "ADR-0006" "le porteur du cookie sous src/platform/session/"
+    ok "ADR-0006 — le poseur canonique du cookie de session porte __Host-, HttpOnly, Secure et SameSite=Strict"
   fi
+elif [ -n "$sauvage" ]; then
+  ko ADR-0006 "un cookie __Host-session est posé hors du poseur canonique enteteCookieSession()" "$sauvage"
 else
-  hors "ADR-0006" "src/platform/session/"
+  hors "ADR-0006" "aucun poseur de cookie de session (enteteCookieSession)"
 fi
 
 echo
