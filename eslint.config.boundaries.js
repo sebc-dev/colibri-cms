@@ -15,8 +15,15 @@
 // réellement les fichiers en mode dossier d'eslint-plugin-boundaries (elle
 // devient interne au pattern suivi de « /**/* ») ; ajouter une étoile double
 // le motif et ne classe plus rien.
+//
+// Les blocs .svelte et .astro réutilisent SETTINGS/RULES du bloc .ts pour que
+// la frontière I1 morde aussi les îlots (ticket 03 de 002-socle-ilots-admin) :
+// un îlot public (.astro sous src/site) important un composant admin (.svelte
+// sous src/admin) est falsifié statiquement.
 import boundaries from 'eslint-plugin-boundaries';
 import tseslint from 'typescript-eslint';
+import svelteParser from 'svelte-eslint-parser';
+import * as astroParser from 'astro-eslint-parser';
 
 const ELEMENTS = [
   { type: 'core', pattern: 'src/core' },
@@ -25,6 +32,57 @@ const ELEMENTS = [
   { type: 'site', pattern: 'src/site' },
   { type: 'admin', pattern: 'src/admin' },
 ];
+
+const SETTINGS = {
+  'boundaries/elements': ELEMENTS,
+  // Le resolver DOIT connaître .svelte / .astro, sinon un import d'îlot n'est
+  // pas résolu, donc pas classé, donc jamais flagué (voir piège n°1).
+  'import/resolver': {
+    typescript: { extensions: ['.ts', '.tsx', '.js', '.svelte', '.astro'] },
+  },
+};
+
+const RULES = {
+  // I1 (docs/archi.md) : site → render, core ; admin → render, core,
+  // platform ; render → core ; platform → core ; core → aucune. Toute
+  // autre arête est interdite (default: 'disallow').
+  'boundaries/dependencies': [
+    'error',
+    {
+      default: 'disallow',
+      policies: [
+        {
+          from: { element: { type: 'core' } },
+          disallow: {
+            to: {
+              element: {
+                types: { anyOf: ['core', 'render', 'platform', 'site', 'admin'] },
+              },
+            },
+          },
+        },
+        {
+          from: { element: { type: 'render' } },
+          allow: { to: { element: { type: 'core' } } },
+        },
+        {
+          from: { element: { type: 'platform' } },
+          allow: { to: { element: { type: 'core' } } },
+        },
+        {
+          from: { element: { type: 'site' } },
+          allow: { to: { element: { types: { anyOf: ['render', 'core'] } } } },
+        },
+        {
+          from: { element: { type: 'admin' } },
+          allow: {
+            to: { element: { types: { anyOf: ['render', 'core', 'platform'] } } },
+          },
+        },
+      ],
+    },
+  ],
+};
 
 export default [
   {
@@ -40,54 +98,29 @@ export default [
   },
   {
     files: ['src/**/*.ts'],
+    languageOptions: { parser: tseslint.parser },
+    plugins: { boundaries },
+    settings: SETTINGS,
+    rules: RULES,
+  },
+  {
+    files: ['src/**/*.svelte'],
     languageOptions: {
-      parser: tseslint.parser,
+      parser: svelteParser,
+      parserOptions: { parser: tseslint.parser }, // <script lang="ts">
     },
     plugins: { boundaries },
-    settings: {
-      'boundaries/elements': ELEMENTS,
-      'import/resolver': { typescript: true },
+    settings: SETTINGS,
+    rules: RULES,
+  },
+  {
+    files: ['src/**/*.astro'],
+    languageOptions: {
+      parser: astroParser,
+      parserOptions: { parser: tseslint.parser },
     },
-    rules: {
-      // I1 (docs/archi.md) : site → render, core ; admin → render, core,
-      // platform ; render → core ; platform → core ; core → aucune. Toute
-      // autre arête est interdite (default: 'disallow').
-      'boundaries/dependencies': [
-        'error',
-        {
-          default: 'disallow',
-          policies: [
-            {
-              from: { element: { type: 'core' } },
-              disallow: {
-                to: {
-                  element: {
-                    types: { anyOf: ['core', 'render', 'platform', 'site', 'admin'] },
-                  },
-                },
-              },
-            },
-            {
-              from: { element: { type: 'render' } },
-              allow: { to: { element: { type: 'core' } } },
-            },
-            {
-              from: { element: { type: 'platform' } },
-              allow: { to: { element: { type: 'core' } } },
-            },
-            {
-              from: { element: { type: 'site' } },
-              allow: { to: { element: { types: { anyOf: ['render', 'core'] } } } },
-            },
-            {
-              from: { element: { type: 'admin' } },
-              allow: {
-                to: { element: { types: { anyOf: ['render', 'core', 'platform'] } } },
-              },
-            },
-          ],
-        },
-      ],
-    },
+    plugins: { boundaries },
+    settings: SETTINGS,
+    rules: RULES,
   },
 ];
