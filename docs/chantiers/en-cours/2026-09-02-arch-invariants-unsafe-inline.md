@@ -1,7 +1,7 @@
 # arch-invariants : apprendre l'exception ADR-0010 au tripwire unsafe-inline
 
 Portée : socle
-Ouvert le 2026-09-02 · Actualisé le 2026-09-02 · branche `main` · HEAD `ff7685f`
+Ouvert le 2026-09-02 · Actualisé le 2026-09-03 · branche `main` · HEAD `e5b7c43`
 
 ## Objectif
 Faire passer le contrôle `arch-invariants` (informatif) au vert — sur PR #49 et toute admin
@@ -30,12 +30,26 @@ ADR-0010, sans toucher au code de la politique, qui est correct.
 - `arch-invariants` informatif/non-requis : PR #49 MERGEABLE (UNSTABLE), ne bloque pas le merge. Le
   vrai bloquant `dependency-review` est déjà réglé (label `deps`).
 
-## Prochaine étape
-Éditer `.github/scripts/arch-invariants.sh` (commit humain `chore(ci):`). Deux voies — j'allais
-proposer la seconde :
-1. exclure du grep la directive précise `style-src-attr 'unsafe-inline'` (ADR-0010) ;
-2. plus robuste — restreindre le grep aux `.ts` de politique et n'admettre la forme apostrophée que
-   dans le tableau `POLITIQUE_DE_SECURITE`, jamais en commentaire/test → l'exclusion redevient vraie.
+## Prochaine étape — correctif TESTÉ (2026-09-03), commit humain `chore(ci):`
+Reproduction complète du script en scratchpad : **ADR-0024 est la SEULE violation** (fail=1
+n'en vient que d'elle ; ADR-0006 est OK, le reste OK/AILLEURS/HORS). Le corriger verdit tout
+le job (reproduction : fail=0). Remplacer le bloc `arch-invariants.sh:242-250` par **deux
+règles** — validées sur 5 cas (arbre réel vert ; violation code double-quote signalée ;
+violation `_headers` token nu signalée ; sanctionnée seule ignorée ; sanctionnée+violation sur
+une ligne → la partie relâchée survit) :
+```
+# Règle A — sources : la directive réelle est une chaîne en guillemets doubles ;
+# on retire l'exception ADR-0010 exacte, ce qui reste est une violation.
+code=$(files "${SRC_EXT[@]}" \
+       | xargs -r grep -nE "\"[^\"]*'unsafe-(inline|eval)'[^\"]*\"" 2>/dev/null \
+       | sed -E "s/\"style-src-attr 'unsafe-inline'\"//g" \
+       | grep -E "'unsafe-(inline|eval)'") || true
+# Règle B — public/_headers : CSP brute, tokens nus, aucune exception.
+headers=$(files 'public/_headers' | xargs -r grep -nE "'unsafe-inline'|'unsafe-eval'" 2>/dev/null) || true
+[ -n "$code$headers" ] && ko ADR-0024 "..." "${code}"$'\n'"${headers}" || ok "ADR-0024"
+```
+Pourquoi robuste : backticks (commentaires, même enroulés comme `ilots.astro:25`) et regex
+(test:120) ne sont pas en guillemets doubles → ignorés sans les énumérer.
 
 ## Écarté
 - Retirer/affaiblir la directive du middleware — casserait C4 du ticket 02, contredirait ADR-0010.
