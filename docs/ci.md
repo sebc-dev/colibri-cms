@@ -50,7 +50,7 @@ Trois conséquences, et seule la dernière reste inconfortable :
    were executed », `ConfigError`. Le vert de `test` et de `coverage` n'atteste donc que
    l'existence du script. Sept fichiers sous `src/` — les cinq amorces de zone, la sonde de
    développement et une déclaration de types — ne font pas davantage un corpus : c'est ce qui
-   commande le § « Pourquoi `sast`, `coverage` et `arch-invariants` ne sont pas bloquants ». Le
+   commande le § « Pourquoi `sast`, `coverage` et `boundaries` ne sont pas bloquants ». Le
    premier lot qui livre un test fera tomber ce point 3.
 
 **Le gestionnaire de paquets retenu est `npm`** — [ADR-0031](./1.x/adr/0031-gestionnaire-de-paquets-npm.md),
@@ -125,40 +125,39 @@ vise.
 | 8 | `quality-config-guard` | Config qualité et fichiers d'agent figés | diff de la config | **Bloquant** | 2 — par la config |
 | 9 | `verifier-guard` | Extinction du vérificateur, sous signature | diff des **sources** | **Bloquant** | 2 — typage, lint et SAST éteints ligne à ligne |
 | 10 | `specs-integrity` | Documents de specs figés, sous signature | diff de `specs/**` — `SPEC.md`, tickets `NN-*.md` | **Bloquant** | 2 — la **cible** réécrite pour correspondre au code |
+| 11 | `arch-invariants` | Invariants de `docs/1.x/archi.md` + les clauses d'ADR du registre ci-dessous | arbre courant | **Bloquant** depuis 2026-09-03 | 5 — le **gisement principal** |
 | — | `lint` | Style | dépôt (garde de scaffold) | Informatif | **vérificateur** — cible du mode 2 (lisibilité) |
 | — | `coverage` | Couverture du **code nouveau**, sans seuil chiffré | diff | Informatif | **vérificateur** — mesure l'exécution, **jamais l'assertion** |
 | — | `sast` | Semgrep | dépôt | Informatif | **vérificateur** — cible du mode 2 (injection, XSS, traversée) |
-| — | `arch-invariants` | Invariants de `docs/1.x/archi.md` + les clauses d'ADR du registre ci-dessous | arbre courant | Informatif → bloquant après rejeu | 5 — le **gisement principal** |
 | — | `boundaries` | Graphe d'imports **résolu** — `I1` (sens descendant des dépendances entre zones) et le reliquat d'`I3` qu'un grep littéral ne peut pas voir (ré-exports, barils, alias) | dépôt (garde de scaffold) | Informatif → bloquant après rejeu | 5 — hors de portée d'`arch-invariants`, qui ne résout pas le graphe |
 | — | `dead-code` | knip (**nocturne**) | dépôt | Informatif | 4 — partiellement |
 | — | `mutation` | Stryker (**nocturne**) | code nouveau | Informatif | 1 — **statistiquement**, jamais prouvé |
 | — | — (résolveur) | Cooldown de dépendances, `min-release-age = 7` dans `.npmrc` | installation | **Bloquant (déclaratif)** | 3a, 3b |
 
-**10 bloquants · 5 informatifs sur PR · 2 informatifs nocturnes.**
+**11 bloquants · 4 informatifs sur PR · 2 informatifs nocturnes.**
 
 La dernière ligne n'est pas un job : c'est une **clé de configuration** du résolveur, elle agit à
 l'installation, et son abaissement est gardé par `dependency-review` **et** par
 `quality-config-guard`, qui surveille `.npmrc`.
 
-### Pourquoi `sast`, `coverage` et `arch-invariants` ne sont pas bloquants
+### Pourquoi `sast`, `coverage` et `boundaries` ne sont pas bloquants
 
 La règle est explicite : *aucun contrôle dont le taux de faux positifs est inconnu ne devient
-bloquant*. Les trois tournent sur du code réel depuis le 2026-08-15 — mais **le motif du report a
-changé de nature, il n'a pas disparu** : sept fichiers sous `src/` — cinq amorces de zone, une sonde
-de développement, une déclaration de types — et aucun test ne font pas un échantillon dont on tire
-un taux. Ce n'était « aucun code », c'est désormais « pas encore de corpus ». Les rendre bloquants
-reviendrait toujours à parier sur un chiffre qu'on n'a pas, et **un contrôle bruyant finit
-désactivé** : son efficacité théorique tombe alors à zéro, ce qui est pire que de l'assumer
-informatif.
+bloquant*. `arch-invariants` en est **sorti le 2026-09-03** : le rejeu sur l'historique du dépôt a
+mesuré son taux — 0 faux positif résiduel, une fois `ADR-0006` corrigé pour viser le poseur
+canonique — et l'a fait monter (voir § Registre et le chantier de durcissement). Les trois qui
+restent n'ont pas cette mesure : `sast` n'a jamais été rejoué sur du code de ce dépôt, `coverage`
+attend un corpus de test réel, et `boundaries` (chaîne ESLint, `I1`) n'a pas eu son propre rejeu.
+Sept fichiers sous `src/` et aucun test suffisant n'en tirent un taux : les rendre bloquants
+reviendrait à parier sur un chiffre qu'on n'a pas, et **un contrôle bruyant finit désactivé** — son
+efficacité théorique tombant alors à zéro, ce qui est pire que de l'assumer informatif.
 
 **Ce que le report engage, et qui n'est plus indolore.** Tant que le dépôt était vide, attendre ne
-coûtait rien. Cela coûte à partir du premier lot de code : un `arch-invariants` ou un `boundaries`
-rouge et ignoré vaut exactement zéro, et c'est le mode de défaillance principal d'un job informatif
-qui dure. La sortie est nommée, datée, et **désormais exécutable** — la mesure par rejeu sur
-l'historique du dépôt, portée par
+coûtait rien. Cela coûte à partir du premier lot de code : un `boundaries` rouge et ignoré vaut
+exactement zéro, et c'est le mode de défaillance principal d'un job informatif qui dure. La sortie
+est nommée, datée et **exécutable** — la mesure par rejeu sur l'historique du dépôt, portée par
 [`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`](./chantiers/en-attente/2026-08-14-durcissement-ci.md),
-qui promeut les invariants un par un. Il y a maintenant un historique à rejouer, ce qui n'était pas
-le cas quand cette phase a été écrite.
+qui promeut les contrôles un par un, comme elle vient de le faire pour `arch-invariants`.
 
 Un job informatif **n'est simplement pas dans la liste des checks requis**. Il peut virer au rouge
 et annoter la PR sans la bloquer — aucun `continue-on-error` ne vient masquer son signal.
@@ -171,9 +170,9 @@ qu'il traverse. Et le seuil, quand il viendra, portera sur le **code nouveau** :
 de couverture **globale** est un anti-pattern qui échoue indéfiniment sur du legacy et pousse à
 écrire des tests sans valeur — ce qui aggrave précisément le problème d'oracles faux.
 
-**Les dix bloquants échappent à cette règle.** `build` et `test` en sortent d'emblée : ce sont des
-vérificateurs, pas des détecteurs — ils n'ont pas de faux positifs, ils ont des échecs. Les huit
-autres y échappent par deux voies distinctes, qu'il vaut mieux ne pas confondre — sans quoi la
+**Les onze bloquants échappent à cette règle.** `build` et `test` en sortent d'emblée : ce sont des
+vérificateurs, pas des détecteurs — ils n'ont pas de faux positifs, ils ont des échecs. Les neuf
+autres y échappent par trois voies distinctes, qu'il vaut mieux ne pas confondre — sans quoi la
 règle paraîtrait valoir pour les uns et pas pour les autres, sans motif.
 
 **Ceux dont le signal n'est pas une heuristique.** `test-integrity`, `quality-config-guard`,
@@ -198,6 +197,14 @@ couvrent pas ».
 > ici : les workflows de ce dépôt tiennent en deux fichiers. Si ce bruit se manifestait, la sortie
 > est de restreindre son jeu de règles, jamais de le rendre informatif — l'épinglage, lui, doit
 > refuser.
+
+**Celui dont le taux a été mesuré, pas éliminé.** `arch-invariants` est un détecteur heuristique —
+il grep des motifs — et ne relève d'aucune des deux voies ci-dessus : son taux de faux positifs
+n'est ni nul par construction, ni éliminé à la restitution. Ce qui l'autorise à bloquer est
+différent : son signal est **déterministe et greppable**, et il a été **mesuré** par rejeu sur
+l'historique du dépôt le 2026-09-03 — 0 faux positif résiduel après correction d'`ADR-0006`. C'est
+la troisième voie, la seule qui passe par une mesure plutôt que par une propriété. Les autres
+détecteurs heuristiques (`sast`, `boundaries`) l'emprunteront quand leur propre rejeu sera fait.
 
 ---
 
@@ -489,18 +496,18 @@ violations de contrat propres au projet, qu'aucun outil générique ne connaît.
 | ADR | Invariant | Source | Rendu par | Statut |
 |---|---|---|---|---|
 | [ADR-0021](./1.x/adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/1.x/archi.md` `I1` | `boundaries` — `npm run lint:boundaries` (`eslint.config.boundaries.js`, scaffold posé par `specs/001-scaffold-projet`) | **Rendu** depuis `specs/001-scaffold-projet` (R1) — même statut informatif que les autres lignes de ce registre, en attendant le rejeu de `docs/chantiers/en-attente/2026-08-14-durcissement-ci.md` |
-| [ADR-0022](./1.x/adr/0022-core-sans-framework-ni-plateforme.md) | `I2` — `src/core/` n'importe ni `astro`, ni `svelte`, ni `@astrojs/*`, ni `cloudflare:*` | `docs/1.x/archi.md` `I2` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0023](./1.x/adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/1.x/archi.md` `I3` | `arch-invariants` — **partiellement**, `boundaries` pour le reste, voir ci-dessous | Informatif depuis 2026-08-14 |
-| [ADR-0024](./1.x/adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/1.x/archi.md` `I4` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0025](./1.x/adr/0025-html-brut-confine-au-rendu-markdown.md) | `I5` — `{@html}` et `set:html` confinés à `src/render/markdown/` | `docs/1.x/archi.md` `I5` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0026](./1.x/adr/0026-garde-de-session-par-import-et-surface-publique-close.md) | `I6` — garde de session importé par toute route non publique ; aucun `multipart` sur la surface publique | `docs/1.x/archi.md` `I6` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0027](./1.x/adr/0027-objet-de-frequence-nomme-par-une-constante.md) · [ADR-0012](./1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md) | `I7` — `idFromName` ne reçoit qu'une constante littérale ; c'est aussi la moitié statique d'`ADR-0012` — rien de dérivé d'une origine ne survit à la fenêtre qui l'a fait naître | `docs/1.x/archi.md` `I7` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0028](./1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) | `I8` — les valeurs d'instance ne vivent que dans `instance.json` | `docs/1.x/archi.md` `I8` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0029](./1.x/adr/0029-prefixes-de-publication-en-constante-unique.md) | `I9` — `PREFIXES_AUTORISES` a un seul porteur, et `.github/` n'y figure pas | `docs/1.x/archi.md` `I9` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0032](./1.x/adr/0032-invariant-i10-restreint-a-la-configuration-astro.md) | `I10` — la configuration Astro lit `instance.json` ; la configuration du déploiement sort du périmètre (remplace [ADR-0030](./1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md)) | `docs/1.x/archi.md` `I10` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0015](./1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) | `run_worker_first` reste une liste **bornée** | `docs/1.x/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0015](./1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) · [ADR-0024](./1.x/adr/0024-administration-sans-directive-client.md) | La CSP se définit par ses **interdits** : ni `unsafe-inline`, ni `unsafe-eval` dans les sources | `docs/1.x/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
-| [ADR-0006](./1.x/adr/0006-auth-implementation-maison-sur-d1.md) | Le cookie de session porte `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict` | `docs/1.x/adr/` | `arch-invariants` | Informatif depuis 2026-08-14 |
+| [ADR-0022](./1.x/adr/0022-core-sans-framework-ni-plateforme.md) | `I2` — `src/core/` n'importe ni `astro`, ni `svelte`, ni `@astrojs/*`, ni `cloudflare:*` | `docs/1.x/archi.md` `I2` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0023](./1.x/adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/1.x/archi.md` `I3` | `arch-invariants` — **partiellement**, `boundaries` pour le reste, voir ci-dessous | Bloquant depuis 2026-09-03 (moitié `arch-invariants`) ; reliquat `I3` sous `boundaries`, informatif |
+| [ADR-0024](./1.x/adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/1.x/archi.md` `I4` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0025](./1.x/adr/0025-html-brut-confine-au-rendu-markdown.md) | `I5` — `{@html}` et `set:html` confinés à `src/render/markdown/` | `docs/1.x/archi.md` `I5` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0026](./1.x/adr/0026-garde-de-session-par-import-et-surface-publique-close.md) | `I6` — garde de session importé par toute route non publique ; aucun `multipart` sur la surface publique | `docs/1.x/archi.md` `I6` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0027](./1.x/adr/0027-objet-de-frequence-nomme-par-une-constante.md) · [ADR-0012](./1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md) | `I7` — `idFromName` ne reçoit qu'une constante littérale ; c'est aussi la moitié statique d'`ADR-0012` — rien de dérivé d'une origine ne survit à la fenêtre qui l'a fait naître | `docs/1.x/archi.md` `I7` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0028](./1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) | `I8` — les valeurs d'instance ne vivent que dans `instance.json` | `docs/1.x/archi.md` `I8` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0029](./1.x/adr/0029-prefixes-de-publication-en-constante-unique.md) | `I9` — `PREFIXES_AUTORISES` a un seul porteur, et `.github/` n'y figure pas | `docs/1.x/archi.md` `I9` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0032](./1.x/adr/0032-invariant-i10-restreint-a-la-configuration-astro.md) | `I10` — la configuration Astro lit `instance.json` ; la configuration du déploiement sort du périmètre (remplace [ADR-0030](./1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md)) | `docs/1.x/archi.md` `I10` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0015](./1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) | `run_worker_first` reste une liste **bornée** | `docs/1.x/adr/` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0015](./1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) · [ADR-0024](./1.x/adr/0024-administration-sans-directive-client.md) | La CSP se définit par ses **interdits** : ni `unsafe-inline`, ni `unsafe-eval` dans les sources | `docs/1.x/adr/` | `arch-invariants` | Bloquant depuis 2026-09-03 |
+| [ADR-0006](./1.x/adr/0006-auth-implementation-maison-sur-d1.md) | Le cookie de session porte `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict` | `docs/1.x/adr/` | `arch-invariants` | Bloquant depuis 2026-09-03 |
 | [ADR-0008](./1.x/adr/0008-texte-riche-markdown-restreint.md) | Aller-retour de sérialisation Markdown · rejet d'une URL de schéma non autorisé | `docs/1.x/adr/` | `test` — épreuves à écrire au **niveau specs** | **Bloquant** par le job qui les portera |
 
 **`I1` et `I3` résistent à l'expression régulière, et il faut le dire plutôt que le masquer.** La
@@ -550,16 +557,15 @@ l'outil sous `boundaries`.
 ### L'écart entre ce que six ADR demandent et ce que cette phase donne
 
 `ADR-0006`, `0008`, `0009`, `0012`, `0015` et `0024` écrivent au présent, chacun, qu'un **contrôle
-bloquant** de `docs/ci.md` porte leur propriété. Huit clauses en tout. Cette phase pose les
-contrôles ; elle ne peut pas les rendre bloquants aujourd'hui, parce qu'un contrôle maison neuf n'a
-aucun taux de faux positifs mesuré et qu'un contrôle bruyant finit désactivé.
+bloquant** de `docs/ci.md` porte leur propriété. Huit clauses en tout.
 
-**L'écart est nommé et daté, pas contourné** : le rejeu sur l'historique du dépôt est porté par
-`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`, et c'est lui qui les fera monter.
-
-**La clause d'échéance que ce § portait est échue.** « Rien n'est perdu entre-temps, parce qu'il n'y
-a pas encore de code à garder » a cessé d'être vrai le 2026-08-15 : il y a du code à garder, et un
-`arch-invariants` rouge et ignoré vaut exactement zéro.
+**L'écart des clauses portées par `arch-invariants` est levé le 2026-09-03.** Le rejeu sur
+l'historique du dépôt, porté par
+`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`, a mesuré son taux de faux positifs — 0
+résiduel, une fois `ADR-0006` corrigé pour viser le poseur canonique — et l'a fait monter : le job
+`arch-invariants` est désormais au ruleset (§ Protection de branche). `ADR-0008`, lui, est porté par
+le job `test` et attend ses épreuves au niveau specs. La mesure, et non l'urgence, a été la borne —
+comme l'exigeait le chantier de durcissement.
 
 Trois clauses ne sont rendues par **aucun** contrôle, et c'est déclaré plus bas : la composition
 inerte de l'e-mail acheminé (`ADR-0009`), l'effacement conjoint de la clé de fenêtre et des
@@ -702,15 +708,17 @@ Checks requis, à l'identique des noms de jobs :
 ```
 build · test · sca · dependency-review · secrets · workflow-integrity
 test-integrity · quality-config-guard · verifier-guard · specs-integrity
+arch-invariants
 ```
 
-### État : **POSÉE et à jour — reprise le 2026-08-18**
+### État : **POSÉE et à jour — reprise le 2026-09-03**
 
 Le ruleset `Main protect`, id `20239278`, est `enforcement: active`, `bypass_actors: []`,
 `current_user_can_bypass: "never"`, `allowed_merge_methods: ["merge"]`,
-`strict_required_status_checks_policy: true`, et ses **dix** contextes requis sont exactement ceux
-ci-dessus. La commande a été rejouée le **2026-08-18** pour y porter `specs-integrity`, et sa
-vérification l'a suivie dans la foulée.
+`strict_required_status_checks_policy: true`, et ses **onze** contextes requis sont exactement ceux
+ci-dessus. La commande a été rejouée le **2026-08-18** pour y porter `specs-integrity`, puis le
+**2026-09-03** pour y porter `arch-invariants` (promu après rejeu sur l'historique — chantier de
+durcissement) ; sa vérification a suivi dans la foulée à chaque fois.
 
 > **Écrire un garde et le rendre bloquant sont deux gestes**, et le second s'oublie sans bruit. Le
 > 2026-08-18, `specs-integrity` a tourné vert sur la PR qui l'apportait alors que le ruleset ne
@@ -770,7 +778,8 @@ gh api -X PUT repos/sebc-dev/colibri-cms/rulesets/20239278 \
           { "context": "test-integrity" },
           { "context": "quality-config-guard" },
           { "context": "verifier-guard" },
-          { "context": "specs-integrity" }
+          { "context": "specs-integrity" },
+          { "context": "arch-invariants" }
         ] } }
   ]
 }
@@ -783,9 +792,9 @@ Vérification après coup :
 gh api repos/sebc-dev/colibri-cms/rulesets/20239278 \
   --jq '[.rules[] | select(.type=="required_status_checks")
          | .parameters.required_status_checks[].context] | sort'
-# attendu : ["build","dependency-review","quality-config-guard","sca","secrets",
-#            "specs-integrity","test","test-integrity","verifier-guard",
-#            "workflow-integrity"]
+# attendu : ["arch-invariants","build","dependency-review","quality-config-guard",
+#            "sca","secrets","specs-integrity","test","test-integrity",
+#            "verifier-guard","workflow-integrity"]
 ```
 
 **Sans ce ruleset, tout ce document serait informatif** : c'est lui, et lui seul, qui fait refuser.
