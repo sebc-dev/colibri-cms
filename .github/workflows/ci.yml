@@ -7,11 +7,13 @@
 #
 # Bloquants   : build · test · sca · secrets · dependency-review
 #               workflow-integrity · test-integrity · quality-config-guard
-#               verifier-guard · specs-integrity
-#               (DIX — le même compte que les dix contextes requis du ruleset
+#               verifier-guard · specs-integrity · arch-invariants
+#               (ONZE — le même compte que les onze contextes requis du ruleset
 #                et que le § Contrôles de docs/ci.md ; tout garde ajouté ici
-#                se termine dans le ruleset, sinon il ne bloque rien)
-# Informatifs : lint · coverage · sast · arch-invariants · boundaries
+#                se termine dans le ruleset, sinon il ne bloque rien.
+#                arch-invariants promu bloquant le 2026-09-03 après rejeu sur
+#                l'historique — chantier 2026-08-14-durcissement-ci.md)
+# Informatifs : lint · coverage · sast · boundaries
 #               (ils annotent la PR, ils ne sont pas exigés — aucun
 #                continue-on-error ne vient masquer leur signal)
 #
@@ -73,15 +75,16 @@ jobs:
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm run lint
 
-  # ── Informatif · INVARIANTS D'ARCHITECTURE — le mode 5 ──────────────────────
+  # ── Bloquant · INVARIANTS D'ARCHITECTURE — le mode 5 ──────────────────────
   # Le gisement principal : les défauts qui comptent dans du code généré sont
   # des violations de contrat propres au projet, qu'aucun outil générique ne
   # connaît. Dérivé de la table de docs/1.x/archi.md (I1..I10) et de six ADR.
   #
-  # INFORMATIF, et ce n'est pas un provisoire mal assumé : un contrôle maison
-  # neuf n'a aucun taux de faux positifs connu. Six ADR acceptés demandent
-  # « bloquant » ; c'est le rejeu sur l'historique, porté par le chantier de
-  # durcissement, qui lèvera l'écart. Voir docs/ci.md § Registre des ADR.
+  # BLOQUANT depuis le 2026-09-03. L'écart des six ADR est levé : le rejeu sur
+  # l'historique (chantier de durcissement) a mesuré 0 faux positif résiduel —
+  # le seul l'était sur ADR-0006, corrigé en visant le poseur canonique. Le
+  # signal est déterministe et greppable, la borne que l'« Écarté » de la fiche
+  # exige pour bloquer sans taux publié. Voir docs/ci.md § Registre des ADR.
   arch-invariants:
     name: arch-invariants
     runs-on: ubuntu-latest
