@@ -72,9 +72,12 @@
 - [ ] Preuve fournie (sortie de commande réelle), pas seulement "ça a l'air fait" — **advisory**
 
 ## Gotchas / comportements non-évidents
-- Le dépôt ne porte **aucun fichier de test** : `npm test` passe au vert par `--passWithNoTests` et
-  `npm run coverage` produit un `coverage/lcov.info` de 0 octet. Le vert de `test` et de `coverage`
-  n'atteste que l'existence du script, jamais qu'une assertion a tourné.
+- Le dépôt porte des tests, exécutés dans workerd via `@cloudflare/vitest-pool-workers`
+  (ADR-0013) : suites d'intégration sous `tests/integration/**`, suites statiques sous
+  `tests/static/**`. Le `--passWithNoTests` de `npm test` n'est donc plus qu'un garde-fou ; le
+  vert de `test` atteste bien que les assertions ont tourné, et `npm run coverage` produit un
+  `coverage/lcov.info` réel (cœur `src/core/**` + bundle Worker bâti), informatif et non
+  bloquant (voir `docs/ci.md`).
 - `.npmrc` porte `min-release-age=7` (voir `docs/ci.md`) : une dépendance publiée il y a moins de
   7 jours est inutilisable à la résolution. L'assouplir m'est refusé en session (chemin protégé)
   et exige côté humain un commit `chore(config):` (ou label `config-change`), jamais en silence.

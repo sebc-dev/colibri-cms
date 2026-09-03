@@ -240,13 +240,23 @@ fi
 # navigateurs) : un mot nu en commentaire (backticks) ou dans une assertion de
 # test (regex) n'est pas une directive relâchée, et ne doit pas être compté.
 if exists 'src/*'; then
-  relachee=$(files "${SRC_EXT[@]}" 'public/_headers' \
-             | xargs -r grep -nE "'unsafe-inline'|'unsafe-eval'" 2>/dev/null) || true
-  [ -n "$relachee" ] \
+  # Règle A — sources : une directive relâchée réelle est une chaîne en guillemets
+  # doubles. On la matche, on retire l'exception ADR-0010 exacte, le reste = violation.
+  # Backticks (commentaires, même enroulés) et regex (tests) ne sont pas en guillemets
+  # doubles → ignorés sans avoir à les énumérer.
+  code=$(files "${SRC_EXT[@]}" \
+         | xargs -r grep -nE "\"[^\"]*'unsafe-(inline|eval)'[^\"]*\"" 2>/dev/null \
+         | sed -E "s/\"style-src-attr 'unsafe-inline'\"//g" \
+         | grep -E "'unsafe-(inline|eval)'") || true
+  # Règle B — public/_headers : CSP brute, tokens nus, aucune exception admise.
+  headers=$(files 'public/_headers' \
+            | xargs -r grep -nE "'unsafe-inline'|'unsafe-eval'" 2>/dev/null) || true
+  relachee=""
+  [ -n "$code" ] && relachee="${code}"$'\n'
+  [ -n "$headers" ] && relachee="${relachee}${headers}"
+  [ -n "$code$headers" ] \
     && ko ADR-0024 "une directive CSP relâchée dans les sources — la seconde des deux parades de la quatrième porte s'ouvre en silence, et cette porte n'a aucun repli" "$relachee" \
-    || ok "ADR-0015 (b) / ADR-0024 — ni unsafe-inline ni unsafe-eval dans les sources"
-else
-  hors "ADR-0024" "src/"
+    || ok "ADR-0015 (b) / ADR-0024 — seule l'exception ADR-0010 style-src-attr 'unsafe-inline' est admise"
 fi
 
 # ── ADR-0006 · les quatre attributs du cookie de session ─────────────────────
