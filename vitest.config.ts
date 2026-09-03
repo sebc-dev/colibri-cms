@@ -17,6 +17,7 @@ export default defineConfig({
     // ne matche jamais depuis l'intérieur d'une sandbox (Stryker y lance npm
     // test avec la sandbox pour racine), donc les runs de mutation sont intacts.
     exclude: [...configDefaults.exclude, '**/.stryker-tmp/**'],
+    setupFiles: ['./tests/setup/ignorer-rejet-wasm-lexer.ts'],
     coverage: {
       provider: 'istanbul',
       reporter: ['lcov'],
