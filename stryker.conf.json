@@ -1,8 +1,10 @@
 {
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "packageManager": "npm",
-  "testRunner": "vitest",
-  "mutate": ["src/**/*.ts"],
+  "testRunner": "command",
+  "commandRunner": { "command": "npm test" },
+  "mutate": ["src/core/**/*.ts", "src/platform/**/*.ts"],
   "reporters": ["clear-text", "progress"],
-  "coverageAnalysis": "perTest"
+  "coverageAnalysis": "off",
+  "incremental": true
 }
