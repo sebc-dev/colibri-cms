@@ -91,9 +91,10 @@
   `specs/**/SPEC.md`, et pour toute ligne d'un ticket `specs/**/NN-*.md` **autre
   qu'une case** (`- [ ]` ↔ `- [x]`, libres) — ne jamais réécrire une exigence pour la faire
   correspondre au code écrit ; c'est la cible qu'on déplacerait, pas le code qu'on corrigerait.
-- `lint`, `coverage`, `sast`, `arch-invariants`, `boundaries` sont **informatifs**, pas bloquants
+- `lint`, `coverage`, `sast`, `boundaries` sont **informatifs**, pas bloquants
   aujourd'hui (voir chantier de durcissement CI) — un rouge ne bloque pas la PR ; ne pas les
-  traiter comme une garantie.
+  traiter comme une garantie. `arch-invariants` est passé **bloquant** le 2026-09-03, après rejeu
+  sur l'historique (0 faux positif résiduel, ADR-0006 corrigé pour viser le poseur canonique).
 - `boundaries` (graphe d'imports) est posé pour la matrice `I1` **seule** — `npm run lint:boundaries`,
   règles dans `eslint.config.boundaries.js`. Le reliquat d'`I3` qu'un contrôle littéral ne voit pas
   (ré-exports, barils, alias) reste `[à compléter]` dans `docs/ci.md` : trou de la phase `ci`, pas à
