@@ -35,3 +35,14 @@ Trois pistes indépendantes, à prendre séparément :
 - Tout fondre dans `durcissement-ci` : seul le point 1 y appartient ; 2 et 3 sont d'autres natures.
 - Ouvrir en `en-cours/` : ces trois pistes sont différées, pas en vol — elles n'ont pas à s'annoncer
   comme actives au démarrage.
+
+## Issue
+Fermé le 2026-09-03. Pistes 2 et 3 livrées via PR #52 (mergée, merge commit `77742d9`) :
+- Piste 2 (erreurs avalées) — `--dangerouslyIgnoreUnhandledErrors` remplacé par une suppression
+  ciblée du rejet WASM es-module-lexer : un setupFile (`tests/setup/ignorer-rejet-wasm-lexer.ts`)
+  neutralise le seul `WebAssembly.compile` refusé par workerd, tout autre rejet redevient visible.
+- Piste 3 (gotcha) — le gotcha « le dépôt ne porte aucun fichier de test » / « lcov 0 octet »,
+  faux depuis l'ajout des tests, corrigé dans `CLAUDE.md`.
+Piste 1 (premier vrai run de mutation) non traitée ici : elle appartient au chantier
+`durcissement-ci` (2026-08-14), qui porte déjà la base de mutants survivants et la réserve
+Stryker/astro. Rien n'est perdu en fermant.
