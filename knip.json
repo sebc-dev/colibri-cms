@@ -6,6 +6,6 @@
     "src/platform/d1/sonde-dev.ts"
   ],
   "ignore": ["src/**/zone.ts", "src/admin/composants/ui/**"],
-  "ignoreDependencies": ["cloudflare", "@lucide/svelte"],
+  "ignoreDependencies": ["cloudflare", "@lucide/svelte", "@stryker-mutator/command-runner"],
   "ignoreExportsUsedInFile": true
 }
