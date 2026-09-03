@@ -38,3 +38,12 @@ masquer un vrai signal. Correctifs TESTÉS en scratchpad ; les fichiers cibles s
 - Éditer les fichiers protégés en session — refusé par le garde config-qualité.
 - Rendre Stryker compatible perTest avec le pool Workers — infaisable via ce runner ; le tuning
   profond (base de mutants, scope) appartient à `durcissement-ci`.
+
+## Issue
+Résolu, commits humains sur `main` (2026-09-03) :
+- knip : `2bff1ad` (entrées Astro/îlots) + `fe1e505` (ignore le fantôme `command-runner`, intégré
+  à `@stryker-mutator/core` et non un paquet séparé).
+- stryker : `3c62989` (command runner `npm test`, crash du dry-run résolu).
+- deps : `cfb4373` (retrait de `@stryker-mutator/vitest-runner`, mort après la bascule).
+Vérifié : `npm run knip` → exit 0, sortie vide ; dry-run stryker vert. Reste ouvert dans
+`durcissement-ci` : scope de `mutate` et base de mutants pour le vrai run de mutation.

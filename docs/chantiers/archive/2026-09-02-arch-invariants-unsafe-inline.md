@@ -56,3 +56,8 @@ Pourquoi robuste : backticks (commentaires, même enroulés comme `ilots.astro:2
 - Éditer le script en session — refusé par le garde config-qualité, soupape humaine par scope.
 - Se contenter du rouge — possible (ne bloque pas), mais laisse un tripwire bruité qui criera sur
   toute admin future.
+
+## Issue
+Résolu, commit humain `5af9fa4` (`chore(ci):`) sur `main` (2026-09-03). Bloc ADR-0024 remplacé par
+les deux règles ci-dessus. Vérifié par reproduction complète du script : ADR-0024 était la SEULE
+violation → `fail=0`, job arch-invariants au vert.
