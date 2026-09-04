@@ -5,6 +5,7 @@ Ouvert le 2026-08-14 · branche `work/reprise-socle-v2` · HEAD `00927eb`
 Actualisé le 2026-08-14 par le reversement de la campagne de recherche · HEAD `388cca0`
 Actualisé le 2026-08-31 par un faux positif confirmé d'`arch-invariants` (ADR-0006, cookie) · HEAD `6dafd32`
 Actualisé le 2026-09-03 par le rejeu sur l'historique et la promotion d'`arch-invariants` · branche `chore/fermer-reliquats` · HEAD `5a52998`
+Actualisé le 2026-09-04 par le rejeu de `boundaries` (0 faux positif sur 19 commits) · branche `main` · HEAD `cc99a81`
 
 ## Objectif
 Faire monter en bloquant ce que la phase `ci` a dû laisser informatif, sur mesure et non sur
@@ -35,10 +36,24 @@ conviction — et poser les contrôles qu'elle n'a pas su écrire faute de code.
 - **Le fix ADR-0006 vise le poseur canonique** `enteteCookieSession`, admet la forme Astro autant que
   l'en-tête littérale, et clenche sur la *présence du poseur* (pas du fichier) pour ne pas crier avant
   qu'une session s'ouvre.
+- **`boundaries` rejoué le 2026-09-04, sur mesure — 0 faux positif.** Contrôle *courant* (config +
+  plugins + resolver actuels) rejoué contre les **19** commits ayant touché `src/` ou le config,
+  chacun en worktree éphémère avec `node_modules` courant **lié par symlink** (sans le lien, le
+  resolver crashe sur `astro/tsconfigs/strict` — artefact, pas une violation I1). **0 violation I1,
+  0 resolve error** ; contrôle positif — arête interdite `core → platform` injectée sur HEAD —
+  **falsifié** (exit 1, message net), donc le rejeu est non-aveugle. Taux de faux positifs **0 %**,
+  sous le seuil ~10-15 %. Ne valide que `boundaries/dependencies` (**I1**) ; le fail-open
+  (`no-unknown`) est le chantier `2026-09-02-durcir-boundaries-fail-closed.md`, et le reliquat d'`I3`
+  reste `[à compléter]`. **Prêt pour promotion** — les 3 surfaces (ruleset + `ci.yml` + `docs/ci.md`,
+  plus la ligne « gotcha » de `CLAUDE.md`) restent à appliquer côté humain (chemins protégés + action
+  forge) : handoff préparé.
 
 ## Prochaine étape
-**Rejouer `boundaries`** (I1, chaîne ESLint — jamais mesuré) pour décider sa promotion, même méthode
-que pour `arch-invariants`. Puis les contrôles encore `[à compléter]` ci-dessous.
+**Appliquer la promotion de `boundaries` en bloquant — les 3 surfaces ensemble** (rejeu fait le
+2026-09-04, 0 FP) : ajouter le contexte `boundaries` au ruleset `Main protect` (id 20239278),
+refléter dans `ci.yml` (11→12 bloquants) et `docs/ci.md`, plus la ligne « gotcha » de `CLAUDE.md` —
+tous chemins protégés ou action forge, donc côté humain (handoff préparé). Puis les contrôles encore
+`[à compléter]` ci-dessous.
 
 ## Ce qui restait à écrire
 - `[à compléter]` **le reliquat d'`I3`** — ré-exports, barils, alias qu'un grep ne voit pas, plus les

@@ -8,7 +8,7 @@
 | **Trace vers** | [Stack](./1.x/stack.md) · [Archi](./1.x/archi.md) · [ADR](./1.x/adr/) |
 | **Forge** | GitHub Actions — `.github/workflows/ci.yml` · `.github/workflows/nightly.yml` |
 | **Consommé par** | `CLAUDE.md` (phase `contract`), qui lit ses commandes ici plutôt que de les inventer |
-| **Documents liés** | [Socle de livraison](./socle-de-livraison.md) — le garde-fou du socle `C5` que le job `build` compte · [Chantier de durcissement](./chantiers/en-attente/2026-08-14-durcissement-ci.md) |
+| **Documents liés** | [Socle de livraison](./socle-de-livraison.md) — le garde-fou du socle `C5` que le job `build` compte · [Chantier de durcissement](2026-08-14-durcissement-ci.md) |
 
 > **Ce que ce document est.** La synthèse de ce qui est vérifié **hors de l'agent**. Le contrôle
 > réel est le fichier de workflow ; ce document en donne la portée, le statut et les limites.
@@ -129,35 +129,35 @@ vise.
 | — | `lint` | Style | dépôt (garde de scaffold) | Informatif | **vérificateur** — cible du mode 2 (lisibilité) |
 | — | `coverage` | Couverture du **code nouveau**, sans seuil chiffré | diff | Informatif | **vérificateur** — mesure l'exécution, **jamais l'assertion** |
 | — | `sast` | Semgrep | dépôt | Informatif | **vérificateur** — cible du mode 2 (injection, XSS, traversée) |
-| — | `boundaries` | Graphe d'imports **résolu** — `I1` (sens descendant des dépendances entre zones) et le reliquat d'`I3` qu'un grep littéral ne peut pas voir (ré-exports, barils, alias) | dépôt (garde de scaffold) | Informatif → bloquant après rejeu | 5 — hors de portée d'`arch-invariants`, qui ne résout pas le graphe |
 | — | `dead-code` | knip (**nocturne**) | dépôt | Informatif | 4 — partiellement |
 | — | `mutation` | Stryker (**nocturne**) | code nouveau | Informatif | 1 — **statistiquement**, jamais prouvé |
 | — | — (résolveur) | Cooldown de dépendances, `min-release-age = 7` dans `.npmrc` | installation | **Bloquant (déclaratif)** | 3a, 3b |
 
-**11 bloquants · 4 informatifs sur PR · 2 informatifs nocturnes.**
+**11 bloquants · 4 informatifs sur PR · 2 informatifs nocturnes.** → **12 bloquants · 3 informatifs sur PR · 2 informatifs nocturnes.**
 
 La dernière ligne n'est pas un job : c'est une **clé de configuration** du résolveur, elle agit à
 l'installation, et son abaissement est gardé par `dependency-review` **et** par
 `quality-config-guard`, qui surveille `.npmrc`.
 
-### Pourquoi `sast`, `coverage` et `boundaries` ne sont pas bloquants
+### Pourquoi \sast`, `coverage` et `boundaries` ne sont pas bloquants→### Pourquoi `sast` et `coverage` ne sont pas bloquants`
 
 La règle est explicite : *aucun contrôle dont le taux de faux positifs est inconnu ne devient
 bloquant*. `arch-invariants` en est **sorti le 2026-09-03** : le rejeu sur l'historique du dépôt a
 mesuré son taux — 0 faux positif résiduel, une fois `ADR-0006` corrigé pour viser le poseur
-canonique — et l'a fait monter (voir § Registre et le chantier de durcissement). Les trois qui
-restent n'ont pas cette mesure : `sast` n'a jamais été rejoué sur du code de ce dépôt, `coverage`
-attend un corpus de test réel, et `boundaries` (chaîne ESLint, `I1`) n'a pas eu son propre rejeu.
-Sept fichiers sous `src/` et aucun test suffisant n'en tirent un taux : les rendre bloquants
-reviendrait à parier sur un chiffre qu'on n'a pas, et **un contrôle bruyant finit désactivé** — son
-efficacité théorique tombant alors à zéro, ce qui est pire que de l'assumer informatif.
-
+canonique — et l'a fait monter (voir § Registre et le chantier de durcissement). `boundaries` l'a
+suivi le **2026-09-04** : son rejeu — contrôle courant contre les 19 commits ayant touché `src/`, en
+worktrees éphémères — a mesuré **0 faux positif**, et un contrôle positif (arête interdite injectée)
+le falsifie bien. Les deux qui restent n'ont pas cette mesure : `sast` n'a jamais été rejoué sur du
+code de ce dépôt, et `coverage` attend un corpus de test réel. Sept fichiers sous `src/` et aucun
+test suffisant n'en tirent un taux : les rendre bloquants reviendrait à parier sur un chiffre qu'on
+n'a pas, et **un contrôle bruyant finit désactivé** — son efficacité théorique tombant alors à zéro,
+ce qui est pire que de l'assumer informatif.
 **Ce que le report engage, et qui n'est plus indolore.** Tant que le dépôt était vide, attendre ne
-coûtait rien. Cela coûte à partir du premier lot de code : un `boundaries` rouge et ignoré vaut
+coûtait rien. Cela coûte à partir du premier lot de code : un job de détection rouge et ignoré vaut
 exactement zéro, et c'est le mode de défaillance principal d'un job informatif qui dure. La sortie
 est nommée, datée et **exécutable** — la mesure par rejeu sur l'historique du dépôt, portée par
-[`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`](./chantiers/en-attente/2026-08-14-durcissement-ci.md),
-qui promeut les contrôles un par un, comme elle vient de le faire pour `arch-invariants`.
+[`docs/chantiers/en-cours/2026-08-14-durcissement-ci.md`](./chantiers/en-cours/2026-08-14-durcissement-ci.md),
+qui promeut les contrôles un par un, comme elle l'a fait pour `arch-invariants` puis `boundaries`.
 
 Un job informatif **n'est simplement pas dans la liste des checks requis**. Il peut virer au rouge
 et annoter la PR sans la bloquer — aucun `continue-on-error` ne vient masquer son signal.
@@ -170,10 +170,7 @@ qu'il traverse. Et le seuil, quand il viendra, portera sur le **code nouveau** :
 de couverture **globale** est un anti-pattern qui échoue indéfiniment sur du legacy et pousse à
 écrire des tests sans valeur — ce qui aggrave précisément le problème d'oracles faux.
 
-**Les onze bloquants échappent à cette règle.** `build` et `test` en sortent d'emblée : ce sont des
-vérificateurs, pas des détecteurs — ils n'ont pas de faux positifs, ils ont des échecs. Les neuf
-autres y échappent par trois voies distinctes, qu'il vaut mieux ne pas confondre — sans quoi la
-règle paraîtrait valoir pour les uns et pas pour les autres, sans motif.
+ **Les onze bloquants échappent à cette règle.** → **Les douze bloquants échappent à cette règle.**, et Les neuf autres y échappent → Les dix autres y échappent.
 
 **Ceux dont le signal n'est pas une heuristique.** `test-integrity`, `quality-config-guard`,
 `verifier-guard`, `specs-integrity` et `dependency-review` ne mesurent rien : c'est un `git diff`,
@@ -198,13 +195,15 @@ couvrent pas ».
 > est de restreindre son jeu de règles, jamais de le rendre informatif — l'épinglage, lui, doit
 > refuser.
 
-**Celui dont le taux a été mesuré, pas éliminé.** `arch-invariants` est un détecteur heuristique —
-il grep des motifs — et ne relève d'aucune des deux voies ci-dessus : son taux de faux positifs
-n'est ni nul par construction, ni éliminé à la restitution. Ce qui l'autorise à bloquer est
-différent : son signal est **déterministe et greppable**, et il a été **mesuré** par rejeu sur
-l'historique du dépôt le 2026-09-03 — 0 faux positif résiduel après correction d'`ADR-0006`. C'est
-la troisième voie, la seule qui passe par une mesure plutôt que par une propriété. Les autres
-détecteurs heuristiques (`sast`, `boundaries`) l'emprunteront quand leur propre rejeu sera fait.
+**Ceux dont le taux a été mesuré, pas éliminé.** `arch-invariants` (grep de motifs) et `boundaries`
+(graphe d'imports résolu) sont des détecteurs qui ne relèvent d'aucune des deux voies ci-dessus :
+leur taux de faux positifs n'est ni nul par construction, ni éliminé à la restitution. Ce qui les
+autorise à bloquer est différent : leur signal est **déterministe** — motif greppable pour l'un,
+arête de graphe résolue pour l'autre — et il a été **mesuré** par rejeu sur l'historique du dépôt :
+`arch-invariants` le 2026-09-03 (0 faux positif résiduel après correction d'`ADR-0006`),
+`boundaries` le 2026-09-04 (0 faux positif sur 19 commits). C'est la troisième voie, la seule qui
+passe par une mesure plutôt que par une propriété. Le dernier détecteur heuristique, `sast`,
+l'empruntera quand son propre rejeu sera fait.
 
 ---
 

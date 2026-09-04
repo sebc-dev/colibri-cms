@@ -7,13 +7,14 @@
 #
 # Bloquants   : build · test · sca · secrets · dependency-review
 #               workflow-integrity · test-integrity · quality-config-guard
-#               verifier-guard · specs-integrity · arch-invariants
-#               (ONZE — le même compte que les onze contextes requis du ruleset
+#               verifier-guard · specs-integrity · arch-invariants · boundaries
+#               (DOUZE — le même compte que les douze contextes requis du ruleset
 #                et que le § Contrôles de docs/ci.md ; tout garde ajouté ici
 #                se termine dans le ruleset, sinon il ne bloque rien.
-#                arch-invariants promu bloquant le 2026-09-03 après rejeu sur
-#                l'historique — chantier 2026-08-14-durcissement-ci.md)
-# Informatifs : lint · coverage · sast · boundaries
+#                arch-invariants promu bloquant le 2026-09-03, boundaries le
+#                2026-09-04, chacun après rejeu sur l'historique —
+#                chantier 2026-08-14-durcissement-ci.md)
+# Informatifs : lint · coverage · sast
 #               (ils annotent la PR, ils ne sont pas exigés — aucun
 #                continue-on-error ne vient masquer leur signal)
 #
@@ -94,16 +95,23 @@ jobs:
           persist-credentials: false
       - run: bash .github/scripts/arch-invariants.sh
 
-  # ── Informatif · GRAPHE D'IMPORTS RÉSOLU — I1 et le reliquat d'I3 ───────────
+  # ── Bloquant · GRAPHE D'IMPORTS RÉSOLU — I1 (reliquat d'I3 encore ouvert) ────
   # eslint-plugin-boundaries sur eslint-import-resolver-typescript : seule
   # chaîne capable de résoudre alias tsconfig, ré-exports et barils, ce qu'un
   # script maison (arch-invariants) ne fait pas sans recréer un résolveur
   # (docs/ci.md § Registre des ADR).
   #
+  # BLOQUANT depuis le 2026-09-04. Rejeu du contrôle courant contre les 19
+  # commits ayant touché src/ ou ce config, chacun en worktree éphémère
+  # (node_modules courant lié) : 0 faux positif, 0 resolve error, et un contrôle
+  # positif — arête interdite core→platform injectée — bien falsifié. La borne
+  # que l'« Écarté » de la fiche exige pour bloquer sans taux publié est tenue.
+  # Ce job rend I1 ; le reliquat d'I3 (ré-exports, barils, alias, import profond
+  # via import-x/no-internal-modules) reste [à compléter] — docs/ci.md § Registre.
+  #
   # Job SÉPARÉ de `lint`, volontairement : `lint` couvre le style (mode 2) et
-  # reste informatif sans échéance. `I1`/`I3` sont mode 5 — le chantier de
-  # durcissement les promeut en bloquant invariant par invariant ; les noyer
-  # dans `lint` interdirait de le faire sans bloquer aussi sur le style.
+  # reste informatif sans échéance. Les noyer ensemble interdirait de promouvoir
+  # I1 sans bloquer aussi sur le style.
   boundaries:
     name: boundaries
     runs-on: ubuntu-latest
