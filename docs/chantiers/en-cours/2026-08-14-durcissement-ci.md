@@ -6,6 +6,7 @@ Actualisé le 2026-08-14 par le reversement de la campagne de recherche · HEAD 
 Actualisé le 2026-08-31 par un faux positif confirmé d'`arch-invariants` (ADR-0006, cookie) · HEAD `6dafd32`
 Actualisé le 2026-09-03 par le rejeu sur l'historique et la promotion d'`arch-invariants` · branche `chore/fermer-reliquats` · HEAD `5a52998`
 Actualisé le 2026-09-04 par le rejeu de `boundaries` (0 faux positif sur 19 commits) · branche `main` · HEAD `cc99a81`
+Actualisé le 2026-09-04 par la promotion de `boundaries` mergée (PR #56, cohérence #57) et le report du reliquat d'`I3` (cible absente) · branche `main` · HEAD `ca0e5ca`
 
 ## Objectif
 Faire monter en bloquant ce que la phase `ci` a dû laisser informatif, sur mesure et non sur
@@ -49,17 +50,22 @@ conviction — et poser les contrôles qu'elle n'a pas su écrire faute de code.
   forge) : handoff préparé.
 
 ## Prochaine étape
-**Appliquer la promotion de `boundaries` en bloquant — les 3 surfaces ensemble** (rejeu fait le
-2026-09-04, 0 FP) : ajouter le contexte `boundaries` au ruleset `Main protect` (id 20239278),
-refléter dans `ci.yml` (11→12 bloquants) et `docs/ci.md`, plus la ligne « gotcha » de `CLAUDE.md` —
-tous chemins protégés ou action forge, donc côté humain (handoff préparé). Puis les contrôles encore
-`[à compléter]` ci-dessous.
+**Promotion de `boundaries` faite** — ruleset (12 contextes requis), `ci.yml`, `docs/ci.md` et
+`CLAUDE.md` mergés (PR #56 ; cohérence rétablie par #57). Reliquat d'`I3` **différé** le 2026-09-04
+(cible absente — voir ci-dessous). Prochains candidats : les contrôles encore `[à compléter]` — mais
+aucun n'est actionnable tant que le code qu'il surveillerait n'existe pas ; chaque ligne porte sa
+condition de réouverture.
 
 ## Ce qui restait à écrire
 - `[à compléter]` **le reliquat d'`I3`** — ré-exports, barils, alias qu'un grep ne voit pas, plus les
-  imports profonds contournant un baril (`import-x/no-internal-modules`). Sous `boundaries` ; `I1` lui
-  est déjà rendu. dependency-cruiser écarté ; **seuil de réouverture** : `typescript@7.1.0` avec API
-  publique **et** extension `.astro`.
+  imports profonds contournant un baril (`import-x/no-internal-modules`, plugin **non installé** à ce
+  jour). Sous `boundaries` ; `I1` lui est déjà rendu. **Cible absente, constaté le 2026-09-04** :
+  l'entrée d'`I3` est le baril `src/render/index.ts`, pas encore posé — `render/` est un stub
+  (`zone.ts` seul), rien ne l'importe, et une règle large sur-tirerait sur des imports inter-zones
+  I1-légitimes (`platform/auth/magasin → core/auth/*`, `.astro → platform/auth/magasin`…), contre la
+  doctrine 0 FP. **Seuil de réouverture (import-x)** : quand `src/render/index.ts` est posé et que du
+  code de rendu atterrit — la règle mord alors sur données réelles. Voie dependency-cruiser toujours
+  écartée par ailleurs : ni `.astro`, ni `typescript@7.1.0` avec API publique.
 - `[à compléter]` **l'e-mail acheminé inerte** (`ADR-0009`) — gabarit inexistant, chemin non décidé ;
   aucun motif ne se dérive sans l'inventer.
 - `[à compléter]` **l'ablation no-op** — remplacer un artefact critique par du vide et vérifier que
