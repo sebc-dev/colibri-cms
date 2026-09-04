@@ -50,7 +50,7 @@ Trois conséquences, et seule la dernière reste inconfortable :
    were executed », `ConfigError`. Le vert de `test` et de `coverage` n'atteste donc que
    l'existence du script. Sept fichiers sous `src/` — les cinq amorces de zone, la sonde de
    développement et une déclaration de types — ne font pas davantage un corpus : c'est ce qui
-   commande le § « Pourquoi `sast`, `coverage` et `boundaries` ne sont pas bloquants ». Le
+   commande le § « Pourquoi `sast` et `coverage` ne sont pas bloquants ». Le
    premier lot qui livre un test fera tomber ce point 3.
 
 **Le gestionnaire de paquets retenu est `npm`** — [ADR-0031](./1.x/adr/0031-gestionnaire-de-paquets-npm.md),
@@ -126,6 +126,7 @@ vise.
 | 9 | `verifier-guard` | Extinction du vérificateur, sous signature | diff des **sources** | **Bloquant** | 2 — typage, lint et SAST éteints ligne à ligne |
 | 10 | `specs-integrity` | Documents de specs figés, sous signature | diff de `specs/**` — `SPEC.md`, tickets `NN-*.md` | **Bloquant** | 2 — la **cible** réécrite pour correspondre au code |
 | 11 | `arch-invariants` | Invariants de `docs/1.x/archi.md` + les clauses d'ADR du registre ci-dessous | arbre courant | **Bloquant** depuis 2026-09-03 | 5 — le **gisement principal** |
+| 12 | `boundaries` | Graphe d'imports **résolu** — `I1` (sens descendant des dépendances entre zones) ; le reliquat d'`I3` (ré-exports, barils, alias) reste `[à compléter]` | dépôt (garde de scaffold) | **Bloquant** depuis 2026-09-04 | 5 — hors de portée d'`arch-invariants`, qui ne résout pas le graphe |
 | — | `lint` | Style | dépôt (garde de scaffold) | Informatif | **vérificateur** — cible du mode 2 (lisibilité) |
 | — | `coverage` | Couverture du **code nouveau**, sans seuil chiffré | diff | Informatif | **vérificateur** — mesure l'exécution, **jamais l'assertion** |
 | — | `sast` | Semgrep | dépôt | Informatif | **vérificateur** — cible du mode 2 (injection, XSS, traversée) |
@@ -133,13 +134,13 @@ vise.
 | — | `mutation` | Stryker (**nocturne**) | code nouveau | Informatif | 1 — **statistiquement**, jamais prouvé |
 | — | — (résolveur) | Cooldown de dépendances, `min-release-age = 7` dans `.npmrc` | installation | **Bloquant (déclaratif)** | 3a, 3b |
 
-**11 bloquants · 4 informatifs sur PR · 2 informatifs nocturnes.** → **12 bloquants · 3 informatifs sur PR · 2 informatifs nocturnes.**
+**12 bloquants · 3 informatifs sur PR · 2 informatifs nocturnes.**
 
 La dernière ligne n'est pas un job : c'est une **clé de configuration** du résolveur, elle agit à
 l'installation, et son abaissement est gardé par `dependency-review` **et** par
 `quality-config-guard`, qui surveille `.npmrc`.
 
-### Pourquoi \sast`, `coverage` et `boundaries` ne sont pas bloquants→### Pourquoi `sast` et `coverage` ne sont pas bloquants`
+### Pourquoi `sast` et `coverage` ne sont pas bloquants
 
 La règle est explicite : *aucun contrôle dont le taux de faux positifs est inconnu ne devient
 bloquant*. `arch-invariants` en est **sorti le 2026-09-03** : le rejeu sur l'historique du dépôt a
@@ -152,6 +153,7 @@ code de ce dépôt, et `coverage` attend un corpus de test réel. Sept fichiers 
 test suffisant n'en tirent un taux : les rendre bloquants reviendrait à parier sur un chiffre qu'on
 n'a pas, et **un contrôle bruyant finit désactivé** — son efficacité théorique tombant alors à zéro,
 ce qui est pire que de l'assumer informatif.
+
 **Ce que le report engage, et qui n'est plus indolore.** Tant que le dépôt était vide, attendre ne
 coûtait rien. Cela coûte à partir du premier lot de code : un job de détection rouge et ignoré vaut
 exactement zéro, et c'est le mode de défaillance principal d'un job informatif qui dure. La sortie
@@ -170,7 +172,10 @@ qu'il traverse. Et le seuil, quand il viendra, portera sur le **code nouveau** :
 de couverture **globale** est un anti-pattern qui échoue indéfiniment sur du legacy et pousse à
 écrire des tests sans valeur — ce qui aggrave précisément le problème d'oracles faux.
 
- **Les onze bloquants échappent à cette règle.** → **Les douze bloquants échappent à cette règle.**, et Les neuf autres y échappent → Les dix autres y échappent.
+**Les douze bloquants échappent à cette règle.** `build` et `test` en sortent d'emblée : ce sont des
+vérificateurs, pas des détecteurs — ils n'ont pas de faux positifs, ils ont des échecs. Les dix
+autres y échappent par trois voies distinctes, qu'il vaut mieux ne pas confondre — sans quoi la
+règle paraîtrait valoir pour les uns et pas pour les autres, sans motif.
 
 **Ceux dont le signal n'est pas une heuristique.** `test-integrity`, `quality-config-guard`,
 `verifier-guard`, `specs-integrity` et `dependency-review` ne mesurent rien : c'est un `git diff`,
@@ -494,7 +499,7 @@ violations de contrat propres au projet, qu'aucun outil générique ne connaît.
 
 | ADR | Invariant | Source | Rendu par | Statut |
 |---|---|---|---|---|
-| [ADR-0021](./1.x/adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/1.x/archi.md` `I1` | `boundaries` — `npm run lint:boundaries` (`eslint.config.boundaries.js`, scaffold posé par `specs/001-scaffold-projet`) | **Rendu** depuis `specs/001-scaffold-projet` (R1) — même statut informatif que les autres lignes de ce registre, en attendant le rejeu de `docs/chantiers/en-attente/2026-08-14-durcissement-ci.md` |
+| [ADR-0021](./1.x/adr/0021-sens-descendant-des-dependances-entre-zones.md) | `I1` — sens descendant des dépendances entre les cinq zones | `docs/1.x/archi.md` `I1` | `boundaries` — `npm run lint:boundaries` (`eslint.config.boundaries.js`, scaffold posé par `specs/001-scaffold-projet`) | **Bloquant** depuis 2026-09-04 (`boundaries`) — rejeu sur l'historique : 0 faux positif sur 19 commits (`docs/chantiers/en-cours/2026-08-14-durcissement-ci.md`) |
 | [ADR-0022](./1.x/adr/0022-core-sans-framework-ni-plateforme.md) | `I2` — `src/core/` n'importe ni `astro`, ni `svelte`, ni `@astrojs/*`, ni `cloudflare:*` | `docs/1.x/archi.md` `I2` | `arch-invariants` | Bloquant depuis 2026-09-03 |
 | [ADR-0023](./1.x/adr/0023-rendu-partage-par-le-publie-et-l-apercu.md) | `I3` — `src/render/` n'est atteint que par son index ; les deux routes passent par le gabarit partagé | `docs/1.x/archi.md` `I3` | `arch-invariants` — **partiellement**, `boundaries` pour le reste, voir ci-dessous | Bloquant depuis 2026-09-03 (moitié `arch-invariants`) ; reliquat `I3` sous `boundaries`, informatif |
 | [ADR-0024](./1.x/adr/0024-administration-sans-directive-client.md) | `I4` — aucune directive `client:*` sous `src/admin/` | `docs/1.x/archi.md` `I4` | `arch-invariants` | Bloquant depuis 2026-09-03 |
@@ -520,7 +525,7 @@ et `svelte-eslint-parser` que le projet a de toute façon. Son fichier de règle
 `quality-config-guard` — et il déclare **la matrice d'`I1` seule**. Elle tourne dans un job dédié,
 `boundaries` — et non dans `lint` — parce que `lint` couvre le style (mode 2) : y noyer
 `I1`/`I3` interdirait de les promouvoir en bloquant sans bloquer aussi sur le style, alors que le
-chantier de durcissement (`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`) promeut les
+chantier de durcissement (`docs/chantiers/en-cours/2026-08-14-durcissement-ci.md`) promeut les
 invariants un par un. `I3` est rendu **à moitié** dès aujourd'hui, par `arch-invariants` — les
 chemins d'import littéraux vers `src/render/` et la présence du gabarit partagé dans les deux
 routes —, et le reste, ce qu'un grep littéral ne peut pas voir (ré-export, barils, alias), attend
@@ -560,7 +565,7 @@ bloquant** de `docs/ci.md` porte leur propriété. Huit clauses en tout.
 
 **L'écart des clauses portées par `arch-invariants` est levé le 2026-09-03.** Le rejeu sur
 l'historique du dépôt, porté par
-`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`, a mesuré son taux de faux positifs — 0
+`docs/chantiers/en-cours/2026-08-14-durcissement-ci.md`, a mesuré son taux de faux positifs — 0
 résiduel, une fois `ADR-0006` corrigé pour viser le poseur canonique — et l'a fait monter : le job
 `arch-invariants` est désormais au ruleset (§ Protection de branche). `ADR-0008`, lui, est porté par
 le job `test` et attend ses épreuves au niveau specs. La mesure, et non l'urgence, a été la borne —
@@ -956,4 +961,4 @@ l'ablation no-op elle-même n'est pas posée : aucune commande réelle ne l'expr
 
 ## Palier suivant
 
-→ [`docs/chantiers/en-attente/2026-08-14-durcissement-ci.md`](./chantiers/en-attente/2026-08-14-durcissement-ci.md)
+→ [`docs/chantiers/en-cours/2026-08-14-durcissement-ci.md`](./chantiers/en-cours/2026-08-14-durcissement-ci.md)
