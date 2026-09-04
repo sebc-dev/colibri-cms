@@ -74,9 +74,13 @@ condition de réouverture.
   ici) — `mutate` accepte globs/fichier/plage, `--incremental` existe ; réserve : la liste Stryker
   par défaut porte `svelte`/`vue`, **pas `astro`**.
 - Le **seuil chiffré de couverture du diff**, une fois vu le code réel.
-- Les **constats de maturité 2026-08-08** (socle v1) à re-vérifier à l'adoption : DMNO→varlock 1.16.1 ;
-  `@lhci/cli` épingle `lighthouse` exact sans `engines` ; `pa11y-ci` fige `axe-core` 4.11.x ;
-  `typescript-docs-verifier` 3.0.2 et `@eslint/markdown` 8.0.3 sans peers.
+- Les **constats de maturité 2026-08-08** (socle v1), **re-vérifiés au registre npm le 2026-09-04**
+  (aucun encore installé — outils CI futurs, accessibilité/docs) : `@lhci/cli` 0.15.1 épingle
+  `lighthouse` **12.6.1** exact et n'a **aucun `engines`** ✓ ; `pa11y-ci` 4.1.1 fige `axe-core`
+  **~4.11.1** (via `pa11y ^9.1.1`) ✓ ; `typescript-docs-verifier` 3.0.2, peer `typescript >=4.7.2` ✓ ;
+  `@eslint/markdown` 8.0.3, **aucun `peerDependencies`** ✓ ; **varlock a dérivé 1.16.1 → 1.18.0**
+  (MIT, actif ; DMNO toujours figé à 0.0.41 depuis 2025-12-01 → maintenance confirmée). Reste à
+  re-vérifier une dernière fois à l'installation effective.
 - **Snyk Code** : palier gratuit invérifiable depuis un doc — `I5` se tranche à l'inscription. Dépôt
   **public** → CodeQL ouvert.
 - **Cooldown Dependabot à aligner sur 7 j** à l'activation des MàJ auto (défaut GitHub 3 j) — sinon PR
