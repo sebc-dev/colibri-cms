@@ -210,7 +210,7 @@ portent, une copie dériverait ici.
 - **Texte riche** — éditeur TipTap sérialisé en Markdown restreint (candidat `texte-riche-markdown-restreint`).
 - **Authentification** — implémentation maison sur D1 : code à saisir, session opaque, moyen de reprise (ADR-0001 ; candidat `moyen-de-reprise-code-128-bits-hache`).
 - **Services Cloudflare** — Email Routing achemine chaque demande (ADR-0002) ; Turnstile et un compteur de fréquence tiennent l'anti-abus (candidat `anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre`).
-- **En-têtes et CSP** — deux porteurs (`_headers` pour le public, middleware pour l'administration), CSP stricte propre à l'administration (ADR-0004, ADR-0008).
+- **En-têtes et CSP** — deux porteurs (`_headers` pour le public, middleware pour l'administration), CSP stricte propre à l'administration (ADR-0004, ADR-0008, ADR-0010).
 - **Tests** — Vitest dans `workerd`, Playwright pour les parcours, épreuve de réversibilité scriptée (ADR-0003).
 - **Configuration d'instance** — quatre lieux, un par nature de valeur ; aucun secret dans le dépôt (ADR-0005).
 
@@ -252,8 +252,8 @@ ne le sont nulle part et attendent `/scd-sdd:adr`.
 ## Découpage — epics
 
 L'epic nomme ses features par `NNN` quand elles sont sur le disque ; sinon, par leur intention.
-Une seule feature existe aujourd'hui (`001`) ; le reste est de la planification — son `NNN` sera
-attribué par `/scd-sdd:spec`. L'avancement réel se lit par `/scd-sdd:status`, jamais ici.
+Deux features existent aujourd'hui (`001`, `002`) ; le reste est de la planification — son `NNN`
+sera attribué par `/scd-sdd:spec`. L'avancement réel se lit par `/scd-sdd:status`, jamais ici.
 Deux identifiants ne sont rattachés à aucune feature, à dessein : FR-117 (langage de l'interface)
 s'impose à toutes, et SC-002 (le site en production) est le critère-somme du produit entier.
 
@@ -264,6 +264,7 @@ Résultats-clés :
 - Aucune fausse manœuvre ne peut casser la mise en page ni laisser un trou dans une page publiée.
 Features :
 - **001** — Connexion de l'éditrice par code   (FR-001→006, FR-008, FR-118, FR-120→122 · SC-006, SC-021)
+- **002** — Socle d'îlots d'administration shadcn-svelte   (aucun FR propre — substrat des features d'édition · SEC-1, ARCH-2, UX-1)
 - Remplir et corriger les emplacements d'une page   (FR-015→026 · SC-003, SC-015)
 - Bibliothèque de médias   (FR-027→040 · SC-010, SC-018)
 - Réglages transverses   (FR-041→044 · SC-017)
