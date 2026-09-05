@@ -265,7 +265,7 @@ Résultats-clés :
 Features :
 - **001** — Connexion de l'éditrice par code   (FR-001→006, FR-008, FR-118, FR-120→122 · SC-006, SC-021)
 - **002** — Socle d'îlots d'administration shadcn-svelte   (aucun FR propre — substrat des features d'édition · SEC-1, ARCH-2, UX-1)
-- Remplir et corriger les emplacements d'une page   (FR-015→026 · SC-003, SC-015)
+- **003** — Remplir et corriger les emplacements d'une page   (FR-015→026 · SC-003, SC-015)
 - Bibliothèque de médias   (FR-027→040 · SC-010, SC-018)
 - Réglages transverses   (FR-041→044 · SC-017)
 - Réglage des formulaires de devis   (FR-045→051 · SC-007)
