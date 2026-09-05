@@ -16,6 +16,7 @@
 import { mount } from 'svelte';
 import Compteur from './Compteur.svelte';
 import ActionRapide from './ActionRapide.svelte';
+import Cadre from './Cadre.svelte';
 
 /**
  * Monte l'îlot `Compteur` sur le premier élément portant l'identifiant donné.
@@ -39,4 +40,18 @@ export function monterActionRapide(idCible: string): void {
   if (!cible) return;
 
   mount(ActionRapide, { target: cible });
+}
+
+/**
+ * Monte l'îlot `Cadre` (ticket 01,
+ * specs/003-remplir-emplacements/01-cadre-administration.md) — le cadre
+ * commun à tous les écrans d'administration, monté en application (pas une
+ * hydratation par page, SPEC.md § Décisions d'implémentation). Même garde
+ * d'absence que les fonctions ci-dessus.
+ */
+export function monterCadre(idCible: string): void {
+  const cible = document.getElementById(idCible);
+  if (!cible) return;
+
+  mount(Cadre, { target: cible });
 }

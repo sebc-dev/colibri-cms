@@ -1,0 +1,40 @@
+---
+/**
+ * L'écran qui monte le cadre de l'administration (ticket 01,
+ * specs/003-remplir-emplacements/01-cadre-administration.md).
+ *
+ * Route gardée comme toute route d'administration (ADR-0007), à l'identique
+ * de `src/pages/admin/index.astro` et `src/pages/admin/ilots.astro` (002).
+ *
+ * Fichier distinct de `src/pages/admin/index.astro` — pas « (ou équivalent) »
+ * par commodité : `index.astro` reste sous le contrat figé par
+ * `tests/integration/code-ouvre-la-session.test.ts` (ticket 06 de
+ * 001-connexion-par-code, couture HTTP verrouillée, jamais éditée ici).
+ * Ticket 02 (specs/003-remplir-emplacements/02-liste-des-pages.md), bloqué
+ * par celui-ci et seul à porter `tests/integration/` dans son périmètre,
+ * est celui qui branche réellement « Mes pages » sur la route d'accueil.
+ * Ce ticket-ci prouve seulement que le cadre — le substrat commun — se
+ * monte et se rend sous les en-têtes réels (CSP stricte, ADR-0010).
+ *
+ * Aucune directive `client:*` (ADR-0006) : l'îlot se monte par le `<script>`
+ * de module ci-dessous (jamais `is:inline`), qui importe le point d'entrée
+ * externe `src/admin/ilots-svelte-5/monter.ts` — même patron que 002.
+ */
+import Gabarit from '../../admin/Gabarit.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+---
+
+<Gabarit titre="Mes pages — Administration">
+  <div id="ilot-cadre"></div>
+  <script>
+    import { monterCadre } from '../../admin/ilots-svelte-5/monter.ts';
+
+    monterCadre('ilot-cadre');
+  </script>
+</Gabarit>
