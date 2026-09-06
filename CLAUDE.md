@@ -84,7 +84,9 @@
   `as any`, `eslint-disable`, `.skip(`…) et **annote**. Un rouge se voit, il ne bloque pas la
   fusion. Un escape-hatch légitime se **déroge en review**.
 - Le déterministe vit **en local**, dans la quality gate `.claude/quality.json` jouée à chaque
-  ticket : `typecheck`, `lint`, `lint:boundaries` et `test` **bloquants**, `knip` et `crap` en avis.
+  ticket : `typecheck`, `lint`, `lint:boundaries` et `test` **bloquants**, `knip`, `crap` (score
+  CRAP) et `mutation` (Stryker sur le diff) en avis. La mutation coûte ~7 s par mutant — un ticket
+  qui touche `src/core/` ou `src/platform/` allonge la gate de plusieurs minutes.
 - Plus de portail à douze bloquants, plus de hooks de session, plus de scopes de commit imposés ni
   de signatures SSH : ces gardes n'existent plus. Ne pas raisonner comme s'ils étaient là.
 

@@ -47,9 +47,22 @@ intégration ciblé.
   exige donc que le worker de test soit déjà bâti (un `npm run build`, ou un `npm test`, au moins une
   fois). Sans lui, l'exécution échoue avant toute assertion : `Cannot find module
   '…/.wrangler/test-worker/server/entry.mjs'`.
-- `npm run coverage` — produit `coverage/lcov.info` (fournisseur `istanbul`). **Informatif**, jamais
-  bloquant : la couverture mesure l'**exécution**, jamais l'**assertion**. Un seuil, quand il
-  viendra, portera sur le **code nouveau**, jamais sur une couverture globale.
+- `npm run coverage` — produit `coverage/lcov.info` et `coverage/coverage-final.json` (fournisseur
+  `istanbul`). **Informatif**, jamais bloquant : la couverture mesure l'**exécution**, jamais
+  l'**assertion**. Un seuil, quand il viendra, portera sur le **code nouveau**, jamais sur une
+  couverture globale.
+- `npm run mutation:diff` — Stryker sur les seuls fichiers `src/core/` et `src/platform/` modifiés
+  dans l'arbre ; `npm run mutation` couvre tout (310 mutants, ~37 min). C'est l'oracle qui juge les
+  **assertions** : il altère la source et regarde si un test s'en aperçoit. Rejoué en avis par la
+  quality gate — voir [`docs/ci.md`](./ci.md).
+
+> **Ce que la mutation a révélé le 2026-09-06, et qui n'est pas corrigé.** Le score de
+> `src/core/pages/declaration.ts` est de **3,45 % puis 0,00 %** sur deux runs — au mieux 1 mutant tué
+> sur 29, et cette mise à mort ne s'est pas reproduite. Inverser le tri des pages
+> (`a.contenu.rang - b.contenu.rang` → `+`), renvoyer `.map(() => undefined)` ou `.map(() => ({}))`
+> laisse `tests/integration/liste-des-pages.test.ts` **au vert**. Ces tests attestent qu'une réponse
+> arrive, pas qu'elle porte les bonnes pages dans le bon ordre. Renforcer ces assertions est un
+> travail à ouvrir ; il n'a pas été fait en posant l'outil.
 
 ## Nommage
 

@@ -21,6 +21,7 @@
     "lint:boundaries": "eslint --config eslint.config.boundaries.js .",
     "knip": "knip",
     "mutation": "stryker run",
+    "mutation:diff": "node scripts/muter-le-diff.mjs",
     "dev": "astro dev",
     "db:migrate": "wrangler d1 migrations apply DB --local"
   },

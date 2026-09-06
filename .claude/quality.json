@@ -38,6 +38,12 @@
       "severity": "advisory",
       "threshold": { "metric": "crap", "max": 6 },
       "autofix": null
+    },
+    {
+      "id": "mutation",
+      "cmd": "npm run mutation:diff",
+      "severity": "advisory",
+      "autofix": null
     }
   ]
 }

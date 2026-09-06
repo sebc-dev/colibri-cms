@@ -27,14 +27,15 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Un seul test | `npx vitest run tests/integration/<fichier>.test.ts` | exige le **worker de test déjà bâti** — sinon, `npm run build` une fois, puis cette commande. Elle ne rejoue pas le build |
 | Couverture | `npm run coverage` | `coverage/lcov.info` (lecture) et `coverage/coverage-final.json` (entrée de `crap`) — informatif |
 | Score CRAP | `npm run crap` | `crap-typescript --changed --threshold 6 --agent`. `precrap` → `npm run coverage` d'abord : sans `coverage-final.json` frais, l'outil relancerait vitest lui-même, **sans** le build du worker |
+| Mutation (diff) | `npm run mutation:diff` | `scripts/muter-le-diff.mjs` — Stryker sur les seuls fichiers `src/core/` et `src/platform/` modifiés dans l'arbre. Compter **~7 s par mutant** |
+| Mutation (tout) | `npm run mutation` | périmètre complet : 13 fichiers, **310 mutants, ~37 min**. Geste manuel |
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
 | Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`. **Aucun workflow ne le joue** ; depuis le 2026-09-06 il est **bloquant dans la quality gate** (voir plus bas) |
 | Migrations locales | `npm run db:migrate` | `wrangler d1 migrations apply DB --local` — applique `migrations/` à la base D1 locale |
 | Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.jsonc` |
 
-`npm run mutation` (Stryker) est un **outil manuel** : aucun workflow ne le joue, aucun seuil n'en
-dépend. `npm run knip` (code non utilisé) n'est joué par aucun workflow non plus, mais la quality
-gate le rejoue **en avis** à chaque ticket.
+Aucun workflow ne joue `knip` ni Stryker ; la quality gate rejoue les deux **en avis** à chaque
+ticket — `knip` en entier, la mutation restreinte au diff.
 
 > **`npm test` bâtit d'abord.** Il déclenche `pretest` → `npm run build`, lui-même encadré par
 > `scripts/preparer-worker-de-test.mjs` (`prebuild` pose une amorce, `postbuild` recopie `dist/`
@@ -87,7 +88,7 @@ n'ont pas écrit le code, suivies d'un triage adversarial (`/scd-spec-dev:run`, 
 
 Une **quality gate déterministe** rejoue des checks à chaque ticket (phase 7½ de
 `/scd-spec-dev:run`) : elle est **possédée par le projet** dans `.claude/quality.json`
-(`/scd-spec-dev:quality-setup`). Posée puis revue le 2026-09-06 — six checks, quatre bloquants.
+(`/scd-spec-dev:quality-setup`). Posée puis revue le 2026-09-06 — sept checks, quatre bloquants.
 C'est **là** que vit la rigueur déterministe du projet, pas dans `ci.yml` :
 
 | Check | Commande | Sévérité | Pourquoi |
@@ -98,6 +99,7 @@ C'est **là** que vit la rigueur déterministe du projet, pas dans `ci.yml` :
 | `test` | `npm test` | **bloquant** | la DoD l'exige ; bâtit déjà via `pretest`, un build cassé y ressort |
 | `knip` | `npm run knip` | avis | code non utilisé — recoupe la dimension propreté de la review |
 | `crap` | `npm run crap` | avis | score CRAP (`CC² × (1−couverture)³ + CC`), seuil 6 — le complexe et mal couvert |
+| `mutation` | `npm run mutation:diff` | avis | Stryker sur le diff — mesure l'**assertion**, pas l'exécution |
 
 ### Le check `crap`, et pourquoi il n'est pas bloquant
 
@@ -118,11 +120,37 @@ verdict, tant que l'instrumentation ne vise pas les sources.
 > `overrides` remonte la transitive en `^2.3.1` — la version que la `0.5.2` épingle elle-même. À
 > retirer le jour où la `0.5.2` est adoptée.
 
+### Le check `mutation`, et le faux 100 % qu'il a fallu réparer
+
+La couverture mesure l'**exécution**, jamais l'**assertion** ([`docs/test.md`](./test.md)) — et elle
+est ici mal attribuée. La mutation est donc le seul oracle qui juge vraiment les tests : elle altère
+la source et regarde si un test s'en aperçoit.
+
+**Le piège est structurel.** `wrangler.jsonc` fait porter les tests sur le worker BÂTI
+(`.wrangler/test-worker/`), pas sur `src/`. Un runner qui rejouerait vitest sans rebâtir — le
+`@stryker-mutator/vitest-runner`, par exemple — verrait donc **tous** les mutants survivre. Seul
+`testRunner: "command"` avec `npm test` est correct, parce que `pretest` rebâtit le worker depuis la
+source mutée dans le sandbox. C'est ce qui impose `coverageAnalysis: "off"` et fait qu'**un mutant
+coûte une suite complète, build compris** (~7 s).
+
+**La configuration mentait.** Avec la concurrence par défaut (11) contre un `npm test` de ~19 s, le
+délai calculé (~33 s) était systématiquement dépassé : les 29 mutants d'un fichier partaient en
+*timeout*, et Stryker compte un timeout comme un mutant tué. `npm run mutation` annonçait donc
+**100 % en n'exécutant rien** (`Ran 0.00 tests per mutant`). `concurrency: 4`, `timeoutMS: 180000` et
+`timeoutFactor: 4` corrigent cela : `Ran 1.00 tests per mutant`.
+
+**Ce que le vrai chiffre dit.** Sur `src/core/pages/declaration.ts`, le score n'est pas 100 % mais
+**3,45 % puis 0,00 %** sur deux runs successifs (1 mutant tué sur 29, puis aucun — l'unique mise à
+mort n'est donc pas reproductible). Inverser le tri (`a.rang - b.rang` → `+`), renvoyer
+`.map(() => undefined)` ou `.map(() => ({}))` laisse `tests/integration/liste-des-pages.test.ts` au
+vert. **Renforcer ces assertions est un travail à ouvrir**, hors du périmètre où ce check a été posé.
+D'où l'**avis** : aucun seuil `break`, les survivants remontent nommément à la review.
+
 Il n'y a **pas** de check `build` : `npm test` le déclenche par `pretest`, un check séparé rejouerait
 un second `astro build` pour rien. `coverage` n'est pas un check à part — `precrap` le joue déjà pour
-produire l'entrée de `crap` ; `mutation` reste hors gate, Stryker étant hors de portée d'un ticket.
-La suite est donc jouée deux fois par ticket (`test`, puis `crap` via `precrap`) : c'est le prix
-assumé d'un échec de test qui se lit comme un échec de test.
+produire l'entrée de `crap`. La suite est donc jouée deux fois par ticket (`test`, puis `crap` via
+`precrap`), plus une fois par mutant : c'est le prix assumé d'un échec de test qui se lit comme un
+échec de test, et d'une mutation qui mesure vraiment quelque chose.
 
 Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un check n'est
 bloquant que si le projet le déclare.
