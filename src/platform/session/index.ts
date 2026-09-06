@@ -46,7 +46,7 @@ export interface Session {
 
 /**
  * Compose l'en-tête `Set-Cookie` qui ouvre la session, avec les cinq
- * attributs qu'ADR-0006 impose : le préfixe `__Host-` (porté par le nom),
+ * attributs qu'ADR-0001 impose : le préfixe `__Host-` (porté par le nom),
  * `Path=/`, `HttpOnly`, `Secure`, `SameSite=Strict`. La pose vit ici, dans
  * l'adaptateur de session, plutôt qu'inline dans la route : le nom du cookie
  * n'est défini qu'à un seul endroit, et les attributs de sécurité — dont

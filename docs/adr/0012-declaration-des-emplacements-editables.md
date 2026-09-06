@@ -14,7 +14,7 @@ lisent tous cette déclaration, et le brouillon porté par D1 doit s'y rattacher
 stable** — un identifiant d'emplacement qui ne bouge pas quand le contenu change.
 
 Trois contraintes du dépôt cadrent le choix :
-- **La matrice I1 (`docs/archi.md`, ADR-0006 corrigé, job `boundaries`)** interdit à `admin/`
+- **La matrice I1 (`docs/archi.md`, candidat `sens-descendant-des-dependances-entre-zones`, job `boundaries`)** interdit à `admin/`
   d'importer `site/`. Or la déclaration doit être lue par l'administration **et** par le rendu public.
   Le seul terrain que les deux atteignent et qui s'instancie sans plateforme est `core/` — ce qui
   tranche `ARCH-5` (testabilité sans plateforme : la logique métier se vérifie sans base, sans HTTP,
