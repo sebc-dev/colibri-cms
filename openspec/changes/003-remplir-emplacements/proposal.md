@@ -52,3 +52,7 @@ d'intégration hors produit).
 - `src/platform/` : persistance D1 du brouillon ; `migrations/` : table des brouillons versionnée.
 - Dépendance nouvelle : TipTap (éditeur de texte riche, monté en îlot).
 - Tests : `tests/integration/**` (couture HTTP contre la vraie base locale).
+- `content/` : `content/pages/<slug>/page.json` : la déclaration des pages posée par l'intégrateur
+  (ADR-0012), versionnée au dépôt et empaquetée au build ; lue, jamais écrite depuis l'administration.
+  L'instance livrée par défaut porte les pages déclarées de ce dépôt, soit trois pages : Accueil,
+  Tarifs, Contact.

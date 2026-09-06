@@ -58,6 +58,10 @@ développeur (FR-117).
 - **WHEN** aucune page n'est déclarée pour l'instance
 - **THEN** l'écran affiche le message d'état vide et n'offre aucun geste de création de page
 
+#### Scenario: La liste est servie dans le cadre de l'administration
+- **WHEN** l'`Écran : Liste des pages` est servi
+- **THEN** il l'est dans l'`Écran : Cadre de l'administration` (barre latérale et menu présents, « Mes pages » marquée active et menant à cet écran)
+
 #### Scenario: Aucun geste de structure sur la liste
 - **WHEN** l'éditrice parcourt la liste des pages
 - **THEN** aucun geste d'ajout, de retrait, de déplacement ni de renommage de page n'est offert (FR-024/025)

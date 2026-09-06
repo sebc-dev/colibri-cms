@@ -52,8 +52,10 @@ accepté ou déposées en candidat (voir Decisions), jamais gravées ici.
   produit la lit, ne l'écrit pas (FR-024/025). Lieu et contrat sont figés par ADR-0012 : un répertoire de
   contenu versionné du dépôt, au **même format que le contenu déposé à la publication** (un `page.json`
   par page portant, pour chaque emplacement, son identifiant stable, sa nature et son rang ; un `.md` par
-  emplacement de texte riche — candidat `format-du-contenu-un-repertoire-par-objet`). Le modèle et la
-  lecture de cette déclaration vivent dans `core/`, et le brouillon D1 s'y rattache par la clé
+  emplacement de texte riche — candidat `format-du-contenu-un-repertoire-par-objet`). La déclaration vit
+  dans `content/pages/<slug>/page.json`, le nom du répertoire portant l'identité de la page ; les `.md`
+  d'emplacement du ticket 03 vivront dans ce même répertoire. Le modèle et la lecture de cette
+  déclaration vivent dans `core/`, et le brouillon D1 s'y rattache par la clé
   `(page, identifiant d'emplacement)`.
 
 ## Risks / Trade-offs
