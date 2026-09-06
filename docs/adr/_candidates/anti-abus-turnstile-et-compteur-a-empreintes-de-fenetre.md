@@ -1,9 +1,9 @@
 # Candidat ADR : Anti-abus — Turnstile *managed* devant, compteur de fréquence dans un objet unique à empreintes de fenêtre
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md` (ADR-0012 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md` (ADR-0012 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
@@ -28,7 +28,7 @@ données pour **illimitées en mode *managed*** (docs Turnstile · *Plans*, 2026
 par jour**.
 
 Faits sourcés :
-[`docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md`](../../research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md).
+[`docs/legacy/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md`](../../legacy/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md).
 
 ## Décision
 
@@ -66,7 +66,7 @@ la fenêtre.
   réserve ce plafond aux widgets **invisibles** est tenue d'une **analyse tierce**, marquée
   `[INCERTAIN]` par le rapport cité. **L'ordre décide dans les deux lectures** : sous
   l'hypothèse basse, ce plafond reste un **mur** — un refus, jamais un compteur facturé, donc
-  l'invariant `I5` du [socle de livraison](../../socle-de-livraison.md) tient — et reste **devant**
+  l'invariant `I5` du [socle de livraison](../../legacy/socle-de-livraison.md) tient — et reste **devant**
   le compteur qu'il protège. L'incertitude ne déplace que la **hauteur** de ce mur ; le rapport
   ne lui donne même pas de période, aucun calcul ne la fixerait sans arbitraire, et aucune
   recette ne peut la constater.
@@ -89,7 +89,7 @@ la fenêtre.
 - **Une règle Cloudflare Rate Limiting** : écartée car sa disponibilité et ses limites sur le
   palier gratuit ne sont pas sourcées — elle ne peut donc pas descendre en décision figée.
 - **Une clé HMAC ouverte à la livraison, à rotation** : écartée car elle remet le troisième
-  secret que la session opaque de [ADR-0006](../../1.x/adr/0006-auth-implementation-maison-sur-d1.md) venait
+  secret que la session opaque de [ADR-0006](../../legacy/1.x/adr/0006-auth-implementation-maison-sur-d1.md) venait
   de retirer ; sa rotation n'a **aucun porteur** — ni ligne de recette, ni exigence, ni
   contrôle — et elle protège moins qu'il n'y paraît, la clé vivant dans le compte qui héberge
   déjà la table *et* les coordonnées en clair des visiteurs.

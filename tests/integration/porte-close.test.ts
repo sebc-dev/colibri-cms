@@ -13,8 +13,9 @@
  * qu'aucune route n'existe sous `src/pages/`, il n'y a rien à résoudre, et
  * c'est précisément ce que ce fichier constate.
  *
- * `tsconfig.json` est un fichier de config protégé (hors de portée de ce
- * lot) et ne porte pas `"types": ["@cloudflare/vitest-pool-workers"]` : la
+ * `tsconfig.json` est un fichier de configuration : ne pas y déroger pour
+ * faire passer un test (hors de portée de ce lot) — il ne porte pas
+ * `"types": ["@cloudflare/vitest-pool-workers"]` : la
  * référence ci-dessous apporte les déclarations ambiantes du module
  * `cloudflare:test` sans y toucher.
  */

@@ -1,10 +1,10 @@
 # ADR-0004 : En-têtes de réponse — deux porteurs imposés par la plateforme, CSP stricte de l'administration, origine commune conservée
 Statut : Accepté | Date : 2026-08-25
 
-Promu depuis `docs/1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md` — ADR-0015, accepté sous le cycle 1.x.
+Promu depuis `docs/legacy/1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md` — ADR-0015, accepté sous le cycle 1.x.
 
 > Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
-> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/1.x/` : ce ne sont
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/legacy/1.x/` : ce ne sont
 > pas des noms de fichier.
 
 ## Contexte
@@ -21,7 +21,7 @@ applique, et sans rien coûter — « Requests to static assets are free and unl
 un média en brouillon depuis D1 sont **générés par le code**.
 
 Le motif de sécurité vient de l'origine commune retenue par
-[ADR-0001](../1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md), et d'une porte que le
+[ADR-0001](../legacy/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md), et d'une porte que le
 constat initial ne voyait pas : **la liste des demandes affiche du texte d'inconnus**. `FR-064`
 y porte les coordonnées du visiteur, `FR-065` enregistre la demande et `FR-069` la présente — le
 chemin va d'un inconnu de l'internet public jusqu'à un écran d'administration. Sur une origine
@@ -39,7 +39,7 @@ Nous poserons les en-têtes de réponse par **deux porteurs** :
 
 Des deux côtés : une **CSP**, `X-Content-Type-Options: nosniff`, une `Referrer-Policy` et le
 refus d'être mis en cadre. La CSP doit prévoir `challenges.cloudflare.com`, Turnstile étant
-retenu ([ADR-0012](../1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md)).
+retenu ([ADR-0012](../legacy/1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md)).
 
 Le porteur « dans le code » portera en outre une **CSP stricte propre à l'administration**,
 **définie par ses interdits** : aucun `unsafe-inline`, aucun `unsafe-eval`, aucune source tierce
@@ -55,7 +55,7 @@ hors `challenges.cloudflare.com`.
   gratuites et hors du quota de 100 000 requêtes par jour. Les limites du fichier ne mordent
   pas : 100 règles, 2 000 caractères par ligne.
 - `nosniff` rattrape le résidu de l'ingestion des médias
-  ([ADR-0014](../1.x/adr/0014-ingestion-des-medias-liste-blanche-sur-octets.md)) : un fichier hostile
+  ([ADR-0014](../legacy/1.x/adr/0014-ingestion-des-medias-liste-blanche-sur-octets.md)) : un fichier hostile
   passé pour une image n'est pas réinterprété par le navigateur.
 - La CSP stricte est, avec l'invariant d'échappement, l'une des **deux seules** parades au XSS
   same-origin dans l'administration.
@@ -75,7 +75,7 @@ hors `challenges.cloudflare.com`.
 - **La CSP stricte décide de la manière dont l'administration est bâtie.** L'hydratation des
   îlots Svelte produit du script en ligne : l'administration se bâtit donc comme une
   application montée par un point d'entrée externe, non comme des îlots dans des pages — voir
-  [ADR-0011](../1.x/adr/0011-ilots-svelte-5.md) et l'invariant `I4` de [`docs/archi.md`](../1.x/archi.md).
+  [ADR-0011](../legacy/1.x/adr/0011-ilots-svelte-5.md) et l'invariant `I4` de [`docs/archi.md`](../legacy/1.x/archi.md).
 - **Astro ne peut pas porter cette CSP.** Depuis `astro@6.0.0` il sait en poser une, mais dans
   un `<meta>`, sans nonce ; et une politique livrée en `<meta>` ne peut exprimer ni
   `frame-ancestors`, ni `report-uri`, ni `sandbox`. Confier la parade à une fonctionnalité de
@@ -95,7 +95,7 @@ hors `challenges.cloudflare.com`.
 - **Un sous-domaine d'administration dédié** : écartée, mais **pas sur le fond**. Il met le
   cookie de session hors de portée d'un XSS public, et c'est la **parade de repli** le jour où
   du contenu tiers devra être servi. Il coûte une entrée DNS et une route de plus, le §3 du
-  [socle de livraison](../socle-de-livraison.md) à amender, et `FR-081` à revérifier sur les URL
+  [socle de livraison](../legacy/socle-de-livraison.md) à amender, et `FR-081` à revérifier sur les URL
   relatives de l'aperçu — et surtout il ne ferme pas la porte de la liste des demandes.
 
 ## Vérifiable ?

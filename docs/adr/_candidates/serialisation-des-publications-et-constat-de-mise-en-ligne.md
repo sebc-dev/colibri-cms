@@ -1,17 +1,17 @@
 # Candidat ADR : Sérialisation des publications et constat de la mise en ligne — une seule ligne d'état en D1, et l'empreinte du commit exposée par le site publié
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0017-serialisation-des-publications-et-constat-de-mise-en-ligne.md` (ADR-0017 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0017-serialisation-des-publications-et-constat-de-mise-en-ligne.md` (ADR-0017 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
 
 La publication est une **séquence en deux temps** : dépôt additif des médias sur la branche
 `media`, puis commit du contenu sur la branche principale
-([ADR-0004](../../1.x/adr/0004-medias-deux-magasins-un-par-etat.md),
-[ADR-0005](../../1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md)). Il en découle que la
+([ADR-0004](../../legacy/1.x/adr/0004-medias-deux-magasins-un-par-etat.md),
+[ADR-0005](../../legacy/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md)). Il en découle que la
 **sérialisation est obligatoire** — c'est le cas limite que le PRD nomme, « une publication est
 déclenchée alors qu'une précédente n'est pas terminée » : un compare-and-swap sur le dernier
 geste ne protège pas le premier. `FR-091` exige que le site public reste dans son état
@@ -24,7 +24,7 @@ Trois manques se referment ensemble.
    sans rien dans le produit pour le débloquer.
 2. **Un réessai doit reconnaître son propre travail.** Le réessai est obligatoire, la lecture du
    HEAD n'étant pas fiablement *read-your-writes* (mesure du 2026-08-11,
-   [relevé](../../research/2026-08-11-sous-requetes-publication.md)).
+   [relevé](../../legacy/research/2026-08-11-sous-requetes-publication.md)).
 3. **`FR-090` — informer l'éditrice de l'issue de sa publication — n'est pas tenu par le dépôt
    seul.** Le dépôt n'est qu'un déclencheur (`FR-089`) : un build peut échouer après lui, et
    l'éditrice verrait l'ancien site avec un succès affiché.
@@ -54,7 +54,7 @@ pousser à celui du HEAD**.
   succès au lieu d'empiler un doublon. **Aucun marqueur à maintenir.**
 - **Le constat de mise en ligne ne coûte aucun secret** : ni webhook, ni jeton d'API
   Cloudflare — rien qui morde sur la contrainte `C7` du
-  [socle de livraison](../../socle-de-livraison.md) ni sur l'inventaire des secrets.
+  [socle de livraison](../../legacy/socle-de-livraison.md) ni sur l'inventaire des secrets.
 
 **Négatives — ce à quoi le code s'engage.**
 
@@ -64,7 +64,7 @@ pousser à celui du HEAD**.
   vivante**, un bail trop long **bloque le site pour sa durée**.
 - **Le verrou sérialise, il ne debounce pas.** Dix publications rapprochées font dix builds,
   mis en file par la concurrence de 1 — voir
-  [ADR-0001](../../1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md).
+  [ADR-0001](../../legacy/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md).
 - **Le site publié gagne une surface publique.** L'empreinte du commit est exposée à un chemin
   connu, lisible par quiconque. C'est minime, mais c'est une information sur le dépôt de la
   cliente qui sort du produit.

@@ -1,19 +1,19 @@
 # ColibriCMS
-<!-- Propriétaire : @sebc-dev — Revue : /2 semaines — Règle : supprimer plus qu'on n'ajoute. Mettre à
-     jour quand : erreur refaite une 2ᵉ fois · revue qui attrape ce que Claude aurait dû savoir ·
-     même correction retapée · contexte qu'un nouveau coéquipier aurait cherché. Entretien :
-     /scd-sdd:init — elle RÉVISE section par section, elle ne ré-assemble jamais. -->
 
 ## Vue d'ensemble
 - Objet : CMS auto-hébergé chez le client (Cloudflare, palier gratuit), pour un site vitrine
-  statique éditable par une cliente non technicienne, qui survit à la disparition d'Isometria —
-  voir `docs/1.x/brief.md` (archivé — cycle 1.x)
-- Le "quoi" produit : `docs/1.x/prd.md` — Les fondations techniques : `docs/1.x/stack.md`
-- Ce que le code s'interdit : `docs/1.x/archi.md` — NE PAS franchir un invariant
-- Décisions figées : `docs/adr/` — NE PAS contredire un ADR accepté ; les décisions héritées
-  sont dans `docs/1.x/adr/`, en attente de promotion depuis `docs/adr/_candidates/`
-- Ce qui est vérifié automatiquement : `docs/ci.md` — les contrôles bloquants font foi ; l'état de
-  chaque contrôle (bloquant/informatif) y est explicite, ne pas le supposer
+  statique éditable par une cliente non technicienne, qui survit à la disparition d'Isometria.
+- Le "quoi" produit (vision, FR, SC) : `docs/vision.md` — la feuille de route : `docs/roadmap.md`.
+- Ce que le code s'interdit : `docs/architecture.md` (invariants `I1`–`I10`) — NE PAS franchir un
+  invariant. Tests : `docs/test.md` — Sécurité : `docs/security.md` — Interface : `docs/design-system.md`.
+- Décisions figées : `docs/adr/` — NE PAS contredire un ADR accepté ; numérotation 2.x ; les ADR
+  0001–0008, promus depuis le cycle 1.x, citent des numéros 1.x dans leur corps, les ADR nés en 2.x
+  (0009 et suivants) citent des numéros 2.x — la table de correspondance est dans
+  `docs/adr/README.md`. Les décisions non encore promues sont dans `docs/adr/_candidates/` — un
+  candidat n'est pas figé.
+- Ce que la CI vérifie : `docs/ci.md` — elle **annote**, elle ne bloque plus (voir plus bas).
+- L'ancien cadrage (cycle 1.x, preuves, research, socle de livraison) est **archivé** sous
+  `docs/legacy/` — référence historique, pas la réalité courante.
 
 ## Glossaire du domaine (les mots du métier, pas ceux du code)
 - **Éditrice** — la cliente, seule utilisatrice de l'administration, sans notion technique.
@@ -31,77 +31,66 @@
 - **Moyen de reprise** — secret non e-mail remis à la livraison, qui ouvre l'administration le jour
   où l'adresse autorisée ne répond plus.
 
-## Commandes (reprises de docs/ci.md — s'y reporter, ne pas diverger)
+## Cycle de travail — scd-spec-dev (OpenSpec)
+- Le cadrage **durable** vit dans `docs/` (vision, roadmap, architecture, test, security,
+  design-system) + `docs/adr/`. On n'y touche pas au fil d'un change.
+- Diff descriptible en une phrase, sans nouveau comportement → **direct**.
+- Nouveau comportement / multi-fichiers → un **change** OpenSpec : `openspec/changes/<x>/`
+  (proposal + deltas `specs/` + design, options test-plan/security-review/ux) via `/opsx:propose`.
+  - Décomposition en **tickets** verticaux via `/scd-spec-dev:tickets` →
+    `openspec/changes/<x>/tickets/NN-*.md` (granularité arbitrée avec l'humain).
+  - Implémentation **ticket par ticket** via `/scd-spec-dev:run` — **une PR par ticket**.
+  - Les specs vivantes sont dans `openspec/specs/<capability>/spec.md` (fusionnées à l'archivage).
+- Décision structurante nouvelle → un **ADR** (`docs/adr/`), jamais figée dans un design.md jetable.
+- Travail hors-cycle terminé ou tâche interrompue par un /clear → une fiche
+  `docs/chantiers/{en-cours,en-attente,archive}/` via `/scd-spec-dev:note` ou `:pause`, reprise par
+  `:resume` ; l'historique 1.x des fiches est sous `docs/legacy/chantiers/`.
+- **RÈGLE CARDINALE : on n'appelle JAMAIS `/opsx:apply`.** `/scd-spec-dev:run` prend le relais sur
+  les tickets. La rigueur passe par la **review** en contexte frais (producteur ≠ vérificateur),
+  pas par des gardes automatiques.
+
+## Commandes (source de vérité : `docs/ci.md` — s'y reporter, ne pas diverger)
 - Installation : `npm ci` — jamais `npm install`
-- Build : `npm run build`
-- Typage : `npm run typecheck`
-- Test (unitaire) : `npm test`   # préférer un seul test, pas toute la suite
-- Lint/format : `npm run lint`        # SOURCE DE VÉRITÉ du style — ne pas documenter les règles ici
-- Run local : `npm run dev`   # `astro dev`, liaisons D1 branchées via `wrangler.jsonc`
+- Typage : `npm run typecheck`   # `tsc --noEmit` — le build seul ne type pas
+- Build : `npm run build`         # `astro build` — lancer `typecheck` **puis** `build`
+- Test : `npm test`               # dans `workerd` ; préférer un seul test, pas toute la suite
+- Lint/format : `npm run lint`    # SOURCE DE VÉRITÉ du style — ne pas documenter les règles ici
+- Run local : `npm run dev`       # `astro dev`, liaisons D1 branchées via `wrangler.astro.jsonc`
+  (Astro) ; `wrangler.jsonc` sert aux tests
 
-## Conventions qui diffèrent des défauts du langage
-- Commit touchant la config qualité (`eslint.config.*`, `tsconfig*.json`, `.npmrc`,
-  `.github/workflows/**`, `CLAUDE.md`…) porte un scope explicite (`chore(config):`, `chore(ci):`,
-  `build(ci):`, `chore(agent):`) ou la PR porte le label `config-change` — **parce que**
-  `quality-config-guard` bloque sinon toute modification silencieuse de ce qui contraint l'agent.
-  Ce scope est la soupape **de la CI** : en session, l'écriture sur ces fichiers est refusée à la
-  source (périmètre dans `.claude/guards.json`), donc la modification passe par l'humain.
-- Commit touchant le lockfile ou les dépendances porte `build(deps):`, `chore(deps):` ou
-  `fix(deps):`, ou le label `deps` — **parce que** `dependency-review` distingue ainsi une
-  évolution déclarée d'une dérive silencieuse.
-
-## Principes non-négociables & seuils (constitution fondue)
-- Diff descriptible en une phrase → direct. Multi-fichiers / nouveau comportement → explorer et
-  planifier AVANT de coder (plan mode), puis le cycle `/scd-sdd:spec` et `/scd-sdd:tickets`.
-  Décision transverse → nouvel ADR.
+## Invariants produit non-négociables (voir `docs/architecture.md` + `docs/adr/`)
 - Zéro traitement serveur sur une page publique hors l'envoi d'une demande de devis (FR-097) — le
-  site public reste statique (FR-095/096). Toute nouvelle route serveur sur le public est un
-  signal d'alerte à interroger avant d'écrire.
-- Aucun identifiant appartenant à Isometria dans le code ou la config — chaque secret introduit
-  est un secret du compte client (invariants socle `I1`/`I4` du Brief), sinon la révocation des accès
-  d'Isometria casse le site (SC-012, SC-013).
+  site public reste statique. Toute nouvelle route serveur sur le public est un signal d'alerte à
+  interroger avant d'écrire.
+- Aucun identifiant appartenant à Isometria dans le code ou la config — chaque secret introduit est
+  un secret du compte client, sinon la révocation des accès d'Isometria casse le site (SC-012/SC-013).
 - Aucun terme de développeur (commit, branche, build, déploiement…) dans un texte visible par
   l'éditrice — elle n'a aucune notion technique (FR-117).
 
 ## Definition of Done (une tâche n'est "done" que si)
-- [ ] Build + typage strict passent (`npm run typecheck` **puis** `npm run build` — `astro build`
-      seul ne type pas) — **bloquant**, job `build`
-- [ ] Tests passent (`npm test`) — **bloquant**, job `test`
-- [ ] Lint propre (`npm run lint`) — **advisory** : job `lint` informatif, pas bloquant à ce jour
-- [ ] Rien hors périmètre de la tâche n'a été modifié — **advisory**, aucun contrôle CI ne le vérifie
-- [ ] Preuve fournie (sortie de commande réelle), pas seulement "ça a l'air fait" — **advisory**
+- [ ] Typage strict + build passent (`npm run typecheck` **puis** `npm run build`)
+- [ ] Tests passent (`npm test`)
+- [ ] Lint propre (`npm run lint`)
+- [ ] Rien hors périmètre de la tâche n'a été modifié
+- [ ] Preuve fournie (sortie de commande réelle), pas seulement "ça a l'air fait"
+> Ces contrôles **ne bloquent plus la PR** : la CI est informative (voir `docs/ci.md`). La garantie
+> vient de la review du cycle `scd-spec-dev`, pas d'un portail de gardes — les respecter reste la DoD.
+
+## État de la CI (informative, ne bloque pas)
+- Le ruleset « Main protect » n'exige **aucun** status check ; il ne garde que le structurel : PR
+  obligatoire vers `main`, anti-force-push, anti-suppression de `main`.
+- `.github/workflows/ci.yml` exécute `build` et `test` (non requis) ; `scd-escape-hatch-guard.yml`
+  `git grep` les escape-hatches (`@ts-ignore`, `as any`, `eslint-disable`, `.skip(`…) et **annote**.
+  Un rouge se voit, il ne bloque pas la fusion. Un escape-hatch légitime se **déroge en review**.
+- Plus de portail à douze bloquants, plus de hooks de session, plus de scopes de commit imposés ni
+  de signatures SSH : ces gardes n'existent plus. Ne pas raisonner comme s'ils étaient là.
 
 ## Gotchas / comportements non-évidents
-- Le dépôt porte des tests, exécutés dans workerd via `@cloudflare/vitest-pool-workers`
-  (ADR-0013) : suites d'intégration sous `tests/integration/**`, suites statiques sous
-  `tests/static/**`. Le `--passWithNoTests` de `npm test` n'est donc plus qu'un garde-fou ; le
-  vert de `test` atteste bien que les assertions ont tourné, et `npm run coverage` produit un
-  `coverage/lcov.info` réel (cœur `src/core/**` + bundle Worker bâti), informatif et non
-  bloquant (voir `docs/ci.md`).
-- `.npmrc` porte `min-release-age=7` (voir `docs/ci.md`) : une dépendance publiée il y a moins de
-  7 jours est inutilisable à la résolution. L'assouplir m'est refusé en session (chemin protégé)
-  et exige côté humain un commit `chore(config):` (ou label `config-change`), jamais en silence.
-- `verifier-guard` (bloquant) refuse tout `@ts-ignore`, `eslint-disable`, `as any`, `catch {}`
-  vide, `nosemgrep`… non accompagné d'un commit signé SSH (clé dans `.github/allowed_signers`) —
-  ne jamais neutraliser un vérificateur sans signature humaine.
-- `test-integrity` (bloquant) refuse sans appel tout `.skip(`/`.only(`/`.todo(`/`.fixme(`/`xit(`/
-  `xdescribe(` ajouté à un test. Supprimer ou affaiblir un test reste possible mais exige un
-  commit signé.
-- `specs-integrity` (bloquant) exige un commit signé pour toute modification de
-  `specs/**/SPEC.md`, et pour toute ligne d'un ticket `specs/**/NN-*.md` **autre
-  qu'une case** (`- [ ]` ↔ `- [x]`, libres) — ne jamais réécrire une exigence pour la faire
-  correspondre au code écrit ; c'est la cible qu'on déplacerait, pas le code qu'on corrigerait.
-- `lint`, `coverage`, `sast` sont **informatifs**, pas bloquants
-  aujourd'hui (voir chantier de durcissement CI) — un rouge ne bloque pas la PR ; ne pas les
-  traiter comme une garantie. `arch-invariants` est passé **bloquant** le 2026-09-03 (ADR-0006
-  corrigé pour viser le poseur canonique), et `boundaries` (I1) le 2026-09-04, chacun après rejeu
-  sur l'historique (0 faux positif résiduel).
-- `boundaries` (graphe d'imports) est posé pour la matrice `I1` **seule** — `npm run lint:boundaries`,
-  règles dans `eslint.config.boundaries.js`. Le reliquat d'`I3` qu'un contrôle littéral ne voit pas
-  (ré-exports, barils, alias) reste `[à compléter]` dans `docs/ci.md` : trou de la phase `ci`, pas à
-  inventer ici.
-- Un seul Worker sert le site public et l'administration (même origine) : tout script tiers
-  chargé n'importe où est un risque XSS same-origin contre le cookie de session admin.
+- Les tests s'exécutent dans `workerd` via `@cloudflare/vitest-pool-workers` (ADR-0003) : liaisons
+  D1 et Durable Object réelles, servies localement par Miniflare (rien ne part vers un compte
+  Cloudflare). Voir `docs/test.md`.
+- Un seul Worker sert le site public et l'administration (**même origine**) : tout script tiers
+  chargé n'importe où est un risque **XSS same-origin** contre le cookie de session admin.
 - Médias : JPEG/PNG/WebP seuls, reconnus sur les octets d'en-tête (jamais l'extension ni le
   Content-Type) ; SVG refusé.
 - Publication GitHub en écriture additive stricte (`force: false`), sauf l'élagage de la branche
@@ -109,7 +98,3 @@
 
 # IMPORTANT
 - YOU MUST montrer la preuve (sortie de commande) au lieu d'affirmer le succès.
-
-<!-- À NE PAS mettre ici : garde-fou dur (→ hook PreToolUse / permissions.deny) ·
-     procédure (→ skill) · contrainte de sous-arbre (→ .claude/rules/ path-scopé) ·
-     préférence perso (→ ~/.claude/CLAUDE.md) · style formaté par un outil (→ linter). -->

@@ -1,14 +1,14 @@
 # Candidat ADR : L'objet qui porte le compteur de fréquence est nommé par une constante du code
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0027-objet-de-frequence-nomme-par-une-constante.md` (ADR-0027 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0027-objet-de-frequence-nomme-par-une-constante.md` (ADR-0027 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
 
-[ADR-0012](../../1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md) a retenu un
+[ADR-0012](../../legacy/1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md) a retenu un
 compteur de fréquence dans un Durable Object **unique**, portant une table d'origines sous
 empreintes HMAC à clé de fenêtre. La promesse qui le fonde est : **rien de dérivé d'une origine
 ne survit à la fenêtre de comptage qui l'a fait naître.**
@@ -53,7 +53,7 @@ une valeur issue d'une requête.**
   passerait le contrôle.
 - **Un objet unique est un point de sérialisation** : tout le trafic anti-abus y passe —
   conséquence déjà portée par
-  [ADR-0012](../../1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md).
+  [ADR-0012](../../legacy/1.x/adr/0012-anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre.md).
 
 ## Alternatives considérées
 

@@ -1,16 +1,16 @@
 # ADR-0005 : Configuration d'instance — quatre lieux, un par nature de valeur, et un fichier d'instance unique pour le reste
 Statut : Accepté | Date : 2026-08-25
 
-Promu depuis `docs/1.x/adr/0020-configuration-d-instance-quatre-lieux.md` — ADR-0020, accepté sous le cycle 1.x.
+Promu depuis `docs/legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md` — ADR-0020, accepté sous le cycle 1.x.
 
 > Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
-> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/1.x/` : ce ne sont
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/legacy/1.x/` : ce ne sont
 > pas des noms de fichier.
 
 ## Contexte
 
 `FR-104` fait déployer le produit à raison d'**une instance par site**, et le §3 du
-[socle de livraison](../socle-de-livraison.md) met le **code** autant que le contenu dans le
+[socle de livraison](../legacy/socle-de-livraison.md) met le **code** autant que le contenu dans le
 dépôt de chaque cliente. Monter une version est donc une **fusion dans son dépôt** — et
 `FR-105` / `SC-008` exigent que cette montée se fasse « sans modification de code spécifique à
 ce client ».
@@ -50,8 +50,8 @@ de version ne touche.
 
 - **`SC-008` cesse d'être une intention et devient un diff** : hors le fichier d'instance et le
   contenu, deux dépôts de clientes doivent être identiques. C'est ce que l'invariant `I8` de
-  [`docs/archi.md`](../1.x/archi.md) rend falsifiable, et
-  [ADR-0028](../1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) le fige.
+  [`docs/archi.md`](../legacy/1.x/archi.md) rend falsifiable, et
+  [ADR-0028](../legacy/1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) le fige.
 - Un clone nu bâtit les pages à formulaire et leurs URL canoniques sans D1 ni accès Cloudflare,
   donc `C6` tient.
 - Aucun cinquième lieu n'est ouvert : les trois lieux imposés gardent exactement ce qu'ils
@@ -69,9 +69,9 @@ de version ne touche.
 - **L'injection par variables de build de Workers Builds n'a pas été instruite**, faute d'un
   fait de plateforme constaté : cette voie reste inexplorée, et non écartée.
 - Le nom, le format et le mécanisme de lecture du fichier ne sont pas décidés ici — ils l'ont
-  été par [`docs/archi.md`](../1.x/archi.md), et sont figés par
-  [ADR-0028](../1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) et
-  [ADR-0030](../1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md).
+  été par [`docs/archi.md`](../legacy/1.x/archi.md), et sont figés par
+  [ADR-0028](../legacy/1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) et
+  [ADR-0030](../legacy/1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md).
 
 ## Alternatives considérées
 

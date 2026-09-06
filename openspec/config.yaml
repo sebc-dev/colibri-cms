@@ -1,0 +1,33 @@
+schema: scd
+
+# ┌─ scd-spec-dev (généré) ─ ce bloc est réécrit à chaque /setup ; éditez HORS de lui ─┐
+context: |
+  Produit  : ColibriCMS — CMS auto-hébergé (Cloudflare palier gratuit), site vitrine statique
+             éditable par une cliente non technicienne, qui survit à la disparition d'Isometria.
+  Vision   : docs/vision.md (FR-001…, SC-…) · Roadmap : docs/roadmap.md (chaque change ↳ une STORY)
+  Archi    : invariants dans docs/architecture.md + décisions figées dans docs/adr/ (NE PAS contredire
+             un ADR accepté ; numérotation 2.x ; les ADR 0001–0008, promus depuis le cycle 1.x, citent
+             des numéros 1.x dans leur corps, les ADR nés en 2.x (0009 et suivants) citent des numéros
+             2.x — la table de correspondance est dans docs/adr/README.md)
+  Test     : workerd via @cloudflare/vitest-pool-workers ; mode de vérif (tdd/test/observé/aucun)
+             décidé par strategie-verif à la décomposition
+  Sécurité : docs/security.md ; valider toute entrée externe, aucun secret en clair ; un seul Worker
+             sert public + admin (même origine → tout script tiers = risque XSS sur le cookie admin)
+  UX/UI    : docs/design-system.md ; aucun terme de développeur dans un texte vu par l'éditrice (FR-117)
+  CI       : docs/ci.md fait autorité sur ce qui bloque une PR (ne pas doubler)
+  Commandes: npm ci (jamais npm install) · npm run typecheck PUIS npm run build · npm test · npm run lint
+  Invariants socle : zéro traitement serveur sur une page publique hors l'envoi d'une demande (FR-097) ;
+             aucun identifiant appartenant à Isometria dans le code ou la config (secrets = compte client).
+rules:
+  proposal:
+    - Backréférencer l'EPIC / la STORY (docs/roadmap.md) et les FR servis (docs/vision.md).
+    - Employer les mots du domaine (éditrice, emplacement, brouillon, aperçu, publication, demande,
+      adresse autorisée, moyen de reprise), jamais le vocabulaire de développeur côté produit.
+  design:
+    - Vérifier la conformité aux invariants d'architecture (docs/architecture.md) et des ADR (docs/adr/).
+    - Décision structurante nouvelle → proposer un ADR (docs/adr/), ne pas la figer dans design.md.
+operations:
+  archive:
+    guidance:
+      - Cocher la STORY correspondante dans docs/roadmap.md.
+# └─ fin scd-spec-dev ─┘

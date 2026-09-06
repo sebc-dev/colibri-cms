@@ -1,9 +1,9 @@
 # Candidat ADR : Forge et écriture de la publication — GitHub, API REST *git data*, avance rapide obligatoire, jeton à portée fine à une seule permission
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md` (ADR-0005 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md` (ADR-0005 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
@@ -21,11 +21,11 @@ l'intégrateur — et `SC-006`, qui interdit d'envoyer la cliente visiter des co
 
 Les faits qui portent la décision sont datés et portent chacun leur niveau de preuve. Relevés
 versés :
-[`docs/research/2026-08-12-permissions-rest-git-data.md`](../../research/2026-08-12-permissions-rest-git-data.md)
+[`docs/legacy/research/2026-08-12-permissions-rest-git-data.md`](../../legacy/research/2026-08-12-permissions-rest-git-data.md)
 et
-[`docs/research/2026-08-11-sous-requetes-publication.md`](../../research/2026-08-11-sous-requetes-publication.md)
+[`docs/legacy/research/2026-08-11-sous-requetes-publication.md`](../../legacy/research/2026-08-11-sous-requetes-publication.md)
 (mesures du 2026-08-11 sur dépôt jetable, avec témoin) ;
-[`docs/research/2026-08-12-jeton-github-desuetude.md`](../../research/2026-08-12-jeton-github-desuetude.md)
+[`docs/legacy/research/2026-08-12-jeton-github-desuetude.md`](../../legacy/research/2026-08-12-jeton-github-desuetude.md)
 pour la désuétude.
 
 Trois d'entre eux sont décisifs :
@@ -69,7 +69,7 @@ appel anodin **hebdomadaire**.
   fichiers texte** — mesuré jusqu'à 1 000 entrées en une requête. Un blob par fichier coûtait
   `N + 4`, soit les 50 sous-requêtes franchies au 47ᵉ fichier.
 - Le jeton vit dans le compte de la cliente : l'invariant `I6` et la contrainte `C10` du
-  [socle de livraison](../../socle-de-livraison.md) tiennent, et `FR-101` avec eux.
+  [socle de livraison](../../legacy/socle-de-livraison.md) tiennent, et `FR-101` avec eux.
 - La cadence hebdomadaire **est** la parade : le Cron du palier gratuit n'a pas de retry, un
   appel sauté n'est jamais réémis, et 52 passages par an laissent la marge que la fenêtre
   glissante d'un an absorbe.
@@ -80,7 +80,7 @@ appel anodin **hebdomadaire**.
   l'argument « une seule permission » est vrai. Si elle tombe, le jeton se fait refuser au
   **dernier** geste de la publication — celui qui rend le contenu visible — et **rien dans le
   code ne relierait la panne à cette décision**. La contrainte est rendue falsifiable par
-  l'invariant `I9` de [`docs/archi.md`](../../1.x/archi.md).
+  l'invariant `I9` de [`docs/archi.md`](../../legacy/1.x/archi.md).
 - **Le jeton est permanent, sans rotation et sans détection de compromission**, sur un dépôt
   qui **est** le site publié. La révocation à un an était une sécurité **passive** — un jeton
   oublié meurt — et le Cron la neutralise sciemment. La rotation n'a **aucun porteur

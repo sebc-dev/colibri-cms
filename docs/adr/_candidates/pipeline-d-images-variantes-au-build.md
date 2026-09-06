@@ -1,24 +1,24 @@
 # Candidat ADR : Pipeline d'images — les variantes sont produites au build
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0019-pipeline-d-images-variantes-au-build.md` (ADR-0019 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0019-pipeline-d-images-variantes-au-build.md` (ADR-0019 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
 
 `SC-005` mesure un score **Lighthouse Performance ≥ 95 en mobile** sur le HTML réellement servi
 des pages publiques — le même critère qui a départagé le framework d'îlots
-([ADR-0011](../../1.x/adr/0011-ilots-svelte-5.md)). Il faut donc plusieurs variantes par image, et le lieu
+([ADR-0011](../../legacy/1.x/adr/0011-ilots-svelte-5.md)). Il faut donc plusieurs variantes par image, et le lieu
 où on les produit n'est pas neutre.
 
 Deux plafonds encadrent le choix :
 
-- le garde-fou `C5` du [socle de livraison](../../socle-de-livraison.md) porte sur la **sortie du
+- le garde-fou `C5` du [socle de livraison](../../legacy/socle-de-livraison.md) porte sur la **sortie du
   build** — alerte au seuil de l'Annexe A (15 000 fichiers), mur à 20 000 ;
 - le budget de sous-requêtes d'une publication borne les médias à **42**
-  ([ADR-0005](../../1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md)), et ce budget compte
+  ([ADR-0005](../../legacy/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md)), et ce budget compte
   **un fichier par média**, non ses variantes.
 
 Le chiffre de sortie est dérivé du code d'`astro@7.2.1` : `package/dist/assets/layout.js`
@@ -67,7 +67,7 @@ Nous produirons les **variantes d'images au build**, avec `image.layout: 'constr
 - **Générer les variantes à la publication** : écartée aujourd'hui, et **conservée comme
   parade** si la durée du build atteint les 20 minutes. Elle fait tomber le budget médias de 42
   à environ 8 par publication, dans la séquence mesurée le 2026-08-11
-  ([relevé](../../research/2026-08-11-sous-requetes-publication.md)).
+  ([relevé](../../legacy/research/2026-08-11-sous-requetes-publication.md)).
 
 ## Vérifiable ?
 

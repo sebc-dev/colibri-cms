@@ -1,0 +1,201 @@
+name: scd
+version: 1
+description: >-
+  Cycle spec-driven scd-spec-dev — proposal → specs → design, avec test-plan,
+  security-review et ux optionnels. Les TICKETS ne sont PAS un artefact de schéma :
+  ils sont produits par /scd-spec-dev:tickets (change-decomposer + strategie-verif,
+  granularité arbitrée par l'humain), puis implémentés un par un par /scd-spec-dev:run
+  (une PR chacun). On n'appelle JAMAIS /opsx:apply pour ce schéma.
+
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Pourquoi et quoi du change ; capacités touchées ; backréférences roadmap/vision.
+    template: proposal.md
+    instruction: |
+      Rédige le proposal qui établit POURQUOI ce change est nécessaire.
+
+      Sections :
+      - **Why** : 1-2 phrases sur le problème ou l'opportunité. Quel problème ? Pourquoi maintenant ?
+        Backréférence l'EPIC / la STORY (docs/roadmap.md) et les FR servis (docs/vision.md).
+      - **What Changes** : liste à puces des changements. Sois précis sur les nouvelles capacités,
+        les modifications, les suppressions. Marque tout changement cassant par **BREAKING**.
+      - **Capabilities** : identifie les specs créées ou modifiées — c'est le CONTRAT entre le
+        proposal et la phase specs, la partie critique :
+        - **New Capabilities** : capacités introduites. Chacune devient `specs/<capability-path>/spec.md`.
+          Utilise du kebab-case pour tout segment que tu introduis (`user-auth`, `identity/user-auth`)
+          en suivant l'organisation de specs existante du projet.
+        - **Modified Capabilities** : capacités existantes dont les EXIGENCES changent. N'inscris ici
+          qu'un vrai changement de comportement au niveau spec (pas un détail d'implémentation). Chacune
+          a besoin d'un delta. Utilise le chemin exact sous `openspec/specs/`. Laisse vide si rien ne change.
+      - **Impact** : code, API, dépendances ou systèmes affectés.
+
+      Tout change doit déclarer au moins une capacité (nouvelle ou modifiée) OU renoncer explicitement
+      aux specs : `openspec validate` rejette un change sans delta à moins que son `.openspec.yaml` ne
+      pose `skip_specs: true`. N'emploie `skip_specs: true` que si aucun comportement au niveau spec ne
+      change (refacto pur, outillage, docs). N'invente jamais une exigence pour satisfaire le validateur.
+
+      Reste concis (1-2 pages) ; le « pourquoi », pas le « comment » — le technique va dans design.md.
+    requires: []
+
+  - id: specs
+    generates: "specs/**/*.md"
+    description: Deltas de spec (ADDED/MODIFIED/REMOVED) ; scénarios WHEN/THEN — la SOURCE des critères.
+    template: spec.md
+    instruction: |
+      Écris les fichiers de spec qui définissent CE QUE le système doit faire — un contrat de
+      comportement, pas un plan d'implémentation. C'est la source des critères de tickets : chaque
+      scénario WHEN/THEN deviendra un critère (id stable SC-<ticket><lettre>) puis, en mode tdd/test,
+      un test nommé un-pour-un.
+
+      Bon contenu de spec : comportement observable, entrées/sorties/erreurs, contraintes externes
+      (sécurité, confidentialité, fiabilité, compatibilité), scénarios testables ou validables.
+      À éviter : noms de classe/fonction internes, choix de librairie/framework, détails d'implémentation
+      pas-à-pas (→ design.md).
+
+      Un fichier de spec par capacité listée dans la section Capabilities du proposal. `<capability-path>`
+      est le répertoire de spec relatif à `specs/` :
+      - Nouvelles capacités : chemin exact du proposal, à `specs/<capability-path>/spec.md` ; tout segment
+        neuf en kebab-case. Suis l'organisation existante ; n'ajoute pas un niveau de domaine si le projet
+        est à plat.
+      - Capacités modifiées : chemin existant exact sous `openspec/specs/<capability-path>/` pour le delta
+        `specs/<capability-path>/spec.md`. Ne déplace ni ne renomme la capacité.
+
+      Il faut au moins un fichier de spec, sauf si le `.openspec.yaml` du change pose `skip_specs: true`
+      (aucun changement de comportement). `openspec validate` rejette un change zéro-delta sans ce marqueur.
+
+      Opérations de delta (en-têtes `##`) :
+      - **ADDED Requirements** : nouvelles capacités.
+      - **MODIFIED Requirements** : comportement changé — DOIT inclure le contenu complet mis à jour.
+      - **REMOVED Requirements** : dépréciations — DOIT inclure **Reason** et **Migration**.
+      - **RENAMED Requirements** : renommage seul — format FROM:/TO:.
+
+      Format :
+      - Chaque exigence : `### Requirement: <nom>` suivi de sa description.
+      - Emploie SHALL/MUST pour les exigences normatives (évite should/may).
+      - Chaque scénario : `#### Scenario: <nom>` en WHEN/THEN.
+      - **CRITIQUE** : les scénarios utilisent EXACTEMENT 4 dièses (`####`). 3 dièses ou une puce
+        échouent silencieusement.
+      - Chaque exigence a AU MOINS un scénario.
+
+      Nouvelles capacités seulement : commence le delta par une section `## Purpose` — une ou deux phrases
+      (50+ caractères, sinon `openspec validate --strict` la juge trop brève) sur ce à quoi sert la
+      capacité. N'ajoute PAS `## Purpose` au delta d'une capacité existante (son spec en a déjà une).
+
+      MODIFIED : localise le bloc existant complet (de `### Requirement:` à tous ses scénarios), copie-le
+      sous `## MODIFIED Requirements`, édite-le ; l'en-tête doit correspondre exactement. Un MODIFIED
+      partiel perd du détail à l'archivage — pour ajouter sans changer l'existant, utilise ADDED.
+
+      Chaque scénario est un cas de test potentiel.
+    requires:
+      - proposal
+
+  - id: design
+    generates: design.md
+    description: Approche technique du change, JETABLE ; cite les ADR contraignants ; n'est jamais un ADR.
+    template: design.md
+    instruction: |
+      Écris le design qui explique COMMENT implémenter le change. Il est JETABLE (fusionné puis figé à
+      l'archivage) : ce n'est JAMAIS un ADR. Une décision structurante nouvelle qu'on relira dans six mois
+      → propose un ADR (docs/adr/), ne la fige pas ici.
+
+      À créer seulement si l'un s'applique : change transverse (plusieurs modules) ou nouveau patron
+      d'architecture, nouvelle dépendance externe ou changement de modèle de données important, complexité
+      sécurité/perf/migration, ambiguïté qui gagne à des décisions techniques avant de coder.
+
+      Sections :
+      - **Context** : état courant et contraintes nécessaires à l'approche. Renvoie au proposal pour la
+        motivation (« voir proposal.md - Why »), ne la répète pas.
+      - **Goals / Non-Goals** : ce que ce design atteint et exclut explicitement (frontières de design).
+      - **Decisions** : choix techniques clés avec justification (pourquoi X plutôt que Y ?) et
+        alternatives considérées. VÉRIFIE la conformité aux invariants des ADR (docs/adr/, docs/architecture.md) ;
+        cite les ADR contraignants.
+      - **Risks / Trade-offs** : limites connues. Format : [Risque] → Mitigation.
+      - **Migration Plan** : étapes de déploiement, rollback (si applicable).
+      - **Open Questions** : inconnues réellement reportables sans changer les specs, l'approche ni le
+        découpage. À défaut, résous-les maintenant (demande à l'humain plutôt que de deviner). Omets si aucune.
+
+      Architecture et approche, pas l'implémentation ligne à ligne. Renvoie au proposal (pourquoi/quoi) et
+      aux specs (exigences) au lieu de les redire.
+    requires:
+      - proposal
+
+  - id: test-plan
+    generates: test-plan.md
+    description: "Optionnel : stratégie de test de CE change (niveaux, cas limites, doubles minimaux)."
+    template: test-plan.md
+    instruction: |
+      OPTIONNEL — n'écris ce document que si la stratégie de test de ce change mérite d'être posée avant la
+      décomposition (change transverse, cas limites nombreux, infra de test non triviale). Sinon, saute-le :
+      le mode de vérif de chaque ticket est de toute façon tranché par strategie-verif à la décomposition.
+
+      Stratégie de test DE CE CHANGE, pas de la politique durable (celle-ci vit dans docs/test.md) :
+      - **Niveaux** : unité / intégration / contrat / bout-en-bout — lesquels, et pourquoi.
+      - **Oracle** : comment « correct » est vérifiable par scénario (rappel : l'oracle vérifiable est le
+        discriminant de strategie-verif).
+      - **Cas limites** : partitions d'équivalence + valeurs aux bornes qui comptent pour ce change.
+      - **Doubles** : les doubles MINIMAUX nécessaires (pas de sur-mock couplé à l'implémentation).
+      - **Zones sans test automatisé** : ce qui relèvera du mode `observé` (preuve observable) ou d'un
+        `humanCheckRequired`, et pourquoi.
+    requires:
+      - design
+
+  - id: security-review
+    generates: security-review.md
+    description: "Optionnel : revue sécurité de CE change (injection, authz, secrets, validation)."
+    template: security-review.md
+    instruction: |
+      OPTIONNEL — n'écris ce document que si ce change a une surface sécurité (entrées externes, authz/authn,
+      secrets, désérialisation, données personnelles). Sinon écris « Pas d'impact sécurité » et passe.
+
+      Revue sécu DE CE CHANGE (la politique durable vit dans docs/security.md) :
+      - **Surface** : nouvelles entrées externes, endpoints, permissions, flux de données.
+      - **Menaces** : injection, XSS, authz/authn, secrets en clair, désérialisation non sûre, validation
+        d'entrée manquante — ce qui est réellement en jeu ici.
+      - **Mitigations** : par menace retenue, la parade prévue.
+      - **Données** : données personnelles ou sensibles touchées, et leur traitement.
+      Un point sécu retenu ici alimentera le REVIEW_CONTEXT du security-reviewer à l'implémentation.
+    requires:
+      - design
+
+  - id: ux
+    generates: ux.md
+    description: "Optionnel : UX/UI de CE change — parcours, écrans, états, lien canvas ; sinon « Pas d'impact UI »."
+    template: ux.md
+    instruction: |
+      OPTIONNEL — SI ce change touche une interface : parcours, écrans, états, critères d'acceptation UX,
+      et un lien vers le canvas Claude Design des écrans. SINON : écris « Pas d'impact UI » et passe.
+
+      La spec textuelle (versionnée) vit ici ; le visuel vit dans le canvas. Pour une revue sans Claude,
+      un export PNG/PDF sur la PR. Le design system durable vit dans docs/design-system.md — ne le redis pas.
+
+      Sections :
+      - **Canvas** : lien vers l'artboard Claude Design des écrans de ce change.
+      - **Écrans & états** : chaque écran et ses états (vide · en saisie · erreur · envoi · …).
+      - **Critères d'acceptation UX** : observables (ex. « saisie au pouce en mobile, < 15 s »).
+    requires:
+      - proposal
+
+apply:
+  # apply.requires définit la CLÔTURE des artefacts REQUIS du change. Les artefacts hors de cette
+  # clôture (test-plan, security-review, ux) sont générables mais NE BLOQUENT PAS — c'est le seul levier
+  # d'optionnalité (OpenSpec n'a pas de champ `optional`). On inclut `specs` : c'est la source des
+  # critères, jamais optionnelle. `design` reste tributaire du seul `proposal`.
+  requires:
+    - specs
+    - design
+  # Aucun `tasks.md` à suivre : les tickets ne sont pas un artefact de schéma (ils sont produits par
+  # /scd-spec-dev:tickets). `tracks: null` = pas de suivi de cases par ce schéma.
+  tracks: null
+  instruction: |
+    NE PAS implémenter ce change inline.
+
+    Ce schéma n'utilise pas la phase apply d'OpenSpec. La couche d'implémentation vit dans le plugin
+    scd-spec-dev :
+    1. /scd-spec-dev:tickets — décompose le change en tickets verticaux (un comportement bout en bout
+       chacun), décide le mode de vérif par ticket via le skill strategie-verif, et arbitre la
+       granularité avec l'humain. Écrit changes/<x>/tickets/NN-slug.md.
+    2. /scd-spec-dev:run <NN> — implémente un ticket (vérif → quality gate → review 8 dimensions en
+       contexte frais → PR), une PR par ticket.
+
+    On n'appelle JAMAIS /opsx:apply pour ce schéma.

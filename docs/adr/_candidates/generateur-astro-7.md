@@ -1,9 +1,9 @@
 # Candidat ADR : Générateur du site public et de l'aperçu — Astro 7
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0002-generateur-astro-7.md` (ADR-0002 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0002-generateur-astro-7.md` (ADR-0002 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
@@ -16,11 +16,11 @@ Deux exigences tirent dans des directions que peu d'outils tiennent ensemble.
 - `FR-081` veut un **aperçu avant publication rendu par le serveur, avec le même rendu que
   celui du site publié**. Un aperçu qui diverge du publié ne remplit pas l'exigence.
 
-Servis par ailleurs : `SC-005`. Le choix est contraint par [ADR-0001](../../1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md),
+Servis par ailleurs : `SC-005`. Le choix est contraint par [ADR-0001](../../legacy/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md),
 qui a retenu un Worker Cloudflare unique : l'adaptateur `@astrojs/cloudflare` et la version
 majeure d'Astro sont couplés, `@astrojs/cloudflare@13.0.0` et `astro@6.0.0` ayant été publiés
 le 2026-03-10 à trois secondes d'intervalle
-([`docs/research/2026-08-12-adaptateur-astro-pages.md`](../../research/2026-08-12-adaptateur-astro-pages.md)).
+([`docs/legacy/research/2026-08-12-adaptateur-astro-pages.md`](../../legacy/research/2026-08-12-adaptateur-astro-pages.md)).
 
 ## Décision
 
@@ -57,7 +57,7 @@ Nous utiliserons **Astro 7** comme générateur du site public et moteur de rend
   client : la version d'Astro est un engagement pris pour toutes les clientes à la fois, et
   l'adaptateur y est épinglé.
 - La configuration d'images d'Astro décide, au-delà d'elle-même, du **plafond de médias du
-  produit** — voir [ADR-0019](../../1.x/adr/0019-pipeline-d-images-variantes-au-build.md).
+  produit** — voir [ADR-0019](../../legacy/1.x/adr/0019-pipeline-d-images-variantes-au-build.md).
 
 ## Alternatives considérées
 

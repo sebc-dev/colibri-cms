@@ -11,7 +11,6 @@
 # Le ruleset « Main protect » n'exige plus AUCUN status check (il ne garde que
 # PR obligatoire, anti-force-push et anti-suppression de `main`) : `build` et
 # `test` tournent encore et annotent la PR, mais ne la bloquent plus.
-# docs/ci.md décrit encore l'ancien portail à DOUZE bloquants — à réaligner.
 #
 # Les actions restent épinglées au SHA complet et les images au DIGEST.
 
@@ -63,7 +62,7 @@ jobs:
         run: npm run build
       # ── Garde-fou C5 · le plafond porte sur la SORTIE du build ──────────────
       # Une photographie produit 5 fichiers avec la configuration d'images
-      # retenue (docs/1.x/stack.md § Le garde-fou C5). Le mur de la plateforme est
+      # retenue (docs/legacy/1.x/stack.md § Le garde-fou C5). Le mur de la plateforme est
       # à 20 000 fichiers ; l'alerte du socle de livraison à 15 000.
       - if: steps.scaffold.outputs.ok == 'true'
         run: |

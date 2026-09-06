@@ -1,15 +1,15 @@
 # Candidat ADR : Le HTML brut n'est rendu qu'en un seul lieu — `src/render/markdown/`
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0025-html-brut-confine-au-rendu-markdown.md` (ADR-0025 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0025-html-brut-confine-au-rendu-markdown.md` (ADR-0025 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
 
 Le site public et l'administration partagent une **origine commune**
-([ADR-0001](../../1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md)) : tout contenu tiers
+([ADR-0001](../../legacy/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md)) : tout contenu tiers
 exécuté vaut vol de session. Deux chemins amènent du texte d'inconnu jusqu'à un rendu — le texte
 riche des emplacements éditables (`FR-018`) et la **liste des demandes** (`FR-069`), où les
 coordonnées d'un visiteur anonyme atteignent un écran d'administration.
@@ -39,7 +39,7 @@ ailleurs** dans les sources.
 - **La première des deux parades du XSS same-origin devient une propriété du dépôt**, lisible
   sans exécuter quoi que ce soit — et non plus une intention.
 - **Le seul lieu autorisé ne rend que du Markdown restreint**, déjà filtré sur ses marques et
-  ses schémas d'URL ([ADR-0008](../../1.x/adr/0008-texte-riche-markdown-restreint.md)) : l'exception est
+  ses schémas d'URL ([ADR-0008](../../legacy/1.x/adr/0008-texte-riche-markdown-restreint.md)) : l'exception est
   bornée à un contenu qui a déjà passé une liste blanche.
 - L'échappement par défaut de Svelte redevient la règle **sans exception ailleurs**.
 
@@ -53,7 +53,7 @@ ailleurs** dans les sources.
   La liste est à étendre si la stack évolue.
 - **Un besoin de rendu riche non couvert par le Markdown restreint n'a pas d'échappatoire** : il
   demande d'étendre le Markdown, donc de réviser
-  [ADR-0008](../../1.x/adr/0008-texte-riche-markdown-restreint.md), ou de remplacer cet ADR-ci.
+  [ADR-0008](../../legacy/1.x/adr/0008-texte-riche-markdown-restreint.md), ou de remplacer cet ADR-ci.
 
 ## Alternatives considérées
 
@@ -61,7 +61,7 @@ ailleurs** dans les sources.
   car **non décidable statiquement**. Un invariant qu'aucun contrôle ne peut prendre en défaut
   n'est pas un invariant.
 - **Autoriser `{@html}` partout et s'en remettre à l'assainissement** : écartée — c'est le motif
-  de [ADR-0008](../../1.x/adr/0008-texte-riche-markdown-restreint.md), un assainissement raté est un risque
+  de [ADR-0008](../../legacy/1.x/adr/0008-texte-riche-markdown-restreint.md), un assainissement raté est un risque
   dont on ne prouve jamais l'absence.
 - **Interdire `{@html}` sans aucune exception** : écartée car le rendu du Markdown restreint en
   a besoin. L'exception existe donc, mais elle est **bornée à un chemin nommé** au lieu d'être

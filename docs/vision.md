@@ -194,11 +194,11 @@ Ce qui prouve que le produit valait le coup — distinct des `FR` : le `FR` est 
 ## Stack
 
 Sur quoi le produit est bâti — un **constat scannable**, pas un registre de décisions (celui-là est
-`docs/1.x/stack.md`, archivé). Le *pourquoi* de chaque choix structurant est un ADR : promu dans
+`docs/legacy/1.x/stack.md`, archivé). Le *pourquoi* de chaque choix structurant est un ADR : promu dans
 `docs/adr/` (cité par son numéro), ou hérité du 1.x et en attente de promotion dans
 `docs/adr/_candidates/` (cité par son intitulé — la numérotation 2.x lui est attribuée à la
-promotion, par `/scd-sdd:adr`). Aucune version exacte : les manifestes du dépôt et `docs/ci.md` les
-portent, une copie dériverait ici.
+promotion, un geste humain dans `docs/adr/`). Aucune version exacte : les manifestes du dépôt
+et `docs/ci.md` les portent, une copie dériverait ici.
 
 - **Langage** — TypeScript en mode strict, partout (candidat `langage-typescript-strict`).
 - **Générateur du site public et de l'aperçu** — Astro : chaque page publique est un document complet bâti à la publication (candidat `generateur-astro-7`).
@@ -220,7 +220,7 @@ Les préoccupations durables par domaine — le *quoi* qu'on doit réussir. La *
 ADR (`docs/adr/`), qui cite la préoccupation ; on n'inscrit ici aucun invariant, aucun chemin, aucune
 décision. La plupart sont déjà tranchées — par un ADR du cycle courant (`docs/adr/`) ou par un ADR
 hérité du 1.x en attente de promotion depuis `docs/adr/_candidates/` ; celles marquées **(ouverte)**
-ne le sont nulle part et attendent `/scd-sdd:adr`.
+ne le sont nulle part et attendent leur promotion dans `docs/adr/`.
 
 ### Architecture
 - **ARCH-1** — Reconstructibilité : le site public se rebâtit sans le produit ni l'intégrateur, depuis les seuls fichiers déposés chez le client.
@@ -252,8 +252,9 @@ ne le sont nulle part et attendent `/scd-sdd:adr`.
 ## Découpage — epics
 
 L'epic nomme ses features par `NNN` quand elles sont sur le disque ; sinon, par leur intention.
-Deux features existent aujourd'hui (`001`, `002`) ; le reste est de la planification — son `NNN`
-sera attribué par `/scd-sdd:spec`. L'avancement réel se lit par `/scd-sdd:status`, jamais ici.
+Trois changes existent aujourd'hui (`001` et `002` livrés et fusionnés dans `openspec/specs/`,
+`003` en cours) ; le reste est de la planification — son `NNN` sera attribué à la création du
+change (`/opsx:propose`). L'avancement réel se lit par `/scd-spec-dev:status`, jamais ici.
 Deux identifiants ne sont rattachés à aucune feature, à dessein : FR-117 (langage de l'interface)
 s'impose à toutes, et SC-002 (le site en production) est le critère-somme du produit entier.
 

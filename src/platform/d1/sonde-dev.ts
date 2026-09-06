@@ -7,9 +7,8 @@
  * `d1_migrations` sur la base locale et le rend tel quel.
  *
  * Injectée par `astro.config.ts`, uniquement quand `command === 'dev'`
- * (`injectRoute`) — elle n'entre jamais dans l'artefact bâti (FR-024), et
- * l'étape 6 de `scripts/verif-bout-en-bout.sh` en constate la double
- * absence dans `dist/`.
+ * (`injectRoute`) — elle n'entre jamais dans l'artefact bâti (FR-024) : sa
+ * double absence dans `dist/` se constate après `npm run build`.
  *
  * Elle vit dans `platform/` — lire D1 est le métier de cette zone (`I2`) —
  * et non dans un `src/pages/` : une route sous `src/pages/` entrerait dans

@@ -1,1 +1,0 @@
-{ "protected": [], "weakening": { "block": false, "allow": [] }, "log": ".claude/guard-log.jsonl" }

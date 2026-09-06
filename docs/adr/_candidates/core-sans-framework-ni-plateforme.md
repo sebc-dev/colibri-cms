@@ -1,14 +1,14 @@
 # Candidat ADR : `src/core/` n'importe ni framework ni plateforme
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0022-core-sans-framework-ni-plateforme.md` (ADR-0022 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0022-core-sans-framework-ni-plateforme.md` (ADR-0022 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
 
-Le [Brief](../../1.x/brief.md) pose que « le code entrant n'est pas relu ligne à ligne » et que la
+Le [Brief](../../legacy/1.x/brief.md) pose que « le code entrant n'est pas relu ligne à ligne » et que la
 confiance vient de vérifications mécaniques. C'est ce que la caractéristique `C5` de
 `docs/archi.md` — **testabilité sans plateforme** — traduit en exigence de structure : la
 logique métier doit s'instancier **sans base, sans HTTP et sans Worker**.
@@ -34,7 +34,7 @@ socle de livraison ne serait pas atteignable.
 
 - Les deux calculs exacts du PRD se testent **sans base, sans HTTP et sans Worker** — donc vite,
   et sans simulacre qui dégraderait l'oracle
-  ([ADR-0013](../../1.x/adr/0013-tests-vitest-dans-workerd.md)).
+  ([ADR-0013](../../legacy/1.x/adr/0013-tests-vitest-dans-workerd.md)).
 - `src/core/` survit à un changement de framework ou d'adaptateur : ce qui est vraiment le
   produit ne dépend d'aucun des deux.
 - La règle est **falsifiable** dans les sources, sans exécuter quoi que ce soit.

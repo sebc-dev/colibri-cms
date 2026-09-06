@@ -43,21 +43,13 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/settings.json
 
-# Test de mutation (régime nocturne — .github/workflows/nightly.yml)
+# Test de mutation (`npm run mutation`, à la main : plus aucun workflow ne le joue)
 .stryker-tmp/
 reports/
 
-# Réglages Claude Code personnels — `.claude/settings.json` est versionné et
-# surveillé par `quality-config-guard` ; la variante `.local` ne l'est pas.
+# Réglages Claude Code personnels, propres à la machine.
 .claude/settings.local.json
 
-# Trace des tentatives bloquées par les gardes de session — propre à la machine,
-# en ajout continu, et personne n'a le droit de l'éditer pour résoudre un
-# conflit de merge. Le périmètre, lui, est versionné : `.claude/guards.json`.
-.claude/guard-log.jsonl
-
-# Copie locale de l'ancien socle, conservée hors du dépôt : git en garde déjà
-# l'historique, et sans cette ligne un `git add -A` la réintroduirait.
-# Ancré à la racine : sans la barre oblique, le motif matchait aussi
-# `docs/chantiers/archive/`, et toute fiche fermée en sortait du dépôt.
+# Copie locale de l'ancien socle, hors dépôt : git en garde l'historique.
+# Ancré à la racine pour ne pas matcher `docs/legacy/chantiers/archive/`.
 /archive/

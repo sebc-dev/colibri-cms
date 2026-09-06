@@ -1,9 +1,9 @@
 # Candidat ADR : Gestionnaire de paquets — npm
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0031-gestionnaire-de-paquets-npm.md` (ADR-0031 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0031-gestionnaire-de-paquets-npm.md` (ADR-0031 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 (l. 38-46) — arbitré là faute d'un porteur dans `docs/stack.md` ou dans le registre des 30 ADR
 précédents

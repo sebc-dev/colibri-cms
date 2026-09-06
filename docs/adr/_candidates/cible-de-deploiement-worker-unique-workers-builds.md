@@ -1,9 +1,9 @@
 # Candidat ADR : Cible de déploiement et système de build — un Worker Cloudflare unique bâti par Workers Builds
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md` (ADR-0001 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md` (ADR-0001 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
@@ -24,7 +24,7 @@ est **couplée** à elle. Et le déclenchement l'est à `FR-089`, qui réserve l
 dépôt du **contenu publié** — la branche de médias n'est donc pas un déclencheur.
 
 Le fait qui écarte l'alternative Pages est daté et mesuré :
-[`docs/research/2026-08-12-adaptateur-astro-pages.md`](../../research/2026-08-12-adaptateur-astro-pages.md)
+[`docs/legacy/research/2026-08-12-adaptateur-astro-pages.md`](../../legacy/research/2026-08-12-adaptateur-astro-pages.md)
 — `@astrojs/cloudflare` a retiré le support de Pages à la **v13.0.0, publiée le 2026-03-10**
 (le plan de routage `_routes.json`, propre à Pages, est écrit par la v12.6.13 et n'apparaît
 plus une seule fois dans le `dist` de la v13.0.0, dont `generate-routes-json.js` tombe de 225

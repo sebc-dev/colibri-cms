@@ -1,0 +1,22 @@
+# Généré par scd-spec-dev:setup — filet CI (grep des escape-hatches), hors boucle de dev.
+# Le seul garde-fou automatique du plugin : la rigueur vit dans la review, pas dans des hooks.
+# Non requis par le ruleset « Main protect » → il annote la PR, il ne la bloque pas.
+name: escape-hatch-guard
+on: [push, pull_request]
+jobs:
+  escape-hatch-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Grep escape-hatches
+        run: |
+          # Échoue si un escape-hatch est présent dans le code suivi.
+          # Exclut la doc, openspec/ et .github/ (qui contient ces jetons comme MOTIF de recherche).
+          if git grep -nIE '@ts-ignore|(^|[^[:alnum:]])as any([^[:alnum:]]|$)|eslint-disable|\.skip\(|# noqa|--no-verify' \
+               -- ':!.github/**' ':!openspec/**' ':!docs/**' ':!*.md'; then
+            echo "::error::escape-hatch détecté (voir lignes ci-dessus). À retirer, ou déroger explicitement dans la review."
+            exit 1
+          fi
+          echo "OK — aucun escape-hatch."

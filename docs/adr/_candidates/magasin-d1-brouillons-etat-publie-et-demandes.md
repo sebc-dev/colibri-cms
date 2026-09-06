@@ -1,9 +1,9 @@
 # Candidat ADR : Magasin — D1 porte les brouillons, l'état publié et les demandes ; le dépôt reçoit la copie publiée
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md` (ADR-0003 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md` (ADR-0003 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
@@ -11,7 +11,7 @@ Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0003-magasin-
 Le produit doit tenir ensemble deux propriétés que le socle de livraison impose et qu'un seul
 magasin ne donne pas :
 
-- l'invariant `I2` du [socle de livraison](../../socle-de-livraison.md) — « le contenu existe à
+- l'invariant `I2` du [socle de livraison](../../legacy/socle-de-livraison.md) — « le contenu existe à
   tout moment en clair, hors base » — et sa contrainte `C1`, qui fait écrire le contenu dans la
   base **et** le commiter en fichiers plats à la publication ;
 - un **index inverse** interrogeable : `FR-032` exige d'indiquer, pour une image donnée, les
@@ -46,7 +46,7 @@ demandes. Le **dépôt** recevra la copie publiée en fichiers plats, écrite à
   **médias en brouillon** — le binaire lui-même, stocké en `BLOB` — et la **suite donnée** à
   chaque demande (`FR-071`).
 - **La reprise après perte n'est pas établie.** Ni `docs/stack.md`, ni le socle de livraison,
-  ni aucun rapport de `docs/research/` ne porte sauvegarde, export ou restauration : le fait
+  ni aucun rapport de `docs/legacy/research/` ne porte sauvegarde, export ou restauration : le fait
   est **absent, pas contesté**. Ce que la plateforme sait rendre est le point **8** de « À
   constater en recette » de `docs/stack.md`, et c'est lui qui départagera les deux issues —
   créer une exigence de sauvegarde, ou assumer la perte par écrit. **Dette au dossier de

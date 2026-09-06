@@ -6,7 +6,7 @@
 
 ## Pourquoi deux espaces
 
-Les ADR du cycle `1.x` sont archivés dans [`docs/1.x/adr/`](../1.x/adr/) avec leurs numéros
+Les ADR du cycle `1.x` sont archivés dans [`docs/legacy/1.x/adr/`](../legacy/1.x/adr/) avec leurs numéros
 d'origine. La reprise vers `2.x` a tranché que **cette numérotation ne survit pas** : chaque
 décision promue reçoit un `NNNN` neuf, attribué dans l'ordre croissant des numéros 1.x.
 
@@ -16,6 +16,9 @@ règle de lecture tient en une ligne :
 
 > **Un `ADR-00NN` cité DANS le corps d'un ADR promu désigne le numéro 1.x.**
 > Le numéro 2.x est celui du nom de fichier.
+
+Cette règle ne vaut que pour 0001–0008. Les ADR nés en 2.x (0009 et suivants) citent des
+numéros 2.x.
 
 ## Correspondance
 
@@ -30,10 +33,13 @@ règle de lecture tient en une ligne :
 | [0007](./0007-garde-de-session-par-import-et-surface-publique-close.md) | 0026 | Garde de session par l'import, surface publique close |
 | [0008](./0008-en-tetes-d-administration-poses-par-un-middleware.md) | — | En-têtes d'administration posés par un middleware |
 | [0009](./0009-base-de-composants-des-ilots-shadcn-svelte.md) | — | Base de composants des îlots d'administration — shadcn-svelte |
+| [0010](./0010-csp-admin-styles-inline-style-src-attr.md) | — | CSP admin : styles inline via style-src-attr |
+| [0011](./0011-anti-forgerie-des-ecritures-admin-samesite-strict.md) | — | Anti-forgerie des écritures admin : SameSite=Strict |
+| [0012](./0012-declaration-des-emplacements-editables.md) | — | Déclaration des pages et emplacements éditables |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
-introduite en session `/scd-sdd:vision` le 2026-09-01 (base de composants des îlots
+introduite en session de cadrage le 2026-09-01 (base de composants des îlots
 d'administration).
 
 ## Ce qui n'est pas encore promu
@@ -44,12 +50,5 @@ pas contredire un ADR accepté », et un candidat n'en est pas un. Un renvoi ver
 absent de la table ci-dessus pointe donc vers une décision **non promue** — la lire dans
 l'archive, ne pas la traiter comme figée.
 
-La promotion se fait par `/scd-sdd:adr`, et c'est sa seule voie.
-
-## Deux gestes qui restent à la main
-
-- **Les brouillons promus ne sont pas supprimés.** Les huit fichiers correspondants subsistent
-  dans `_candidates/` et se représenteront en candidats à la passe suivante. Ils sont à retirer.
-- **Le registre de `docs/ci.md`** (§ *Registre des ADR vérifiés en CI*) cite encore les numéros
-  1.x. Il pointe vers l'archive, donc il résout — mais il désigne des décisions désormais
-  promues sous d'autres numéros. À reprendre quand la promotion sera complète.
+La promotion est un geste humain : on copie le candidat dans `docs/adr/` sous le prochain numéro
+libre, on renseigne statut et date, et on retire le fichier de `_candidates/`.

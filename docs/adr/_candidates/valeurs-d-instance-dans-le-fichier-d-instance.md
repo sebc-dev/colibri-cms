@@ -1,14 +1,14 @@
 # Candidat ADR : Les valeurs d'instance qui vivent dans les fichiers ne figurent que dans `instance.json`
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md` (ADR-0028 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md` (ADR-0028 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
 
-[ADR-0020](../../1.x/adr/0020-configuration-d-instance-quatre-lieux.md) a retenu **quatre lieux, un par
+[ADR-0020](../../legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md) a retenu **quatre lieux, un par
 nature de valeur**, dont un **fichier d'instance unique et versionné** pour tout ce que les
 trois autres ne portent pas. Il laissait une réserve explicite : « nom, format et mécanisme de
 lecture du fichier ne sont pas tranchés ici ».
@@ -18,7 +18,7 @@ d'instance et le contenu, deux instances ont le même dépôt ». Sans elle, la 
 découvre qu'à une montée de version, **en production**.
 
 Cet invariant rend le **nom et le format** ; le mécanisme de lecture est rendu par
-[ADR-0030](../../1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md). Les deux se complètent sans
+[ADR-0030](../../legacy/1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md). Les deux se complètent sans
 se recouvrir : celui-ci interdit qu'une valeur **logée dans le fichier** vive ailleurs, l'autre
 impose que les configurations aillent l'y chercher.
 
@@ -49,7 +49,7 @@ adresse autorisée en D1.
 - La montée de version cesse d'être un risque silencieux : une valeur qui a fui dans un fichier
   du produit se voit **avant** le déploiement.
 - Un clone nu trouve dans les fichiers le domaine et la clé publique dont il a besoin, donc `C6`
-  du [socle de livraison](../../socle-de-livraison.md) tient.
+  du [socle de livraison](../../legacy/socle-de-livraison.md) tient.
 
 **Négatives — ce à quoi le code s'engage.**
 
@@ -61,14 +61,14 @@ adresse autorisée en D1.
 - **L'interdit « aucun secret n'entre dans ce fichier » reste hors périmètre.** Reconnaître un
   secret est sémantique : cet invariant tient *quelles valeurs y vivent*, jamais la **nature**
   de ce qui y entrerait. La contrainte reste écrite dans
-  [ADR-0020](../../1.x/adr/0020-configuration-d-instance-quatre-lieux.md), et rien ne la vérifie.
+  [ADR-0020](../../legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md), et rien ne la vérifie.
 - **Le format est figé avec le nom** : il doit rester lisible par la configuration Astro **et**
   par celle du Worker, sans outil intermédiaire.
 
 ## Alternatives considérées
 
 - **Répartir chaque valeur là où son outil l'attend** : écartée en
-  [ADR-0020](../../1.x/adr/0020-configuration-d-instance-quatre-lieux.md) — c'est la pente naturelle des
+  [ADR-0020](../../legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md) — c'est la pente naturelle des
   outils, et elle ne laisse aucune frontière vérifiable entre les fichiers du produit et ceux de
   la cliente.
 - **Formuler l'invariant comme « aucun secret n'entre dans le fichier d'instance »** : écartée

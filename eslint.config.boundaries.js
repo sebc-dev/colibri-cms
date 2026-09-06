@@ -1,16 +1,16 @@
-// eslint.config.boundaries.js — job `boundaries` (docs/ci.md), matrice I1 SEULE.
+// eslint.config.boundaries.js — `npm run lint:boundaries` (docs/ci.md), matrice I1 SEULE.
 //
 // Ce fichier ne porte QUE le sens descendant des dépendances entre zones
-// (docs/archi.md I1) — pas le style (job `lint`, eslint.config.js), pas le
-// reliquat d'I3 (ré-exports, barils, alias — encore `[à compléter]`,
-// docs/ci.md § Registre des ADR vérifiés en CI, ligne ADR-0021).
+// (docs/architecture.md I1) — pas le style (`npm run lint`, eslint.config.js),
+// pas le reliquat d'I3 (ré-exports, barils, alias — encore `[à compléter]`,
+// docs/architecture.md, invariant I1).
 //
 // Les cinq zones se déclarent SANS BARRE FINALE — motif "src/render" nu,
 // jamais suivi d'une étoile ou d'une double étoile — c'est la contrainte
-// générale d'I3 (FR-026, plan § décision 10) : le contrôle littéral
-// d'arch-invariants.sh cherche, entre guillemets, la zone render suivie d'un
-// caractère dans tout fichier source hors de cette zone, et CE fichier en
-// est un — d'où l'absence de guillemets autour de ces motifs jusqu'ici même
+// générale d'I3 (FR-026) : l'ancien contrôle littéral de la CI (retiré à la
+// bascule scd-spec-dev) cherchait, entre guillemets, la zone render suivie
+// d'un caractère dans tout fichier source hors de cette zone, et CE fichier
+// en est un — d'où l'absence de guillemets autour de ces motifs jusqu'ici même
 // dans ce commentaire. La forme sans barre finale est aussi celle qui classe
 // réellement les fichiers en mode dossier d'eslint-plugin-boundaries (elle
 // devient interne au pattern suivi de « /**/* ») ; ajouter une étoile double

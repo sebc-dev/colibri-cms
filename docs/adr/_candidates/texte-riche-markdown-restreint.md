@@ -1,9 +1,9 @@
 # Candidat ADR : Texte riche — Markdown restreint aux marques testées et aux schémas d'URL autorisés
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0008-texte-riche-markdown-restreint.md` (ADR-0008 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0008-texte-riche-markdown-restreint.md` (ADR-0008 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
@@ -13,7 +13,7 @@ de développeur dans l'interface d'édition : l'éditrice met en forme, elle n'�
 balises. `SC-011` (épreuve de réversibilité) veut que ce contenu reste lisible en fichiers.
 
 Le contexte de sécurité est posé par
-[ADR-0001](../../1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md) : le site public et
+[ADR-0001](../../legacy/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md) : le site public et
 l'administration sont servis par **un même Worker**, donc par une **même origine**. Tout
 contenu tiers exécuté côté public vaut vol du cookie de session de l'éditrice. Et le PRD
 envisage explicitement le cas où l'administration est compromise.

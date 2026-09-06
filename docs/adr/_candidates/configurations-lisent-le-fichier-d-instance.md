@@ -1,15 +1,15 @@
 # Candidat ADR : La configuration Astro et celle du Worker lisent `instance.json`, et n'y écrivent aucune valeur en dur
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md` (ADR-0030 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md` (ADR-0030 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
 
-[ADR-0020](../../1.x/adr/0020-configuration-d-instance-quatre-lieux.md) a retenu un fichier d'instance
-unique, et [ADR-0028](../../1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) lui a donné son
+[ADR-0020](../../legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md) a retenu un fichier d'instance
+unique, et [ADR-0028](../../legacy/1.x/adr/0028-valeurs-d-instance-dans-le-fichier-d-instance.md) lui a donné son
 nom et son format — `instance.json`, à la racine. Reste le **mécanisme de lecture**, troisième
 et dernier terme de la réserve que la Stack avait déposée sur la phase Archi.
 
@@ -40,7 +40,7 @@ déclarées dans la **configuration du déploiement** : c'est leur lieu.
 - **La valeur n'existe qu'une fois** : aucune désynchronisation possible entre la configuration
   Astro et celle du Worker.
 - Un clone nu bâtit le site sans D1 ni accès Cloudflare, donc `C6` du
-  [socle de livraison](../../socle-de-livraison.md) tient — le domaine pour les URL canoniques et
+  [socle de livraison](../../legacy/socle-de-livraison.md) tient — le domaine pour les URL canoniques et
   le sitemap, la clé publique Turnstile pour le widget.
 - Une montée de version ne touche jamais ce fichier : la fusion dans le dépôt d'une cliente ne
   peut pas écraser ses valeurs.
@@ -55,7 +55,7 @@ déclarées dans la **configuration du déploiement** : c'est leur lieu.
   invariant n'est pas remplacé.
 - **Deux mécanismes de configuration coexistent** : le fichier d'instance et la configuration du
   déploiement. Il faut savoir lequel porte quoi, et cette connaissance vit dans
-  [ADR-0020](../../1.x/adr/0020-configuration-d-instance-quatre-lieux.md), pas dans les fichiers.
+  [ADR-0020](../../legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md), pas dans les fichiers.
 - **L'invariant tient la lecture, pas ce qui en est fait.** Une configuration pourrait lire le
   fichier **et** écrire quand même une valeur en dur ailleurs : c'est `I8` qui l'attrape, pas
   celui-ci. **Les deux ne valent qu'ensemble.**

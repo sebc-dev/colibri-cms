@@ -1,9 +1,9 @@
 # Candidat ADR : Framework d'îlots — Svelte 5
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0011-ilots-svelte-5.md` (ADR-0011 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0011-ilots-svelte-5.md` (ADR-0011 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
 
 
 ## Contexte
@@ -18,8 +18,8 @@ Le même framework sert l'administration, où `FR-017` (modifier chaque emplacem
 `SC-015` portent l'exigence d'interactivité.
 
 Le contexte de sécurité vient de
-[ADR-0001](../../1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md) — origine commune — et
-de la CSP stricte que [ADR-0015](../../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) impose à
+[ADR-0001](../../legacy/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md) — origine commune — et
+de la CSP stricte que [ADR-0015](../../legacy/1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) impose à
 l'administration.
 
 ## Décision
@@ -43,7 +43,7 @@ l'administration.
   stricte de l'administration — laquelle interdit `unsafe-inline` sans nonce ni empreinte. Il
   en découle que **l'administration ne se bâtit pas comme des îlots dans des pages**, mais
   comme une application montée par un point d'entrée externe. C'est ce que l'invariant `I4` de
-  [`docs/archi.md`](../../1.x/archi.md) rend falsifiable. Le **site public n'est pas concerné** : il
+  [`docs/archi.md`](../../legacy/1.x/archi.md) rend falsifiable. Le **site public n'est pas concerné** : il
   garde ses îlots et sa politique portée par `_headers`.
 - **L'échappement par défaut a une porte, et une seule** : `{@html}`. Elle suffit à casser la
   propriété, d'où l'invariant `I5` de `docs/archi.md`, qui la confine à un seul chemin.

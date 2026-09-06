@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "scope": { "changedOnly": true, "paths": ["src/**", "tests/**", "migrations/**"] },
+  "checks": [
+    {
+      "id": "typecheck",
+      "cmd": "npm run typecheck",
+      "severity": "blocking",
+      "autofix": null
+    },
+    {
+      "id": "lint",
+      "cmd": "npm run lint",
+      "severity": "blocking",
+      "autofix": "npm run lint -- --fix"
+    },
+    {
+      "id": "build",
+      "cmd": "npm run build",
+      "severity": "advisory",
+      "autofix": null
+    },
+    {
+      "id": "test",
+      "cmd": "npm test",
+      "severity": "advisory",
+      "autofix": null
+    }
+  ]
+}
