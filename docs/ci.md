@@ -22,12 +22,13 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Un seul test | `npx vitest run tests/integration/<fichier>.test.ts` | exige le **worker de test déjà bâti** — sinon, `npm run build` une fois, puis cette commande. Elle ne rejoue pas le build |
 | Couverture | `npm run coverage` | `coverage/lcov.info` — informatif |
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
-| Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, à jouer **à la main** : aucun workflow ne le joue |
+| Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`. **Aucun workflow ne le joue** ; depuis le 2026-09-06 il est **bloquant dans la quality gate** (voir plus bas) |
 | Migrations locales | `npm run db:migrate` | `wrangler d1 migrations apply DB --local` — applique `migrations/` à la base D1 locale |
 | Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.jsonc` |
 
-`npm run knip` (code non utilisé) et `npm run mutation` (Stryker) sont des **outils manuels** :
-aucun workflow ne les joue, aucun seuil n'en dépend.
+`npm run mutation` (Stryker) est un **outil manuel** : aucun workflow ne le joue, aucun seuil n'en
+dépend. `npm run knip` (code non utilisé) n'est joué par aucun workflow non plus, mais la quality
+gate le rejoue **en avis** à chaque ticket.
 
 > **`npm test` bâtit d'abord.** Il déclenche `pretest` → `npm run build`, lui-même encadré par
 > `scripts/preparer-worker-de-test.mjs` (`prebuild` pose une amorce, `postbuild` recopie `dist/`
@@ -77,6 +78,19 @@ n'ont pas écrit le code, suivies d'un triage adversarial (`/scd-spec-dev:run`, 
 
 Une **quality gate déterministe** rejoue des checks à chaque ticket (phase 7½ de
 `/scd-spec-dev:run`) : elle est **possédée par le projet** dans `.claude/quality.json`
-(`/scd-spec-dev:quality-setup`). Posée le 2026-09-06 : `typecheck` et `lint` **bloquants** (`lint`
-avec autofix `eslint --fix`), `build` et `test` en **avis**. Si ce fichier disparaît, la gate est un
-no-op — le **0-gate** est vrai par défaut : un check n'est bloquant que si le projet le déclare.
+(`/scd-spec-dev:quality-setup`). Posée puis revue le 2026-09-06 — cinq checks, quatre bloquants :
+
+| Check | Commande | Sévérité | Pourquoi |
+|---|---|---|---|
+| `typecheck` | `npm run typecheck` | **bloquant** | le build seul ne type pas |
+| `lint` | `npm run lint` | **bloquant** | source de vérité du style ; autofix `eslint --fix` |
+| `boundaries` | `npm run lint:boundaries` | **bloquant** | seul porteur falsifiable de l'invariant `I1` — aucun workflow ne le joue |
+| `test` | `npm test` | **bloquant** | la DoD l'exige ; bâtit déjà via `pretest`, un build cassé y ressort |
+| `knip` | `npm run knip` | avis | code non utilisé — recoupe la dimension propreté de la review |
+
+Il n'y a **pas** de check `build` : `npm test` le déclenche par `pretest`, un check séparé rejouerait
+un second `astro build` pour rien. `coverage` et `mutation` restent hors gate — aucun seuil n'est
+déclaré dans `vitest.config.ts`, et Stryker est hors de portée d'une gate par ticket.
+
+Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un check n'est
+bloquant que si le projet le déclare.
