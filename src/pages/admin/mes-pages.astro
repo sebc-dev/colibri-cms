@@ -1,0 +1,56 @@
+---
+/**
+ * L'`Écran : Liste des pages` (ticket 02,
+ * openspec/changes/003-remplir-emplacements/tickets/02-liste-des-pages.md).
+ *
+ * Route sous `src/pages/admin/`, gardée par `verifierSession` comme toute
+ * route d'administration (ADR-0007, patron `cadre.astro`/`index.astro`).
+ *
+ * Route dédiée, distincte de `src/pages/admin/index.astro` : le choix de
+ * cette route dédiée, plutôt que la route d'accueil, est posé par le
+ * ticket 02
+ * (openspec/changes/003-remplir-emplacements/tickets/02-liste-des-pages.md,
+ * section « Ce que ça livre »).
+ *
+ * La liste est rendue directement par Astro (aucun îlot Svelte) : elle ne
+ * porte aucune interaction à ce ticket — ouvrir une page est le ticket 03,
+ * hors périmètre ici (FR-024/025 : aucun geste d'ajout, de retrait, de
+ * déplacement ni de renommage de page n'est offert, SC-02c). Le rendu côté
+ * serveur rend aussi la liste et l'état vide directement vérifiables sur la
+ * réponse HTTP réelle (motif du mode `test` de ce ticket), là où un îlot
+ * monté côté client ne le serait pas.
+ *
+ * La déclaration des pages est lue, jamais écrite (ADR-0012) : le lecteur
+ * pur vit dans `src/core/pages/declaration.ts` (fonctions pures, sans D1 ni
+ * Worker) ; le chargement du contenu versionné (`content/pages/`) dans
+ * `src/platform/contenu/pages.ts` (I1 : `platform → core`, jamais
+ * l'inverse). Une instance sans aucun `page.json` déclaré rend un tableau
+ * vide, d'où l'état vide de SC-02b, sans branche dédiée dans le lecteur.
+ */
+import Gabarit from '../../admin/Gabarit.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+import { listerPagesDeclarees } from '../../platform/contenu/pages.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const pages = listerPagesDeclarees();
+---
+
+<Gabarit titre="Mes pages — Administration">
+  <h1>Mes pages</h1>
+  {
+    pages.length === 0 ? (
+      <p>Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici.</p>
+    ) : (
+      <ul>
+        {pages.map((page) => (
+          <li>{page.titre}</li>
+        ))}
+      </ul>
+    )
+  }
+</Gabarit>
