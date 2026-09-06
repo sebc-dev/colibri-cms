@@ -32,7 +32,9 @@ n'importe où sur le site est un risque **XSS same-origin** contre lui (préoccu
   ([ADR-0006](./adr/0006-administration-sans-directive-client.md), invariant `I4`). Les en-têtes sont
   posés par deux porteurs — `_headers` pour le public, un middleware pour l'administration
   ([ADR-0004](./adr/0004-en-tetes-de-reponse-deux-porteurs.md),
-  [ADR-0008](./adr/0008-en-tetes-d-administration-poses-par-un-middleware.md)). Seuls les **attributs**
+  [ADR-0008](./adr/0008-en-tetes-d-administration-poses-par-un-middleware.md)). Le porteur public
+  **n'existe pas encore en source** : aucun fichier `_headers` n'est versionné — ADR-0004 le prévoit,
+  il naîtra avec la publication. Seuls les **attributs**
   `style="…"` posés par les primitives sont tolérés, par `style-src-attr 'unsafe-inline'`
   ([ADR-0010](./adr/0010-csp-admin-styles-inline-style-src-attr.md)) — `script-src` n'est pas rouvert.
 - **Anti-forgerie par le cookie.** Le cookie de session porte `__Host-`, `HttpOnly`, `Secure` et

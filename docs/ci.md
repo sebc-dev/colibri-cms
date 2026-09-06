@@ -19,9 +19,22 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Typage | `npm run typecheck` | `tsc --noEmit`. Le typage strict n'est pas fait par le build seul |
 | Build | `npm run build` | `astro build`, adaptateur `@astrojs/cloudflare`. `typecheck` **puis** `build` |
 | Tests | `npm test` | `vitest run --passWithNoTests`, dans `workerd` (voir [`docs/test.md`](./test.md)) |
+| Un seul test | `npx vitest run tests/integration/<fichier>.test.ts` | exige le **worker de test déjà bâti** — sinon, `npm run build` une fois, puis cette commande. Elle ne rejoue pas le build |
 | Couverture | `npm run coverage` | `coverage/lcov.info` — informatif |
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
+| Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, à jouer **à la main** : aucun workflow ne le joue |
+| Migrations locales | `npm run db:migrate` | `wrangler d1 migrations apply DB --local` — applique `migrations/` à la base D1 locale |
 | Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.jsonc` |
+
+`npm run knip` (code non utilisé) et `npm run mutation` (Stryker) sont des **outils manuels** :
+aucun workflow ne les joue, aucun seuil n'en dépend.
+
+> **`npm test` bâtit d'abord.** Il déclenche `pretest` → `npm run build`, lui-même encadré par
+> `scripts/preparer-worker-de-test.mjs` (`prebuild` pose une amorce, `postbuild` recopie `dist/`
+> vers `.wrangler/test-worker/`, l'emplacement stable que `wrangler.jsonc` désigne en `main` et
+> `assets`) : **un échec de build ressort donc comme un échec de test**. `npm run coverage` suit la
+> même règle (`precoverage`). Jouer `npx vitest` directement contourne cette étape — d'où la
+> condition « worker de test déjà bâti » ci-dessus.
 
 > **`.npmrc` porte `min-release-age=7`.** Une dépendance publiée il y a moins de sept jours est
 > inutilisable à la résolution : c'est la fenêtre du *slopsquatting*, couverte à l'installation.

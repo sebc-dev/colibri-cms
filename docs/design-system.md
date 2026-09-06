@@ -16,9 +16,13 @@ publication, liste des demandes. Leur base est le **registre shadcn-svelte**.
   l'intégrateur » (`SEC-3`).
 - **Tokens et primitives.** Style par **Tailwind CSS** ; primitives d'accessibilité **bits-ui**
   (clavier, focus, ARIA — ce qu'on réinvente mal à la main) ; utilitaires `tailwind-variants`,
-  `clsx`, `tailwind-merge` ; icônes lucide. Les tokens de design (couleurs, espacements, rayons,
-  typographie) sont ceux exposés par la configuration Tailwind et les composants copiés — ils vivent
-  dans le dépôt, sous la zone `admin`.
+  `clsx`, `tailwind-merge` ; icônes lucide. Les tokens de design vivent dans
+  **`src/admin/admin.css`**, et nulle part ailleurs : `:root` porte la palette et le rayon
+  (`--background`, `--foreground`, `--primary`, `--radius`… — le thème « neutral » du registre
+  shadcn-svelte), `@theme inline` les expose en utilitaires (`bg-primary`, `text-muted-foreground`,
+  `--radius-md`…) que consomment les composants copiés. Tailwind v4 est **CSS-first** : la feuille
+  fait `@import 'tailwindcss'` et le projet ne porte **aucun `tailwind.config.js`**. Un **seul jeu de
+  valeurs, sans variante sombre** — l'administration reste en `color-scheme: light`.
 - **Accessibilité non réinventée** : `UX-2` exige que l'éditrice agisse seule, sans notion technique,
   y compris après des mois sans usage.
 
@@ -35,7 +39,8 @@ publication, liste des demandes. Leur base est le **registre shadcn-svelte**.
 - **Frontière de zones.** La base d'administration reste **hors des îlots publics** : le formulaire
   de devis public garde des îlots minimaux, sans apport de composants, parce que SC-005 (Lighthouse
   ≥ 95) mesure le poids envoyé à la visiteuse sur ces pages. La frontière est falsifiable dans le
-  graphe d'imports entre zones (`I1`, `eslint.config.boundaries.js`).
+  graphe d'imports entre zones (`I1`, `eslint.config.boundaries.js`), joué par
+  `npm run lint:boundaries` — **à la main** : aucun workflow ne le joue.
 
 ## Canvas maître
 
