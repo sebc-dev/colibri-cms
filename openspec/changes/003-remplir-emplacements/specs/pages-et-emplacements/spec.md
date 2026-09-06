@@ -104,7 +104,9 @@ Le noyau `core/` SHALL appliquer une correction à un brouillon de page sans jam
 dériver l'état « porte un brouillon » (vrai dès qu'une correction existe, faux sinon), et refuser toute
 correction qui viserait la structure (ajouter, retirer, déplacer ou renommer un emplacement, ou viser un
 emplacement non déclaré) au titre de FR-024/025. Le brouillon DOIT être porté par une table D1 créée par
-une migration versionnée, liant le brouillon à l'emplacement par son identité stable. Une écriture forgée
+une migration versionnée, liant le brouillon à l'emplacement par son identité stable. La destination
+d'un bouton d'action ne DOIT admettre que les schémas d'URL `https`, `mailto`, `tel` et les chemins
+relatifs ; tout autre schéma est refusé en `core/` et au champ, sans rien enregistrer. Une écriture forgée
 depuis une autre origine ne DOIT pas aboutir : la session `SameSite=Strict` posée par 001 n'est pas
 attachée à une requête cross-site (ADR-0011), et aucun jeton anti-forgerie dédié n'est introduit.
 
@@ -135,6 +137,10 @@ attachée à une requête cross-site (ADR-0011), et aucun jeton anti-forgerie d�
 #### Scenario: Une écriture forgée cross-site n'aboutit pas
 - **WHEN** une écriture est forgée depuis une autre origine
 - **THEN** elle n'aboutit pas, la session `SameSite=Strict` n'étant pas attachée à une requête cross-site (ADR-0011), et aucun jeton dédié n'est introduit
+
+#### Scenario: Une destination de bouton hors liste blanche est refusée
+- **WHEN** en `core/`, une correction de bouton vise une destination dont le schéma n'est ni `https`, ni `mailto`, ni `tel`, ni un chemin relatif
+- **THEN** elle est refusée, aucun brouillon n'est écrit, et le champ le dit sans terme de développeur (FR-117)
 
 ### Requirement: Réglage d'un emplacement de lien de vidéo
 

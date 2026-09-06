@@ -43,11 +43,10 @@ reste statique et intact (FR-026).
   `src/platform/session/`. SC-04g en porte la preuve.
 - **XSS** → la validation vit dans `core/`, pure et en un seul lieu : reconnaissance du lien de vidéo
   (05), liste blanche de schémas d'URL `https`, `mailto`, `tel` et chemins relatifs pour les liens du
-  texte riche (06). À scruter : que la **destination du bouton d'action** (04) passe par la même liste
-  blanche que le texte riche — les critères ne l'imposent pas explicitement, c'est le point le plus
-  facile à manquer du change. Et que **rien ne rende de HTML** : ce change sérialise vers du Markdown
-  restreint, il ne fabrique aucune balise ; toute occurrence de `{@html}` ou `set:html` hors de
-  `src/render/markdown/` viole l'invariant `I5` (`docs/architecture.md`).
+  texte riche (06) et pour la destination du bouton d'action (04, scénario « Une destination de bouton
+  hors liste blanche est refusée », SC-04h). Et que **rien ne rende de HTML** : ce change sérialise vers
+  du Markdown restreint, il ne fabrique aucune balise ; toute occurrence de `{@html}` ou `set:html` hors
+  de `src/render/markdown/` viole l'invariant `I5` (`docs/architecture.md`).
 - **Correction de structure** → refus en `core/`, sur la déclaration lue (SC-04c) : le nombre, la
   nature et l'ordre des emplacements ne se dérivent jamais de la requête. À scruter : que
   l'identifiant d'emplacement reçu soit vérifié **contre la déclaration** avant toute écriture, et

@@ -2,12 +2,17 @@
 
 **Bloqué par :** 03
 **Vérif :** test
-**Fichiers :** `src/core/` (appliquer une correction, dériver l'état « porte un brouillon », refuser une correction de structure), `src/platform/` (persistance D1 du brouillon), `migrations/` (table des brouillons), `src/pages/admin/` (route d'écriture), `src/admin/` (édition du bouton, pastille dans la liste), `tests/integration/`
+**Fichiers :** `src/core/` (appliquer une correction, dériver l'état « porte un brouillon », refuser une correction de structure, liste blanche de schémas de la destination), `src/platform/` (persistance D1 du brouillon), `migrations/` (table des brouillons), `src/pages/admin/` (route d'écriture), `src/admin/` (édition du bouton, pastille dans la liste), `tests/integration/`
 
 Motif du mode `test` : deux coutures — la couture haute `core/`, pure, et la couture d'intégration HTTP
 contre la vraie base locale. La seconde, couplée à D1 et à la migration, ne s'exprime qu'une fois la
 route et la table posées. Le critère SC-04f se vérifie sur le HTML servi par les routes de la liste et
 de l'éditeur (présence de la pastille de brouillon), pas à l'écran.
+
+La route d'écriture posée ici est générique : elle reçoit une correction pour un couple (page,
+emplacement) et la confie à `core/`, qui l'aiguille selon la nature de l'emplacement portée par la
+déclaration (ADR-0012). Les tickets 05 et 06 la réutilisent telle quelle et n'ajoutent que leur
+logique `core/`, leur îlot et leur test.
 
 ## Ce que ça livre
 L'éditrice règle le libellé et la destination d'un emplacement de bouton d'action, puis enregistre :
@@ -28,3 +33,4 @@ emplacements), et la table D1 qui porte les brouillons.
 - [ ] Par la couture HTTP contre la vraie base locale, enregistrer une correction de bouton persiste le brouillon et laisse l'état publié intact.   (SC-04e)
 - [ ] Après enregistrement, la page bascule à « brouillon » dans l'`Écran : Liste des pages` (pastille présente) et l'`Écran : Éditeur de page` (pastille au fil de retour), sans quitter l'écran.   (SC-04f)
 - [ ] Une écriture forgée depuis une autre origine n'aboutit pas : la session `SameSite=Strict` n'est pas attachée à une requête cross-site (ADR-0011), et aucun jeton dédié n'est introduit.   (SC-04g)
+- [ ] En `core/`, une destination de bouton dont le schéma n'est ni `https`, ni `mailto`, ni `tel`, ni un chemin relatif est refusée, sans rien enregistrer.   (SC-04h)
