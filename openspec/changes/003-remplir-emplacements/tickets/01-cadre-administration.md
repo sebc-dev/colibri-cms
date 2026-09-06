@@ -19,10 +19,10 @@ le substrat commun où la liste des pages et l'éditeur s'afficheront (tickets 0
 monté en application, sous CSP stricte, sur le patron posé par 002.
 
 ## Critères
-- [ ] L'`Écran : Cadre de l'administration` affiche la barre latérale avec les cinq rubriques, « Mes pages » marquée active.   (SC-01a)
-- [ ] Le bouton de repli réduit la barre à un rail d'icônes seules ; la rubrique active y reste marquée, et la zone de contenu s'élargit.   (SC-01b)
-- [ ] Redéployer la barre restaure les libellés à côté des icônes.   (SC-01c)
-- [ ] L'état replié/déployé est retenu sur l'appareil : recharger l'écran conserve le dernier état choisi, sans requête serveur pour le porter.   (SC-01d)
-- [ ] Aucune rubrique autre que « Mes pages » ne mène à un écran servi ; le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page.   (SC-01e)
-- [ ] Aucun terme de développeur ne paraît dans le menu ni dans les libellés du cadre.   (SC-01f)
-- [ ] L'écran est servi sous les en-têtes réels (CSP stricte de l'administration, ADR-0004 + ADR-0008 ; tolérance des attributs `style="…"`, ADR-0010) sans script en ligne ni directive `client:*` (ADR-0006).   (SC-01g)
+- [x] L'`Écran : Cadre de l'administration` affiche la barre latérale avec les cinq rubriques, « Mes pages » marquée active.   (SC-01a)
+- [x] Le bouton de repli réduit la barre à un rail d'icônes seules ; la rubrique active y reste marquée, et la zone de contenu s'élargit.   (SC-01b)
+- [x] Redéployer la barre restaure les libellés à côté des icônes.   (SC-01c)
+- [x] L'état replié/déployé est retenu sur l'appareil : recharger l'écran conserve le dernier état choisi, sans requête serveur pour le porter.   (SC-01d)
+- [x] Aucune rubrique autre que « Mes pages » ne mène à un écran servi ; le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page.   (SC-01e)
+- [x] Aucun terme de développeur ne paraît dans le menu ni dans les libellés du cadre.   (SC-01f)
+- [x] L'écran est servi sous les en-têtes réels (CSP stricte de l'administration, ADR-0004 + ADR-0008 ; tolérance des attributs `style="…"`, ADR-0010) sans script en ligne ni directive `client:*` (ADR-0006).   (SC-01g)
