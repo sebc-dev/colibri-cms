@@ -75,7 +75,8 @@ contexte frais** (producteur ≠ vérificateur) : huit dimensions — architectu
 conventions, propreté, error-handling, couverture, change, intégrité — jouées par des reviewers qui
 n'ont pas écrit le code, suivies d'un triage adversarial (`/scd-spec-dev:run`, `/scd-spec-dev:review`).
 
-Une **quality gate déterministe** optionnelle peut rejouer des checks (lint, typage, couverture…) à
-chaque ticket : elle est **possédée par le projet** dans `.claude/quality.json`
-(`/scd-spec-dev:quality-setup`). Tant que ce fichier n'existe pas, la gate est un no-op — le
-**0-gate** est vrai par défaut : un check n'est bloquant que si le projet le déclare.
+Une **quality gate déterministe** rejoue des checks à chaque ticket (phase 7½ de
+`/scd-spec-dev:run`) : elle est **possédée par le projet** dans `.claude/quality.json`
+(`/scd-spec-dev:quality-setup`). Posée le 2026-09-06 : `typecheck` et `lint` **bloquants** (`lint`
+avec autofix `eslint --fix`), `build` et `test` en **avis**. Si ce fichier disparaît, la gate est un
+no-op — le **0-gate** est vrai par défaut : un check n'est bloquant que si le projet le déclare.
