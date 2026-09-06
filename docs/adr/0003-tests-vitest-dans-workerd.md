@@ -1,15 +1,15 @@
 # ADR-0003 : Tests — Vitest dans `workerd`, Playwright pour les parcours, épreuve de réversibilité scriptée
 Statut : Accepté | Date : 2026-08-25
 
-Promu depuis `docs/1.x/adr/0013-tests-vitest-dans-workerd.md` — ADR-0013, accepté sous le cycle 1.x.
+Promu depuis `docs/legacy/1.x/adr/0013-tests-vitest-dans-workerd.md` — ADR-0013, accepté sous le cycle 1.x.
 
 > Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
-> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/1.x/` : ce ne sont
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/legacy/1.x/` : ce ne sont
 > pas des noms de fichier.
 
 ## Contexte
 
-Le [Brief](../1.x/brief.md) pose que « le code entrant n'est pas relu ligne à ligne » : la confiance
+Le [Brief](../legacy/1.x/brief.md) pose que « le code entrant n'est pas relu ligne à ligne » : la confiance
 vient de vérifications mécaniques. La question n'est donc pas *quel outil de test*, mais **quel
 oracle** — ce qui décide si un test dit vrai.
 
@@ -22,7 +22,7 @@ rejouable et non une manipulation. Exigences servies : toutes, et nommément `SC
 `SC-011`, `SC-016`.
 
 Relevé versé :
-[`docs/research/2026-08-12-vitest-pool-workers-liaisons.md`](../research/2026-08-12-vitest-pool-workers-liaisons.md)
+[`docs/legacy/research/2026-08-12-vitest-pool-workers-liaisons.md`](../legacy/research/2026-08-12-vitest-pool-workers-liaisons.md)
 + trace brute rejouable.
 
 ## Décision

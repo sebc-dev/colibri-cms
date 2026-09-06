@@ -1,8 +1,8 @@
 # Candidat ADR : Accès aux données — l'API D1 native du Worker et les migrations `wrangler d1 migrations`, sans couche intermédiaire
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0018-acces-aux-donnees-api-d1-native-et-migrations-wrangler.md` (ADR-0018 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0018-acces-aux-donnees-api-d1-native-et-migrations-wrangler.md` (ADR-0018 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
 > La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
 
 
@@ -13,10 +13,10 @@ déploiement entraîne une perte du contenu, et `SC-008` en fait un critère mes
 modification de code spécifique à ce client ». Ce trio exige des migrations **versionnées et
 rejouables**, tenues à l'identique **sur toute la flotte**.
 
-Le magasin est acquis ([ADR-0003](../../1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md)), et
+Le magasin est acquis ([ADR-0003](../../legacy/1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md)), et
 il est **unique** : une seule base, une poignée de tables. Le plafond de **3 Mo gzip** du Worker
 pèse sur toute dépendance ajoutée
-([ADR-0001](../../1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md)).
+([ADR-0001](../../legacy/1.x/adr/0001-cible-de-deploiement-worker-unique-workers-builds.md)).
 
 Faits de registre [officiel · cité], lus le **2026-08-13** : `kysely@0.29.5` n'expose **aucun**
 point d'entrée D1 ; `kysely-d1@0.4.0` porte un **mainteneur unique**, dépôt
@@ -44,7 +44,7 @@ Nous utiliserons l'**API D1 native du Worker** et les migrations **`wrangler d1 
 **Négatives — ce à quoi le code s'engage.**
 
 - **Pas de requêtes typées, ni de schéma décrit en un seul endroit.** TypeScript strict
-  ([ADR-0010](../../1.x/adr/0010-langage-typescript-strict.md)) en couvre une part — pas tout : le lien
+  ([ADR-0010](../../legacy/1.x/adr/0010-langage-typescript-strict.md)) en couvre une part — pas tout : le lien
   entre une table et le type de ce qu'elle rend reste une déclaration à tenir à la main.
 - **Le SQL est écrit à la main**, donc les paramètres liés sont obligatoires partout et chaque
   requête est à relire pour ça. Rien dans l'outillage ne l'impose.
@@ -63,7 +63,7 @@ Nous utiliserons l'**API D1 native du Worker** et les migrations **`wrangler d1 
 - **Kysely** : écartée car il n'atteint D1 que par un dialecte **tiers**, `kysely-d1@0.4.0`,
   écrit ni par Kysely ni par Cloudflare et porté par un mainteneur unique. Le retenir
   retournerait contre le produit l'argument qui a servi à écarter Better Auth en
-  [ADR-0006](../../1.x/adr/0006-auth-implementation-maison-sur-d1.md) — et cette fois sur le chemin d'accès
+  [ADR-0006](../../legacy/1.x/adr/0006-auth-implementation-maison-sur-d1.md) — et cette fois sur le chemin d'accès
   à la **seule** base du produit.
 - **Drizzle** : écartée sur les **migrations**, et non sur l'approvisionnement — son pilote D1
   est de première main. Il apporte ses propres migrations (`./d1/migrator` et `drizzle-kit`),

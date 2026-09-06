@@ -1,10 +1,10 @@
 # ADR-0001 : Authentification — implémentation maison sur D1, quatre mécanismes
 Statut : Accepté | Date : 2026-08-25
 
-Promu depuis `docs/1.x/adr/0006-auth-implementation-maison-sur-d1.md` — ADR-0006, accepté sous le cycle 1.x.
+Promu depuis `docs/legacy/1.x/adr/0006-auth-implementation-maison-sur-d1.md` — ADR-0006, accepté sous le cycle 1.x.
 
 > Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
-> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/1.x/` : ce ne sont
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/legacy/1.x/` : ce ne sont
 > pas des noms de fichier.
 
 ## Contexte
@@ -20,13 +20,13 @@ session), `FR-118` (fermeture d'une session restée sept jours sans usage), `FR-
 (liaison à l'appareil demandeur, usage unique et expiration de la preuve, mise hors d'usage
 après N essais), `SC-006`, `SC-021` (épreuve de résistance de la connexion).
 
-Le magasin est acquis : [ADR-0003](../1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md) a
+Le magasin est acquis : [ADR-0003](../legacy/1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md) a
 retenu D1. Et `FR-005` — ne rien envoyer à une adresse non autorisée — est tenu **par la
 plateforme elle-même**, `send_email` n'écrivant qu'à une destination vérifiée.
 
 Les faits qui ont retiré l'argument de poids contre l'alternative principale sont mesurés et
 versés :
-[`docs/research/2026-08-12-better-auth-poids.md`](../research/2026-08-12-better-auth-poids.md).
+[`docs/legacy/research/2026-08-12-better-auth-poids.md`](../legacy/research/2026-08-12-better-auth-poids.md).
 
 ## Décision
 

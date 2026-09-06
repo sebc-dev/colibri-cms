@@ -1,8 +1,8 @@
 # Candidat ADR : Médias — deux magasins, un par état : branche orpheline `media` pour le publié, D1 pour le brouillon
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0004-medias-deux-magasins-un-par-etat.md` (ADR-0004 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0004-medias-deux-magasins-un-par-etat.md` (ADR-0004 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
 > La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
 
 
@@ -22,10 +22,10 @@ n'exige pas l'identité binaire du site reconstruit.
 vivre, se poser et se remplacer avant toute publication.
 
 La contrainte du palier gratuit qui décide de l'alternative principale est l'invariant `I5` du
-[socle de livraison](../../socle-de-livraison.md) — « aucun prélèvement n'est possible sans un
+[socle de livraison](../../legacy/socle-de-livraison.md) — « aucun prélèvement n'est possible sans un
 acte du client » — et sa contrainte `C9`, « rien n'exige un moyen de paiement ».
 Vérifié composant par composant dans
-[`docs/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md`](../../research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md).
+[`docs/legacy/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md`](../../legacy/research/2026-08-10-palier-gratuit-cloudflare-sans-carte.md).
 
 ## Décision
 
@@ -65,12 +65,12 @@ Nous utiliserons **deux magasins, un par état** :
   médias publiés**, quand le contenu textuel, lui, reste indestructible dans l'historique git.
 - **Ce qu'il faut garder se calcule depuis D1, jamais depuis l'état lu de la branche.** La
   latence de réplication mesurée le 2026-08-11
-  ([`docs/research/2026-08-11-sous-requetes-publication.md`](../../research/2026-08-11-sous-requetes-publication.md))
+  ([`docs/legacy/research/2026-08-11-sous-requetes-publication.md`](../../legacy/research/2026-08-11-sous-requetes-publication.md))
   ferait disparaître en silence un média fraîchement déposé, là où un `force: false`
   répondrait `422`.
 - **Le média en brouillon est sans copie**, et c'est le seul objet du produit qu'une éditrice
   ne peut pas ressaisir — voir la réserve de
-  [ADR-0003](../../1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md).
+  [ADR-0003](../../legacy/1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md).
 - **Le brouillon partage les 500 Mo de la base** avec les brouillons de texte et les demandes.
 - **La reconstruction devient « un clone, deux branches »** : la procédure de `FR-107` et
   `FR-109` doit récupérer `main` **et** `media`, et le *fetch* de `media` pendant le build doit

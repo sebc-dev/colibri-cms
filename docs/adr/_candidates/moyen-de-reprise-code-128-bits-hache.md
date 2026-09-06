@@ -1,8 +1,8 @@
 # Candidat ADR : Moyen de reprise — un code de 128 bits haché en D1, remis sur papier, à usage unique et réémis à l'emploi
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0016-moyen-de-reprise-code-128-bits-hache.md` (ADR-0016 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0016-moyen-de-reprise-code-128-bits-hache.md` (ADR-0016 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
 > La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
 
 
@@ -18,7 +18,7 @@ inaccessible, situation que `SC-020` met à l'épreuve. Le PRD en borne étroite
 - `FR-012` le rend remplaçable depuis une session ouverte, avec cessation de l'ancien — ce qui
   impose un magasin **mutable**, donc D1.
 
-Le contexte d'entropie vient de [ADR-0006](../../1.x/adr/0006-auth-implementation-maison-sur-d1.md) : le
+Le contexte d'entropie vient de [ADR-0006](../../legacy/1.x/adr/0006-auth-implementation-maison-sur-d1.md) : le
 code de connexion vit à 40 bits **parce qu'il expire et qu'il brûle** au 5ᵉ essai. Le moyen de
 reprise n'a ni l'un ni l'autre.
 
@@ -66,7 +66,7 @@ Nous n'ajouterons **aucun frein par secret** au seuil par origine.
   secret **remis** à la livraison, et sa récupération pend au trousseau d'un tiers.
 - **La rémanence de session longue** : écartée par `A-02` au motif qu'elle est irrévocable en cas
   de vol d'appareil. L'objection perd de sa force avec la session opaque de
-  [ADR-0006](../../1.x/adr/0006-auth-implementation-maison-sur-d1.md), mais une session n'est pas un secret
+  [ADR-0006](../../legacy/1.x/adr/0006-auth-implementation-maison-sur-d1.md), mais une session n'est pas un secret
   remis à la livraison et ne répond pas à `FR-009`.
 - **Une seconde adresse e-mail** : écartée par `A-02` et `A-09` — deux boîtes valent un second
   compte contre `SC-006`, et leurs pannes sont corrélées.

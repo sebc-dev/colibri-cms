@@ -9,9 +9,9 @@ pourrait prendre en défaut, pas un design — aucun schéma de table, aucune si
 > promotion dans `docs/adr/_candidates/`). Ce document dit *ce que* le code doit tenir ; l'ADR dit
 > *pourquoi*. Ne pas rejuger un invariant ici : l'arbitrage vit dans l'ADR.
 >
-> **Source.** Repris de [`docs/1.x/archi.md`](./1.x/archi.md) (invariants de structure `I1`–`I10`),
+> **Source.** Repris de [`docs/legacy/1.x/archi.md`](./legacy/1.x/archi.md) (invariants de structure `I1`–`I10`),
 > lui-même tracé vers le PRD et la Stack du cycle 1.x. À ne pas confondre avec les invariants
-> **commerciaux** `I1`–`I6` du [socle de livraison](./socle-de-livraison.md) — aucun rapport de
+> **commerciaux** `I1`–`I6` du [socle de livraison](./legacy/socle-de-livraison.md) — aucun rapport de
 > numérotation.
 
 ## Vue d'ensemble

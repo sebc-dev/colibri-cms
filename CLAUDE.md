@@ -6,11 +6,13 @@
 - Le "quoi" produit (vision, FR, SC) : `docs/vision.md` — la feuille de route : `docs/roadmap.md`.
 - Ce que le code s'interdit : `docs/architecture.md` (invariants `I1`–`I10`) — NE PAS franchir un
   invariant. Tests : `docs/test.md` — Sécurité : `docs/security.md` — Interface : `docs/design-system.md`.
-- Décisions figées : `docs/adr/` — NE PAS contredire un ADR accepté ; numérotation 2.x, les corps
-  citent les numéros 1.x (voir `docs/adr/README.md`). Les décisions non encore promues sont dans
-  `docs/adr/_candidates/` — un candidat n'est pas figé.
+- Décisions figées : `docs/adr/` — NE PAS contredire un ADR accepté ; numérotation 2.x ; les ADR
+  0001–0008, promus depuis le cycle 1.x, citent des numéros 1.x dans leur corps, les ADR nés en 2.x
+  (0009 et suivants) citent des numéros 2.x — la table de correspondance est dans
+  `docs/adr/README.md`. Les décisions non encore promues sont dans `docs/adr/_candidates/` — un
+  candidat n'est pas figé.
 - Ce que la CI vérifie : `docs/ci.md` — elle **annote**, elle ne bloque plus (voir plus bas).
-- L'ancien cadrage (cycle 1.x, chantiers, preuves, research, socle de livraison) est **archivé** sous
+- L'ancien cadrage (cycle 1.x, preuves, research, socle de livraison) est **archivé** sous
   `docs/legacy/` — référence historique, pas la réalité courante.
 
 ## Glossaire du domaine (les mots du métier, pas ceux du code)
@@ -40,6 +42,9 @@
   - Implémentation **ticket par ticket** via `/scd-spec-dev:run` — **une PR par ticket**.
   - Les specs vivantes sont dans `openspec/specs/<capability>/spec.md` (fusionnées à l'archivage).
 - Décision structurante nouvelle → un **ADR** (`docs/adr/`), jamais figée dans un design.md jetable.
+- Travail hors-cycle terminé ou tâche interrompue par un /clear → une fiche
+  `docs/chantiers/{en-cours,en-attente,archive}/` via `/scd-spec-dev:note` ou `:pause`, reprise par
+  `:resume` ; l'historique 1.x des fiches est sous `docs/legacy/chantiers/`.
 - **RÈGLE CARDINALE : on n'appelle JAMAIS `/opsx:apply`.** `/scd-spec-dev:run` prend le relais sur
   les tickets. La rigueur passe par la **review** en contexte frais (producteur ≠ vérificateur),
   pas par des gardes automatiques.
@@ -50,7 +55,8 @@
 - Build : `npm run build`         # `astro build` — lancer `typecheck` **puis** `build`
 - Test : `npm test`               # dans `workerd` ; préférer un seul test, pas toute la suite
 - Lint/format : `npm run lint`    # SOURCE DE VÉRITÉ du style — ne pas documenter les règles ici
-- Run local : `npm run dev`       # `astro dev`, liaisons D1 branchées via `wrangler.jsonc`
+- Run local : `npm run dev`       # `astro dev`, liaisons D1 branchées via `wrangler.astro.jsonc`
+  (Astro) ; `wrangler.jsonc` sert aux tests
 
 ## Invariants produit non-négociables (voir `docs/architecture.md` + `docs/adr/`)
 - Zéro traitement serveur sur une page publique hors l'envoi d'une demande de devis (FR-097) — le

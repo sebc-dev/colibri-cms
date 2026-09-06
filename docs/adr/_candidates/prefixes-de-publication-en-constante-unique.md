@@ -1,21 +1,21 @@
 # Candidat ADR : Les préfixes que la publication a le droit d'écrire sont déclarés dans une constante unique, et `.github/` n'y figure pas
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0029-prefixes-de-publication-en-constante-unique.md` (ADR-0029 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0029-prefixes-de-publication-en-constante-unique.md` (ADR-0029 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
 > La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
 
 
 ## Contexte
 
-[ADR-0005](../../1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md) a retenu un jeton à portée
+[ADR-0005](../../legacy/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md) a retenu un jeton à portée
 fine portant **`Contents: Read and write` seule**, et cet argument — « une seule permission » —
 est ce qui a écarté GraphQL. Il n'est vrai que **sous une condition**.
 
 La donnée source de la documentation GitHub donne au **déplacement de ref** deux jeux de
 permissions suffisants : `Contents: write`, **ou** `Contents: write` + `Workflows: write`
 [officiel · cité,
-[relevé](../../research/2026-08-12-permissions-rest-git-data.md)]. Lecture non citée : le second se
+[relevé](../../legacy/research/2026-08-12-permissions-rest-git-data.md)]. Lecture non citée : le second se
 lève quand le commit visé touche `.github/workflows/`.
 
 Si la publication écrivait sous `.github/`, le jeton se ferait donc refuser **au dernier geste
@@ -39,14 +39,14 @@ liste**, et **`.github/` n'y figurera pas**.
 
 **Positives.**
 
-- **La contrainte silencieuse de [ADR-0005](../../1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md)
+- **La contrainte silencieuse de [ADR-0005](../../legacy/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md)
   devient lisible dans un fichier** : ce qui n'avait aucun message d'erreur a désormais une
   valeur qu'un contrôle prend en défaut.
 - **Un seul porteur de la liste** : elle ne peut pas diverger entre deux endroits du code.
 - La liste vit dans `src/core/`, donc **la décision de ce qui est écrit est du métier**, et
   `src/platform/` ne fait qu'exécuter — cohérent avec
-  [ADR-0021](../../1.x/adr/0021-sens-descendant-des-dependances-entre-zones.md) et
-  [ADR-0022](../../1.x/adr/0022-core-sans-framework-ni-plateforme.md).
+  [ADR-0021](../../legacy/1.x/adr/0021-sens-descendant-des-dependances-entre-zones.md) et
+  [ADR-0022](../../legacy/1.x/adr/0022-core-sans-framework-ni-plateforme.md).
 
 **Négatives — ce à quoi le code s'engage.**
 

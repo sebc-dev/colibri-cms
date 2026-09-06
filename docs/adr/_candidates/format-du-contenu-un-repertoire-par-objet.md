@@ -1,8 +1,8 @@
 # Candidat ADR : Format du contenu déposé — un répertoire par objet
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0007-format-du-contenu-un-repertoire-par-objet.md` (ADR-0007 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0007-format-du-contenu-un-repertoire-par-objet.md` (ADR-0007 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
 > La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
 
 
@@ -13,7 +13,7 @@ la cliente, et `FR-107` / `FR-109` en font la matière d'une procédure de recon
 mesurée par l'épreuve de réversibilité `SC-011`.
 
 La contrainte qui décide de la **forme** n'est pas technique : le §4.3 du clausier du
-[socle de livraison](../../socle-de-livraison.md) promet que les contenus « restent exploitables
+[socle de livraison](../../legacy/socle-de-livraison.md) promet que les contenus « restent exploitables
 par n'importe quel professionnel, avec ou sans l'outil ». C'est le **texte de la cliente** qui
 doit rester lisible, et pas seulement récupérable.
 
@@ -35,7 +35,7 @@ la **structure**, et un fichier `.md` par **emplacement de texte riche**.
   structure, et réciproquement.
 - Le coût d'appel de la publication n'en dépend pas : le contenu textuel est inliné dans
   l'arbre git, donc **le nombre de fichiers texte n'est pas contraint** — voir
-  [ADR-0005](../../1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md).
+  [ADR-0005](../../legacy/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md).
 
 **Négatives — ce à quoi le code s'engage.**
 

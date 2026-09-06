@@ -1,8 +1,8 @@
 # Candidat ADR : Le rendu des emplacements éditables a un point d'entrée unique, atteint par le site publié comme par l'aperçu
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0023-rendu-partage-par-le-publie-et-l-apercu.md` (ADR-0023 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0023-rendu-partage-par-le-publie-et-l-apercu.md` (ADR-0023 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
 > La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
 
 
@@ -37,7 +37,7 @@ par la **route d'aperçu `src/pages/admin/apercu/[...slug].astro`**.
 - **La divergence entre l'aperçu et le publié devient impossible par construction**, et non par
   discipline : il n'existe qu'un chemin, et les deux routes y passent.
 - Le filtre de sécurité du Markdown — liste blanche de schémas d'URL, aucun HTML brut
-  ([ADR-0008](../../1.x/adr/0008-texte-riche-markdown-restreint.md)) — vit dans ce rendu partagé, donc il
+  ([ADR-0008](../../legacy/1.x/adr/0008-texte-riche-markdown-restreint.md)) — vit dans ce rendu partagé, donc il
   couvre le site bâti et l'aperçu **d'un seul geste**.
 - La zone `render/` a une surface publique explicite : ce qui n'est pas dans `index.ts` n'est
   pas atteignable de l'extérieur.
@@ -47,7 +47,7 @@ par la **route d'aperçu `src/pages/admin/apercu/[...slug].astro`**.
 - **La route d'aperçu vit sous `src/pages/admin/`.** Ce n'est pas un choix de rangement :
   l'ajouter ailleurs demanderait un **troisième préfixe servi par le code**, donc une révision
   de la liste `run_worker_first` que
-  [ADR-0015](../../1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) doit garder bornée.
+  [ADR-0015](../../legacy/1.x/adr/0015-en-tetes-de-reponse-deux-porteurs.md) doit garder bornée.
 - **L'invariant nomme des chemins en dur.** Renommer `src/render/index.ts`,
   `src/site/page.astro` ou l'une des deux routes **casse le contrôle** et demande un ADR de
   remplacement. C'est le prix de la falsifiabilité, assumé.
@@ -61,7 +61,7 @@ par la **route d'aperçu `src/pages/admin/apercu/[...slug].astro`**.
 
 - **Un second moteur de rendu pour l'aperçu** : écarté car sa divergence casserait « le même
   rendu que celui du site publié » — le motif qui a déjà écarté les générateurs purement
-  statiques en [ADR-0002](../../1.x/adr/0002-generateur-astro-7.md).
+  statiques en [ADR-0002](../../legacy/1.x/adr/0002-generateur-astro-7.md).
 - **Un aperçu produit par un build** : écarté car il impose une attente à l'éditrice et
   consomme le quota de minutes.
 - **Formuler l'invariant comme « les deux entrées partagent les mêmes composants »** : écarté

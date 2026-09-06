@@ -1,14 +1,14 @@
 # Candidat ADR : L'invariant `I10` ne porte que la configuration Astro — la configuration du déploiement en sort
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0032-invariant-i10-restreint-a-la-configuration-astro.md` (ADR-0032 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0032-invariant-i10-restreint-a-la-configuration-astro.md` (ADR-0032 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
 > La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
 
 
 ## Contexte
 
-[ADR-0030](../../1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md) (accepté le 2026-08-13) exige
+[ADR-0030](../../legacy/1.x/adr/0030-configurations-lisent-le-fichier-d-instance.md) (accepté le 2026-08-13) exige
 que **la configuration Astro et celle du Worker** lisent `instance.json` « au moment où elles
 s'évaluent, **sans outil intermédiaire** ». Il écrit lui-même que cette obligation « impose JSON »
 et qu'une autre forme « demanderait un ADR de remplacement ».
@@ -25,7 +25,7 @@ Il n'existe donc aucune forme qui satisfasse à la fois « configuration du Work
 `instance.json` au moment où elle s'évalue, sans outil intermédiaire ».
 
 **Ce que la partition des quatre lieux a changé depuis.**
-[ADR-0020](../../1.x/adr/0020-configuration-d-instance-quatre-lieux.md) affecte les **liaisons de plateforme**
+[ADR-0020](../../legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md) affecte les **liaisons de plateforme**
 — rattachement D1, `send_email`, Durable Object, Cron — à la **configuration du déploiement**, qui
 *est* leur lieu propre. Ce qui distingue une instance d'une autre dans ce fichier n'appartient donc
 pas au fichier d'instance : la moitié Worker d'`I10` réclamait une lecture pour une valeur qui n'a
@@ -44,7 +44,7 @@ valeurs qu'`I8` y loge, et n'en écrira aucune en dur.
 
 **La configuration du déploiement sort du périmètre de cet invariant.** Elle ne porte que des
 liaisons de plateforme, dont le lieu propre est elle-même
-([ADR-0020](../../1.x/adr/0020-configuration-d-instance-quatre-lieux.md)) — `database_id` compris, à la
+([ADR-0020](../../legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md)) — `database_id` compris, à la
 livraison réelle.
 
 ## Conséquences
@@ -53,7 +53,7 @@ livraison réelle.
 
 - L'invariant redevient **exécutable** : `arch-invariants` peut le rendre au vert, au lieu de porter
   une violation permanente que personne ne peut refermer.
-- `C6` du [socle de livraison](../../socle-de-livraison.md) tient sans changement : c'est
+- `C6` du [socle de livraison](../../legacy/socle-de-livraison.md) tient sans changement : c'est
   `astro.config.*` — et elle seule — qui a besoin du domaine pour les URL canoniques et de la clé
   publique Turnstile pour le widget. Un clone nu bâtit le site.
 - `I8` est inchangé et continue de tenir l'interdit : aucune valeur logée dans `instance.json` ne
@@ -64,7 +64,7 @@ livraison réelle.
 - **Plus rien ne dit d'où vient une valeur de la configuration du déploiement.** Le jour où une
   valeur relevant vraiment du fichier d'instance devrait y entrer, aucun invariant ne l'attraperait :
   il faudrait rouvrir cette décision. Le pari est que ce jour n'arrive pas, parce que
-  [ADR-0020](../../1.x/adr/0020-configuration-d-instance-quatre-lieux.md) a donné à chaque nature de valeur
+  [ADR-0020](../../legacy/1.x/adr/0020-configuration-d-instance-quatre-lieux.md) a donné à chaque nature de valeur
   un lieu, et que celui-ci n'en accueille qu'une.
 - **La trace ne nomme plus qu'une famille de fichiers.** La limite qu'`ADR-0030` écrivait déjà se
   resserre : une configuration ajoutée plus tard n'est pas couverte.

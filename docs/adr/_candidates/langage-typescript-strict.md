@@ -1,16 +1,16 @@
 # Candidat ADR : Langage — TypeScript en mode strict
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/1.x/adr/0010-langage-typescript-strict.md` (ADR-0010 accepté sous le cycle 1.x)
+Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0010-langage-typescript-strict.md` (ADR-0010 accepté sous le cycle 1.x)
 
 > Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
+> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
 > La numérotation 1.x ne survit pas — `/scd-sdd:adr` attribuera un `NNNN` neuf.
 
 
 ## Contexte
 
-Le [Brief](../../1.x/brief.md) pose que « le code entrant n'est pas relu ligne à ligne » et que la
+Le [Brief](../../legacy/1.x/brief.md) pose que « le code entrant n'est pas relu ligne à ligne » et que la
 confiance doit venir de **vérifications mécaniques**. C'est la même exigence qui fonde la
-caractéristique architecturale `C5` de [`docs/archi.md`](../../1.x/archi.md) — testabilité sans
+caractéristique architecturale `C5` de [`docs/archi.md`](../../legacy/1.x/archi.md) — testabilité sans
 plateforme — et la phase `ci` tout entière.
 
 Elle ne trace vers aucun `FR` propre : c'est une propriété du mode de production du code, pas

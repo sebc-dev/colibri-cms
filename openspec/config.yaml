@@ -6,7 +6,9 @@ context: |
              éditable par une cliente non technicienne, qui survit à la disparition d'Isometria.
   Vision   : docs/vision.md (FR-001…, SC-…) · Roadmap : docs/roadmap.md (chaque change ↳ une STORY)
   Archi    : invariants dans docs/architecture.md + décisions figées dans docs/adr/ (NE PAS contredire
-             un ADR accepté ; numérotation 2.x, les corps citent les numéros 1.x — voir docs/adr/README.md)
+             un ADR accepté ; numérotation 2.x ; les ADR 0001–0008, promus depuis le cycle 1.x, citent
+             des numéros 1.x dans leur corps, les ADR nés en 2.x (0009 et suivants) citent des numéros
+             2.x — la table de correspondance est dans docs/adr/README.md)
   Test     : workerd via @cloudflare/vitest-pool-workers ; mode de vérif (tdd/test/observé/aucun)
              décidé par strategie-verif à la décomposition
   Sécurité : docs/security.md ; valider toute entrée externe, aucun secret en clair ; un seul Worker
