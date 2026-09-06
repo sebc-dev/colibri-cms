@@ -1,7 +1,7 @@
-// eslint.config.js — job `lint` (docs/ci.md) : style et correction (mode 2 de
-// la grille), jamais le sens des dépendances entre zones (job `boundaries`,
-// eslint.config.boundaries.js — deux fichiers distincts à dessein, voir la
-// décision 6 du plan).
+// eslint.config.js — `npm run lint` : style et correction (mode 2 de
+// la grille), jamais le sens des dépendances entre zones (`npm run
+// lint:boundaries`, eslint.config.boundaries.js — deux fichiers distincts à
+// dessein, voir la décision 6 du plan).
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 

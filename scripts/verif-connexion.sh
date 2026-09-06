@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Vérification observée — ticket 09 (specs/001-connexion-par-code/
-# 09-parcours-local.md), SPEC.md § Décisions de test.
+# Vérification observée du parcours local de connexion (capacité
+# openspec/specs/connexion-par-code/spec.md, ancien ticket 09 de 001).
 #
-# Mode `observé`, arbitré par SPEC.md le 2026-08-25 : la liaison d'expédition
+# Mode `observé`, arbitré au cadrage le 2026-08-25 : la liaison d'expédition
 # réelle (`send_email`, ADR-0002) n'existe pas dans le moteur de test — ses
 # tables tournent contre la vraie D1 locale, mais l'envoi lui-même n'y est
 # observable, en local, que via l'écriture sur disque temporaire de
@@ -13,13 +13,13 @@
 # assertion. Les deux se constatent ici, contre le serveur de développement
 # local (`npm run dev`), au prix d'une vérification lente.
 #
-# Patron : `scripts/verif-bout-en-bout.sh` — `set -uo pipefail`, helpers
+# Forme : `set -uo pipefail`, helpers
 # `ok()`/`ko()` qui comptent et impriment, sections `step()`, un bilan final
 # au même format, découverte du serveur de dev via le fichier de verrou
 # `.astro/dev.json` (`pid`/`port`/`url`) plutôt qu'un port en dur.
 #
 # Ce script est le SEUL endroit du projet où la vraie liaison d'expédition
-# est éprouvée (SPEC.md § Ce que ça livre) — jamais un simulacre, jamais un
+# est éprouvée (spec de la capacité, § Purpose) — jamais un simulacre, jamais un
 # double interne : chaque code demandé passe par `POST /admin/connexion`
 # réel, chaque message observé est celui que la plateforme a réellement reçu
 # pour expédition.
@@ -482,7 +482,7 @@ if [ "$DEV_STARTED" -eq 1 ]; then
   ECART_MEDIANES="$(awk -v a="$MED_A" -v q="$MED_Q" 'BEGIN{d=a-q; if(d<0)d=-d; printf "%.2f", d}')"
   echo "  écart des médianes : ${ECART_MEDIANES} ms"
 
-  # Une assertion ne juge pas une durée (SPEC.md § Décisions de test) : ce
+  # Une assertion ne juge pas une durée (décision de cadrage de 001) : ce
   # seuil n'est qu'une aide au diagnostic — les nombres ci-dessus sont la
   # preuve, à lire par qui vérifie. 30 ms = 10 % du délai plancher gelé en
   # source (DELAI_PLANCHER_MS = 300 ms, src/core/auth/regles.ts) : au-delà,

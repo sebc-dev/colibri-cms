@@ -36,7 +36,8 @@
   ],
   // Couture de test (ticket 01 — la porte close, ADR-0003) : `SELF.fetch`
   // (`@cloudflare/vitest-pool-workers`) exige `poolOptions.workers.main`, et
-  // `vitest.config.ts` (protégé) donne un `configPath` explicite à CE
+  // `vitest.config.ts` (fichier de configuration : ne pas y déroger pour
+  // faire passer un test) donne un `configPath` explicite à CE
   // fichier — voir `scripts/preparer-worker-de-test.mjs` pour le pourquoi de
   // `.wrangler/test-worker/` plutôt que `dist/` directement.
   "main": "./.wrangler/test-worker/server/entry.mjs",
