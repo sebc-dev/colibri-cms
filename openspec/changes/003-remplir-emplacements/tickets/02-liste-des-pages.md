@@ -1,8 +1,13 @@
 # 02 — La liste des pages
 
 **Bloqué par :** 01
-**Vérif :** test (couture HTTP réelle, comme 001) — la mise en page se constate à l'écran
+**Vérif :** test
 **Fichiers :** `src/pages/admin/` (route « Mes pages »), `src/admin/` (l'écran de liste), `src/core/` (lecture de la structure déclarée), `tests/integration/`
+
+Motif du mode `test` : l'oracle est la couture HTTP réelle contre la vraie base locale, comme 001 — il
+s'écrit juste après la route qui sert la liste, la forme exacte de la réponse n'étant pas exprimable
+avant elle. Les critères SC-02c et SC-02d se vérifient sur le HTML servi par la route (absence des
+gestes et des mots attendus), pas à l'écran.
 
 ## Ce que ça livre
 La rubrique « Mes pages » devient un vrai point d'entrée : elle affiche toutes les pages du site

@@ -1,15 +1,14 @@
 # 03 — Ouvrir une page et retrouver ses emplacements
 
 **Bloqué par :** 02
-**Vérif :** observé (mise en page — `Écran : Éditeur de page`)
+**Vérif :** observé
+**Fichiers :** `src/pages/admin/` (route de l'éditeur), `src/admin/` (l'écran d'édition et le rendu par nature), `src/core/` (lecture de la structure d'une page déclarée)
 
 Motif du mode `observé` : ce que ce ticket livre est un **rendu** — chaque emplacement présenté avec
 le moyen d'édition de sa nature (barre de mise en forme du texte riche, champ de lien de vidéo, champs
 d'un bouton), et l'absence de tout geste de structure. Ni la présence de ces affordances visuelles ni
 leur agencement sous CSP stricte ne se constatent en test unitaire ; l'enregistrement, lui, est testé
 dans les tickets 04–06 qui le livrent.
-
-**Fichiers :** `src/pages/admin/` (route de l'éditeur), `src/admin/` (l'écran d'édition et le rendu par nature), `src/core/` (lecture de la structure d'une page déclarée)
 
 ## Ce que ça livre
 Depuis la liste, l'éditrice ouvre une page et retrouve ses emplacements dans l'ordre posé par

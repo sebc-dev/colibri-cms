@@ -1,8 +1,16 @@
 # 05 — Régler un emplacement de lien de vidéo
 
 **Bloqué par :** 04
-**Vérif :** test (couture haute `core/` pure pour la reconnaissance d'URL + couture d'intégration HTTP)
-**Fichiers :** `src/core/` (reconnaissance d'un lien de vidéo), `src/pages/admin/` (route d'écriture, réutilise la colonne vertébrale de 04), `src/admin/` (champ de lien de vidéo et message d'erreur), `tests/integration/`
+**Vérif :** test
+**Fichiers :** `src/core/emplacements/lien-video.ts` (reconnaissance d'un lien de vidéo), `src/admin/emplacements/LienVideo.svelte` (champ et message d'erreur), `tests/integration/lien-video.test.ts`
+
+Motif du mode `test` : deux coutures — la couture haute `core/`, pure, pour la reconnaissance d'un lien,
+et la couture d'intégration HTTP contre la vraie base locale, qui ne s'exprime qu'une fois la route de
+04 branchée sur cette nature d'emplacement. Les critères SC-05d et SC-05e se vérifient sur le HTML servi
+par la route (message de refus au niveau du champ, absence des mots attendus), pas à l'écran.
+
+La route d'écriture posée par le ticket 04 est réutilisée telle quelle : ce ticket ne la modifie pas, ce
+qui le rend parallélisable avec le ticket 06.
 
 ## Ce que ça livre
 L'éditrice règle un emplacement de lien de vidéo en collant un lien externe : un lien reconnu est

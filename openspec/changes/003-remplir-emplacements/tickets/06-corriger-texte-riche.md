@@ -1,8 +1,17 @@
 # 06 — Corriger un emplacement de texte riche
 
 **Bloqué par :** 04
-**Vérif :** test (couture haute `core/` pure pour la sérialisation + couture d'intégration HTTP)
-**Fichiers :** `src/core/` (sérialisation en Markdown restreint, liste des marques et schémas d'URL), `src/admin/` (éditeur TipTap en îlot, barre de mise en forme), `src/pages/admin/` (route d'écriture, réutilise la colonne vertébrale de 04), `tests/integration/`
+**Vérif :** test
+**Fichiers :** `src/core/emplacements/texte-riche.ts` (sérialisation en Markdown restreint, liste des marques et des schémas d'URL), `src/admin/emplacements/TexteRiche.svelte` (éditeur TipTap en îlot, barre de mise en forme), `tests/integration/texte-riche.test.ts`
+
+Motif du mode `test` : deux coutures — la couture haute `core/`, pure, pour l'aller-retour de
+sérialisation, et la couture d'intégration HTTP contre la vraie base locale, qui ne s'exprime qu'une
+fois la route de 04 branchée sur cette nature d'emplacement. Les critères SC-06d et SC-06f se vérifient
+sur le HTML servi par la route (présence des commandes de mise en forme, aucune saisie de balise
+offerte, absence des mots attendus), pas à l'écran.
+
+La route d'écriture posée par le ticket 04 est réutilisée telle quelle : ce ticket ne la modifie pas, ce
+qui le rend parallélisable avec le ticket 05.
 
 ## Ce que ça livre
 L'éditrice met en forme un emplacement de texte riche — gras, italique, lien, liste, titre — sans

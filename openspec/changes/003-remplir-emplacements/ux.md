@@ -6,7 +6,7 @@ paraît (FR-117).
 
 ## Canvas
 <!-- Pas de canvas Claude Design pour ce change ; les écrans sont décrits en ASCII ci-dessous
-     (source : specs/003-remplir-emplacements/maquette.md). -->
+     (maquette reprise de l'ancien cadrage, commit 15d0686). -->
 > (aucun — écrans décrits ci-dessous)
 
 ## Écrans & états

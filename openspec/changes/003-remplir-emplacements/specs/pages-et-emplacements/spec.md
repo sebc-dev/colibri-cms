@@ -40,7 +40,7 @@ terme de développeur ne DOIT paraître, et le menu n'offre aucun geste de struc
 
 #### Scenario: Le cadre est servi sous CSP stricte
 - **WHEN** le cadre est servi
-- **THEN** il l'est sous les en-têtes réels (CSP stricte, ADR-0010), sans script en ligne ni directive `client:*` (ADR-0006)
+- **THEN** il l'est sous les en-têtes réels (CSP stricte de l'administration, ADR-0004 + ADR-0008 ; tolérance des attributs `style="…"`, ADR-0010), sans script en ligne ni directive `client:*` (ADR-0006)
 
 ### Requirement: Liste des pages
 
