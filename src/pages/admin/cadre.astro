@@ -8,13 +8,16 @@
  *
  * Fichier distinct de `src/pages/admin/index.astro` — pas « (ou équivalent) »
  * par commodité : `index.astro` reste sous le contrat figé par
- * `tests/integration/code-ouvre-la-session.test.ts` (ticket 06 de
- * 001-connexion-par-code, couture HTTP verrouillée, jamais éditée ici).
- * Ticket 02 (specs/003-remplir-emplacements/02-liste-des-pages.md), bloqué
- * par celui-ci et seul à porter `tests/integration/` dans son périmètre,
- * est celui qui branche réellement « Mes pages » sur la route d'accueil.
- * Ce ticket-ci prouve seulement que le cadre — le substrat commun — se
- * monte et se rend sous les en-têtes réels (CSP stricte, ADR-0010).
+ * `tests/integration/code-ouvre-la-session.test.ts` **et**
+ * `tests/static/gabarits-admin.test.ts` (ticket 06 et ticket 01 de
+ * 001-connexion-par-code, couture verrouillée sur la réponse ET sur la
+ * source, jamais éditée ici).
+ * Le choix d'une route dédiée pour « Mes pages » et l'assemblage de cet
+ * écran dans ce cadre sont posés par le ticket 02, bloqué par celui-ci
+ * (openspec/changes/003-remplir-emplacements/tickets/02-liste-des-pages.md,
+ * section « Ce que ça livre »). Ce ticket-ci prouve seulement que le
+ * cadre — le substrat commun — se monte et se rend sous les en-têtes réels
+ * (CSP stricte, ADR-0010).
  *
  * Aucune directive `client:*` (ADR-0006) : l'îlot se monte par le `<script>`
  * de module ci-dessous (jamais `is:inline`), qui importe le point d'entrée

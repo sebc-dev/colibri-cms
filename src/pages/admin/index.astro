@@ -9,6 +9,17 @@
  * par ce ticket, l'accueil devient réellement atteignable. Il ne porte
  * toujours lui-même aucune fonction — ni lien, ni action — il n'est que le
  * point d'arrivée du parcours.
+ *
+ * Frontière figée par `tests/static/gabarits-admin.test.ts` (ticket 01 de
+ * 001-connexion-par-code) : la source de ce fichier ne doit porter aucun
+ * lien, aucun formulaire, aucun bouton, aucun attribut d'action ni aucun
+ * terme de développeur — vérifié sur la source elle-même, pas seulement sur
+ * la réponse rendue. Le ticket 02 de 003-remplir-emplacements (la liste des
+ * pages, openspec/changes/003-remplir-emplacements/tickets/
+ * 02-liste-des-pages.md) sert donc « Mes pages » sur une route dédiée
+ * (`src/pages/admin/mes-pages.astro`), jamais ici : l'hypothèse posée par le
+ * commentaire de `cadre.astro` ne tient pas face à cette frontière déjà en
+ * place — ce fichier reste donc, à dessein, non révisé par ce ticket.
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession } from '../../platform/session/index.ts';
