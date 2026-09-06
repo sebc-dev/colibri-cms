@@ -19,8 +19,12 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, '**/.stryker-tmp/**'],
     setupFiles: ['./tests/setup/ignorer-rejet-wasm-lexer.ts'],
     coverage: {
+      // `json` produit coverage/coverage-final.json, la seule entrée que lit
+      // crap-typescript (check `crap` de la quality gate) : sans lui, l'outil
+      // relance lui-même vitest — donc sans le `precoverage` qui bâtit le
+      // worker de test, et la suite échoue. `lcov` reste pour la lecture.
       provider: 'istanbul',
-      reporter: ['lcov'],
+      reporter: ['lcov', 'json'],
       reportsDirectory: 'coverage',
     },
   },

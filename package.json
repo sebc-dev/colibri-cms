@@ -15,6 +15,8 @@
     "test": "vitest run --passWithNoTests",
     "precoverage": "npm run build",
     "coverage": "vitest run --coverage --passWithNoTests",
+    "precrap": "npm run coverage",
+    "crap": "crap-typescript --changed --threshold 6 --agent",
     "lint": "eslint .",
     "lint:boundaries": "eslint --config eslint.config.boundaries.js .",
     "knip": "knip",
@@ -34,6 +36,7 @@
     "tailwind-variants": "^3.3.1"
   },
   "devDependencies": {
+    "@barney-media/crap-typescript": "^0.5.1",
     "@cloudflare/vitest-pool-workers": "^0.20.3",
     "@eslint/js": "^10.0.1",
     "@stryker-mutator/core": "^9.6.1",
@@ -54,6 +57,7 @@
   },
   "overrides": {
     "qs": "^6.16.0",
-    "fast-uri": "^3.1.6"
+    "fast-uri": "^3.1.6",
+    "@toon-format/toon": "^2.3.1"
   }
 }

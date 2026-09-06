@@ -79,9 +79,12 @@
 ## État de la CI (informative, ne bloque pas)
 - Le ruleset « Main protect » n'exige **aucun** status check ; il ne garde que le structurel : PR
   obligatoire vers `main`, anti-force-push, anti-suppression de `main`.
-- `.github/workflows/ci.yml` exécute `build` et `test` (non requis) ; `scd-escape-hatch-guard.yml`
-  `git grep` les escape-hatches (`@ts-ignore`, `as any`, `eslint-disable`, `.skip(`…) et **annote**.
-  Un rouge se voit, il ne bloque pas la fusion. Un escape-hatch légitime se **déroge en review**.
+- `.github/workflows/ci.yml` exécute un **seul** job `verify` (`npm ci` → `npm test` → garde-fou
+  `C5`, non requis) ; `scd-escape-hatch-guard.yml` `git grep` les escape-hatches (`@ts-ignore`,
+  `as any`, `eslint-disable`, `.skip(`…) et **annote**. Un rouge se voit, il ne bloque pas la
+  fusion. Un escape-hatch légitime se **déroge en review**.
+- Le déterministe vit **en local**, dans la quality gate `.claude/quality.json` jouée à chaque
+  ticket : `typecheck`, `lint`, `lint:boundaries` et `test` **bloquants**, `knip` et `crap` en avis.
 - Plus de portail à douze bloquants, plus de hooks de session, plus de scopes de commit imposés ni
   de signatures SSH : ces gardes n'existent plus. Ne pas raisonner comme s'ils étaient là.
 

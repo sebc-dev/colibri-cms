@@ -8,9 +8,20 @@
 #   · les scans     : sca · secrets · dependency-review
 #   · les informatifs : lint · coverage · sast
 #
-# Le ruleset « Main protect » n'exige plus AUCUN status check (il ne garde que
-# PR obligatoire, anti-force-push et anti-suppression de `main`) : `build` et
-# `test` tournent encore et annotent la PR, mais ne la bloquent plus.
+# Puis ramené le même jour à UN SEUL job `verify`. La rigueur est déplacée dans
+# la quality gate locale (`.claude/quality.json`, phase 7½ de /scd-spec-dev:run),
+# où `typecheck`, `lint`, `lint:boundaries` et `test` sont BLOQUANTS. Les rejouer
+# ici ne prouvait rien de plus, au prix d'un second runner, d'un second `npm ci`
+# et d'un second `astro build` (`npm test` bâtit déjà via `pretest`).
+#
+# Ce que ce job prouve, et que la gate locale ne peut pas prouver : qu'un
+# checkout PROPRE s'installe depuis le seul lockfile, bâtit et passe — sans la
+# dérive du poste de développement — et que la sortie du build reste sous le
+# plafond de la plateforme (C5).
+#
+# Le ruleset « Main protect » n'exige AUCUN status check (il ne garde que PR
+# obligatoire, anti-force-push et anti-suppression de `main`) : ce job annote la
+# PR, il ne la bloque pas.
 #
 # Les actions restent épinglées au SHA complet et les images au DIGEST.
 
@@ -31,9 +42,9 @@ permissions:
   contents: read
 
 jobs:
-  # ── build · dizaines de secondes ────────────────────────────────────────────
-  build:
-    name: build
+  # ── verify · minutes ────────────────────────────────────────────────────────
+  verify:
+    name: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -52,14 +63,14 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      # `npm ci` et jamais `npm install` : sans version figée, la SCA scannerait
-      # autre chose que ce qui est installé et ne prouverait rien.
+      # `npm ci` et jamais `npm install` : c'est le seul oracle de ce job — que
+      # le lockfile seul suffise à reconstituer l'arbre installé.
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm ci
+      # `npm test` déclenche `pretest` → `npm run build` : un échec de build
+      # ressort ici en échec de test, et `dist/` reste sur disque pour C5.
       - if: steps.scaffold.outputs.ok == 'true'
-        run: npm run typecheck
-      - if: steps.scaffold.outputs.ok == 'true'
-        run: npm run build
+        run: npm test
       # ── Garde-fou C5 · le plafond porte sur la SORTIE du build ──────────────
       # Une photographie produit 5 fichiers avec la configuration d'images
       # retenue (docs/legacy/1.x/stack.md § Le garde-fou C5). Le mur de la plateforme est
@@ -79,29 +90,3 @@ jobs:
           elif [ "$n" -ge 15000 ]; then
             echo "::warning title=C5 en alerte::${n} fichiers produits — l'alerte du socle de livraison est à 15 000."
           fi
-
-  # ── test · minutes ──────────────────────────────────────────────────────────
-  test:
-    name: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - id: scaffold
-        run: |
-          if [ -f package.json ]; then
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
-          fi
-      - if: steps.scaffold.outputs.ok == 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: npm
-      - if: steps.scaffold.outputs.ok == 'true'
-        run: npm ci
-      - if: steps.scaffold.outputs.ok == 'true'
-        run: npm test
