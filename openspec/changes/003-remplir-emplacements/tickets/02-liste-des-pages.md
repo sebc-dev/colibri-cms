@@ -12,6 +12,15 @@ gestes et des mots attendus), pas à l'écran. L'instance de ce dépôt porte tr
 restent ; il est vérifié sans requête, au niveau du modèle pur, dans
 `tests/static/liste-des-pages-statique.test.ts`.
 
+SC-02e fait exception au mode `test`. Sa moitié « assemblage » — barre latérale et menu
+présents autour de la liste — n'est pas automatisable ici : les tests tournent dans `workerd`
+(aucun harnais de montage DOM) et l'îlot du cadre est monté par script seul (ADR-0006), donc
+jamais présent dans la réponse HTTP. Cette moitié se vérifie en **`observé`** : preuve captée
+sur la page rendue (cadre présent, « Mes pages » active et menant à `/admin/mes-pages`), ce qui
+relève de la mise en page étant remonté en `humanCheckRequired`. La moitié observable demeure,
+elle, sous la couture HTTP : la liste reste rendue dans la réponse (SC-02a-d), et le point de
+montage `<div id="ilot-cadre">` avec son script y sont présents.
+
 ## Ce que ça livre
 La rubrique « Mes pages » devient un vrai point d'entrée : elle affiche toutes les pages du site
 déclarées par l'intégrateur, dans l'ordre posé, une ligne par page. Une instance où aucune page n'est
@@ -32,4 +41,4 @@ marquée active et menant à cet écran) : aucun autre ticket ne le fait.
 - [x] Une instance sans aucune page déclarée affiche le message d'état vide et n'offre aucun geste de création de page.   (SC-02b)
 - [x] La liste ne présente aucun geste d'ajout, de retrait, de déplacement ni de renommage de page (FR-024/025).   (SC-02c)
 - [x] Aucun terme de développeur ne paraît dans la liste ni dans le message d'état vide.   (SC-02d)
-- [ ] L'`Écran : Liste des pages` est servi dans l'`Écran : Cadre de l'administration` (barre latérale et menu présents, « Mes pages » marquée active et menant à cet écran) — ce ticket porte l'assemblage entre les deux écrans, aucun autre ticket ne le fait.
+- [ ] L'`Écran : Liste des pages` est servi dans l'`Écran : Cadre de l'administration` (barre latérale et menu présents, « Mes pages » marquée active et menant à cet écran) — ce ticket porte l'assemblage entre les deux écrans, aucun autre ticket ne le fait.   (SC-02e)
