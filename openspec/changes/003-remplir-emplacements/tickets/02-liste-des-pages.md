@@ -41,4 +41,4 @@ marquée active et menant à cet écran) : aucun autre ticket ne le fait.
 - [x] Une instance sans aucune page déclarée affiche le message d'état vide et n'offre aucun geste de création de page.   (SC-02b)
 - [x] La liste ne présente aucun geste d'ajout, de retrait, de déplacement ni de renommage de page (FR-024/025).   (SC-02c)
 - [x] Aucun terme de développeur ne paraît dans la liste ni dans le message d'état vide.   (SC-02d)
-- [ ] L'`Écran : Liste des pages` est servi dans l'`Écran : Cadre de l'administration` (barre latérale et menu présents, « Mes pages » marquée active et menant à cet écran) — ce ticket porte l'assemblage entre les deux écrans, aucun autre ticket ne le fait.   (SC-02e)
+- [x] L'`Écran : Liste des pages` est servi dans l'`Écran : Cadre de l'administration` (barre latérale et menu présents, « Mes pages » marquée active et menant à cet écran) — ce ticket porte l'assemblage entre les deux écrans, aucun autre ticket ne le fait.   (SC-02e)
