@@ -1,6 +1,7 @@
 {
   "version": 1,
   "scope": { "changedOnly": true, "paths": ["src/**", "tests/**", "migrations/**"] },
+  "applier": "quality-apply",
   "checks": [
     {
       "id": "typecheck",
@@ -18,7 +19,8 @@
       "id": "boundaries",
       "cmd": "npm run lint:boundaries",
       "severity": "blocking",
-      "autofix": null
+      "autofix": null,
+      "agent": "quality-boundaries"
     },
     {
       "id": "test",
@@ -30,20 +32,23 @@
       "id": "knip",
       "cmd": "npm run knip",
       "severity": "advisory",
-      "autofix": null
+      "autofix": null,
+      "agent": "quality-knip"
     },
     {
       "id": "crap",
       "cmd": "npm run crap",
       "severity": "advisory",
       "threshold": { "metric": "crap", "max": 6 },
-      "autofix": null
+      "autofix": null,
+      "agent": "quality-crap"
     },
     {
       "id": "mutation",
       "cmd": "npm run mutation:diff",
       "severity": "advisory",
-      "autofix": null
+      "autofix": null,
+      "agent": "quality-mutation"
     }
   ]
 }
