@@ -1,4 +1,14 @@
 {
   "titre": "Tarifs",
-  "rang": 1
+  "rang": 1,
+  "emplacements": [
+    { "id": "presentation", "nature": "texte-riche", "rang": 0 },
+    {
+      "id": "bouton-devis",
+      "nature": "bouton-action",
+      "rang": 1,
+      "libelle": "Demander un devis",
+      "destination": "/contact"
+    }
+  ]
 }
