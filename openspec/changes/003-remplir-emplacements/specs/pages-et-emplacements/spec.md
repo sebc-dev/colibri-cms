@@ -73,10 +73,12 @@ développeur (FR-117).
 ### Requirement: Éditeur d'une page et ses emplacements
 
 Ouvrir une page depuis la liste SHALL présenter ses emplacements dans l'ordre posé par l'intégrateur,
-chacun avec le moyen d'édition de sa nature (texte riche, lien de vidéo, bouton d'action) et son contenu
-courant, avec un fil de retour vers « Mes pages ». L'éditeur ne DOIT offrir aucun geste d'ajout, de
-retrait, de déplacement ni de renommage d'un emplacement (FR-024/025), ni aucun terme de développeur
-(FR-117).
+chacun présenté selon sa nature (texte riche, lien de vidéo, bouton d'action) et montrant son contenu
+courant, avec un fil de retour vers « Mes pages ». Cet écran porte la présentation par nature ; le moyen
+d'édition fonctionnel de chaque nature — barre de mise en forme du texte riche, champ de lien de vidéo,
+champs du bouton d'action — est livré par la correction de cette nature (requirements suivants), non par
+cet écran seul. L'éditeur ne DOIT offrir aucun geste d'ajout, de retrait, de déplacement ni de renommage
+d'un emplacement (FR-024/025), ni aucun terme de développeur (FR-117).
 
 #### Scenario: Ouvrir une page depuis la liste
 - **WHEN** l'éditrice clique une page de l'`Écran : Liste des pages`
@@ -84,7 +86,7 @@ retrait, de déplacement ni de renommage d'un emplacement (FR-024/025), ni aucun
 
 #### Scenario: Les emplacements paraissent dans l'ordre posé, par nature
 - **WHEN** l'éditeur d'une page est affiché
-- **THEN** les emplacements paraissent dans l'ordre posé, chacun avec le moyen d'édition de sa nature (texte riche, lien de vidéo, bouton d'action)
+- **THEN** les emplacements paraissent dans l'ordre posé, chacun présenté selon sa nature (texte riche, lien de vidéo, bouton d'action) — le moyen d'édition fonctionnel de chaque nature venant avec sa correction
 
 #### Scenario: Chaque emplacement montre son contenu courant
 - **WHEN** l'éditeur d'une page est affiché
