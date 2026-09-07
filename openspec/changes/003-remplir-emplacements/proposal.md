@@ -16,8 +16,9 @@ site public tant qu'elle n'a pas publié (FR-026).
 - La **liste des pages** affiche toutes les pages déclarées par l'intégrateur dans l'ordre posé ; chaque
   page dit si elle porte un brouillon non publié (FR-015/016). Une instance sans page déclarée montre un
   état vide, sans aucun geste de création (FR-024).
-- L'**éditeur d'une page** présente ses emplacements dans l'ordre posé, chacun avec le moyen d'édition de
-  sa nature (FR-017) : texte riche (FR-018), lien de vidéo (FR-022), bouton d'action (FR-023).
+- L'**éditeur d'une page** présente ses emplacements dans l'ordre posé, chacun selon sa nature (FR-017) :
+  texte riche (FR-018), lien de vidéo (FR-022), bouton d'action (FR-023) ; le moyen d'édition fonctionnel
+  de chaque nature vient avec sa correction, non avec cette seule présentation.
 - **Corriger** un emplacement de bouton (libellé, destination), de lien de vidéo (lien externe reconnu,
   ou refus motivé), ou de texte riche (gras, italique, lien, liste, titre — sans jamais écrire de balise,
   sérialisé en Markdown restreint). Chaque correction va au brouillon et bascule la page à « brouillon »,
