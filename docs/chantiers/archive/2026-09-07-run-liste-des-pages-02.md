@@ -1,7 +1,19 @@
-# Run bloqué — assembler la liste des pages dans le cadre
+# Run bloqué — assembler la liste des pages dans le cadre — RÉSOLU
 
 Portée : 003-remplir-emplacements · ticket 02
-Ouvert le 2026-09-07 · Actualisé le 2026-09-07 (2e run) · branche `impl/liste-des-pages-02` · HEAD `56450a3`
+Ouvert le 2026-09-07 · RÉSOLU le 2026-09-07 (landé via review, PR #65) · branche `impl/liste-des-pages-02`
+
+## Résolution
+L'humain a arbitré la ceinture comme **faux positif** (voir 2e run) : le réalignement des tests est
+légitime, on lande via la **review** plutôt qu'en rejouant la ceinture.
+- Review 8 dimensions en contexte frais (producteur ≠ vérificateur) sur le diff `origin/main..HEAD` :
+  **0 finding bloquant**, 6 suggestions, **toutes rejetées au triage adversarial** (style/goût,
+  spéculation non ancrée, hors-scope). Détail dans le corps de la PR #65.
+- DoD verte sur l'état commité : `typecheck`/`build`/`test`/`lint` tous exit 0, **94 tests** (workerd).
+- SC-02e coché [x] (commit `a8c5e6d`) — livré ; la moitié « assemblage » reste en `humanCheckRequired`,
+  portée par la **checklist visuelle de la PR** (constater le cadre autour de la liste dans un navigateur).
+- **PR #65** ouverte, ready, base `main`, non empilée : https://github.com/sebc-dev/colibri-cms/pull/65
+- Reste au fil de la forge (hors chantier) : le contrôle visuel de SC-02e, puis le merge de la PR.
 
 ## Objectif
 Livrer le 5e critère du ticket 02 (SC-02e) : la liste servie DANS le cadre de l'administration,
