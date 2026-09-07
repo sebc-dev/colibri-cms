@@ -78,8 +78,16 @@ export function monterCadreAvecContenu(idCible: string): void {
 
   const html = cible.innerHTML;
   cible.innerHTML = '';
+  // `createRawSnippet` (Svelte 5) ne conserve QUE le premier élément racine du
+  // HTML rendu : il prend `get_first_child(fragment)` et jette ses frères, sans
+  // erreur en production (l'avertissement `invalid_raw_snippet_render` est
+  // `DEV`-only). Or le contenu capturé de `#ilot-cadre` a plusieurs racines
+  // (le `<h1>` du titre PUIS la liste, ou le message d'état vide) : sans une
+  // racine unique, tout ce qui suit le titre disparaîtrait à l'écran alors que
+  // la réponse HTTP, elle, le porte toujours (invisible aux tests SSR). On
+  // enveloppe donc dans un seul élément — NE PAS retirer cette enveloppe.
   const contenu = createRawSnippet(() => ({
-    render: () => html,
+    render: () => `<div>${html}</div>`,
   }));
 
   mount(Cadre, { target: cible, props: { children: contenu } });
