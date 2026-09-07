@@ -26,6 +26,23 @@
  * `src/platform/contenu/pages.ts` (I1 : `platform → core`, jamais
  * l'inverse). Une instance sans aucun `page.json` déclaré rend un tableau
  * vide, d'où l'état vide de SC-02b, sans branche dédiée dans le lecteur.
+ *
+ * Assemblage dans l'`Écran : Cadre de l'administration` (dernier critère du
+ * ticket 02, sans id `SC-02x` propre dans le fichier source du ticket,
+ * SC-02e). Arbitrage retenu (voir
+ * docs/chantiers/en-cours/2026-09-07-run-liste-des-pages-02.md, arbitrage 3,
+ * et la note « Motif du mode `test` » du ticket) : le titre et la liste (ou
+ * le message d'état vide) sont rendus ici, à même le corps de la réponse,
+ * dans le point de montage `#ilot-cadre` — jamais dans un `<template>`
+ * inerte. C'est ce qui garde SC-02a-d vérifiables par une requête HTTP réelle
+ * sans exécuter de JavaScript (tests/integration/liste-des-pages.test.ts) :
+ * les `<li>` existent dans le DOM dès la réponse, pas seulement dans le texte
+ * brut d'un gabarit inerte. `monterCadreAvecContenu`
+ * (`src/admin/ilots-svelte-5/monter.ts`) capture ensuite ce contenu déjà
+ * rendu et monte le composant `Cadre` (ticket 01) autour de lui, côté
+ * client : la barre latérale et le menu n'entrent jamais dans la réponse
+ * HTTP (îlot monté par script seul, ADR-0006), donc cette moitié
+ * « assemblage » de SC-02e se vérifie en `observé`, pas par requête HTTP.
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession } from '../../platform/session/index.ts';
@@ -41,16 +58,23 @@ const pages = listerPagesDeclarees();
 ---
 
 <Gabarit titre="Mes pages — Administration">
-  <h1>Mes pages</h1>
-  {
-    pages.length === 0 ? (
-      <p>Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici.</p>
-    ) : (
-      <ul>
-        {pages.map((page) => (
-          <li>{page.titre}</li>
-        ))}
-      </ul>
-    )
-  }
+  <div id="ilot-cadre">
+    <h1>Mes pages</h1>
+    {
+      pages.length === 0 ? (
+        <p>Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici.</p>
+      ) : (
+        <ul>
+          {pages.map((page) => (
+            <li>{page.titre}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+  <script>
+    import { monterCadreAvecContenu } from '../../admin/ilots-svelte-5/monter.ts';
+
+    monterCadreAvecContenu('ilot-cadre');
+  </script>
 </Gabarit>

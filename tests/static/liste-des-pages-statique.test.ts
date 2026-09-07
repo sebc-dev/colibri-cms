@@ -16,6 +16,15 @@
  * `trierPagesDeclarees`, la seule fonction que ce ticket confie à `core`
  * (I2 — zéro dépendance framework ni plateforme, testable sans D1 ni
  * Worker).
+ *
+ * SC-02e n'a pas de test ici : sa moitié « assemblage » (le cadre
+ * effectivement visible autour de la liste, dans un navigateur) est
+ * vérifiée en `observé` (voir le ticket, section « Vérif ») — un run
+ * précédent a jugé qu'un simple grep de la source de `Cadre.svelte` ou de
+ * `monter.ts` ne prouvait pas cette moitié (miroir de la forme, pas du
+ * comportement) ; sa moitié observable par requête HTTP (le point de
+ * montage et le contenu déjà rendu) est déjà couverte par
+ * `tests/integration/liste-des-pages.test.ts`.
  */
 import { describe, it, expect } from 'vitest';
 import { trierPagesDeclarees, type FichierDeclarationBrut } from '../../src/core/pages/declaration.ts';
