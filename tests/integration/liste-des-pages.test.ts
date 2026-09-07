@@ -23,6 +23,21 @@
  * `tests/static/liste-des-pages-statique.test.ts`, qui prouve l'état vide au
  * niveau du modèle pur (`trierPagesDeclarees`, ADR-0012) et de la structure
  * de la route, sans requête.
+ *
+ * SC-02e : depuis l'arbitrage du chantier
+ * docs/chantiers/en-cours/2026-09-07-run-liste-des-pages-02.md (point 3), la
+ * liste (titre + `<li>` ou message d'état vide) est rendue à même le corps
+ * de la réponse, dans le point de montage `#ilot-cadre` — jamais dans un
+ * `<template>` inerte : c'est ce qui garde SC-02a-d observables par une
+ * requête HTTP réelle, sans exécuter de JavaScript. Le test SC-02e ci-dessous
+ * ne prouve donc que cette moitié « rendu HTTP » du critère : le point de
+ * montage est présent et enveloppe directement ce contenu, et le `<script>`
+ * qui doit transporter le cadre (barre latérale + menu, ticket 01) autour de
+ * lui, côté client, est bien présent dans la réponse. La moitié
+ * « assemblage » elle-même — le cadre effectivement visible autour de la
+ * liste dans un navigateur — n'est pas observable ici : l'îlot `Cadre` est
+ * monté par script seul (ADR-0006) et `workerd` n'exécute aucun DOM ; elle
+ * se vérifie en `observé` (voir le ticket, section « Vérif »).
  */
 /// <reference types="@cloudflare/vitest-pool-workers/types" />
 import { SELF, env } from 'cloudflare:test';
@@ -105,7 +120,7 @@ async function accederAMesPages(cookieSession: string): Promise<Response> {
 
 // --- SC-02a — les pages déclarées s'affichent dans l'ordre posé, une ligne par page ---
 
-it('SC-02a — la liste des pages affiche les pages déclarées dans l’ordre posé', async () => {
+it('SC-02a — la liste des pages affiche une ligne par page déclarée, dans l’ordre posé', async () => {
   const db = await assurerSchema();
   const cookieSession = await semerSessionValide(db);
 
@@ -113,49 +128,44 @@ it('SC-02a — la liste des pages affiche les pages déclarées dans l’ordre p
 
   expect(reponse.status).toBe(200);
   const corps = await reponse.text();
-  const indexAccueil = corps.indexOf('Accueil');
-  const indexTarifs = corps.indexOf('Tarifs');
-  const indexContact = corps.indexOf('Contact');
-  expect(indexAccueil).toBeGreaterThanOrEqual(0);
-  expect(indexTarifs).toBeGreaterThan(indexAccueil);
-  expect(indexContact).toBeGreaterThan(indexTarifs);
+  const lignes = [...corps.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((correspondance) =>
+    correspondance[1].trim(),
+  );
+
+  // Une ligne par page déclarée (`content/pages/{accueil,tarifs,contact}/page.json`) —
+  // ni plus, ni moins — dans l'ordre du rang posé (0, 1, 2), jamais un ordre recalculé.
+  expect(lignes).toEqual(['Accueil', 'Tarifs', 'Contact']);
 });
 
-// --- SC-02e — l'écran de liste est transporté dans le cadre de l'administration ---
-// (dernier critère du ticket, sans id `SC-02x` propre dans le fichier source du ticket ;
-// numéroté par cohérence avec SC-02a/b/c/d, cf. brief du ticket). Le cadre lui-même n'est
-// jamais rendu côté serveur (îlot Svelte monté uniquement par le script client, ADR-0006) :
-// ce qui EST vérifiable par une requête HTTP réelle, sans exécuter de JavaScript, c'est que
-// le contenu de l'écran (titre, liste) n'est plus rendu à même le corps de la réponse comme
-// avant l'assemblage — il est déposé, inerte, dans un `<template>` destiné à être transporté
-// par `monterCadreAvecContenu` vers l'intérieur du cadre (point de montage `#ilot-cadre`).
+// --- SC-02e (moitié observable par requête HTTP) — le contenu de l'écran est rendu à même
+// la réponse, dans le point de montage du cadre, prêt à être transporté côté client ---
 
-it('SC-02e — le contenu de l’écran est déposé, inerte, pour être transporté dans le cadre, plutôt que rendu à même la réponse', async () => {
+it('SC-02e — le point de montage du cadre est présent et enveloppe directement le contenu de l’écran, avec le script qui doit le transporter', async () => {
   const db = await assurerSchema();
   const cookieSession = await semerSessionValide(db);
 
   const reponse = await accederAMesPages(cookieSession);
 
   const corps = await reponse.text();
-  const indexPointDeMontage = corps.indexOf('<div id="ilot-cadre"></div>');
-  const indexModele = corps.indexOf('<template id="contenu-mes-pages">');
-  const indexFinModele = corps.indexOf('</template>');
+  const indexPointDeMontage = corps.indexOf('<div id="ilot-cadre">');
+  const indexTitre = corps.indexOf('<h1>Mes pages</h1>');
 
-  // Le point de montage du cadre est présent, et précède le contenu transporté : c'est lui
-  // que `monterCadreAvecContenu` cible pour y faire naître la barre latérale et le menu.
+  // Le point de montage existe et précède le titre : le titre (et la liste) sont bien
+  // rendus À L'INTÉRIEUR de ce nœud, pas ailleurs dans le corps de la réponse.
   expect(indexPointDeMontage).toBeGreaterThanOrEqual(0);
-  expect(indexModele).toBeGreaterThan(indexPointDeMontage);
-  expect(indexFinModele).toBeGreaterThan(indexModele);
+  expect(indexTitre).toBeGreaterThan(indexPointDeMontage);
 
-  // Le titre et la liste vivent DANS ce `<template>` (donc inertes, non affichés tels quels
-  // par le navigateur tant qu'aucun script ne les transporte) — jamais à même le corps, comme
-  // c'était le cas avant l'assemblage dans le cadre.
-  const contenuDuModele = corps.slice(indexModele, indexFinModele);
-  expect(contenuDuModele).toContain('<h1>Mes pages</h1>');
-  expect(contenuDuModele).toContain('Accueil');
+  // Jamais dans un gabarit inerte : le contenu est littéralement dans le DOM de la
+  // réponse, observable sans exécuter de JavaScript (approche <template> annulée).
+  expect(corps).not.toMatch(/<template[\s>]/i);
 
-  const avantLeModele = corps.slice(0, indexModele);
-  expect(avantLeModele).not.toContain('<h1>Mes pages</h1>');
+  // Le script qui doit transporter le cadre (barre latérale + menu) autour de ce
+  // contenu, côté client, est bien référencé dans la réponse — Astro/Vite le
+  // bundle en un fichier externe (`<script type="module" src>`, jamais son texte
+  // en clair, cf. `src/admin/ilots-svelte-5/monter.ts` § en-tête) : c'est cette
+  // référence qui est observable ici, jamais son exécution — la partie qui reste
+  // vérifiée en `observé`, c'est l'assemblage effectif dans un navigateur.
+  expect(corps).toMatch(/<script\s+type="module"\s+src="[^"]+"><\/script>/);
 });
 
 // --- SC-02c — aucun geste d'ajout, de retrait, de déplacement ni de renommage de page ---

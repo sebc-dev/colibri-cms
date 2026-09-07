@@ -57,22 +57,27 @@ export function monterCadre(idCible: string): void {
 }
 
 /**
- * Monte l'îlot `Cadre` en lui donnant, comme contenu, du HTML déjà rendu par
- * Astro (ticket 02, assemblage de l'`Écran : Liste des pages` dans
- * l'`Écran : Cadre de l'administration`) : `idContenuTemplate` désigne un
- * `<template>` déjà présent dans la réponse HTTP, dont le texte reste
- * littéralement vérifiable sans exécuter ce script (SC-02a/b). Le contenu
- * est transporté tel quel dans le cadre via `createRawSnippet` — l'API
- * Svelte 5 dédiée au HTML déjà généré en dehors d'un composant `.svelte` —
- * jamais ré-interprété ni régénéré côté client. Ne fait rien si l'une des
- * deux cibles est absente, même garde d'absence que les fonctions ci-dessus.
+ * Monte l'îlot `Cadre` autour d'un contenu déjà rendu par Astro (ticket 02,
+ * assemblage de l'`Écran : Liste des pages` dans l'`Écran : Cadre de
+ * l'administration` ; arbitrage du chantier
+ * docs/chantiers/en-cours/2026-09-07-run-liste-des-pages-02.md, point 3) :
+ * `idCible` désigne un nœud déjà présent dans la réponse HTTP et déjà rempli
+ * par Astro (titre, liste ou message d'état vide) — jamais un `<template>`
+ * inerte, pour que ce contenu reste littéralement dans le DOM de la réponse,
+ * observable sans exécuter ce script (SC-02a-d). Le contenu du nœud est
+ * capturé avant montage, puis transporté tel quel dans le cadre via
+ * `createRawSnippet` — l'API Svelte 5 dédiée au HTML déjà généré en dehors
+ * d'un composant `.svelte` — jamais ré-interprété ni régénéré côté client :
+ * seul son emplacement change, sous la barre latérale et le menu du cadre.
+ * Ne fait rien si la cible est absente, même garde d'absence que les
+ * fonctions ci-dessus.
  */
-export function monterCadreAvecContenu(idCible: string, idContenuTemplate: string): void {
+export function monterCadreAvecContenu(idCible: string): void {
   const cible = document.getElementById(idCible);
-  const modele = document.getElementById(idContenuTemplate);
-  if (!cible || !(modele instanceof HTMLTemplateElement)) return;
+  if (!cible) return;
 
-  const html = modele.innerHTML;
+  const html = cible.innerHTML;
+  cible.innerHTML = '';
   const contenu = createRawSnippet(() => ({
     render: () => html,
   }));
