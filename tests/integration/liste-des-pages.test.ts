@@ -121,6 +121,43 @@ it('SC-02a — la liste des pages affiche les pages déclarées dans l’ordre p
   expect(indexContact).toBeGreaterThan(indexTarifs);
 });
 
+// --- SC-02e — l'écran de liste est transporté dans le cadre de l'administration ---
+// (dernier critère du ticket, sans id `SC-02x` propre dans le fichier source du ticket ;
+// numéroté par cohérence avec SC-02a/b/c/d, cf. brief du ticket). Le cadre lui-même n'est
+// jamais rendu côté serveur (îlot Svelte monté uniquement par le script client, ADR-0006) :
+// ce qui EST vérifiable par une requête HTTP réelle, sans exécuter de JavaScript, c'est que
+// le contenu de l'écran (titre, liste) n'est plus rendu à même le corps de la réponse comme
+// avant l'assemblage — il est déposé, inerte, dans un `<template>` destiné à être transporté
+// par `monterCadreAvecContenu` vers l'intérieur du cadre (point de montage `#ilot-cadre`).
+
+it('SC-02e — le contenu de l’écran est déposé, inerte, pour être transporté dans le cadre, plutôt que rendu à même la réponse', async () => {
+  const db = await assurerSchema();
+  const cookieSession = await semerSessionValide(db);
+
+  const reponse = await accederAMesPages(cookieSession);
+
+  const corps = await reponse.text();
+  const indexPointDeMontage = corps.indexOf('<div id="ilot-cadre"></div>');
+  const indexModele = corps.indexOf('<template id="contenu-mes-pages">');
+  const indexFinModele = corps.indexOf('</template>');
+
+  // Le point de montage du cadre est présent, et précède le contenu transporté : c'est lui
+  // que `monterCadreAvecContenu` cible pour y faire naître la barre latérale et le menu.
+  expect(indexPointDeMontage).toBeGreaterThanOrEqual(0);
+  expect(indexModele).toBeGreaterThan(indexPointDeMontage);
+  expect(indexFinModele).toBeGreaterThan(indexModele);
+
+  // Le titre et la liste vivent DANS ce `<template>` (donc inertes, non affichés tels quels
+  // par le navigateur tant qu'aucun script ne les transporte) — jamais à même le corps, comme
+  // c'était le cas avant l'assemblage dans le cadre.
+  const contenuDuModele = corps.slice(indexModele, indexFinModele);
+  expect(contenuDuModele).toContain('<h1>Mes pages</h1>');
+  expect(contenuDuModele).toContain('Accueil');
+
+  const avantLeModele = corps.slice(0, indexModele);
+  expect(avantLeModele).not.toContain('<h1>Mes pages</h1>');
+});
+
 // --- SC-02c — aucun geste d'ajout, de retrait, de déplacement ni de renommage de page ---
 
 it('SC-02c — la liste ne présente aucun geste d’ajout, de retrait, de déplacement ni de renommage', async () => {

@@ -13,7 +13,7 @@
  * le constructeur `new Component(...)` de Svelte 4 : c'est l'appel qui monte
  * réellement un composant sur un nœud du DOM déjà présent dans la réponse.
  */
-import { mount } from 'svelte';
+import { mount, createRawSnippet } from 'svelte';
 import Compteur from './Compteur.svelte';
 import ActionRapide from './ActionRapide.svelte';
 import Cadre from './Cadre.svelte';
@@ -54,4 +54,28 @@ export function monterCadre(idCible: string): void {
   if (!cible) return;
 
   mount(Cadre, { target: cible });
+}
+
+/**
+ * Monte l'îlot `Cadre` en lui donnant, comme contenu, du HTML déjà rendu par
+ * Astro (ticket 02, assemblage de l'`Écran : Liste des pages` dans
+ * l'`Écran : Cadre de l'administration`) : `idContenuTemplate` désigne un
+ * `<template>` déjà présent dans la réponse HTTP, dont le texte reste
+ * littéralement vérifiable sans exécuter ce script (SC-02a/b). Le contenu
+ * est transporté tel quel dans le cadre via `createRawSnippet` — l'API
+ * Svelte 5 dédiée au HTML déjà généré en dehors d'un composant `.svelte` —
+ * jamais ré-interprété ni régénéré côté client. Ne fait rien si l'une des
+ * deux cibles est absente, même garde d'absence que les fonctions ci-dessus.
+ */
+export function monterCadreAvecContenu(idCible: string, idContenuTemplate: string): void {
+  const cible = document.getElementById(idCible);
+  const modele = document.getElementById(idContenuTemplate);
+  if (!cible || !(modele instanceof HTMLTemplateElement)) return;
+
+  const html = modele.innerHTML;
+  const contenu = createRawSnippet(() => ({
+    render: () => html,
+  }));
+
+  mount(Cadre, { target: cible, props: { children: contenu } });
 }
