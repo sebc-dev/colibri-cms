@@ -21,9 +21,9 @@ validée du lien de vidéo, l'enregistrement des champs du bouton — vient avec
 tickets 04–06.
 
 ## Critères
-- [ ] Cliquer une page de la liste ouvre son `Écran : Éditeur de page`.   (SC-03a)
-- [ ] L'éditeur présente les emplacements de la page dans l'ordre posé, chacun présenté selon sa nature (texte riche, lien de vidéo, bouton d'action) ; le moyen d'édition fonctionnel de chaque nature vient avec sa correction, non ici.   (SC-03b)
-- [ ] Chaque emplacement présente le contenu courant de la page.   (SC-03c)
-- [ ] Le fil de retour ramène à l'`Écran : Liste des pages`.   (SC-03d)
-- [ ] Aucun geste n'ajoute, ne retire, ne déplace ni ne renomme un emplacement ; l'écran n'en offre aucun (FR-024/025).   (SC-03e)
-- [ ] Aucun terme de développeur ne paraît dans l'éditeur.   (SC-03f)
+- [x] Cliquer une page de la liste ouvre son `Écran : Éditeur de page`.   (SC-03a)
+- [x] L'éditeur présente les emplacements de la page dans l'ordre posé, chacun présenté selon sa nature (texte riche, lien de vidéo, bouton d'action) ; le moyen d'édition fonctionnel de chaque nature vient avec sa correction, non ici.   (SC-03b)
+- [x] Chaque emplacement présente le contenu courant de la page.   (SC-03c)
+- [x] Le fil de retour ramène à l'`Écran : Liste des pages`.   (SC-03d)
+- [x] Aucun geste n'ajoute, ne retire, ne déplace ni ne renomme un emplacement ; l'écran n'en offre aucun (FR-024/025).   (SC-03e)
+- [x] Aucun terme de développeur ne paraît dans l'éditeur.   (SC-03f)
