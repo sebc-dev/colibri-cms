@@ -26,11 +26,11 @@ brouillon » et refuse toute correction qui toucherait la structure (nombre, nat
 emplacements), et la table D1 qui porte les brouillons.
 
 ## Critères
-- [ ] En `core/`, appliquer une correction de bouton (libellé, destination) à un brouillon produit le brouillon corrigé, sans toucher l'état publié.   (SC-04a)
-- [ ] En `core/`, l'état « porte un brouillon » d'une page se dérive : vrai dès qu'une correction existe, faux sinon.   (SC-04b)
-- [ ] En `core/`, une correction qui viserait la structure (ajouter, retirer, déplacer ou renommer un emplacement, ou viser un emplacement non déclaré) est refusée (FR-024/025).   (SC-04c)
-- [ ] La table D1 des brouillons est créée par une migration versionnée (`wrangler d1 migrations`, candidat `acces-aux-donnees-api-d1-native-et-migrations-wrangler`), et lie le brouillon à l'emplacement déclaré par son identité stable.   (SC-04d)
-- [ ] Par la couture HTTP contre la vraie base locale, enregistrer une correction de bouton persiste le brouillon et laisse l'état publié intact.   (SC-04e)
-- [ ] Après enregistrement, la page bascule à « brouillon » dans l'`Écran : Liste des pages` (pastille présente) et l'`Écran : Éditeur de page` (pastille au fil de retour), sans quitter l'écran.   (SC-04f)
-- [ ] Une écriture forgée depuis une autre origine n'aboutit pas : la session `SameSite=Strict` n'est pas attachée à une requête cross-site (ADR-0011), et aucun jeton dédié n'est introduit.   (SC-04g)
-- [ ] En `core/`, une destination de bouton dont le schéma n'est ni `https`, ni `mailto`, ni `tel`, ni un chemin relatif est refusée, sans rien enregistrer.   (SC-04h)
+- [x] En `core/`, appliquer une correction de bouton (libellé, destination) à un brouillon produit le brouillon corrigé, sans toucher l'état publié.   (SC-04a)
+- [x] En `core/`, l'état « porte un brouillon » d'une page se dérive : vrai dès qu'une correction existe, faux sinon.   (SC-04b)
+- [x] En `core/`, une correction qui viserait la structure (ajouter, retirer, déplacer ou renommer un emplacement, ou viser un emplacement non déclaré) est refusée (FR-024/025).   (SC-04c)
+- [x] La table D1 des brouillons est créée par une migration versionnée (`wrangler d1 migrations`, candidat `acces-aux-donnees-api-d1-native-et-migrations-wrangler`), et lie le brouillon à l'emplacement déclaré par son identité stable.   (SC-04d)
+- [x] Par la couture HTTP contre la vraie base locale, enregistrer une correction de bouton persiste le brouillon et laisse l'état publié intact.   (SC-04e)
+- [x] Après enregistrement, la page bascule à « brouillon » dans l'`Écran : Liste des pages` (pastille présente) et l'`Écran : Éditeur de page` (pastille au fil de retour), sans quitter l'écran.   (SC-04f)
+- [x] Une écriture forgée depuis une autre origine n'aboutit pas : la session `SameSite=Strict` n'est pas attachée à une requête cross-site (ADR-0011), et aucun jeton dédié n'est introduit.   (SC-04g)
+- [x] En `core/`, une destination de bouton dont le schéma n'est ni `https`, ni `mailto`, ni `tel`, ni un chemin relatif est refusée, sans rien enregistrer.   (SC-04h)
