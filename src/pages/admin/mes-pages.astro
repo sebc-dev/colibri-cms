@@ -43,6 +43,14 @@
  * client : la barre latérale et le menu n'entrent jamais dans la réponse
  * HTTP (îlot monté par script seul, ADR-0006), donc cette moitié
  * « assemblage » de SC-02e se vérifie en `observé`, pas par requête HTTP.
+ *
+ * Ticket 03 (SC-03a, openspec/changes/003-remplir-emplacements/tickets/
+ * 03-editeur-emplacements.md) : cliquer une ligne ouvre l'`Écran : Éditeur de
+ * page` correspondant. Le rendu serveur du `<li>` reste inchangé (voir
+ * `src/admin/navigation-liste-des-pages.ts` § en-tête) : la navigation est
+ * activée côté client seulement, après le montage du cadre, jamais
+ * observable par une requête HTTP — cohérent avec le mode `observé` du
+ * ticket 03.
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession } from '../../platform/session/index.ts';
@@ -64,7 +72,7 @@ const pages = listerPagesDeclarees();
       pages.length === 0 ? (
         <p>Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici.</p>
       ) : (
-        <ul>
+        <ul id="liste-des-pages" data-pages={JSON.stringify(pages.map((page) => page.slug))}>
           {pages.map((page) => (
             <li>{page.titre}</li>
           ))}
@@ -74,7 +82,9 @@ const pages = listerPagesDeclarees();
   </div>
   <script>
     import { monterCadreAvecContenu } from '../../admin/ilots-svelte-5/monter.ts';
+    import { activerNavigationListeDesPages } from '../../admin/navigation-liste-des-pages.ts';
 
     monterCadreAvecContenu('ilot-cadre');
+    activerNavigationListeDesPages('liste-des-pages');
   </script>
 </Gabarit>

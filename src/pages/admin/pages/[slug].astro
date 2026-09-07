@@ -1,0 +1,88 @@
+---
+/**
+ * L'`Écran : Éditeur de page` (ticket 03,
+ * openspec/changes/003-remplir-emplacements/tickets/03-editeur-emplacements.md).
+ *
+ * Route sous `src/pages/admin/`, gardée par `verifierSession` (ADR-0007),
+ * même patron que `mes-pages.astro` (ticket 02) : le contenu utile (fil de
+ * retour, titre, emplacements) est rendu directement dans le point de
+ * montage `#ilot-cadre`, puis `monterCadreAvecContenu` (ticket 02) monte le
+ * cadre (ticket 01) autour de lui, côté client (îlot monté par script seul,
+ * ADR-0006).
+ *
+ * Ce ticket ne porte que la PRÉSENTATION par nature (SC-03b) : chaque
+ * emplacement montre sa nature et son contenu courant (SC-03c), sans aucun
+ * moyen d'édition fonctionnel — pas de barre de mise en forme active, pas de
+ * saisie validée, pas d'enregistrement. Aucun `<form>`, `<button>` ni
+ * `<input>` n'est rendu ici : ces gestes viennent avec la correction de
+ * chaque nature (tickets 04-06). Aucun geste de structure (ajout, retrait,
+ * déplacement, renommage d'emplacement) n'est offert (FR-024/025, SC-03e).
+ *
+ * La structure d'une page (emplacements : identifiant stable, nature, rang)
+ * est lue, jamais écrite (ADR-0012) : le lecteur pur vit dans
+ * `src/core/pages/declaration.ts` (fonctions pures, sans D1 ni Worker) ; le
+ * chargement du `page.json` et des `.md` d'emplacement de texte riche
+ * versionnés (`content/pages/`) vit dans `src/platform/contenu/pages.ts`
+ * (I1 : `platform → core`, jamais l'inverse).
+ *
+ * Un slug qui ne correspond à aucune page déclarée renvoie vers l'`Écran :
+ * Liste des pages` — aucune page n'existe à cette adresse, jamais une panne
+ * silencieuse : même principe de garde que `verifierSession` ci-dessous, qui
+ * redirige plutôt que d'échouer.
+ */
+import Gabarit from '../../../admin/Gabarit.astro';
+import { verifierSession } from '../../../platform/session/index.ts';
+import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const { slug } = Astro.params;
+const page = slug ? obtenirPageAvecEmplacements(slug) : null;
+
+if (!page) {
+  return Astro.redirect('/admin/mes-pages');
+}
+---
+
+<Gabarit titre={`${page.titre} — Administration`}>
+  <div id="ilot-cadre">
+    <p><a href="/admin/mes-pages">Mes pages</a></p>
+    <h1>{page.titre}</h1>
+    <ul>
+      {
+        page.emplacements.map((emplacement) => (
+          <li>
+            {emplacement.nature === 'texte-riche' && (
+              <div>
+                <p>Texte riche</p>
+                <div>{emplacement.contenu}</div>
+              </div>
+            )}
+            {emplacement.nature === 'lien-video' && (
+              <div>
+                <p>Lien de la vidéo</p>
+                <p>{emplacement.lien}</p>
+              </div>
+            )}
+            {emplacement.nature === 'bouton-action' && (
+              <div>
+                <p>Bouton d’action</p>
+                <p>Libellé : {emplacement.libelle}</p>
+                <p>Destination : {emplacement.destination}</p>
+              </div>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <script>
+    import { monterCadreAvecContenu } from '../../../admin/ilots-svelte-5/monter.ts';
+
+    monterCadreAvecContenu('ilot-cadre');
+  </script>
+</Gabarit>
