@@ -1,25 +1,25 @@
 # Run bloqué — assembler la liste des pages dans le cadre
 
 Portée : 003-remplir-emplacements · ticket 02
-Ouvert le 2026-09-07 · Actualisé le 2026-09-07 · branche `impl/liste-des-pages-02` · HEAD `8cfe939`
+Ouvert le 2026-09-07 · Actualisé le 2026-09-07 · branche `impl/liste-des-pages-02` · HEAD `b26e9b2`
 
 ## Objectif
-Livrer le cinquième critère du ticket 02 (la liste servie dans le cadre de l'administration), ajouté
-après la PR #64 qui avait déjà livré SC-02a à SC-02d.
+Livrer le cinquième critère du ticket 02 (la liste servie dans le cadre de l'administration),
+ajouté au ticket après que les quatre premiers avaient été livrés et mergés.
 
 ## Contexte à charger
-à lire      `openspec/changes/003-remplir-emplacements/tickets/02-liste-des-pages.md` — le contrat, dont le 5e critère sans id (36 l.)
-à lire      `openspec/changes/003-remplir-emplacements/proposal.md` — le cadrage du change
+à lire      `openspec/changes/003-remplir-emplacements/tickets/02-liste-des-pages.md` — le contrat, dont le 5e critère sans id (35 l.)
+à lire      `openspec/changes/003-remplir-emplacements/proposal.md` — le cadrage du change (58 l.)
+à situer    `src/admin/ilots-svelte-5/Cadre.svelte` — la rubrique sans lien, conclusion déjà dans Acquis
+à situer    PR #64 — la première livraison du ticket, mergée, ne pas relire
+à situer    journal du run `wf_1c01a247-eef` — hors dépôt (sous `~/.claude`), verdict déjà distillé ici
 
 ## Acquis
-- Statut du run : `blocked-verify`, mode `test` (run `wf_1c01a247-eef`, 7 agents, arrêt en phase Verify).
-- La branche a été recréée depuis `origin/main` puis re-rebasée et poussée `--force-with-lease`.
-- Le workflow a laissé **quatre fichiers modifiés, non commités**, dans l'arbre de travail de la branche :
-  `src/pages/admin/mes-pages.astro`, `src/admin/ilots-svelte-5/monter.ts`,
-  `tests/integration/liste-des-pages.test.ts`, `tests/static/liste-des-pages-statique.test.ts`.
-  Approche prise : le contenu de la page est déposé dans un `<template>` inerte, et un script client
-  monte l'îlot `Cadre` en lui confiant ce contenu comme enfant. Aucune PR, aucune case cochée.
-- Le verifier a rendu son verdict, non tronqué :
+- Le run du 2026-09-07 s'est arrêté en `blocked-verify` (mode `test`), avant toute review, PR ou coche.
+- J'ai mis le code en vol à l'abri dans le commit `wip` `b26e9b2` sur la branche. Approche prise : le
+  contenu de la page est déposé dans un `<template>` inerte, et un script client monte l'îlot `Cadre`
+  en lui confiant ce contenu comme enfant.
+- Verdict du verifier, non tronqué :
   « SC-02e — ÉCHEC DE PREUVE, sur deux plans distincts. (1) NON OBSERVABLE : le cadre (barre latérale +
   menu) n'apparaît jamais dans la réponse HTTP — îlot Svelte monté uniquement par script (ADR-0006).
   Les 4 tests SC-02e passent mais ne prouvent aucun comportement : les 3 tests statiques sont des greps
@@ -40,8 +40,8 @@ Trancher trois points avec l'humain avant toute relance : (1) inscrire l'id `SC-
 (2) « menant à cet écran » — exiger un lien navigable vers `/admin/mes-pages` dans le cadre, ou
 reformuler le critère puisque l'état actif suffit quand on est déjà sur l'écran ; (3) accepter ou non
 une page blanche sans JavaScript, et si oui, comment la couture HTTP prouve encore « affiche ».
-Puis relancer `/scd-spec-dev:run 003-remplir-emplacements 02` (le code en vol est dans l'arbre de
-travail de la branche, à commiter ou remiser d'abord).
+Puis relancer `/scd-spec-dev:run 003-remplir-emplacements 02` : la branche existe déjà avec le commit
+`wip`, le run la rejoindra et reprendra dessus.
 
 ## Écarté
 - Rendre le cadre côté serveur dans la réponse HTTP : l'îlot est monté par script seul (ADR-0006),
