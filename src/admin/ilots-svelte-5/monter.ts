@@ -17,6 +17,7 @@ import { mount, createRawSnippet } from 'svelte';
 import Compteur from './Compteur.svelte';
 import ActionRapide from './ActionRapide.svelte';
 import Cadre from './Cadre.svelte';
+import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 
 /**
  * Monte l'îlot `Compteur` sur le premier élément portant l'identifiant donné.
@@ -91,4 +92,40 @@ export function monterCadreAvecContenu(idCible: string): void {
   }));
 
   mount(Cadre, { target: cible, props: { children: contenu } });
+}
+
+/**
+ * Monte l'îlot `CorrectionBoutonAction` (ticket 04,
+ * openspec/changes/003-remplir-emplacements/tickets/04-corriger-bouton-action.md)
+ * sur chaque emplacement de bouton d'action rendu par l'`Écran : Éditeur de
+ * page` (`src/pages/admin/pages/[slug].astro`) — repérés par l'attribut
+ * `data-emplacement-bouton-action`, un par emplacement de cette nature.
+ * Chaque nœud porte ses propres `data-slug`/`data-id-emplacement`/
+ * `data-libelle`/`data-destination`, posés côté serveur : aucune donnée
+ * n'est redemandée au montage. La présentation statique (SC-03c) qu'il
+ * contient est vidée avant montage — même geste que `monterCadreAvecContenu`
+ * ci-dessus — pour être remplacée par le moyen d'édition réel. Ne fait rien
+ * si aucun de ces nœuds n'est présent (écran sans emplacement de bouton
+ * d'action) — même garde d'absence que les fonctions ci-dessus.
+ */
+export function monterCorrectionsBoutonAction(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-emplacement-bouton-action]');
+
+  cibles.forEach((cible) => {
+    const { slug, idEmplacement, libelle, destination } = cible.dataset;
+    if (slug === undefined || idEmplacement === undefined || libelle === undefined || destination === undefined) {
+      return;
+    }
+
+    cible.innerHTML = '';
+    mount(CorrectionBoutonAction, {
+      target: cible,
+      props: {
+        slug,
+        idEmplacement,
+        libelleInitial: libelle,
+        destinationInitial: destination,
+      },
+    });
+  });
 }

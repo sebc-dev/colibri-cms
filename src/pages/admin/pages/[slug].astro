@@ -1,7 +1,9 @@
 ---
 /**
  * L'`Écran : Éditeur de page` (ticket 03,
- * openspec/changes/003-remplir-emplacements/tickets/03-editeur-emplacements.md).
+ * openspec/changes/003-remplir-emplacements/tickets/03-editeur-emplacements.md ;
+ * ticket 04, openspec/changes/003-remplir-emplacements/tickets/
+ * 04-corriger-bouton-action.md).
  *
  * Route sous `src/pages/admin/`, gardée par `verifierSession` (ADR-0007),
  * même patron que `mes-pages.astro` (ticket 02) : le contenu utile (fil de
@@ -10,20 +12,34 @@
  * cadre (ticket 01) autour de lui, côté client (îlot monté par script seul,
  * ADR-0006).
  *
- * Ce ticket ne porte que la PRÉSENTATION par nature (SC-03b) : chaque
- * emplacement montre sa nature et son contenu courant (SC-03c), sans aucun
- * moyen d'édition fonctionnel — pas de barre de mise en forme active, pas de
- * saisie validée, pas d'enregistrement. Aucun `<form>`, `<button>` ni
- * `<input>` n'est rendu ici : ces gestes viennent avec la correction de
- * chaque nature (tickets 04-06). Aucun geste de structure (ajout, retrait,
- * déplacement, renommage d'emplacement) n'est offert (FR-024/025, SC-03e).
+ * Ticket 03 posait la PRÉSENTATION par nature, sans moyen d'édition
+ * fonctionnel. Ticket 04 ajoute le moyen d'édition d'un emplacement de bouton
+ * d'action (libellé, destination) : un îlot Svelte (`CorrectionBoutonAction`)
+ * enregistre la correction par la route générique
+ * `src/pages/admin/pages/[slug]/emplacements/[id].ts`. Les emplacements de
+ * texte riche et de lien de vidéo restent, à ce ticket, dans leur seule
+ * présentation (tickets 05/06, hors périmètre ici). Aucun geste de structure
+ * (ajout, retrait, déplacement, renommage d'emplacement) n'est offert
+ * (FR-024/025, SC-03e) : seule une correction de contenu d'un emplacement
+ * déjà déclaré est possible.
  *
  * La structure d'une page (emplacements : identifiant stable, nature, rang)
  * est lue, jamais écrite (ADR-0012) : le lecteur pur vit dans
  * `src/core/pages/declaration.ts` (fonctions pures, sans D1 ni Worker) ; le
  * chargement du `page.json` et des `.md` d'emplacement de texte riche
  * versionnés (`content/pages/`) vit dans `src/platform/contenu/pages.ts`
- * (I1 : `platform → core`, jamais l'inverse).
+ * (I1 : `platform → core`, jamais l'inverse). Le contenu affiché superpose à
+ * cette déclaration le brouillon courant (`obtenirBrouillon`,
+ * `appliquerBrouillonSurEmplacement`, `core/pages/brouillon.ts`) : la
+ * dernière correction enregistrée, jamais la seule valeur initiale posée par
+ * l'intégrateur, une fois qu'une correction existe (SC-04a).
+ *
+ * SC-04f : la pastille de brouillon du fil de retour reflète l'état « porte
+ * un brouillon », dérivé du même brouillon déjà lu (`pagePorteUnBrouillon`,
+ * SC-04b) — jamais un champ stocké à part. Après un enregistrement réussi,
+ * sans quitter l'écran, l'îlot révèle cette pastille côté client
+ * (`src/admin/pastille-brouillon.ts`) ; ce chargement initial, lui, est
+ * observable par une requête HTTP réelle (motif du mode `test` du ticket 04).
  *
  * Un slug qui ne correspond à aucune page déclarée renvoie vers l'`Écran :
  * Liste des pages` — aucune page n'existe à cette adresse, jamais une panne
@@ -33,6 +49,8 @@
 import Gabarit from '../../../admin/Gabarit.astro';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
+import { obtenirBrouillon } from '../../../platform/brouillons/magasin.ts';
+import { appliquerBrouillonSurEmplacement, pagePorteUnBrouillon } from '../../../core/pages/brouillon.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -41,17 +59,31 @@ if (!session) {
 }
 
 const { slug } = Astro.params;
-const page = slug ? obtenirPageAvecEmplacements(slug) : null;
+const pageDeclaree = slug ? obtenirPageAvecEmplacements(slug) : null;
 
-if (!page) {
+if (!pageDeclaree || !slug) {
   return Astro.redirect('/admin/mes-pages');
 }
+
+const brouillon = await obtenirBrouillon(env.DB, slug);
+const porteUnBrouillon = pagePorteUnBrouillon(brouillon);
+const page = {
+  titre: pageDeclaree.titre,
+  emplacements: pageDeclaree.emplacements.map((emplacement) =>
+    appliquerBrouillonSurEmplacement(emplacement, brouillon),
+  ),
+};
 ---
 
 <Gabarit titre={`${page.titre} — Administration`}>
   <div id="ilot-cadre">
     <p><a href="/admin/mes-pages">Mes pages</a></p>
-    <h1>{page.titre}</h1>
+    <h1>
+      {page.titre}
+      <span id="zone-pastille-brouillon">
+        {porteUnBrouillon && <span data-pastille-brouillon> • brouillon</span>}
+      </span>
+    </h1>
     <ul>
       {
         page.emplacements.map((emplacement) => (
@@ -71,8 +103,16 @@ if (!page) {
             {emplacement.nature === 'bouton-action' && (
               <div>
                 <p>Bouton d’action</p>
-                <p>Libellé : {emplacement.libelle}</p>
-                <p>Destination : {emplacement.destination}</p>
+                <div
+                  data-emplacement-bouton-action
+                  data-slug={slug}
+                  data-id-emplacement={emplacement.id}
+                  data-libelle={emplacement.libelle}
+                  data-destination={emplacement.destination}
+                >
+                  <p>Libellé : {emplacement.libelle}</p>
+                  <p>Destination : {emplacement.destination}</p>
+                </div>
               </div>
             )}
           </li>
@@ -81,8 +121,9 @@ if (!page) {
     </ul>
   </div>
   <script>
-    import { monterCadreAvecContenu } from '../../../admin/ilots-svelte-5/monter.ts';
+    import { monterCadreAvecContenu, monterCorrectionsBoutonAction } from '../../../admin/ilots-svelte-5/monter.ts';
 
     monterCadreAvecContenu('ilot-cadre');
+    monterCorrectionsBoutonAction();
   </script>
 </Gabarit>

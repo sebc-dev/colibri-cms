@@ -51,10 +51,19 @@
  * activée côté client seulement, après le montage du cadre, jamais
  * observable par une requête HTTP — cohérent avec le mode `observé` du
  * ticket 03.
+ *
+ * Ticket 04 (SC-04f, openspec/changes/003-remplir-emplacements/tickets/
+ * 04-corriger-bouton-action.md) : une page qui porte au moins une correction
+ * non publiée affiche une pastille de brouillon sur sa ligne
+ * (`listerSlugsAvecBrouillon`, `src/platform/brouillons/magasin.ts` — dérivé
+ * de la présence de lignes en D1, jamais d'un champ stocké séparément,
+ * SC-04b). Rendue à même la réponse HTTP (comme le reste de cet écran), donc
+ * observable sans exécuter de JavaScript.
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { listerPagesDeclarees } from '../../platform/contenu/pages.ts';
+import { listerSlugsAvecBrouillon } from '../../platform/brouillons/magasin.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -63,6 +72,7 @@ if (!session) {
 }
 
 const pages = listerPagesDeclarees();
+const slugsAvecBrouillon = await listerSlugsAvecBrouillon(env.DB);
 ---
 
 <Gabarit titre="Mes pages — Administration">
@@ -74,7 +84,7 @@ const pages = listerPagesDeclarees();
       ) : (
         <ul id="liste-des-pages" data-pages={JSON.stringify(pages.map((page) => page.slug))}>
           {pages.map((page) => (
-            <li>{page.titre}</li>
+            <li>{page.titre}{slugsAvecBrouillon.has(page.slug) && <span data-pastille-brouillon> • brouillon</span>}</li>
           ))}
         </ul>
       )
