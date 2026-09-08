@@ -11,9 +11,10 @@
  * `obtenirPageAvecEmplacements`) — jamais celle prétendue par le corps de la
  * requête. Le ticket 05 introduit ici l'EMBRANCHEMENT PAR NATURE : la nature
  * déclarée de `id` décide quelle fonction `platform/` traiter la correction
- * — `bouton-action` (ticket 04) ou `lien-video` (ticket 05). Le ticket 06
- * (texte riche) devra ajouter sa propre branche ici ; les tickets 05 et 06 ne
- * sont pas co-parallélisables (même route, même embranchement).
+ * — `bouton-action` (ticket 04), `lien-video` (ticket 05) ou `texte-riche`
+ * (ticket 06, openspec/changes/003-remplir-emplacements/tickets/
+ * 06-corriger-texte-riche.md). Les tickets 05 et 06 ne sont pas
+ * co-parallélisables (même route, même embranchement).
  *
  * Anti-forgerie (ADR-0011, SC-04g) : le seul rempart est le cookie de session
  * `__Host-session`, `SameSite=Strict` (`src/platform/session/index.ts`,
@@ -34,6 +35,7 @@ import { obtenirPageAvecEmplacements } from '../../../../../platform/contenu/pag
 import {
   enregistrerCorrectionBoutonAction,
   enregistrerCorrectionLienVideo,
+  enregistrerCorrectionTexteRiche,
 } from '../../../../../platform/brouillons/magasin.ts';
 import { pagePorteUnBrouillon, type ResultatCorrection } from '../../../../../core/pages/brouillon.ts';
 
@@ -62,16 +64,17 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   // L'embranchement se fait sur la nature DÉCLARÉE de `id` (ADR-0012),
   // jamais sur celle prétendue par le corps de la requête. Un `id` non
-  // déclaré, ou déclaré d'une nature qui n'a encore aucune branche ici
-  // (`texte-riche`, ticket 06), est refusé par la fonction `core/` de la
-  // branche choisie elle-même (`emplacement-non-declare`/
-  // `nature-non-corrigible`, SC-04c) — le même refus vaut donc pour les deux
-  // branches, on retient `enregistrerCorrectionBoutonAction` par défaut.
+  // déclaré est refusé par la fonction `core/` de la branche choisie
+  // elle-même (`emplacement-non-declare`/`nature-non-corrigible`, SC-04c) —
+  // le même refus vaut donc pour les trois branches, on retient
+  // `enregistrerCorrectionBoutonAction` par défaut.
   const emplacementDeclare = page.emplacements.find((emplacement) => emplacement.id === id);
 
   let resultat: ResultatCorrection;
   if (emplacementDeclare?.nature === 'lien-video') {
     resultat = await enregistrerCorrectionLienVideo(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
+  } else if (emplacementDeclare?.nature === 'texte-riche') {
+    resultat = await enregistrerCorrectionTexteRiche(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
   } else {
     resultat = await enregistrerCorrectionBoutonAction(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
   }

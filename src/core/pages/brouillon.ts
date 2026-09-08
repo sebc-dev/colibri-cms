@@ -35,9 +35,18 @@
  * ajoute `appliquerCorrectionLienVideo`, même patron que la correction de
  * bouton d'action ci-dessus : la reconnaissance du lien (liste blanche
  * d'hébergeurs, SC-05a) vit en un seul lieu, `core/pages/lien-video.ts`.
+ *
+ * Ticket 06 (openspec/changes/003-remplir-emplacements/tickets/
+ * 06-corriger-texte-riche.md) étend `ContenuCorrige` du variant `texte-riche`
+ * et ajoute `appliquerCorrectionTexteRiche`, même patron : la correction
+ * brute porte le document JSON produit par l'éditeur (TipTap, monté dans
+ * l'îlot `admin/ilots-svelte-5/TexteRiche.svelte`) ; sa sérialisation en
+ * Markdown restreint (marques retenues, schémas de lien, SC-06a/b/c) vit en
+ * un seul lieu, `core/pages/texte-riche.ts`.
  */
 import type { Emplacement } from './declaration.ts';
 import { lienVideoAutorise } from './lien-video.ts';
+import { serialiserMarkdownRestreint, type NoeudDocument } from './texte-riche.ts';
 
 /** Le contenu corrigé d'un emplacement de bouton d'action (SC-04a). */
 export interface ContenuBoutonAction {
@@ -52,13 +61,18 @@ export interface ContenuLienVideo {
   readonly lien: string;
 }
 
+/** Le contenu corrigé d'un emplacement de texte riche (ticket 06, SC-06a/e). */
+export interface ContenuTexteRiche {
+  readonly nature: 'texte-riche';
+  readonly markdown: string;
+}
+
 /**
- * Le contenu corrigé d'un emplacement, selon sa nature. Seules les natures
- * `bouton-action` (ticket 04) et `lien-video` (ticket 05) sont corrigibles à
- * ce jour — le ticket 06 (texte riche) étendra cette union avec sa propre
- * forme, hors périmètre ici (design.md § Non-Goals).
+ * Le contenu corrigé d'un emplacement, selon sa nature. Les natures
+ * `bouton-action` (ticket 04), `lien-video` (ticket 05) et `texte-riche`
+ * (ticket 06) sont corrigibles.
  */
-export type ContenuCorrige = ContenuBoutonAction | ContenuLienVideo;
+export type ContenuCorrige = ContenuBoutonAction | ContenuLienVideo | ContenuTexteRiche;
 
 /** Le brouillon d'une page : les corrections courantes, par identifiant d'emplacement stable. */
 export type Brouillon = ReadonlyMap<string, ContenuCorrige>;
@@ -180,6 +194,42 @@ export function appliquerCorrectionLienVideo(
   return { accepte: true, brouillon };
 }
 
+function estFormeCorrectionTexteRiche(brut: unknown): brut is { readonly document: NoeudDocument } {
+  if (typeof brut !== 'object' || brut === null) return false;
+  const candidat = brut as Record<string, unknown>;
+  return typeof candidat.document === 'object' && candidat.document !== null;
+}
+
+/**
+ * Applique une correction de texte riche à un brouillon (ticket 06,
+ * SC-06a/b/c/e) — même patron que les fonctions ci-dessus : fonction pure,
+ * `emplacementsDeclares` décide seule de l'existence et de la nature de
+ * `idEmplacement` (jamais le corps de la requête). `correctionBrute.document`
+ * porte le document JSON produit par l'éditeur (TipTap) ; il est sérialisé en
+ * Markdown restreint par `serialiserMarkdownRestreint`
+ * (`core/pages/texte-riche.ts`), qui écarte déjà toute marque hors liste et
+ * tout lien de schéma non autorisé (SC-06b/c) — cette fonction n'a donc rien
+ * de plus à refuser une fois la forme reconnue : une correction de texte
+ * riche formée n'est jamais rejetée pour son CONTENU, seule sa mise en forme
+ * l'est, marque par marque.
+ */
+export function appliquerCorrectionTexteRiche(
+  emplacementsDeclares: readonly Emplacement[],
+  brouillonActuel: Brouillon,
+  idEmplacement: string,
+  correctionBrute: unknown,
+): ResultatCorrection {
+  const declare = emplacementsDeclares.find((emplacement) => emplacement.id === idEmplacement);
+  if (!declare) return { accepte: false, raison: 'emplacement-non-declare' };
+  if (declare.nature !== 'texte-riche') return { accepte: false, raison: 'nature-non-corrigible' };
+  if (!estFormeCorrectionTexteRiche(correctionBrute)) return { accepte: false, raison: 'forme-invalide' };
+
+  const markdown = serialiserMarkdownRestreint(correctionBrute.document);
+  const brouillon = new Map(brouillonActuel);
+  brouillon.set(idEmplacement, { nature: 'texte-riche', markdown });
+  return { accepte: true, brouillon };
+}
+
 /**
  * Superpose le brouillon au contenu déclaré d'un emplacement, pour que
  * l'`Écran : Éditeur de page` reflète la dernière correction plutôt que la
@@ -198,6 +248,9 @@ export function appliquerBrouillonSurEmplacement(
   }
   if (emplacement.nature === 'lien-video' && correction.nature === 'lien-video') {
     return { ...emplacement, lien: correction.lien };
+  }
+  if (emplacement.nature === 'texte-riche' && correction.nature === 'texte-riche') {
+    return { ...emplacement, contenu: correction.markdown };
   }
   return emplacement;
 }

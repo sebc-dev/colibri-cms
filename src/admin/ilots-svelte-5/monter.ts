@@ -19,6 +19,7 @@ import ActionRapide from './ActionRapide.svelte';
 import Cadre from './Cadre.svelte';
 import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 import ReglageLienVideo from './ReglageLienVideo.svelte';
+import TexteRiche from './TexteRiche.svelte';
 
 /**
  * Monte l'îlot `Compteur` sur le premier élément portant l'identifiant donné.
@@ -156,6 +157,36 @@ export function monterReglagesLienVideo(): void {
         slug,
         idEmplacement,
         lienInitial: lien,
+      },
+    });
+  });
+}
+
+/**
+ * Monte l'îlot `TexteRiche` (ticket 06,
+ * openspec/changes/003-remplir-emplacements/tickets/06-corriger-texte-riche.md)
+ * sur chaque emplacement de texte riche rendu par l'`Écran : Éditeur de
+ * page` — repérés par l'attribut `data-emplacement-texte-riche`, un par
+ * emplacement de cette nature. Même patron (données déjà posées côté
+ * serveur, présentation statique vidée avant montage, garde d'absence) que
+ * `monterReglagesLienVideo`/`monterCorrectionsBoutonAction` ci-dessus.
+ */
+export function monterCorrectionsTexteRiche(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-emplacement-texte-riche]');
+
+  cibles.forEach((cible) => {
+    const { slug, idEmplacement, markdown } = cible.dataset;
+    if (slug === undefined || idEmplacement === undefined || markdown === undefined) {
+      return;
+    }
+
+    cible.innerHTML = '';
+    mount(TexteRiche, {
+      target: cible,
+      props: {
+        slug,
+        idEmplacement,
+        markdownInitial: markdown,
       },
     });
   });
