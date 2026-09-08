@@ -2,7 +2,7 @@
 
 **Bloqué par :** 04
 **Vérif :** test
-**Fichiers :** `src/core/emplacements/texte-riche.ts` (sérialisation en Markdown restreint, liste des marques et des schémas d'URL), `src/admin/emplacements/TexteRiche.svelte` (éditeur TipTap en îlot, barre de mise en forme), `tests/integration/texte-riche.test.ts`
+**Fichiers :** `src/core/pages/texte-riche.ts` (sérialisation en Markdown restreint, liste des marques et des schémas d'URL), `src/pages/admin/pages/[slug]/emplacements/[id].ts` (branche `texte-riche` de l'embranchement par nature, **modifié**), `src/platform/brouillons/magasin.ts` (persistance de la correction de texte riche, réutilise la table `0004`), `src/admin/ilots-svelte-5/TexteRiche.svelte` + `src/admin/ilots-svelte-5/monter.ts` (éditeur TipTap en îlot, barre de mise en forme, montage), `tests/integration/texte-riche.test.ts`
 
 Motif du mode `test` : deux coutures — la couture haute `core/`, pure, pour l'aller-retour de
 sérialisation, et la couture d'intégration HTTP contre la vraie base locale, qui ne s'exprime qu'une
@@ -10,8 +10,9 @@ fois la route de 04 branchée sur cette nature d'emplacement. Les critères SC-0
 sur le HTML servi par la route (présence des commandes de mise en forme, aucune saisie de balise
 offerte, absence des mots attendus), pas à l'écran.
 
-La route d'écriture posée par le ticket 04 est réutilisée telle quelle : ce ticket ne la modifie pas, ce
-qui le rend parallélisable avec le ticket 05.
+La route de 04 reçoit ici la branche `texte-riche` de l'embranchement par nature déclarée (ADR-0012).
+Comme le ticket 05 touche la même route et la même persistance, **05 et 06 ne sont pas
+co-parallélisables** — à lancer l'un après l'autre, jamais ensemble en worktrees.
 
 ## Ce que ça livre
 L'éditrice met en forme un emplacement de texte riche — gras, italique, lien, liste, titre — sans

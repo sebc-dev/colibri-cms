@@ -29,8 +29,15 @@
  * schémas (`https`, `mailto`, `tel`, chemin relatif), purement — une
  * destination hors liste est refusée sans qu'aucun appelant n'écrive quoi
  * que ce soit (le refus est rendu par valeur, jamais par exception).
+ *
+ * Ticket 05 (openspec/changes/003-remplir-emplacements/tickets/
+ * 05-regler-lien-video.md) étend `ContenuCorrige` du variant `lien-video` et
+ * ajoute `appliquerCorrectionLienVideo`, même patron que la correction de
+ * bouton d'action ci-dessus : la reconnaissance du lien (liste blanche
+ * d'hébergeurs, SC-05a) vit en un seul lieu, `core/pages/lien-video.ts`.
  */
 import type { Emplacement } from './declaration.ts';
+import { lienVideoAutorise } from './lien-video.ts';
 
 /** Le contenu corrigé d'un emplacement de bouton d'action (SC-04a). */
 export interface ContenuBoutonAction {
@@ -39,13 +46,19 @@ export interface ContenuBoutonAction {
   readonly destination: string;
 }
 
+/** Le contenu corrigé d'un emplacement de lien de vidéo (ticket 05, SC-05a/b). */
+export interface ContenuLienVideo {
+  readonly nature: 'lien-video';
+  readonly lien: string;
+}
+
 /**
- * Le contenu corrigé d'un emplacement, selon sa nature. Seule la nature
- * `bouton-action` est corrigible à ce ticket — les tickets 05 (lien de
- * vidéo) et 06 (texte riche) étendront cette union avec leur propre forme,
- * hors périmètre ici (design.md § Non-Goals).
+ * Le contenu corrigé d'un emplacement, selon sa nature. Seules les natures
+ * `bouton-action` (ticket 04) et `lien-video` (ticket 05) sont corrigibles à
+ * ce jour — le ticket 06 (texte riche) étendra cette union avec sa propre
+ * forme, hors périmètre ici (design.md § Non-Goals).
  */
-export type ContenuCorrige = ContenuBoutonAction;
+export type ContenuCorrige = ContenuBoutonAction | ContenuLienVideo;
 
 /** Le brouillon d'une page : les corrections courantes, par identifiant d'emplacement stable. */
 export type Brouillon = ReadonlyMap<string, ContenuCorrige>;
@@ -63,7 +76,8 @@ export type RaisonRefusCorrection =
   | 'emplacement-non-declare'
   | 'nature-non-corrigible'
   | 'forme-invalide'
-  | 'destination-invalide';
+  | 'destination-invalide'
+  | 'lien-invalide';
 
 /** Le résultat d'une tentative de correction (SC-04a/c/h). */
 export type ResultatCorrection =
@@ -131,6 +145,41 @@ export function appliquerCorrectionBoutonAction(
   return { accepte: true, brouillon };
 }
 
+function estFormeCorrectionLienVideo(brut: unknown): brut is { readonly lien: string } {
+  if (typeof brut !== 'object' || brut === null) return false;
+  const candidat = brut as Record<string, unknown>;
+  return typeof candidat.lien === 'string';
+}
+
+/**
+ * Applique une correction de lien de vidéo à un brouillon (ticket 05,
+ * SC-05a/b/c) — même patron que `appliquerCorrectionBoutonAction` ci-dessus :
+ * fonction pure, `emplacementsDeclares` décide seule de l'existence et de la
+ * nature de `idEmplacement` (jamais le corps de la requête). Un lien dont
+ * l'hôte n'appartient pas à la liste blanche d'hébergeurs
+ * (`lienVideoAutorise`, `core/pages/lien-video.ts`) est refusé sans que rien
+ * ne soit jamais enregistré par ce module lui-même — le refus est rendu par
+ * valeur, avant toute persistance côté appelant.
+ */
+export function appliquerCorrectionLienVideo(
+  emplacementsDeclares: readonly Emplacement[],
+  brouillonActuel: Brouillon,
+  idEmplacement: string,
+  correctionBrute: unknown,
+): ResultatCorrection {
+  const declare = emplacementsDeclares.find((emplacement) => emplacement.id === idEmplacement);
+  if (!declare) return { accepte: false, raison: 'emplacement-non-declare' };
+  if (declare.nature !== 'lien-video') return { accepte: false, raison: 'nature-non-corrigible' };
+  if (!estFormeCorrectionLienVideo(correctionBrute)) return { accepte: false, raison: 'forme-invalide' };
+  if (!lienVideoAutorise(correctionBrute.lien)) {
+    return { accepte: false, raison: 'lien-invalide' };
+  }
+
+  const brouillon = new Map(brouillonActuel);
+  brouillon.set(idEmplacement, { nature: 'lien-video', lien: correctionBrute.lien });
+  return { accepte: true, brouillon };
+}
+
 /**
  * Superpose le brouillon au contenu déclaré d'un emplacement, pour que
  * l'`Écran : Éditeur de page` reflète la dernière correction plutôt que la
@@ -146,6 +195,9 @@ export function appliquerBrouillonSurEmplacement(
   if (!correction) return emplacement;
   if (emplacement.nature === 'bouton-action' && correction.nature === 'bouton-action') {
     return { ...emplacement, libelle: correction.libelle, destination: correction.destination };
+  }
+  if (emplacement.nature === 'lien-video' && correction.nature === 'lien-video') {
+    return { ...emplacement, lien: correction.lien };
   }
   return emplacement;
 }
