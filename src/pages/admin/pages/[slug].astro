@@ -3,7 +3,8 @@
  * L'`Écran : Éditeur de page` (ticket 03,
  * openspec/changes/003-remplir-emplacements/tickets/03-editeur-emplacements.md ;
  * ticket 04, openspec/changes/003-remplir-emplacements/tickets/
- * 04-corriger-bouton-action.md).
+ * 04-corriger-bouton-action.md ; ticket 05, openspec/changes/
+ * 003-remplir-emplacements/tickets/05-regler-lien-video.md).
  *
  * Route sous `src/pages/admin/`, gardée par `verifierSession` (ADR-0007),
  * même patron que `mes-pages.astro` (ticket 02) : le contenu utile (fil de
@@ -13,15 +14,18 @@
  * ADR-0006).
  *
  * Ticket 03 posait la PRÉSENTATION par nature, sans moyen d'édition
- * fonctionnel. Ticket 04 ajoute le moyen d'édition d'un emplacement de bouton
- * d'action (libellé, destination) : un îlot Svelte (`CorrectionBoutonAction`)
- * enregistre la correction par la route générique
- * `src/pages/admin/pages/[slug]/emplacements/[id].ts`. Les emplacements de
- * texte riche et de lien de vidéo restent, à ce ticket, dans leur seule
- * présentation (tickets 05/06, hors périmètre ici). Aucun geste de structure
- * (ajout, retrait, déplacement, renommage d'emplacement) n'est offert
- * (FR-024/025, SC-03e) : seule une correction de contenu d'un emplacement
- * déjà déclaré est possible.
+ * fonctionnel. Ticket 04 a ajouté le moyen d'édition d'un emplacement de
+ * bouton d'action (libellé, destination) : un îlot Svelte
+ * (`CorrectionBoutonAction`) enregistre la correction par la route générique
+ * `src/pages/admin/pages/[slug]/emplacements/[id].ts`. Ticket 05 ajoute, de
+ * même, le moyen de régler un emplacement de lien de vidéo
+ * (`ReglageLienVideo`) : un lien reconnu (liste blanche d'hébergeurs,
+ * SC-05a) enregistre le brouillon ; un lien non reconnu est refusé au niveau
+ * du champ (SC-05d), sans terme de développeur (SC-05e). Le texte riche
+ * reste, à ce ticket, dans sa seule présentation (ticket 06, hors périmètre
+ * ici). Aucun geste de structure (ajout, retrait, déplacement, renommage
+ * d'emplacement) n'est offert (FR-024/025, SC-03e) : seule une correction de
+ * contenu d'un emplacement déjà déclaré est possible.
  *
  * La structure d'une page (emplacements : identifiant stable, nature, rang)
  * est lue, jamais écrite (ADR-0012) : le lecteur pur vit dans
@@ -97,7 +101,14 @@ const page = {
             {emplacement.nature === 'lien-video' && (
               <div>
                 <p>Lien de la vidéo</p>
-                <p>{emplacement.lien}</p>
+                <div
+                  data-emplacement-lien-video
+                  data-slug={slug}
+                  data-id-emplacement={emplacement.id}
+                  data-lien={emplacement.lien}
+                >
+                  <p>{emplacement.lien}</p>
+                </div>
               </div>
             )}
             {emplacement.nature === 'bouton-action' && (
@@ -121,9 +132,14 @@ const page = {
     </ul>
   </div>
   <script>
-    import { monterCadreAvecContenu, monterCorrectionsBoutonAction } from '../../../admin/ilots-svelte-5/monter.ts';
+    import {
+      monterCadreAvecContenu,
+      monterCorrectionsBoutonAction,
+      monterReglagesLienVideo,
+    } from '../../../admin/ilots-svelte-5/monter.ts';
 
     monterCadreAvecContenu('ilot-cadre');
     monterCorrectionsBoutonAction();
+    monterReglagesLienVideo();
   </script>
 </Gabarit>

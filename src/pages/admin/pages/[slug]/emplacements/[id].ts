@@ -1,16 +1,19 @@
 /**
  * La route générique d'écriture d'une correction d'emplacement (ticket 04,
- * openspec/changes/003-remplir-emplacements/tickets/04-corriger-bouton-action.md).
+ * openspec/changes/003-remplir-emplacements/tickets/04-corriger-bouton-action.md ;
+ * ticket 05, openspec/changes/003-remplir-emplacements/tickets/
+ * 05-regler-lien-video.md).
  *
  * Une seule route sous `src/pages/admin/`, gardée par `verifierSession`
  * (ADR-0007, I6) : elle reçoit une correction pour un couple (page,
  * emplacement) et la confie à `core/`, qui l'aiguille selon la NATURE
  * DÉCLARÉE de l'emplacement (ADR-0012, lue via
  * `obtenirPageAvecEmplacements`) — jamais celle prétendue par le corps de la
- * requête. Les tickets 05 (lien de vidéo) et 06 (texte riche) réutilisent
- * cette même route telle quelle : ils n'ajoutent qu'un embranchement selon la
- * nature déclarée, plus leur logique `core/`, leur îlot et leur test — seule
- * la nature `bouton-action` est traitée ici (SC-04a/c/h).
+ * requête. Le ticket 05 introduit ici l'EMBRANCHEMENT PAR NATURE : la nature
+ * déclarée de `id` décide quelle fonction `platform/` traiter la correction
+ * — `bouton-action` (ticket 04) ou `lien-video` (ticket 05). Le ticket 06
+ * (texte riche) devra ajouter sa propre branche ici ; les tickets 05 et 06 ne
+ * sont pas co-parallélisables (même route, même embranchement).
  *
  * Anti-forgerie (ADR-0011, SC-04g) : le seul rempart est le cookie de session
  * `__Host-session`, `SameSite=Strict` (`src/platform/session/index.ts`,
@@ -28,8 +31,11 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { verifierSession } from '../../../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../../../platform/contenu/pages.ts';
-import { enregistrerCorrectionBoutonAction } from '../../../../../platform/brouillons/magasin.ts';
-import { pagePorteUnBrouillon } from '../../../../../core/pages/brouillon.ts';
+import {
+  enregistrerCorrectionBoutonAction,
+  enregistrerCorrectionLienVideo,
+} from '../../../../../platform/brouillons/magasin.ts';
+import { pagePorteUnBrouillon, type ResultatCorrection } from '../../../../../core/pages/brouillon.ts';
 
 export const POST: APIRoute = async ({ params, request }) => {
   const session = await verifierSession(env.DB, request);
@@ -47,11 +53,6 @@ export const POST: APIRoute = async ({ params, request }) => {
     return new Response(null, { status: 404 });
   }
 
-  // La nature déclarée décide de l'embranchement (ADR-0012) — jamais celle
-  // annoncée par le corps de la requête. Seule « bouton-action » est
-  // corrigible à ce ticket ; un emplacement d'une autre nature (ou non
-  // déclaré) est refusé par `core/` elle-même (SC-04c), ce qui couvre aussi
-  // le cas où `id` ne désigne aucun emplacement de la page.
   let corpsBrut: unknown;
   try {
     corpsBrut = await request.json();
@@ -59,14 +60,21 @@ export const POST: APIRoute = async ({ params, request }) => {
     return Response.json({ ok: false, raison: 'forme-invalide' }, { status: 400 });
   }
 
-  const resultat = await enregistrerCorrectionBoutonAction(
-    env.DB,
-    slug,
-    page.emplacements,
-    id,
-    corpsBrut,
-    Date.now(),
-  );
+  // L'embranchement se fait sur la nature DÉCLARÉE de `id` (ADR-0012),
+  // jamais sur celle prétendue par le corps de la requête. Un `id` non
+  // déclaré, ou déclaré d'une nature qui n'a encore aucune branche ici
+  // (`texte-riche`, ticket 06), est refusé par la fonction `core/` de la
+  // branche choisie elle-même (`emplacement-non-declare`/
+  // `nature-non-corrigible`, SC-04c) — le même refus vaut donc pour les deux
+  // branches, on retient `enregistrerCorrectionBoutonAction` par défaut.
+  const emplacementDeclare = page.emplacements.find((emplacement) => emplacement.id === id);
+
+  let resultat: ResultatCorrection;
+  if (emplacementDeclare?.nature === 'lien-video') {
+    resultat = await enregistrerCorrectionLienVideo(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
+  } else {
+    resultat = await enregistrerCorrectionBoutonAction(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
+  }
 
   if (!resultat.accepte) {
     return Response.json({ ok: false, raison: resultat.raison }, { status: 400 });

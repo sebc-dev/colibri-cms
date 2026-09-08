@@ -18,6 +18,7 @@ import Compteur from './Compteur.svelte';
 import ActionRapide from './ActionRapide.svelte';
 import Cadre from './Cadre.svelte';
 import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
+import ReglageLienVideo from './ReglageLienVideo.svelte';
 
 /**
  * Monte l'îlot `Compteur` sur le premier élément portant l'identifiant donné.
@@ -125,6 +126,36 @@ export function monterCorrectionsBoutonAction(): void {
         idEmplacement,
         libelleInitial: libelle,
         destinationInitial: destination,
+      },
+    });
+  });
+}
+
+/**
+ * Monte l'îlot `ReglageLienVideo` (ticket 05,
+ * openspec/changes/003-remplir-emplacements/tickets/05-regler-lien-video.md)
+ * sur chaque emplacement de lien de vidéo rendu par l'`Écran : Éditeur de
+ * page` — repérés par l'attribut `data-emplacement-lien-video`, un par
+ * emplacement de cette nature. Même patron (données déjà posées côté
+ * serveur, présentation statique vidée avant montage, garde d'absence) que
+ * `monterCorrectionsBoutonAction` ci-dessus.
+ */
+export function monterReglagesLienVideo(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-emplacement-lien-video]');
+
+  cibles.forEach((cible) => {
+    const { slug, idEmplacement, lien } = cible.dataset;
+    if (slug === undefined || idEmplacement === undefined || lien === undefined) {
+      return;
+    }
+
+    cible.innerHTML = '';
+    mount(ReglageLienVideo, {
+      target: cible,
+      props: {
+        slug,
+        idEmplacement,
+        lienInitial: lien,
       },
     });
   });

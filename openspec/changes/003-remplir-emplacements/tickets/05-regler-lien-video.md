@@ -27,8 +27,8 @@ enregistrer. La reconnaissance — liste blanche et motifs par hébergeur — es
 en un seul lieu de vérité, testable en aller-retour.
 
 ## Critères
-- [ ] En `core/`, un lien de vidéo est accepté ssi son hôte est sur la liste blanche (YouTube, Vimeo) selon le motif de l'hébergeur (`youtube.com/watch?v=…`, `youtu.be/…`, `vimeo.com/…` acceptés) ; un hôte hors liste, un lien non `https` ou une chaîne qui n'est pas une URL sont rejetés.   (SC-05a)
-- [ ] Par la couture HTTP, coller un lien reconnu persiste le brouillon et fait basculer la page à « brouillon », l'état publié restant intact.   (SC-05b)
-- [ ] Par la couture HTTP, coller un lien non reconnu n'écrit aucun brouillon et ne fait pas basculer l'état de la page.   (SC-05c)
-- [ ] À l'`Écran : Éditeur de page`, un lien non reconnu est refusé au niveau du champ (`États : erreur`) en disant ce qui est attendu.   (SC-05d)
-- [ ] Aucun terme de développeur ne paraît dans le champ ni dans le message d'erreur.   (SC-05e)
+- [x] En `core/`, un lien de vidéo est accepté ssi son hôte est sur la liste blanche (YouTube, Vimeo) selon le motif de l'hébergeur (`youtube.com/watch?v=…`, `youtu.be/…`, `vimeo.com/…` acceptés) ; un hôte hors liste, un lien non `https` ou une chaîne qui n'est pas une URL sont rejetés.   (SC-05a)
+- [x] Par la couture HTTP, coller un lien reconnu persiste le brouillon et fait basculer la page à « brouillon », l'état publié restant intact.   (SC-05b)
+- [x] Par la couture HTTP, coller un lien non reconnu n'écrit aucun brouillon et ne fait pas basculer l'état de la page.   (SC-05c)
+- [x] À l'`Écran : Éditeur de page`, un lien non reconnu est refusé au niveau du champ (`États : erreur`) en disant ce qui est attendu.   (SC-05d)
+- [x] Aucun terme de développeur ne paraît dans le champ ni dans le message d'erreur.   (SC-05e)

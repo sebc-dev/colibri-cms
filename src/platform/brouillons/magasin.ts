@@ -1,11 +1,15 @@
 /**
  * Le magasin des brouillons d'emplacement — ticket 04
- * (openspec/changes/003-remplir-emplacements/tickets/04-corriger-bouton-action.md).
+ * (openspec/changes/003-remplir-emplacements/tickets/04-corriger-bouton-action.md) ;
+ * ticket 05 (openspec/changes/003-remplir-emplacements/tickets/
+ * 05-regler-lien-video.md) y ajoute `enregistrerCorrectionLienVideo`, même
+ * patron.
  *
  * Zone `platform` (docs/architecture.md, I1) : n'importe que `core/`
- * (`appliquerCorrectionBoutonAction`, `pagePorteUnBrouillon`) — jamais
- * `admin/`, `render/`, `site/`, ni un autre fichier de `platform/` (même
- * matrice que `src/platform/auth/magasin.ts`/`src/platform/session/index.ts`).
+ * (`appliquerCorrectionBoutonAction`, `appliquerCorrectionLienVideo`,
+ * `pagePorteUnBrouillon`) — jamais `admin/`, `render/`, `site/`, ni un autre
+ * fichier de `platform/` (même matrice que `src/platform/auth/magasin.ts`/
+ * `src/platform/session/index.ts`).
  *
  * Table `brouillons_emplacements` (`migrations/0004_brouillons_emplacements.sql`,
  * SC-04d) : une ligne par emplacement corrigé, clé `(page_slug,
@@ -22,6 +26,7 @@
  */
 import {
   appliquerCorrectionBoutonAction,
+  appliquerCorrectionLienVideo,
   pagePorteUnBrouillon as pagePorteUnBrouillonPur,
   type Brouillon,
   type ContenuCorrige,
@@ -150,6 +155,51 @@ export async function enregistrerCorrectionBoutonAction(
   // Garde défensive : `appliquerCorrectionBoutonAction` pose toujours la clé
   // qu'elle vient de traiter quand elle accepte — cette branche ne s'exerce
   // jamais en pratique, elle protège seulement contre une future divergence.
+  const contenu = resultat.brouillon.get(idEmplacement);
+  if (!contenu) return resultat;
+
+  await db
+    .prepare(
+      `insert into ${TABLE_BROUILLONS} (page_slug, id_emplacement, nature, contenu, maj_le)
+       values (?1, ?2, ?3, ?4, ?5)
+       on conflict(page_slug, id_emplacement) do update set
+         nature = excluded.nature, contenu = excluded.contenu, maj_le = excluded.maj_le`,
+    )
+    .bind(slugPage, idEmplacement, contenu.nature, JSON.stringify(contenu), maintenant)
+    .run();
+
+  return resultat;
+}
+
+/**
+ * Applique et persiste une correction de lien de vidéo (ticket 05,
+ * SC-05b/c) — même patron que `enregistrerCorrectionBoutonAction` ci-dessus :
+ * lit le brouillon courant, applique la correction en `core/` (pure,
+ * `appliquerCorrectionLienVideo`), puis, si elle est acceptée, écrit (ou
+ * remplace) la seule ligne de l'emplacement corrigé. Rien n'est écrit si la
+ * correction est refusée (lien hors liste blanche, forme invalide,
+ * emplacement non déclaré ou d'une autre nature, SC-05c) : `core/` rend le
+ * refus par valeur avant que ce magasin n'atteigne l'écriture.
+ */
+export async function enregistrerCorrectionLienVideo(
+  db: DB,
+  slugPage: string,
+  emplacementsDeclares: readonly Emplacement[],
+  idEmplacement: string,
+  correctionBrute: unknown,
+  maintenant: number,
+): Promise<ResultatCorrection> {
+  const brouillonActuel = await obtenirBrouillon(db, slugPage);
+  const resultat = appliquerCorrectionLienVideo(
+    emplacementsDeclares,
+    brouillonActuel,
+    idEmplacement,
+    correctionBrute,
+  );
+  if (!resultat.accepte) return resultat;
+
+  // Garde défensive : même remarque que `enregistrerCorrectionBoutonAction`
+  // ci-dessus — cette branche ne s'exerce jamais en pratique.
   const contenu = resultat.brouillon.get(idEmplacement);
   if (!contenu) return resultat;
 
