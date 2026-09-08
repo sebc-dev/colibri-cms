@@ -21,6 +21,7 @@
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
   import { afficherPastilleDeBrouillon } from '../pastille-brouillon.ts';
+  import { messageErreurCorrection, MESSAGE_ECHEC, MESSAGE_RESEAU } from './message-erreur-correction.ts';
 
   interface Props {
     slug: string;
@@ -60,14 +61,21 @@
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ lien }),
       });
+      // Seuls 200 (accepté) et 400 (refus métier) portent un corps JSON ; les
+      // autres statuts (401 accès expiré, 404 écran périmé, 5xx) ont un corps
+      // vide dont la lecture JSON lèverait — on les traduit par le statut.
+      if (reponse.status !== 200 && reponse.status !== 400) {
+        messageErreur = messageErreurCorrection(reponse.status);
+        return;
+      }
       const resultat = (await reponse.json()) as ReponseCorrection;
       if (!resultat.ok) {
-        messageErreur = TEXTES_REFUS[resultat.raison ?? ''] ?? "La correction n'a pas pu être enregistrée.";
+        messageErreur = TEXTES_REFUS[resultat.raison ?? ''] ?? MESSAGE_ECHEC;
         return;
       }
       afficherPastilleDeBrouillon();
     } catch {
-      messageErreur = "La correction n'a pas pu être enregistrée : vérifiez la connexion et réessayez.";
+      messageErreur = MESSAGE_RESEAU;
     } finally {
       enCours = false;
     }
