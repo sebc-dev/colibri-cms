@@ -52,6 +52,13 @@ import { defineMiddleware } from 'astro/middleware';
 const POLITIQUE_DE_SECURITE = [
   "default-src 'none'",
   "script-src 'self'",
+  // Les îlots d'administration enregistrent leurs corrections par `fetch` vers
+  // la route d'écriture MÊME ORIGINE, sans recharger l'écran (SC-04f, SC-05b).
+  // `connect-src` régit `fetch`/XHR ; absent, il retomberait sur `default-src
+  // 'none'` et le navigateur bloquerait chaque enregistrement. `'self'`
+  // seulement — aucune origine tierce ; l'anti-forgerie reste le cookie de
+  // session `SameSite=Strict` (ADR-0011).
+  "connect-src 'self'",
   "style-src 'self'",
   // ADR-0010 : seuls les attributs `style="…"` en ligne des primitives
   // bits-ui sont tolérés — `style-src` (ci-dessus) reste sans

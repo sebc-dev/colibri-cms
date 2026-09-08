@@ -130,6 +130,20 @@ it('la Content-Security-Policy ne porte pas unsafe-eval', async () => {
   expect(csp).not.toMatch(/unsafe-eval/);
 });
 
+it("la Content-Security-Policy autorise les fetch d’administration même origine (connect-src 'self', SC-04f/SC-05b)", async () => {
+  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const csp = reponse.headers.get('content-security-policy');
+
+  expect(csp, 'une Content-Security-Policy devrait être posée').toBeTruthy();
+  // Sans `connect-src`, `fetch` retombe sur `default-src 'none'` et le
+  // navigateur bloque l'enregistrement des corrections par les îlots (SC-04f,
+  // SC-05b) — régression invisible aux tests serveur, où la CSP n'est pas
+  // appliquée. On fige donc sa présence.
+  expect(csp).toMatch(/connect-src 'self'/);
+  // …et pas plus large qu'une même origine.
+  expect(csp).not.toMatch(/connect-src[^;]*\*/);
+});
+
 it('la Content-Security-Policy n’ouvre aucune source tierce, pas même challenges.cloudflare.com réservée à Turnstile (ADR-0004, hors périmètre de cette feature)', async () => {
   const reponse = await SELF.fetch('https://example.com/admin/connexion');
   const csp = reponse.headers.get('content-security-policy');
