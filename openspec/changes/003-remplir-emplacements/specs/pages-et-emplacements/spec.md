@@ -150,14 +150,16 @@ attachée à une requête cross-site (ADR-0011), et aucun jeton anti-forgerie d�
 
 ### Requirement: Réglage d'un emplacement de lien de vidéo
 
-Le réglage d'un emplacement de lien de vidéo SHALL accepter un lien externe reconnu et l'enregistrer au
-brouillon, et refuser un lien non reconnu au niveau du champ en disant ce qui est attendu, sans rien
-enregistrer. La reconnaissance DOIT être une logique pure de `core/`. Aucun terme de développeur ne DOIT
-paraître dans le champ ni le message d'erreur (FR-117, FR-022).
+Le réglage d'un emplacement de lien de vidéo SHALL accepter un lien externe dont l'hôte appartient à une
+liste blanche d'hébergeurs de vidéo — **YouTube et Vimeo** — selon un motif d'URL propre à chaque
+hébergeur, l'enregistrer au brouillon, et refuser tout lien hors liste blanche au niveau du champ en
+disant ce qui est attendu, sans rien enregistrer. La reconnaissance — liste blanche et motifs — DOIT être
+une logique pure de `core/`, en un seul lieu de vérité. Aucun terme de développeur ne DOIT paraître dans
+le champ ni le message d'erreur (FR-117, FR-022).
 
-#### Scenario: Reconnaissance d'un lien de vidéo en `core/`
+#### Scenario: Reconnaissance d'un lien de vidéo en `core/` par liste blanche d'hébergeurs
 - **WHEN** en `core/`, un lien de vidéo externe est évalué
-- **THEN** un lien reconnu est accepté et un lien non reconnu est rejeté
+- **THEN** il est accepté si et seulement si son hôte appartient à la liste blanche d'hébergeurs (YouTube, Vimeo) selon le motif d'URL propre à cet hébergeur — `https://www.youtube.com/watch?v=…`, `https://youtu.be/…` et `https://vimeo.com/…` sont acceptés ; un hôte hors liste (`https://exemple.com/video`), un lien qui n'est pas en `https`, et une chaîne qui n'est pas une URL sont rejetés
 
 #### Scenario: Coller un lien reconnu persiste le brouillon
 - **WHEN** par la couture HTTP, un lien reconnu est collé et enregistré

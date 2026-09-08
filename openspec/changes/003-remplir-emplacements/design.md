@@ -40,6 +40,13 @@ accepté ou déposées en candidat (voir Decisions), jamais gravées ici.
   correction écrit le brouillon de la page ; l'état publié reste intact jusqu'à la publication. Table créée
   par une migration versionnée (`wrangler d1 migrations`), liant le brouillon à l'emplacement par son
   identité stable.
+- **La reconnaissance d'un lien de vidéo est une liste blanche d'hébergeurs, pure en `core/`** — un lien
+  est accepté ssi son hôte ∈ {YouTube, Vimeo} selon un motif d'URL propre à chaque hébergeur ; hors liste
+  → refus au champ, sans rien enregistrer. La liste et les motifs vivent en un seul lieu de vérité de
+  `core/` (candidat `core-sans-framework-ni-plateforme`, ARCH-5), testés en aller-retour (ADR-0003).
+  Écarté : « tout https externe » (ne refuserait presque rien, une non-vidéo passerait) et l'heuristique
+  d'« embarquabilité » (floue) — la liste blanche rend le refus déterministe et rend clair le message au
+  champ (SC-05d).
 - **Le texte riche est édité par TipTap et sérialisé en Markdown restreint** — candidat
   `texte-riche-markdown-restreint` : l'éditrice met en forme, elle n'écrit pas de balise (FR-117) ; seules
   les marques et schémas d'URL retenus survivent (`https`, `mailto`, `tel`, chemins relatifs). Le rendu
