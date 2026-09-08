@@ -37,6 +37,10 @@ n'importe où sur le site est un risque **XSS same-origin** contre lui (préoccu
   il naîtra avec la publication. Seuls les **attributs**
   `style="…"` posés par les primitives sont tolérés, par `style-src-attr 'unsafe-inline'`
   ([ADR-0010](./adr/0010-csp-admin-styles-inline-style-src-attr.md)) — `script-src` n'est pas rouvert.
+  `connect-src 'self'` est déclaré explicitement : les îlots d'administration enregistrent leurs
+  corrections par `fetch` vers la route d'écriture **même origine**, sans recharger l'écran (SC-04f,
+  SC-05b) ; sans cette directive, `fetch` retomberait sur `default-src 'none'` et le navigateur
+  bloquerait chaque enregistrement. `'self'` seulement — aucune origine tierce n'est ouverte.
 - **Anti-forgerie par le cookie.** Le cookie de session porte `__Host-`, `HttpOnly`, `Secure` et
   `SameSite=Strict` : le navigateur ne l'attache à aucune requête initiée depuis un autre site, ce
   qui prive une écriture forgée cross-site de la session. **Aucun jeton anti-forgerie dédié** n'est
