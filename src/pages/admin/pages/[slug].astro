@@ -21,11 +21,14 @@
  * même, le moyen de régler un emplacement de lien de vidéo
  * (`ReglageLienVideo`) : un lien reconnu (liste blanche d'hébergeurs,
  * SC-05a) enregistre le brouillon ; un lien non reconnu est refusé au niveau
- * du champ (SC-05d), sans terme de développeur (SC-05e). Le texte riche
- * reste, à ce ticket, dans sa seule présentation (ticket 06, hors périmètre
- * ici). Aucun geste de structure (ajout, retrait, déplacement, renommage
- * d'emplacement) n'est offert (FR-024/025, SC-03e) : seule une correction de
- * contenu d'un emplacement déjà déclaré est possible.
+ * du champ (SC-05d), sans terme de développeur (SC-05e). Ticket 06
+ * (openspec/changes/003-remplir-emplacements/tickets/
+ * 06-corriger-texte-riche.md) ajoute le moyen de corriger un emplacement de
+ * texte riche (`TexteRiche`, îlot TipTap) : gras, italique, lien, liste,
+ * titre, sans écrire de balise (SC-06d). Aucun geste de structure (ajout,
+ * retrait, déplacement, renommage d'emplacement) n'est offert (FR-024/025,
+ * SC-03e) : seule une correction de contenu d'un emplacement déjà déclaré
+ * est possible.
  *
  * La structure d'une page (emplacements : identifiant stable, nature, rang)
  * est lue, jamais écrite (ADR-0012) : le lecteur pur vit dans
@@ -95,7 +98,14 @@ const page = {
             {emplacement.nature === 'texte-riche' && (
               <div>
                 <p>Texte riche</p>
-                <div>{emplacement.contenu}</div>
+                <div
+                  data-emplacement-texte-riche
+                  data-slug={slug}
+                  data-id-emplacement={emplacement.id}
+                  data-markdown={emplacement.contenu}
+                >
+                  <p>{emplacement.contenu}</p>
+                </div>
               </div>
             )}
             {emplacement.nature === 'lien-video' && (
@@ -136,10 +146,12 @@ const page = {
       monterCadreAvecContenu,
       monterCorrectionsBoutonAction,
       monterReglagesLienVideo,
+      monterCorrectionsTexteRiche,
     } from '../../../admin/ilots-svelte-5/monter.ts';
 
     monterCadreAvecContenu('ilot-cadre');
     monterCorrectionsBoutonAction();
     monterReglagesLienVideo();
+    monterCorrectionsTexteRiche();
   </script>
 </Gabarit>

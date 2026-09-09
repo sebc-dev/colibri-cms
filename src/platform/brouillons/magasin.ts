@@ -11,6 +11,10 @@
  * fichier de `platform/` (même matrice que `src/platform/auth/magasin.ts`/
  * `src/platform/session/index.ts`).
  *
+ * Ticket 06 (openspec/changes/003-remplir-emplacements/tickets/
+ * 06-corriger-texte-riche.md) y ajoute `enregistrerCorrectionTexteRiche`,
+ * même patron.
+ *
  * Table `brouillons_emplacements` (`migrations/0004_brouillons_emplacements.sql`,
  * SC-04d) : une ligne par emplacement corrigé, clé `(page_slug,
  * id_emplacement)` — l'identité stable posée par la déclaration (ADR-0012).
@@ -27,6 +31,7 @@
 import {
   appliquerCorrectionBoutonAction,
   appliquerCorrectionLienVideo,
+  appliquerCorrectionTexteRiche,
   pagePorteUnBrouillon as pagePorteUnBrouillonPur,
   type Brouillon,
   type ContenuCorrige,
@@ -191,6 +196,49 @@ export async function enregistrerCorrectionLienVideo(
 ): Promise<ResultatCorrection> {
   const brouillonActuel = await obtenirBrouillon(db, slugPage);
   const resultat = appliquerCorrectionLienVideo(
+    emplacementsDeclares,
+    brouillonActuel,
+    idEmplacement,
+    correctionBrute,
+  );
+  if (!resultat.accepte) return resultat;
+
+  // Garde défensive : même remarque que `enregistrerCorrectionBoutonAction`
+  // ci-dessus — cette branche ne s'exerce jamais en pratique.
+  const contenu = resultat.brouillon.get(idEmplacement);
+  if (!contenu) return resultat;
+
+  await db
+    .prepare(
+      `insert into ${TABLE_BROUILLONS} (page_slug, id_emplacement, nature, contenu, maj_le)
+       values (?1, ?2, ?3, ?4, ?5)
+       on conflict(page_slug, id_emplacement) do update set
+         nature = excluded.nature, contenu = excluded.contenu, maj_le = excluded.maj_le`,
+    )
+    .bind(slugPage, idEmplacement, contenu.nature, JSON.stringify(contenu), maintenant)
+    .run();
+
+  return resultat;
+}
+
+/**
+ * Applique et persiste une correction de texte riche (ticket 06, SC-06e) —
+ * même patron que `enregistrerCorrectionLienVideo` ci-dessus : lit le
+ * brouillon courant, applique la correction en `core/` (pure,
+ * `appliquerCorrectionTexteRiche`, qui sérialise déjà le document en Markdown
+ * restreint), puis, si elle est acceptée, écrit (ou remplace) la seule ligne
+ * de l'emplacement corrigé.
+ */
+export async function enregistrerCorrectionTexteRiche(
+  db: DB,
+  slugPage: string,
+  emplacementsDeclares: readonly Emplacement[],
+  idEmplacement: string,
+  correctionBrute: unknown,
+  maintenant: number,
+): Promise<ResultatCorrection> {
+  const brouillonActuel = await obtenirBrouillon(db, slugPage);
+  const resultat = appliquerCorrectionTexteRiche(
     emplacementsDeclares,
     brouillonActuel,
     idEmplacement,

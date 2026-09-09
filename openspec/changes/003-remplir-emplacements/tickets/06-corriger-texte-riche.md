@@ -24,9 +24,9 @@ lien ; tout autre schéma est rejeté. L'éditeur est TipTap, monté en îlot so
 HTML du Markdown n'est pas ici — il naît avec l'aperçu (hors-périmètre, I5 / `render/markdown/`).
 
 ## Critères
-- [ ] En `core/`, l'aller-retour de sérialisation d'une marque retenue (gras, italique, lien, liste, titre) préserve la marque.   (SC-06a)
-- [ ] En `core/`, une marque hors de la liste retenue est écartée à la sérialisation.   (SC-06b)
-- [ ] En `core/`, un lien vers un schéma d'URL non autorisé (hors `https`, `mailto`, `tel`, relatif) est rejeté.   (SC-06c)
-- [ ] À l'`Écran : Éditeur de page`, la barre de mise en forme pose gras, italique, lien, liste et titre sans que l'éditrice écrive de balise.   (SC-06d)
-- [ ] Par la couture HTTP, enregistrer une correction de texte riche persiste le brouillon en Markdown restreint et fait basculer la page à « brouillon », l'état publié restant intact.   (SC-06e)
-- [ ] Aucun terme de développeur ne paraît dans l'éditeur de texte riche ni dans sa barre de mise en forme.   (SC-06f)
+- [x] En `core/`, l'aller-retour de sérialisation d'une marque retenue (gras, italique, lien, liste, titre) préserve la marque.   (SC-06a)
+- [x] En `core/`, une marque hors de la liste retenue est écartée à la sérialisation.   (SC-06b)
+- [x] En `core/`, un lien vers un schéma d'URL non autorisé (hors `https`, `mailto`, `tel`, relatif) est rejeté.   (SC-06c)
+- [x] À l'`Écran : Éditeur de page`, la barre de mise en forme pose gras, italique, lien, liste et titre sans que l'éditrice écrive de balise.   (SC-06d)
+- [x] Par la couture HTTP, enregistrer une correction de texte riche persiste le brouillon en Markdown restreint et fait basculer la page à « brouillon », l'état publié restant intact.   (SC-06e)
+- [x] Aucun terme de développeur ne paraît dans l'éditeur de texte riche ni dans sa barre de mise en forme.   (SC-06f)
