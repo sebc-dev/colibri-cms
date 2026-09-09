@@ -28,10 +28,28 @@
  * lecture, jamais en panne pour l'éditrice.
  */
 
-/** La nature d'un emplacement, posée par l'intégrateur (ADR-0012). */
-export type NatureEmplacement = 'texte-riche' | 'lien-video' | 'bouton-action';
+/**
+ * La nature d'un emplacement, posée par l'intégrateur (ADR-0012). Ticket 03
+ * (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 03-modele-emplacement-image.md) : `image` porte une seule image, `galerie`
+ * et `carrousel` portent un ensemble ORDONNÉ d'images.
+ */
+export type NatureEmplacement =
+  | 'texte-riche'
+  | 'lien-video'
+  | 'bouton-action'
+  | 'image'
+  | 'galerie'
+  | 'carrousel';
 
-const NATURES_VALIDES: readonly NatureEmplacement[] = ['texte-riche', 'lien-video', 'bouton-action'];
+const NATURES_VALIDES: readonly NatureEmplacement[] = [
+  'texte-riche',
+  'lien-video',
+  'bouton-action',
+  'image',
+  'galerie',
+  'carrousel',
+];
 
 /** La forme attendue d'un emplacement dans un `page.json`, avant validation. */
 export interface EmplacementJson {
@@ -41,6 +59,8 @@ export interface EmplacementJson {
   readonly lien?: string;
   readonly libelle?: string;
   readonly destination?: string;
+  readonly mediaId?: string;
+  readonly mediaIds?: readonly string[];
 }
 
 /** La forme attendue d'un `page.json` — seuls les champs lus par ce ticket. */
@@ -75,8 +95,49 @@ export interface EmplacementBoutonAction {
   readonly destination: string;
 }
 
+/**
+ * Un emplacement d'image, présenté avec son contenu courant — l'identité
+ * stable de l'image référencée (ticket 03, SC-03a).
+ */
+export interface EmplacementImage {
+  readonly id: string;
+  readonly nature: 'image';
+  readonly rang: number;
+  readonly mediaId: string;
+}
+
+/**
+ * Un emplacement de galerie, présenté avec son contenu courant — les
+ * identités stables des images référencées, dans l'ordre posé (ticket 03,
+ * SC-03a).
+ */
+export interface EmplacementGalerie {
+  readonly id: string;
+  readonly nature: 'galerie';
+  readonly rang: number;
+  readonly mediaIds: readonly string[];
+}
+
+/**
+ * Un emplacement de carrousel, présenté avec son contenu courant — les
+ * identités stables des images référencées, dans l'ordre posé (ticket 03,
+ * SC-03a).
+ */
+export interface EmplacementCarrousel {
+  readonly id: string;
+  readonly nature: 'carrousel';
+  readonly rang: number;
+  readonly mediaIds: readonly string[];
+}
+
 /** Un emplacement déclaré, présenté selon sa nature (SC-03b). */
-export type Emplacement = EmplacementTexteRiche | EmplacementLienVideo | EmplacementBoutonAction;
+export type Emplacement =
+  | EmplacementTexteRiche
+  | EmplacementLienVideo
+  | EmplacementBoutonAction
+  | EmplacementImage
+  | EmplacementGalerie
+  | EmplacementCarrousel;
 
 /** Une page déclarée, avec ses emplacements dans l'ordre posé (ticket 03). */
 export interface PageAvecEmplacements {
@@ -153,9 +214,28 @@ function construireEmplacement(
     case 'bouton-action':
       if (typeof candidat.libelle !== 'string' || typeof candidat.destination !== 'string') return null;
       return { id, nature: 'bouton-action', rang, libelle: candidat.libelle, destination: candidat.destination };
+    case 'image':
+      if (typeof candidat.mediaId !== 'string' || candidat.mediaId.length === 0) return null;
+      return { id, nature: 'image', rang, mediaId: candidat.mediaId };
+    case 'galerie':
+      if (!estTableauDeMediaIds(candidat.mediaIds)) return null;
+      return { id, nature: 'galerie', rang, mediaIds: candidat.mediaIds };
+    case 'carrousel':
+      if (!estTableauDeMediaIds(candidat.mediaIds)) return null;
+      return { id, nature: 'carrousel', rang, mediaIds: candidat.mediaIds };
     default:
       return null;
   }
+}
+
+/**
+ * Une entrée de galerie ou de carrousel n'est reconnue que si `mediaIds` est
+ * un tableau (pas une chaîne, pas un objet) dont chaque élément est
+ * lui-même une identité stable non vide — une identité mal formée écarte
+ * l'entrée entière, comme pour les autres natures (ticket 03, SC-03a).
+ */
+function estTableauDeMediaIds(valeur: unknown): valeur is readonly string[] {
+  return Array.isArray(valeur) && valeur.every((element) => typeof element === 'string' && element.length > 0);
 }
 
 /**

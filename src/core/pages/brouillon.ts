@@ -68,11 +68,50 @@ export interface ContenuTexteRiche {
 }
 
 /**
- * Le contenu corrigé d'un emplacement, selon sa nature. Les natures
- * `bouton-action` (ticket 04), `lien-video` (ticket 05) et `texte-riche`
- * (ticket 06) sont corrigibles.
+ * Le contenu corrigé d'un emplacement d'image (ticket 03,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 03-modele-emplacement-image.md, SC-03a/b) — l'identité stable de l'image
+ * posée, jamais une copie.
  */
-export type ContenuCorrige = ContenuBoutonAction | ContenuLienVideo | ContenuTexteRiche;
+export interface ContenuImage {
+  readonly nature: 'image';
+  readonly mediaId: string;
+}
+
+/**
+ * Le contenu corrigé d'un emplacement de galerie (ticket 03, SC-03a/b) — les
+ * identités stables des images composées, dans l'ordre voulu. Réordonner ou
+ * retirer une image est un remplacement de tout le tableau (modification de
+ * CONTENU, jamais de structure, FR-024/025).
+ */
+export interface ContenuGalerie {
+  readonly nature: 'galerie';
+  readonly mediaIds: readonly string[];
+}
+
+/**
+ * Le contenu corrigé d'un emplacement de carrousel (ticket 03, SC-03a/b) —
+ * même règle que la galerie ci-dessus : un ensemble ordonné d'identités
+ * stables, remplacé en bloc.
+ */
+export interface ContenuCarrousel {
+  readonly nature: 'carrousel';
+  readonly mediaIds: readonly string[];
+}
+
+/**
+ * Le contenu corrigé d'un emplacement, selon sa nature. Les natures
+ * `bouton-action` (ticket 04), `lien-video` (ticket 05), `texte-riche`
+ * (ticket 06), `image`, `galerie` et `carrousel` (ticket 03, change 004) sont
+ * corrigibles.
+ */
+export type ContenuCorrige =
+  | ContenuBoutonAction
+  | ContenuLienVideo
+  | ContenuTexteRiche
+  | ContenuImage
+  | ContenuGalerie
+  | ContenuCarrousel;
 
 /** Le brouillon d'une page : les corrections courantes, par identifiant d'emplacement stable. */
 export type Brouillon = ReadonlyMap<string, ContenuCorrige>;
@@ -230,6 +269,93 @@ export function appliquerCorrectionTexteRiche(
   return { accepte: true, brouillon };
 }
 
+function estFormeCorrectionImage(brut: unknown): brut is { readonly mediaId: string } {
+  if (typeof brut !== 'object' || brut === null) return false;
+  const candidat = brut as Record<string, unknown>;
+  return typeof candidat.mediaId === 'string' && candidat.mediaId.length > 0;
+}
+
+function estFormeCorrectionMediaIds(brut: unknown): brut is { readonly mediaIds: readonly string[] } {
+  if (typeof brut !== 'object' || brut === null) return false;
+  const candidat = brut as Record<string, unknown>;
+  return (
+    Array.isArray(candidat.mediaIds) &&
+    candidat.mediaIds.every((element) => typeof element === 'string' && element.length > 0)
+  );
+}
+
+/**
+ * Applique la pose d'une image à un brouillon (ticket 03,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 03-modele-emplacement-image.md, SC-03b) — même patron que
+ * `appliquerCorrectionBoutonAction` ci-dessus : fonction pure,
+ * `emplacementsDeclares` décide seule de l'existence et de la nature de
+ * `idEmplacement` (jamais le corps reçu). Ce module ne vérifie pas que
+ * `mediaId` existe réellement dans la bibliothèque des médias (hors
+ * périmètre de ce ticket) — seule la forme (chaîne non vide) est validée
+ * ici.
+ */
+export function appliquerCorrectionImage(
+  emplacementsDeclares: readonly Emplacement[],
+  brouillonActuel: Brouillon,
+  idEmplacement: string,
+  correctionBrute: unknown,
+): ResultatCorrection {
+  const declare = emplacementsDeclares.find((emplacement) => emplacement.id === idEmplacement);
+  if (!declare) return { accepte: false, raison: 'emplacement-non-declare' };
+  if (declare.nature !== 'image') return { accepte: false, raison: 'nature-non-corrigible' };
+  if (!estFormeCorrectionImage(correctionBrute)) return { accepte: false, raison: 'forme-invalide' };
+
+  const brouillon = new Map(brouillonActuel);
+  brouillon.set(idEmplacement, { nature: 'image', mediaId: correctionBrute.mediaId });
+  return { accepte: true, brouillon };
+}
+
+/**
+ * Applique la composition d'une galerie à un brouillon (ticket 03, SC-03b) —
+ * même patron que ci-dessus. Réordonner ou retirer une image est un
+ * remplacement de tout le tableau ordonné `mediaIds` (modification de
+ * CONTENU, jamais de structure, FR-024/025) : cette fonction ne propose donc
+ * pas d'ajout/retrait incrémental, seulement le remplacement en bloc.
+ */
+export function appliquerCorrectionGalerie(
+  emplacementsDeclares: readonly Emplacement[],
+  brouillonActuel: Brouillon,
+  idEmplacement: string,
+  correctionBrute: unknown,
+): ResultatCorrection {
+  const declare = emplacementsDeclares.find((emplacement) => emplacement.id === idEmplacement);
+  if (!declare) return { accepte: false, raison: 'emplacement-non-declare' };
+  if (declare.nature !== 'galerie') return { accepte: false, raison: 'nature-non-corrigible' };
+  if (!estFormeCorrectionMediaIds(correctionBrute)) return { accepte: false, raison: 'forme-invalide' };
+
+  const brouillon = new Map(brouillonActuel);
+  brouillon.set(idEmplacement, { nature: 'galerie', mediaIds: correctionBrute.mediaIds });
+  return { accepte: true, brouillon };
+}
+
+/**
+ * Applique la composition (ou le réordonnancement) d'un carrousel à un
+ * brouillon (ticket 03, SC-03b) — même patron et même règle que
+ * `appliquerCorrectionGalerie` ci-dessus : un remplacement en bloc du
+ * tableau ordonné `mediaIds`.
+ */
+export function appliquerCorrectionCarrousel(
+  emplacementsDeclares: readonly Emplacement[],
+  brouillonActuel: Brouillon,
+  idEmplacement: string,
+  correctionBrute: unknown,
+): ResultatCorrection {
+  const declare = emplacementsDeclares.find((emplacement) => emplacement.id === idEmplacement);
+  if (!declare) return { accepte: false, raison: 'emplacement-non-declare' };
+  if (declare.nature !== 'carrousel') return { accepte: false, raison: 'nature-non-corrigible' };
+  if (!estFormeCorrectionMediaIds(correctionBrute)) return { accepte: false, raison: 'forme-invalide' };
+
+  const brouillon = new Map(brouillonActuel);
+  brouillon.set(idEmplacement, { nature: 'carrousel', mediaIds: correctionBrute.mediaIds });
+  return { accepte: true, brouillon };
+}
+
 /**
  * Superpose le brouillon au contenu déclaré d'un emplacement, pour que
  * l'`Écran : Éditeur de page` reflète la dernière correction plutôt que la
@@ -251,6 +377,15 @@ export function appliquerBrouillonSurEmplacement(
   }
   if (emplacement.nature === 'texte-riche' && correction.nature === 'texte-riche') {
     return { ...emplacement, contenu: correction.markdown };
+  }
+  if (emplacement.nature === 'image' && correction.nature === 'image') {
+    return { ...emplacement, mediaId: correction.mediaId };
+  }
+  if (emplacement.nature === 'galerie' && correction.nature === 'galerie') {
+    return { ...emplacement, mediaIds: correction.mediaIds };
+  }
+  if (emplacement.nature === 'carrousel' && correction.nature === 'carrousel') {
+    return { ...emplacement, mediaIds: correction.mediaIds };
   }
   return emplacement;
 }
