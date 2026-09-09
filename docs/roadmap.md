@@ -26,7 +26,7 @@ aucune fausse manœuvre ne casse la mise en page ni ne laisse un trou dans une p
       FR-120→122 · SC-006, SC-021)
 - [x] **002 — Socle d'îlots d'administration shadcn-svelte** · *livrée* (aucun FR propre — substrat
       des features d'édition · SEC-1, ARCH-2, UX-1)
-- [ ] **003 — Remplir et corriger les emplacements d'une page** · *en cours* (FR-015→026 · SC-003,
+- [x] **003 — Remplir et corriger les emplacements d'une page** · *livrée* (FR-015→026 · SC-003,
       SC-015)
 - [ ] Bibliothèque de médias (FR-027→040 · SC-010, SC-018)
 - [ ] Réglages transverses (FR-041→044 · SC-017)
