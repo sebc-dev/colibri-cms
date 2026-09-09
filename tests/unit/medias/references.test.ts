@@ -11,7 +11,7 @@
  * n'en a besoin d'aucune.
  */
 import { describe, it, expect } from 'vitest';
-import { imageEffacable } from '../../src/core/medias/references.ts';
+import { imageEffacable } from '../../../src/core/medias/references.ts';
 
 describe('SC-02a — une image référencée par au moins un emplacement, publié ou brouillon, n’est pas effaçable', () => {
   it('SC-02a — une image référencée par un emplacement PUBLIÉ seul n’est pas effaçable', () => {
