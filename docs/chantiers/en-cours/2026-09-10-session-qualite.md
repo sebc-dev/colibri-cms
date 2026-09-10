@@ -1,7 +1,7 @@
 # Session qualité — ce que la quality gate ne mesure pas
 
 Portée : socle
-Ouvert le 2026-09-10 · Actualisé le 2026-09-10 · branche `chore/session-qualite-2026-09-10` · HEAD `9ead843`
+Ouvert le 2026-09-10 · Actualisé le 2026-09-10 · branche `chore/session-qualite-2026-09-10` · HEAD `540ae7e`
 
 ## Objectif
 J'allais établir où sont les trous de la quality gate en la jouant en local, puis décider lesquels
