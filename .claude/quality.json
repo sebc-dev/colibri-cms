@@ -30,6 +30,12 @@
       "cmd": "npm test",
       "severity": "advisory",
       "autofix": null
+    },
+    {
+      "id": "knip",
+      "cmd": "npm run knip",
+      "severity": "advisory",
+      "autofix": null
     }
   ]
 }
