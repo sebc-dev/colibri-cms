@@ -29,18 +29,34 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 `npm run knip` (code non utilisé) et `npm run mutation` (Stryker) sont des **outils manuels** :
 aucun workflow ne les joue, aucun seuil n'en dépend.
 
-> **La politique de péremption de `npm run mutation`.** ADR-0013 fait du score de mutation
-> l'indicateur de profondeur des tests, et rappelle qu'un mutant **périmé compte comme détecté** :
-> le chiffre n'est donc lisible qu'avec le seuil qui l'a produit. Stryker calcule ce seuil
-> `netTime × 1,5 + timeoutMS`, où `netTime` est mesuré sur **un** rejeu **seul**, alors que les
-> mutants s'exécutent **à plusieurs en parallèle**. Ici chaque mutant rejoue `npm test`, donc
-> `pretest` → `npm run build` : ~19 s seul, mais ~73 s à onze en parallèle. Le `timeoutMS` par
-> défaut (5 s) plaçait le seuil à ~33 s — **toute la mesure périmait**, et le score annonçait 98 %
-> pour un mutant réellement tué. `stryker.conf.json` porte donc `timeoutMS: 120000`, soit un seuil
-> d'environ 148 s : le double de la durée observée. **Un rapport où la colonne `# timeout` n'est pas
-> proche de zéro n'atteste rien** — c'est le premier chiffre à regarder, avant le score. Compter
-> ~2 h 30 pour un rejeu complet (1321 mutants ; `incremental` limite les suivants aux fichiers
-> touchés).
+> ⚠️ **`npm run mutation` n'atteste rien à ce jour — ne pas lire son score.** ADR-0013 fait du score
+> de mutation l'indicateur de profondeur des tests ; le relevé du 2026-09-10 a montré que l'outil,
+> tel qu'il est monté ici, ne mesure pas ce que l'ADR lui prête. Deux défauts, l'un corrigé, l'autre
+> ouvert.
+>
+> **Corrigé — la péremption.** Stryker calcule son seuil `netTime × 1,5 + timeoutMS`, où `netTime`
+> est mesuré sur **un** rejeu **seul**, alors que les mutants s'exécutent **à plusieurs en
+> parallèle**. Chaque mutant rejoue `npm test`, donc `pretest` → `npm run build` : ~19 s seul, mais
+> ~73 s à onze en parallèle. Le `timeoutMS` par défaut (5 s) plaçait le seuil à ~33 s, et **toute la
+> mesure périmait** — un mutant périmé comptant comme détecté, le score annonçait 98,21 % pour
+> 1 mutant réellement tué sur 112. `stryker.conf.json` porte donc `timeoutMS: 120000` (seuil ≈ 148 s,
+> le double de la durée observée) : 0 péremption depuis. **La colonne `# timeout` reste le premier
+> chiffre à regarder, avant le score.**
+>
+> **Ouvert — le mutant ne s'active jamais dans `workerd`.** Le code instrumenté lit
+> `process.env.__STRYKER_ACTIVE_MUTANT__` pour savoir quel mutant activer. Or nos tests ne tournent
+> pas dans ce processus : ils tournent dans `workerd`, où `process.env` est fourni par le pool depuis
+> `wrangler.jsonc`, jamais hérité de l'hôte. **Aucun mutant n'est donc actif pendant les tests.**
+> Vérifié deux fois : la variable posée à la main sur `npm test` laisse les 165 tests au vert ; et le
+> mutant qui inverse le tri par rang (ligne 119) — dont on sait, en cassant le tri à la main, qu'il
+> fait échouer un test d'intégration — est rapporté « survivant » par Stryker. Le score reflète donc
+> autre chose que l'assertion. **Conséquence : la prémisse d'ADR-0013 (« le mutant est emporté par le
+> build jusque dans le worker bâti et se trouve exercé par l'étage d'intégration ») est fausse en
+> l'état, et la décision est à réexaminer.** Piste non explorée : injecter la variable dans l'isolat
+> via les liaisons Miniflare de `vitest.config.ts`.
+>
+> Compter ~2 h 30 pour un rejeu complet (1321 mutants ; `incremental` limite les suivants aux
+> fichiers touchés).
 
 > **`npm test` bâtit d'abord.** Il déclenche `pretest` → `npm run build`, lui-même encadré par
 > `scripts/preparer-worker-de-test.mjs` (`prebuild` pose une amorce, `postbuild` recopie `dist/`
