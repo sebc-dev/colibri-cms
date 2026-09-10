@@ -83,3 +83,23 @@ qu'aucune édition de production ne répare).
   escape-hatch nulle part.
 - Rendre des checks bloquants **côté CI** — la CI est informative par décision du 2026-09-06, et
   promouvoir un garde touche trois surfaces ; la gate du cycle `run` est le bon endroit.
+
+## Issue
+Livré par la PR #80 (fusion `abdcc52`, 34 commits). L'ordre que la fiche s'était donné est franchi
+en entier, et sa dernière étape a changé de nature : le rejeu complet n'est plus un travail à faire,
+c'est une **tâche récurrente** — timer systemd `colibri-mutation` à 01:07, un jour sur deux en
+incrémental, un passage complet le dimanche, mesure dans un worktree détaché sur `origin/main`, et
+tri des survivants par l'agent `mutation-analyste` en lecture seule. Les rapports datés arrivent
+dans `~/.local/state/colibri-mutation/rapports/`, le dernier en `dernier.md` ; l'unité n'échoue que
+si la mesure est impossible ou si le score baisse.
+
+Ce que la session a livré au-delà du montage de la gate : une **exécution de code à distance
+critique** d'Astro corrigée (GHSA-26w7-cxv4-gfx2, 7.2.0 → 7.2.10, avec `sharp` 0.35.4 emporté), et
+un bug où **un lien disparaissait** du texte riche dès que son libellé contenait un crochet — le
+motif d'analyse, quadratique de surcroît, ne savait pas relire la séquence échappée que
+`echapperTexte` produit pourtant toujours.
+
+Ce qui n'est pas fait et ne relève plus de cette fiche : la cascade
+`wrangler` → `miniflare` → `@cloudflare/vitest-pool-workers`, qui rendra son `^` à Astro et dont
+`svgo` dépend aussi ; et le traitement des survivants du premier vrai relevé, qui mérite sa propre
+fiche quand le rapport sera là.
