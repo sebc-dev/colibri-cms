@@ -55,7 +55,10 @@ aucun workflow ne les joue, aucun seuil n'en dépend.
 > test de mutant. Le worker bâti et les tests partagent leur `globalThis` — c'est déjà ce dont dépend
 > `ignorer-rejet-wasm-lexer.ts`. **Éprouvé** : mêmes mutants, même commande, **0,00 % sans le pont
 > (2 survivants) contre 100,00 % avec (2 tués)** ; et la présence de la variable seule ne fabrique
-> aucun faux tué (165/165 verts sur un identifiant de mutant inexistant).
+> aucun faux tué (165/165 verts sur un identifiant de mutant inexistant). **Et la mesure
+> discrimine** : premier relevé partiel depuis le pont, `declaration.ts` lignes 125-160 — 53 mutants,
+> **47 tués, 6 survivants, 0 péremption, 88,68 %** en 6 min 36 (4 en parallèle). Les survivants sont
+> des opérateurs logiques et des expressions conditionnelles de garde, que rien n'asserte.
 >
 > **Conséquence sur la lecture du chiffre.** Les mutants s'exécutant vraiment, des **timeouts**
 > deviennent possibles là où il n'y en avait aucun. La colonne `# timeout` reste donc le premier
