@@ -1,28 +1,26 @@
 # Session qualité — ce que la quality gate ne mesure pas
 
 Portée : socle
-Ouvert le 2026-09-10 · Actualisé le 2026-09-10 · branche `chore/session-qualite-2026-09-10` · HEAD `4eba87c`
+Ouvert le 2026-09-10 · Actualisé le 2026-09-10 · branche `chore/session-qualite-2026-09-10` · HEAD `f923bbf`
 
 ## Objectif
 J'allais établir où sont les trous de la quality gate en la jouant en local, puis décider lesquels
 valent une correction. Aucun code de production n'était visé.
 
 ## Contexte à charger
-à lire      `stryker.conf.json` — la configuration à réparer ou à retirer (9 l.)
+à lire      `vitest.config.ts` — là où la piste d'activation se joue : liaisons Miniflare (27 l.)
+à lire      `stryker.conf.json` — le montage courant, base des rejeux de vérification (11 l.)
 à lire      `.claude/quality.json` — la gate, encore à amender : `scope`, agents (36 l.)
+à lire      `docs/adr/0013-profondeur-des-tests-mesuree-par-la-mutation.md` — sa prémisse est en
+            cause ; à relire avant de trancher, ses Alternatives portent les pistes mortes (100 l.)
+à extraire  `docs/ci.md` › encadré « `npm run mutation` n'atteste rien » — le constat, déjà écrit
 à extraire  `docs/ci.md` › « Commandes du projet » — le registre à raccorder aux constats restants
 à extraire  `docs/test.md` › « Pyramide » et « Commandes » — les deux dérives à y corriger
-à situer    `docs/adr/0013-profondeur-des-tests-mesuree-par-la-mutation.md` — figé, déjà distillé
-à situer    `reports/stryker-incremental.json` — 4034 l., le constat est déjà dans Acquis
-à situer    `vitest.config.ts` — la couverture s'y règle, mais la piste est morte (voir Écarté)
+à situer    `reports/stryker-incremental.json` — 4034 l., produit par l'attelage aveugle : rien à en tirer
 
 ## Acquis
-- Le score de mutation obtenu était **flatteur** : les mutants **expiraient** au lieu d'être tués.
-  Ce que `stryker.conf.json` en porte se lit dans le fichier ; qu'une péremption compte comme une
-  détection est désormais figé par ADR-0013.
-- Trou de test réel dans le rapport incrémental sur disque (à re-prouver par un run ciblé) :
-  `src/core/pages/declaration.ts` ne tue aucun mutant — ni l'inversion du tri par rang, ni la
-  projection vidée de `{slug, titre}`.
+- **J'ai décidé de ne pas toucher à ADR-0013** : réexaminer une décision acceptée revient à l'humain,
+  pas à la session qui trouve le défaut. Le constat qui la met en cause est écrit dans `docs/ci.md`.
 - Export mort confirmé à la lecture : la variante D1 de `pagePorteUnBrouillon`
   (`src/platform/brouillons/magasin.ts`) n'a aucun appelant, les deux routes prennent la version pure.
 - Trous de la gate restants : le `scope` de `.claude/quality.json` est sans effet (les commandes sont
@@ -31,31 +29,32 @@ valent une correction. Aucun code de production n'était visé.
   `docs/ci.md`, pas `CLAUDE.md`, qui est périmé sur le wrangler de `dev` ; et le § « Commandes » de
   `docs/test.md` annonce un seuil de couverture « sur le code nouveau » qu'ADR-0013 restreint.
 - En amont : le paquet a été renommé `@cloudflare/vitest-pool-workers` → `@cloudflare/vitest-plugin`
-  en 1.0.0 ; notre nom est gelé à `0.22.0`, le nouveau est à `1.1.6`. Codemod officiel
-  (`npx @cloudflare/codemods vitest:pool-workers-to-vitest-plugin`), et la seule rupture de `0.22.0`
-  (MSW ≥ 2.14) ne nous touche pas — MSW est absent. Chantier distinct, sans lien avec la mesure.
-- **J'ai arrêté l'ordre suivant** : réparer la mutation ou la retirer ; `knip` en informatif ; retirer
-  ce qui prétend faussement (le `scope`, le rapport de couverture global) ; les agents par check
-  ensuite. Rien ne monte côté CI.
+  en 1.0.0 ; notre nom est gelé à `0.22.0` (nous résolvons `0.20.3`), le nouveau est à `1.1.6`.
+  Codemod officiel, et la seule rupture (MSW ≥ 2.14) ne nous touche pas. **Devenu moins accessoire** :
+  ce qu'un mutant voit dans l'isolat est une affaire de pool.
+- **J'ai arrêté l'ordre suivant** : éprouver l'activation dans l'isolat, puis trancher ADR-0013 ;
+  `knip` en informatif ; retirer ce qui prétend faussement (le `scope`, le rapport de couverture
+  global) ; les agents par check ensuite. Rien ne monte côté CI.
 
 ## Prochaine étape
-Réparer `stryker.conf.json` — que les mutants meurent au lieu de périmer — ou retirer la mutation.
-ADR-0013 a figé l'indicateur, plus rien ne bloque en amont.
+Éprouver la piste d'activation : injecter `__STRYKER_ACTIVE_MUTANT__` dans l'isolat par les liaisons
+Miniflare de `vitest.config.ts`, puis vérifier sur un mutant dont l'issue est connue — l'inversion du
+tri par rang, `src/core/pages/declaration.ts:119`, qu'un test d'intégration attrape — qu'il passe de
+« survivant » à « tué ». Si aucun moyen n'existe, ADR-0013 est à réexaminer.
 
 ## Écarté
-- **Activer `vite.build.sourcemap` pour ramener la couverture sur `src/` — mort, et mesuré.** Les
-  `.map` produits sont corrects (sources réelles, `sourcesContent`), mais le remappage n'a jamais
-  lieu : `true` fait disparaître les 19 chunks sans rien ajouter à `src/`, `'hidden'` rend le
-  comportement d'origine, `'inline'` ne termine pas (tué à 20 min contre ~50 s). `DEBUG=istanbuljs`
-  ne mentionne aucun `.wrangler` : les chunks n'atteignent pas le transformateur. Déclencheur : le
-  commentaire `//# sourceMappingURL=` en fin de chunk ; le site exact du rejet n'est pas épinglé.
-  Effet de bord si la piste revenait : 7 `.map` atterrissent dans `dist/client/_astro`, servis au public.
-- **Le fournisseur de couverture V8 — clos par le runtime.** `workerd` ne fournit `node:inspector`,
-  dont `@vitest/coverage-v8` a besoin, que comme une souche non fonctionnelle ; le pool refuse donc ce
-  fournisseur depuis `0.14.2` — seule entrée « coverage » de tout son changelog. **Condition de
-  réouverture** : que `workerd` implémente réellement `node:inspector` — décision du runtime, pas du
-  pool, et aucun mouvement depuis. Le ticket amont #12589 est marqué « fait » sans qu'aucune version
-  n'ait livré le pont de couverture : c'est le changelog qui fait foi.
+- **Alléger la commande de test pour accélérer le rejeu — morte, et mesurée.** Restreindre aux étages
+  statique et unitaire descend le rejeu de 19 s à 3,9 s, mais retire l'intégration de l'oracle et
+  fabrique de faux rescapés : `trierPagesDeclarees` y sort à 0 % alors que la suite complète tue bien
+  le mutant du tri. Le build par mutant n'est pas du gaspillage — c'est lui qui porte la mutation.
+- **Brider la concurrence — sans objet.** La péremption venait du seuil seul ; la machine sature
+  (2,8× pour onze processus), brider n'aurait ni coûté ni rapporté.
+- **Resserrer le périmètre muté à `src/core/` — mauvais rapport.** `platform/` ne pèse que 256 mutants
+  sur 1321 : on abandonnerait la couche qui touche D1 pour un cinquième du temps, contre l'ADR.
+- **Retirer la mutation — écarté en l'état.** ADR-0013 range « renoncer à tout indicateur de
+  profondeur » parmi ses alternatives écartées ; le geste demanderait un ADR qui le supersède.
+- Sourcemaps pour ramener la couverture sur `src/`, et fournisseur V8 — tous deux morts et mesurés,
+  avec leur condition de réouverture, désormais portés par ADR-0013 § Alternatives considérées.
 - Exclure `.wrangler/**` de la couverture — le rapport paraîtrait plus propre en mesurant beaucoup moins.
 - Poser un seuil de couverture nu — `docs/test.md` la veut informative, et un seuil sur une mesure
   visant le bundle serait un mensonge chiffré.
