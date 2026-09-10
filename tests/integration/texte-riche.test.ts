@@ -185,6 +185,29 @@ describe('SC-06a — l’aller-retour de sérialisation d’une marque retenue p
     expect(reserialise).toBe(markdown);
   });
 
+  it('SC-06a — un lien dont le libellé porte un crochet survit à un aller puis un retour', () => {
+    // Arrange — `echapperTexte` rend tout crochet du libellé sous forme échappée
+    // (`\[`, `\]`) ; le motif d'analyse doit savoir les relire, sinon le lien
+    // se perd au retour alors qu'il s'est sérialisé sans erreur.
+    const document: NoeudDocument = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [texte('nos tarifs [2026]', [{ type: 'link', attrs: { href: 'https://exemple.test/tarifs' } }])],
+        },
+      ],
+    };
+
+    // Act
+    const markdown = serialiserMarkdownRestreint(document);
+    const reserialise = serialiserMarkdownRestreint(analyserMarkdownRestreint(markdown));
+
+    // Assert
+    expect(markdown).toBe('[nos tarifs \\[2026\\]](https://exemple.test/tarifs)');
+    expect(reserialise).toBe(markdown);
+  });
+
   it('SC-06a — une liste survit à un aller (sérialisation) puis un retour', () => {
     // Arrange
     const document: NoeudDocument = {

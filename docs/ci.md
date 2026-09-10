@@ -22,12 +22,67 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Un seul test | `npx vitest run tests/integration/<fichier>.test.ts` | exige le **worker de test déjà bâti** — sinon, `npm run build` une fois, puis cette commande. Elle ne rejoue pas le build |
 | Couverture | `npm run coverage` | `coverage/lcov.info` — informatif |
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
-| Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, à jouer **à la main** : aucun workflow ne le joue |
+| Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, joué en **bloquant** par la quality gate du cycle `run` (`.claude/quality.json`) ; aucun workflow de CI ne le joue |
 | Migrations locales | `npm run db:migrate` | `wrangler d1 migrations apply DB --local` — applique `migrations/` à la base D1 locale |
-| Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.jsonc` |
+| Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.astro.jsonc` — Astro ne lit jamais `wrangler.jsonc` (racine), réservé aux tests |
 
 `npm run knip` (code non utilisé) et `npm run mutation` (Stryker) sont des **outils manuels** :
 aucun workflow ne les joue, aucun seuil n'en dépend.
+
+> ⚠️ **`npm run mutation` mesure désormais, mais aucun score n'a encore été relevé depuis.**
+> ADR-0013 fait du score de mutation l'indicateur de profondeur des tests ; le relevé du 2026-09-10 a
+> montré deux défauts qui empêchaient l'outil, tel qu'il était monté ici, de mesurer quoi que ce
+> soit. **Les deux sont corrigés** — mais aucun rejeu complet n'a eu lieu depuis : le dernier chiffre
+> publié (98,21 %) n'atteste rien, et le score réel du dépôt reste inconnu.
+>
+> **Corrigé — la péremption.** Stryker calcule son seuil `netTime × 1,5 + timeoutMS`, où `netTime`
+> est mesuré sur **un** rejeu **seul**, alors que les mutants s'exécutent **à plusieurs en
+> parallèle**. Chaque mutant rejoue `npm test`, donc `pretest` → `npm run build` : ~19 s seul, mais
+> ~73 s à onze en parallèle. Le `timeoutMS` par défaut (5 s) plaçait le seuil à ~33 s, et **toute la
+> mesure périmait** — un mutant périmé comptant comme détecté, le score annonçait 98,21 % pour
+> 1 mutant réellement tué sur 112. `stryker.conf.json` porte donc `timeoutMS: 120000` (seuil ≈ 148 s,
+> le double de la durée observée) : 0 péremption depuis.
+>
+> **Corrigé — l'activation du mutant dans `workerd`.** Le code instrumenté lit
+> `process.env.__STRYKER_ACTIVE_MUTANT__` pour savoir quel mutant activer. Or nos tests ne tournent
+> pas dans le processus où Stryker la pose : ils tournent dans `workerd`, où `process.env` est monté
+> par le pool depuis `wrangler.jsonc` et n'hérite jamais de l'hôte. **Aucun mutant ne s'activait**,
+> et le mutant qui inverse le tri par rang (`declaration.ts:119`) était rapporté « survivant » alors
+> qu'un test d'intégration l'attrape. `vitest.config.ts` porte maintenant le pont : `define` lit la
+> variable côté Node et la fait déposer dans l'isolat par `tests/setup/activer-mutant-stryker.ts` —
+> dans `process.env` (l'objet existe : le bundle Astro pose `globalThis.process.env ??= {}` en tête
+> d'`entry.mjs`) **et** dans `__stryker__.activeMutant`, que le préambule instrumenté relit à chaque
+> test de mutant. Le worker bâti et les tests partagent leur `globalThis` — c'est déjà ce dont dépend
+> `ignorer-rejet-wasm-lexer.ts`. **Éprouvé** : mêmes mutants, même commande, **0,00 % sans le pont
+> (2 survivants) contre 100,00 % avec (2 tués)** ; et la présence de la variable seule ne fabrique
+> aucun faux tué (165/165 verts sur un identifiant de mutant inexistant). **Et la mesure
+> discrimine** : premier relevé partiel depuis le pont, `declaration.ts` lignes 125-160 — 53 mutants,
+> **47 tués, 6 survivants, 0 péremption, 88,68 %** en 6 min 36 (4 en parallèle). Les survivants sont
+> des opérateurs logiques et des expressions conditionnelles de garde, que rien n'asserte.
+>
+> **Conséquence sur la lecture du chiffre.** Les mutants s'exécutant vraiment, des **timeouts**
+> deviennent possibles là où il n'y en avait aucun. La colonne `# timeout` reste donc le premier
+> chiffre à regarder, avant le score.
+>
+> **Le rapport incrémental d'avant le pont est invalide.** `incremental: true` réutilise les
+> verdicts de `reports/stryker-incremental.json` ; ceux d'avant l'activation ont été rendus sans
+> qu'aucun mutant ne tourne. Le fichier a donc été retiré : le prochain rejeu repart de zéro. Un
+> rapport produit sans le pont se reconnaît à un `# timeout` nul sur toute la mesure.
+
+> **Le relevé est automatisé, hors du dépôt.** Un timer systemd utilisateur
+> (`colibri-mutation.timer`, 01:07) déclenche `~/.local/bin/colibri-mutation.sh`, qui mesure dans un
+> **worktree détaché sur `origin/main`** — jamais l'arbre de travail — un jour sur deux en
+> incrémental, et le dimanche un passage complet (`--force`) si le dernier a plus de six jours. Le
+> script digère ensuite `reports/mutation/mutation.json` en un extrait des seuls survivants, puis
+> `claude -p` le trie sous la consigne de `.claude/agents/mutation-analyste.md` — en lecture seule,
+> sans `Write`, `Edit` ni `Bash`. Les rapports datés vivent dans
+> `~/.local/state/colibri-mutation/rapports/`, le dernier est toujours lisible en
+> `~/.local/state/colibri-mutation/dernier.md`. Comme `kfz-disk-alert`, rien ne notifie : l'unité
+> **échoue** si la mesure est impossible ou si le score a baissé, ce que
+> `systemctl --user is-failed` relève. Des survivants, il y en a toujours : ça ne fait pas échouer.
+>
+> Compter ~2 h 30 pour un rejeu complet (1321 mutants ; `incremental` limite les suivants aux
+> fichiers touchés).
 
 > **`npm test` bâtit d'abord.** Il déclenche `pretest` → `npm run build`, lui-même encadré par
 > `scripts/preparer-worker-de-test.mjs` (`prebuild` pose une amorce, `postbuild` recopie `dist/`
@@ -77,6 +132,15 @@ n'ont pas écrit le code, suivies d'un triage adversarial (`/scd-spec-dev:run`, 
 
 Une **quality gate déterministe** rejoue des checks à chaque ticket (phase 7½ de
 `/scd-spec-dev:run`) : elle est **possédée par le projet** dans `.claude/quality.json`
-(`/scd-spec-dev:quality-setup`). Posée le 2026-09-06 : `typecheck` et `lint` **bloquants** (`lint`
-avec autofix `eslint --fix`), `build` et `test` en **avis**. Si ce fichier disparaît, la gate est un
-no-op — le **0-gate** est vrai par défaut : un check n'est bloquant que si le projet le déclare.
+(`/scd-spec-dev:quality-setup`). Posée le 2026-09-06, à six checks : `typecheck`, `lint` et
+`boundaries` **bloquants** (`lint` seul porte un autofix, `eslint --fix`), `build`, `test` et `knip`
+en **avis**. Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un
+check n'est bloquant que si le projet le déclare.
+
+Chaque check a son **diagnostiqueur** dédié, `.claude/agents/quality-<id>.md`
+(`/scd-spec-dev:quality-agents`), lui aussi possédé par le projet : en échec non résorbé par
+l'autofix, le run route vers lui plutôt que vers le générique `quality-advisor`. Les six sont en
+**lecture seule** — ils remontent et proposent, ils n'éditent rien. Aucun **applier** de projet
+n'est déclaré : les corrections passent par le `fix-applier` générique, qui exige un diff de test
+**vide**. Un applier — le seul agent autorisé à renforcer un test — ne se justifiera que le jour où
+la gate portera une métrique qui est son propre oracle, `mutation` en tête.

@@ -4,7 +4,8 @@
   "testRunner": "command",
   "commandRunner": { "command": "npm test" },
   "mutate": ["src/core/**/*.ts", "src/platform/**/*.ts"],
-  "reporters": ["clear-text", "progress"],
+  "reporters": ["clear-text", "progress", "json"],
   "coverageAnalysis": "off",
-  "incremental": true
+  "incremental": true,
+  "timeoutMS": 120000
 }
