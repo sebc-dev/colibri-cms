@@ -165,7 +165,12 @@ interface JetonInline {
   readonly correspondance: RegExpExecArray;
 }
 
-const MOTIF_LIEN = /\[([^\]]*)\]\(([^)]*)\)/g;
+// Le libellé accepte tout sauf un crochet nu, mais bien une séquence échappée
+// (`\[`, `\]`) : c'est ce que `echapperTexte` produit. Les deux branches de
+// l'alternance sont disjointes — l'une exclut l'antislash, l'autre commence par
+// lui —, donc le parcours reste LINÉAIRE. La forme gloutonne `[^\]]*` mesurait
+// 5,2 s sur 80 000 crochets ouvrants (quadratique) contre 0,5 ms ici.
+const MOTIF_LIEN = /\[((?:[^[\]\\]|\\.)*)\]\(([^()]*)\)/g;
 const MOTIF_GRAS = /\*\*([^*]+)\*\*/g;
 const MOTIF_ITALIQUE = /_([^_]+)_/g;
 
