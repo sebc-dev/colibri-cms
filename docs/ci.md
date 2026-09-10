@@ -68,6 +68,18 @@ aucun workflow ne les joue, aucun seuil n'en dépend.
 > verdicts de `reports/stryker-incremental.json` ; ceux d'avant l'activation ont été rendus sans
 > qu'aucun mutant ne tourne. Le fichier a donc été retiré : le prochain rejeu repart de zéro. Un
 > rapport produit sans le pont se reconnaît à un `# timeout` nul sur toute la mesure.
+
+> **Le relevé est automatisé, hors du dépôt.** Un timer systemd utilisateur
+> (`colibri-mutation.timer`, 01:07) déclenche `~/.local/bin/colibri-mutation.sh`, qui mesure dans un
+> **worktree détaché sur `origin/main`** — jamais l'arbre de travail — un jour sur deux en
+> incrémental, et le dimanche un passage complet (`--force`) si le dernier a plus de six jours. Le
+> script digère ensuite `reports/mutation/mutation.json` en un extrait des seuls survivants, puis
+> `claude -p` le trie sous la consigne de `.claude/agents/mutation-analyste.md` — en lecture seule,
+> sans `Write`, `Edit` ni `Bash`. Les rapports datés vivent dans
+> `~/.local/state/colibri-mutation/rapports/`, le dernier est toujours lisible en
+> `~/.local/state/colibri-mutation/dernier.md`. Comme `kfz-disk-alert`, rien ne notifie : l'unité
+> **échoue** si la mesure est impossible ou si le score a baissé, ce que
+> `systemctl --user is-failed` relève. Des survivants, il y en a toujours : ça ne fait pas échouer.
 >
 > Compter ~2 h 30 pour un rejeu complet (1321 mutants ; `incremental` limite les suivants aux
 > fichiers touchés).
