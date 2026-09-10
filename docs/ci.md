@@ -29,10 +29,11 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 `npm run knip` (code non utilisé) et `npm run mutation` (Stryker) sont des **outils manuels** :
 aucun workflow ne les joue, aucun seuil n'en dépend.
 
-> ⚠️ **`npm run mutation` n'atteste rien à ce jour — ne pas lire son score.** ADR-0013 fait du score
-> de mutation l'indicateur de profondeur des tests ; le relevé du 2026-09-10 a montré que l'outil,
-> tel qu'il est monté ici, ne mesure pas ce que l'ADR lui prête. Deux défauts, l'un corrigé, l'autre
-> ouvert.
+> ⚠️ **`npm run mutation` mesure désormais, mais aucun score n'a encore été relevé depuis.**
+> ADR-0013 fait du score de mutation l'indicateur de profondeur des tests ; le relevé du 2026-09-10 a
+> montré deux défauts qui empêchaient l'outil, tel qu'il était monté ici, de mesurer quoi que ce
+> soit. **Les deux sont corrigés** — mais aucun rejeu complet n'a eu lieu depuis : le dernier chiffre
+> publié (98,21 %) n'atteste rien, et le score réel du dépôt reste inconnu.
 >
 > **Corrigé — la péremption.** Stryker calcule son seuil `netTime × 1,5 + timeoutMS`, où `netTime`
 > est mesuré sur **un** rejeu **seul**, alors que les mutants s'exécutent **à plusieurs en
@@ -40,20 +41,30 @@ aucun workflow ne les joue, aucun seuil n'en dépend.
 > ~73 s à onze en parallèle. Le `timeoutMS` par défaut (5 s) plaçait le seuil à ~33 s, et **toute la
 > mesure périmait** — un mutant périmé comptant comme détecté, le score annonçait 98,21 % pour
 > 1 mutant réellement tué sur 112. `stryker.conf.json` porte donc `timeoutMS: 120000` (seuil ≈ 148 s,
-> le double de la durée observée) : 0 péremption depuis. **La colonne `# timeout` reste le premier
-> chiffre à regarder, avant le score.**
+> le double de la durée observée) : 0 péremption depuis.
 >
-> **Ouvert — le mutant ne s'active jamais dans `workerd`.** Le code instrumenté lit
+> **Corrigé — l'activation du mutant dans `workerd`.** Le code instrumenté lit
 > `process.env.__STRYKER_ACTIVE_MUTANT__` pour savoir quel mutant activer. Or nos tests ne tournent
-> pas dans ce processus : ils tournent dans `workerd`, où `process.env` est fourni par le pool depuis
-> `wrangler.jsonc`, jamais hérité de l'hôte. **Aucun mutant n'est donc actif pendant les tests.**
-> Vérifié deux fois : la variable posée à la main sur `npm test` laisse les 165 tests au vert ; et le
-> mutant qui inverse le tri par rang (ligne 119) — dont on sait, en cassant le tri à la main, qu'il
-> fait échouer un test d'intégration — est rapporté « survivant » par Stryker. Le score reflète donc
-> autre chose que l'assertion. **Conséquence : la prémisse d'ADR-0013 (« le mutant est emporté par le
-> build jusque dans le worker bâti et se trouve exercé par l'étage d'intégration ») est fausse en
-> l'état, et la décision est à réexaminer.** Piste non explorée : injecter la variable dans l'isolat
-> via les liaisons Miniflare de `vitest.config.ts`.
+> pas dans le processus où Stryker la pose : ils tournent dans `workerd`, où `process.env` est monté
+> par le pool depuis `wrangler.jsonc` et n'hérite jamais de l'hôte. **Aucun mutant ne s'activait**,
+> et le mutant qui inverse le tri par rang (`declaration.ts:119`) était rapporté « survivant » alors
+> qu'un test d'intégration l'attrape. `vitest.config.ts` porte maintenant le pont : `define` lit la
+> variable côté Node et la fait déposer dans l'isolat par `tests/setup/activer-mutant-stryker.ts` —
+> dans `process.env` (l'objet existe : le bundle Astro pose `globalThis.process.env ??= {}` en tête
+> d'`entry.mjs`) **et** dans `__stryker__.activeMutant`, que le préambule instrumenté relit à chaque
+> test de mutant. Le worker bâti et les tests partagent leur `globalThis` — c'est déjà ce dont dépend
+> `ignorer-rejet-wasm-lexer.ts`. **Éprouvé** : mêmes mutants, même commande, **0,00 % sans le pont
+> (2 survivants) contre 100,00 % avec (2 tués)** ; et la présence de la variable seule ne fabrique
+> aucun faux tué (165/165 verts sur un identifiant de mutant inexistant).
+>
+> **Conséquence sur la lecture du chiffre.** Les mutants s'exécutant vraiment, des **timeouts**
+> deviennent possibles là où il n'y en avait aucun. La colonne `# timeout` reste donc le premier
+> chiffre à regarder, avant le score.
+>
+> **Le rapport incrémental d'avant le pont est invalide.** `incremental: true` réutilise les
+> verdicts de `reports/stryker-incremental.json` ; ceux d'avant l'activation ont été rendus sans
+> qu'aucun mutant ne tourne. Le fichier a donc été retiré : le prochain rejeu repart de zéro. Un
+> rapport produit sans le pont se reconnaît à un `# timeout` nul sur toute la mesure.
 >
 > Compter ~2 h 30 pour un rejeu complet (1321 mutants ; `incremental` limite les suivants aux
 > fichiers touchés).
