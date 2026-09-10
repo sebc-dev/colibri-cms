@@ -36,11 +36,13 @@ numéros 2.x.
 | [0010](./0010-csp-admin-styles-inline-style-src-attr.md) | — | CSP admin : styles inline via style-src-attr |
 | [0011](./0011-anti-forgerie-des-ecritures-admin-samesite-strict.md) | — | Anti-forgerie des écritures admin : SameSite=Strict |
 | [0012](./0012-declaration-des-emplacements-editables.md) | — | Déclaration des pages et emplacements éditables |
+| [0013](./0013-profondeur-des-tests-mesuree-par-la-mutation.md) | — | Profondeur des tests — la mutation, pas la couverture |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
 introduite en session de cadrage le 2026-09-01 (base de composants des îlots
-d'administration).
+d'administration). `ADR-0013` non plus : décision neuve, née le 2026-09-10 d'une session
+qualité — la couverture par source s'est révélée hors d'atteinte derrière l'oracle d'ADR-0003.
 
 ## Ce qui n'est pas encore promu
 
