@@ -124,3 +124,11 @@ Une **quality gate déterministe** rejoue des checks à chaque ticket (phase 7½
 `boundaries` **bloquants** (`lint` seul porte un autofix, `eslint --fix`), `build`, `test` et `knip`
 en **avis**. Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un
 check n'est bloquant que si le projet le déclare.
+
+Chaque check a son **diagnostiqueur** dédié, `.claude/agents/quality-<id>.md`
+(`/scd-spec-dev:quality-agents`), lui aussi possédé par le projet : en échec non résorbé par
+l'autofix, le run route vers lui plutôt que vers le générique `quality-advisor`. Les six sont en
+**lecture seule** — ils remontent et proposent, ils n'éditent rien. Aucun **applier** de projet
+n'est déclaré : les corrections passent par le `fix-applier` générique, qui exige un diff de test
+**vide**. Un applier — le seul agent autorisé à renforcer un test — ne se justifiera que le jour où
+la gate portera une métrique qui est son propre oracle, `mutation` en tête.
