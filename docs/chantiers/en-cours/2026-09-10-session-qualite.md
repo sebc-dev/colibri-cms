@@ -1,48 +1,44 @@
 # Session qualité — ce que la quality gate ne mesure pas
 
 Portée : socle
-Ouvert le 2026-09-10 · Actualisé le 2026-09-10 · branche `chore/session-qualite-2026-09-10` · HEAD `f923bbf`
+Ouvert le 2026-09-10 · Actualisé le 2026-09-10 · branche `chore/session-qualite-2026-09-10` · HEAD `bbda056`
 
 ## Objectif
 J'allais établir où sont les trous de la quality gate en la jouant en local, puis décider lesquels
 valent une correction. Aucun code de production n'était visé.
 
 ## Contexte à charger
-à lire      `vitest.config.ts` — là où la piste d'activation se joue : liaisons Miniflare (27 l.)
-à lire      `stryker.conf.json` — le montage courant, base des rejeux de vérification (11 l.)
-à lire      `.claude/quality.json` — la gate, encore à amender : `scope`, agents (36 l.)
-à lire      `docs/adr/0013-profondeur-des-tests-mesuree-par-la-mutation.md` — sa prémisse est en
-            cause ; à relire avant de trancher, ses Alternatives portent les pistes mortes (100 l.)
-à extraire  `docs/ci.md` › encadré « `npm run mutation` n'atteste rien » — le constat, déjà écrit
-à extraire  `docs/ci.md` › « Commandes du projet » — le registre à raccorder aux constats restants
-à extraire  `docs/test.md` › « Pyramide » et « Commandes » — les deux dérives à y corriger
-à situer    `reports/stryker-incremental.json` — 4034 l., produit par l'attelage aveugle : rien à en tirer
+à lire      `.claude/quality.json` — la gate, cible de l'étape suivante : `scope`, agents (36 l.)
+à lire      `stryker.conf.json` — le montage du rejeu complet qui reste à jouer (11 l.)
+à situer    `docs/ci.md` › encadré « `npm run mutation` » — porte désormais le montage, la preuve et
+            la politique de lecture du chiffre ; à relire avant de publier un score, pas avant
+à situer    `docs/adr/0013-profondeur-des-tests-mesuree-par-la-mutation.md` — la question que je lui
+            posais est tranchée et l'ADR reste intact : ne pas le rouvrir
 
 ## Acquis
-- **J'ai décidé de ne pas toucher à ADR-0013** : réexaminer une décision acceptée revient à l'humain,
-  pas à la session qui trouve le défaut. Le constat qui la met en cause est écrit dans `docs/ci.md`.
+- **J'ai tranché : ADR-0013 n'est pas à réexaminer.** Sa prémisse — le mutant emporté par le build
+  jusque dans le worker bâti — tient dès lors que le mutant s'active. Je n'ai pas touché à l'ADR.
 - Export mort confirmé à la lecture : la variante D1 de `pagePorteUnBrouillon`
   (`src/platform/brouillons/magasin.ts`) n'a aucun appelant, les deux routes prennent la version pure.
 - Trous de la gate restants : le `scope` de `.claude/quality.json` est sans effet (les commandes sont
   globales), et aucun agent dédié n'existe (`checks[].agent`, `applier` absents).
-- Dérives de documentation, trois : `tests/unit/**` manque à la pyramide de `docs/test.md` ; c'est
-  `docs/ci.md`, pas `CLAUDE.md`, qui est périmé sur le wrangler de `dev` ; et le § « Commandes » de
-  `docs/test.md` annonce un seuil de couverture « sur le code nouveau » qu'ADR-0013 restreint.
+- Outillage : `--incremental false` et `--no-incremental` n'existent pas côté CLI (l'argument est pris
+  pour un fichier de config) — pour ignorer l'historique, pointer `--incrementalFile` vers un chemin neuf.
 - En amont : le paquet a été renommé `@cloudflare/vitest-pool-workers` → `@cloudflare/vitest-plugin`
   en 1.0.0 ; notre nom est gelé à `0.22.0` (nous résolvons `0.20.3`), le nouveau est à `1.1.6`.
-  Codemod officiel, et la seule rupture (MSW ≥ 2.14) ne nous touche pas. **Devenu moins accessoire** :
-  ce qu'un mutant voit dans l'isolat est une affaire de pool.
-- **J'ai arrêté l'ordre suivant** : éprouver l'activation dans l'isolat, puis trancher ADR-0013 ;
-  `knip` en informatif ; retirer ce qui prétend faussement (le `scope`, le rapport de couverture
-  global) ; les agents par check ensuite. Rien ne monte côté CI.
+  Codemod officiel, et la seule rupture (MSW ≥ 2.14) ne nous touche pas.
+- **J'ai arrêté l'ordre restant** : retirer ce qui prétend faussement (le `scope`), `knip` en
+  informatif, les agents par check, puis un rejeu complet quand le reste est stable — je l'ai chiffré
+  à ~2 h 45 à la cadence mesurée. Rien ne monte côté CI.
 
 ## Prochaine étape
-Éprouver la piste d'activation : injecter `__STRYKER_ACTIVE_MUTANT__` dans l'isolat par les liaisons
-Miniflare de `vitest.config.ts`, puis vérifier sur un mutant dont l'issue est connue — l'inversion du
-tri par rang, `src/core/pages/declaration.ts:119`, qu'un test d'intégration attrape — qu'il passe de
-« survivant » à « tué ». Si aucun moyen n'existe, ADR-0013 est à réexaminer.
+Retirer du montage de la gate ce qui prétend sans effet : le `scope` de `.claude/quality.json`
+(`changedOnly`, `paths`) ne filtre rien, les cinq commandes étant globales. Trancher entre le retirer
+et le rendre effectif — et si on le retire, dire où la restriction au diff se joue à la place.
 
 ## Écarté
+- **Injecter le mutant par les liaisons Miniflare — inutile.** `define` plus un module de setup
+  suffisent ; un binding serait arrivé dans `env`, pas dans `process.env`, faute de `nodejs_compat`.
 - **Alléger la commande de test pour accélérer le rejeu — morte, et mesurée.** Restreindre aux étages
   statique et unitaire descend le rejeu de 19 s à 3,9 s, mais retire l'intégration de l'oracle et
   fabrique de faux rescapés : `trierPagesDeclarees` y sort à 0 % alors que la suite complète tue bien
