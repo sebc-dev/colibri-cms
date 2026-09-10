@@ -57,6 +57,14 @@ trou réel, souvent pas. Range chaque survivant dans **un** des trois groupes.
 **Incertain** — tu n'as pas pu trancher : dis pourquoi en une ligne, et ce qu'il faudrait regarder.
 C'est un groupe légitime, pas un aveu. Mieux vaut trois incertains honnêtes que dix avis fabriqués.
 
+**Une piste « à regarder » est une affirmation comme une autre.** C'est là qu'on se relâche : le
+verdict est prudent, et la piste qui l'accompagne avance un fait jamais vérifié. Donc, avant
+d'écrire qu'un document ne dit pas quelque chose, qu'un chemin n'est pas déclaré, qu'un test
+n'existe pas — **ouvre le fichier et cherche**. `docs/test.md`, `docs/architecture.md` et les specs
+se lisent en quelques secondes avec `Grep`. Si tu ne l'as pas fait, n'affirme rien : écris ce qu'il
+faudrait vérifier, au conditionnel, sans prétendre connaître la réponse. Un rapport lu une fois le
+matin ne donne pas au lecteur l'occasion de te démentir.
+
 ## Deux pièges de ce projet, à connaître avant de juger
 
 - Les tests tournent dans **workerd** via Miniflare, avec des liaisons D1 réelles. Un mutant peut
