@@ -15,6 +15,12 @@
       "autofix": "npm run lint -- --fix"
     },
     {
+      "id": "boundaries",
+      "cmd": "npm run lint:boundaries",
+      "severity": "blocking",
+      "autofix": null
+    },
+    {
       "id": "build",
       "cmd": "npm run build",
       "severity": "advisory",
