@@ -7,7 +7,7 @@
  *
  * Zone `platform` (docs/architecture.md, I1) : n'importe que `core/`
  * (`appliquerCorrectionBoutonAction`, `appliquerCorrectionLienVideo`,
- * `pagePorteUnBrouillon`) — jamais `admin/`, `render/`, `site/`, ni un autre
+ * `appliquerCorrectionTexteRiche`) — jamais `admin/`, `render/`, `site/`, ni un autre
  * fichier de `platform/` (même matrice que `src/platform/auth/magasin.ts`/
  * `src/platform/session/index.ts`).
  *
@@ -32,7 +32,6 @@ import {
   appliquerCorrectionBoutonAction,
   appliquerCorrectionLienVideo,
   appliquerCorrectionTexteRiche,
-  pagePorteUnBrouillon as pagePorteUnBrouillonPur,
   type Brouillon,
   type ContenuCorrige,
   type ResultatCorrection,
@@ -107,15 +106,6 @@ export async function obtenirBrouillon(db: DB, slugPage: string): Promise<Brouil
     }
   }
   return brouillon;
-}
-
-/**
- * SC-04b, portée D1 : dérivée du brouillon lu (`pagePorteUnBrouillon`,
- * `core/pages/brouillon.ts`) — ce magasin ne fait que fournir les faits bruts
- * à la dérivation pure, il ne recalcule rien lui-même.
- */
-export async function pagePorteUnBrouillon(db: DB, slugPage: string): Promise<boolean> {
-  return pagePorteUnBrouillonPur(await obtenirBrouillon(db, slugPage));
 }
 
 interface LigneSlugBrute {
