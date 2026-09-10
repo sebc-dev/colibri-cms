@@ -22,7 +22,7 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Un seul test | `npx vitest run tests/integration/<fichier>.test.ts` | exige le **worker de test déjà bâti** — sinon, `npm run build` une fois, puis cette commande. Elle ne rejoue pas le build |
 | Couverture | `npm run coverage` | `coverage/lcov.info` — informatif |
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
-| Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, à jouer **à la main** : aucun workflow ne le joue |
+| Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, joué en **bloquant** par la quality gate du cycle `run` (`.claude/quality.json`) ; aucun workflow de CI ne le joue |
 | Migrations locales | `npm run db:migrate` | `wrangler d1 migrations apply DB --local` — applique `migrations/` à la base D1 locale |
 | Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.jsonc` |
 
