@@ -29,6 +29,19 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 `npm run knip` (code non utilisé) et `npm run mutation` (Stryker) sont des **outils manuels** :
 aucun workflow ne les joue, aucun seuil n'en dépend.
 
+> **La politique de péremption de `npm run mutation`.** ADR-0013 fait du score de mutation
+> l'indicateur de profondeur des tests, et rappelle qu'un mutant **périmé compte comme détecté** :
+> le chiffre n'est donc lisible qu'avec le seuil qui l'a produit. Stryker calcule ce seuil
+> `netTime × 1,5 + timeoutMS`, où `netTime` est mesuré sur **un** rejeu **seul**, alors que les
+> mutants s'exécutent **à plusieurs en parallèle**. Ici chaque mutant rejoue `npm test`, donc
+> `pretest` → `npm run build` : ~19 s seul, mais ~73 s à onze en parallèle. Le `timeoutMS` par
+> défaut (5 s) plaçait le seuil à ~33 s — **toute la mesure périmait**, et le score annonçait 98 %
+> pour un mutant réellement tué. `stryker.conf.json` porte donc `timeoutMS: 120000`, soit un seuil
+> d'environ 148 s : le double de la durée observée. **Un rapport où la colonne `# timeout` n'est pas
+> proche de zéro n'atteste rien** — c'est le premier chiffre à regarder, avant le score. Compter
+> ~2 h 30 pour un rejeu complet (1321 mutants ; `incremental` limite les suivants aux fichiers
+> touchés).
+
 > **`npm test` bâtit d'abord.** Il déclenche `pretest` → `npm run build`, lui-même encadré par
 > `scripts/preparer-worker-de-test.mjs` (`prebuild` pose une amorce, `postbuild` recopie `dist/`
 > vers `.wrangler/test-worker/`, l'emplacement stable que `wrangler.jsonc` désigne en `main` et
