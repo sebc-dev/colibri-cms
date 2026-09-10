@@ -5,6 +5,14 @@ import { defineConfig, configDefaults } from 'vitest/config';
 import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
 
 export default defineConfig({
+  // Pont hôte → isolat pour la mutation : `process.env` de workerd est monté
+  // par le pool depuis `wrangler.jsonc` et n'hérite jamais de l'hôte, où
+  // Stryker pose le mutant actif. La valeur est lue ici, côté Node, et
+  // substituée dans `tests/setup/activer-mutant-stryker.ts`, qui la dépose
+  // dans l'isolat. `null` hors rejeu de mutation.
+  define: {
+    __MUTANT_ACTIF_HOTE__: JSON.stringify(process.env.__STRYKER_ACTIVE_MUTANT__ ?? null),
+  },
   plugins: [
     cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc' },
@@ -17,7 +25,10 @@ export default defineConfig({
     // ne matche jamais depuis l'intérieur d'une sandbox (Stryker y lance npm
     // test avec la sandbox pour racine), donc les runs de mutation sont intacts.
     exclude: [...configDefaults.exclude, '**/.stryker-tmp/**'],
-    setupFiles: ['./tests/setup/ignorer-rejet-wasm-lexer.ts'],
+    setupFiles: [
+      './tests/setup/ignorer-rejet-wasm-lexer.ts',
+      './tests/setup/activer-mutant-stryker.ts',
+    ],
     coverage: {
       provider: 'istanbul',
       reporter: ['lcov'],
