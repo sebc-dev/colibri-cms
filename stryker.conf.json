@@ -6,5 +6,6 @@
   "mutate": ["src/core/**/*.ts", "src/platform/**/*.ts"],
   "reporters": ["clear-text", "progress"],
   "coverageAnalysis": "off",
-  "incremental": true
+  "incremental": true,
+  "timeoutMS": 120000
 }
