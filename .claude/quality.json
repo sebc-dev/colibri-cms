@@ -1,6 +1,5 @@
 {
   "version": 1,
-  "scope": { "changedOnly": true, "paths": ["src/**", "tests/**", "migrations/**"] },
   "checks": [
     {
       "id": "typecheck",
