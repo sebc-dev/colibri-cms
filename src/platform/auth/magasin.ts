@@ -172,15 +172,13 @@ let schemaSessionsAssure: Promise<void> | null = null;
  * été rejouée (couture de test du ticket 06).
  */
 async function assurerTableSessions(db: DB): Promise<void> {
-  if (!schemaSessionsAssure) {
-    schemaSessionsAssure = db
-      .prepare(
-        `create table if not exists ${TABLE_SESSIONS} (id text primary key, identifiant_appareil text not null, creee_le integer not null)`,
-      )
-      .bind()
-      .run()
-      .then(() => undefined);
-  }
+  schemaSessionsAssure ??= db
+    .prepare(
+      `create table if not exists ${TABLE_SESSIONS} (id text primary key, identifiant_appareil text not null, creee_le integer not null)`,
+    )
+    .bind()
+    .run()
+    .then(() => undefined);
   await schemaSessionsAssure;
 }
 

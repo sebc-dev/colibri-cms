@@ -80,21 +80,19 @@ let schemaSessionsAssure: Promise<void> | null = null;
  * effet observable sur une D1 qui la porte déjà, l'échec est donc avalé.
  */
 async function assurerTableSessions(db: DB): Promise<void> {
-  if (!schemaSessionsAssure) {
-    schemaSessionsAssure = (async () => {
-      await db
-        .prepare(
-          `create table if not exists ${TABLE_SESSIONS} (id text primary key, identifiant_appareil text not null, creee_le integer not null)`,
-        )
-        .bind()
-        .run();
-      try {
-        await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).bind().run();
-      } catch {
-        // déjà ajoutée : sans effet.
-      }
-    })();
-  }
+  schemaSessionsAssure ??= (async () => {
+    await db
+      .prepare(
+        `create table if not exists ${TABLE_SESSIONS} (id text primary key, identifiant_appareil text not null, creee_le integer not null)`,
+      )
+      .bind()
+      .run();
+    try {
+      await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).bind().run();
+    } catch {
+      // déjà ajoutée : sans effet.
+    }
+  })();
   await schemaSessionsAssure;
 }
 
