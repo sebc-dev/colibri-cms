@@ -24,7 +24,7 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
 | Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, joué en **bloquant** par la quality gate du cycle `run` (`.claude/quality.json`) ; aucun workflow de CI ne le joue |
 | Migrations locales | `npm run db:migrate` | `wrangler d1 migrations apply DB --local` — applique `migrations/` à la base D1 locale |
-| Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.jsonc` |
+| Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.astro.jsonc` — Astro ne lit jamais `wrangler.jsonc` (racine), réservé aux tests |
 
 `npm run knip` (code non utilisé) et `npm run mutation` (Stryker) sont des **outils manuels** :
 aucun workflow ne les joue, aucun seuil n'en dépend.

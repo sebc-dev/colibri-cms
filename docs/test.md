@@ -28,6 +28,7 @@ est celui du produit.
 |---|---|---|
 | Intégration | `tests/integration/**` | la logique contre les liaisons réelles dans `workerd` (D1, Durable Object) |
 | Statique | `tests/static/**` | ce qui se vérifie sans requête — invariants, calculs `core/`, formes de sortie |
+| Unitaire | `tests/unit/**` | une fonction pure de `core/` exercée en mémoire, sans `cloudflare:test` ni liaison |
 | Amorçage | `tests/setup/**` | pas un étage : ce que Vitest exécute avant chaque fichier de test (`setupFiles`) |
 | Parcours | Playwright — **à venir** | les gestes de l'éditrice et de la visiteuse, écran par écran |
 | Réversibilité | script dédié — **à venir** | la reconstruction du site depuis les seuls fichiers déposés (SC-011) |
@@ -49,7 +50,9 @@ intégration ciblé.
   '…/.wrangler/test-worker/server/entry.mjs'`.
 - `npm run coverage` — produit `coverage/lcov.info` (fournisseur `istanbul`). **Informatif**, jamais
   bloquant : la couverture mesure l'**exécution**, jamais l'**assertion**. Un seuil, quand il
-  viendra, portera sur le **code nouveau**, jamais sur une couverture globale.
+  viendra, ne pourra porter que sur le périmètre que la couverture mesure réellement **comme des
+  sources** — les fichiers qu'un test importe directement — et n'y attestera même là que
+  l'exécution (ADR-0013). La profondeur, elle, se mesure par la mutation.
 
 ## Nommage
 
