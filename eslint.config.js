@@ -4,8 +4,12 @@
 // dessein, voir la décision 6 du plan).
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import { defineConfig } from 'eslint/config';
 
-export default tseslint.config(
+// `defineConfig` vient d'ESLint lui-même : `tseslint.config()` porte un
+// @deprecated qui renvoie ici (SonarLint S1874). Même rôle, même traitement
+// des configs imbriquées — et une dépendance de moins à faire suivre.
+export default defineConfig(
   {
     // .stryker-tmp/ et reports/ sont les artefacts du job de mutation, déjà
     // ignorés par .gitignore ; le bac à sable de Stryker porte une copie de
