@@ -3,36 +3,42 @@
   "checks": [
     {
       "id": "typecheck",
+      "agent": "quality-typecheck",
       "cmd": "npm run typecheck",
       "severity": "blocking",
       "autofix": null
     },
     {
       "id": "lint",
+      "agent": "quality-lint",
       "cmd": "npm run lint",
       "severity": "blocking",
       "autofix": "npm run lint -- --fix"
     },
     {
       "id": "boundaries",
+      "agent": "quality-boundaries",
       "cmd": "npm run lint:boundaries",
       "severity": "blocking",
       "autofix": null
     },
     {
       "id": "build",
+      "agent": "quality-build",
       "cmd": "npm run build",
       "severity": "advisory",
       "autofix": null
     },
     {
       "id": "test",
+      "agent": "quality-test",
       "cmd": "npm test",
       "severity": "advisory",
       "autofix": null
     },
     {
       "id": "knip",
+      "agent": "quality-knip",
       "cmd": "npm run knip",
       "severity": "advisory",
       "autofix": null
