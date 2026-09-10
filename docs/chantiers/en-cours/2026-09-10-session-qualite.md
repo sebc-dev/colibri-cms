@@ -1,16 +1,16 @@
 # Session qualité — ce que la quality gate ne mesure pas
 
 Portée : socle
-Ouvert le 2026-09-10 · Actualisé le 2026-09-10 · branche `chore/session-qualite-2026-09-10` · HEAD `87ec93c`
+Ouvert le 2026-09-10 · Actualisé le 2026-09-10 · branche `chore/session-qualite-2026-09-10` · HEAD `328f4af`
 
 ## Objectif
 J'allais établir où sont les trous de la quality gate en la jouant en local, puis décider lesquels
 valent une correction. Aucun code de production n'était visé.
 
 ## Contexte à charger
-à lire      `.claude/quality.json` — la gate possédée par le projet, à amender (30 l.)
 à lire      `stryker.conf.json` — la configuration à réparer ou à retirer (9 l.)
-à extraire  `docs/ci.md` › « Commandes du projet » — le registre à raccorder aux constats
+à lire      `.claude/quality.json` — la gate, encore à amender : `scope`, agents (36 l.)
+à extraire  `docs/ci.md` › « Commandes du projet » — le registre à raccorder aux constats restants
 à extraire  `docs/test.md` › « Pyramide » — n'y figure pas `tests/unit/**`
 à situer    `vitest.config.ts` — la couverture s'y règle, mais la piste est morte (voir Écarté)
 
@@ -28,24 +28,24 @@ valent une correction. Aucun code de production n'était visé.
   projection vidée de `{slug, titre}`.
 - Export mort confirmé à la lecture : la variante D1 de `pagePorteUnBrouillon`
   (`src/platform/brouillons/magasin.ts`) n'a aucun appelant, les deux routes prennent la version pure.
-- Trous de la gate : le `scope` de `.claude/quality.json` est sans effet (commandes globales), aucun
-  agent dédié n'existe (`checks[].agent`, `applier` absents), et `lint:boundaries` — seul porteur
-  falsifiable de `I1` — n'est joué par personne, ce que `docs/ci.md` assume.
+- Trous de la gate restants : le `scope` de `.claude/quality.json` est sans effet (les commandes sont
+  globales), et aucun agent dédié n'existe (`checks[].agent`, `applier` absents).
 - Dérives de documentation : `tests/unit/**` manque à la pyramide de `docs/test.md` ; et c'est
   `docs/ci.md`, pas `CLAUDE.md`, qui est périmé sur le wrangler de `dev`.
 - En amont : le paquet a été renommé `@cloudflare/vitest-pool-workers` → `@cloudflare/vitest-plugin`
   en 1.0.0 ; notre nom est gelé à `0.22.0`, le nouveau est à `1.1.6`. Codemod officiel
   (`npx @cloudflare/codemods vitest:pool-workers-to-vitest-plugin`), et la seule rupture de `0.22.0`
   (MSW ≥ 2.14) ne nous touche pas — MSW est absent. Chantier distinct, sans lien avec la mesure.
-- **J'ai arrêté l'ordre suivant** : `lint:boundaries` en bloquant dans la gate du cycle ; réparer la
-  mutation ou la retirer ; `knip` en informatif ; retirer ce qui prétend faussement (le `scope`, le
-  rapport de couverture global) ; les agents par check ensuite. Rien ne monte côté CI.
-- **Un ADR est dû** avant de bâtir : prendre la mutation plutôt que la couverture comme indicateur de
-  profondeur des tests est structurant, et se fonde sur un fait d'architecture, pas sur un réglage.
+- **J'ai arrêté l'ordre suivant** : réparer la mutation ou la retirer ; `knip` en informatif ; retirer
+  ce qui prétend faussement (le `scope`, le rapport de couverture global) ; les agents par check
+  ensuite. Rien ne monte côté CI.
+- **J'ai décidé qu'un ADR est dû avant de bâtir** : prendre la mutation plutôt que la couverture comme
+  indicateur de profondeur des tests est structurant, et se fonde sur un fait d'architecture, pas sur
+  un réglage.
 
 ## Prochaine étape
-Ajouter `lint:boundaries` à `.claude/quality.json` en `blocking` — l'invariant `I1` a un contrôleur
-mécanique que rien ne lance.
+Écrire cet ADR — la mutation comme indicateur de profondeur, la couverture reléguée à l'informatif —
+avant de toucher à `stryker.conf.json`.
 
 ## Écarté
 - **Activer `vite.build.sourcemap` pour ramener la couverture sur `src/` — mort, et mesuré.** Les
