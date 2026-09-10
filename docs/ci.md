@@ -120,6 +120,7 @@ n'ont pas écrit le code, suivies d'un triage adversarial (`/scd-spec-dev:run`, 
 
 Une **quality gate déterministe** rejoue des checks à chaque ticket (phase 7½ de
 `/scd-spec-dev:run`) : elle est **possédée par le projet** dans `.claude/quality.json`
-(`/scd-spec-dev:quality-setup`). Posée le 2026-09-06 : `typecheck` et `lint` **bloquants** (`lint`
-avec autofix `eslint --fix`), `build` et `test` en **avis**. Si ce fichier disparaît, la gate est un
-no-op — le **0-gate** est vrai par défaut : un check n'est bloquant que si le projet le déclare.
+(`/scd-spec-dev:quality-setup`). Posée le 2026-09-06, à six checks : `typecheck`, `lint` et
+`boundaries` **bloquants** (`lint` seul porte un autofix, `eslint --fix`), `build`, `test` et `knip`
+en **avis**. Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un
+check n'est bloquant que si le projet le déclare.
