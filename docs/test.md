@@ -2,7 +2,8 @@
 
 Le cap durable de la vérification : quel **oracle** décide si un test dit vrai, comment la pyramide
 est disposée, et ce qu'une tâche doit tenir pour être « done ». Le *pourquoi* du choix d'oracle est
-figé dans [ADR-0003](./adr/0003-tests-vitest-dans-workerd.md).
+figé dans [ADR-0014](./adr/0014-oracle-workerd-integration-vitest-plugin.md), qui remplace
+ADR-0003 en conservant son oracle.
 
 ## L'oracle — pourquoi `workerd`, pas Node
 

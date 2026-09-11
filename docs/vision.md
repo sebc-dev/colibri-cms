@@ -211,7 +211,7 @@ et `docs/ci.md` les portent, une copie dériverait ici.
 - **Authentification** — implémentation maison sur D1 : code à saisir, session opaque, moyen de reprise (ADR-0001 ; candidat `moyen-de-reprise-code-128-bits-hache`).
 - **Services Cloudflare** — Email Routing achemine chaque demande (ADR-0002) ; Turnstile et un compteur de fréquence tiennent l'anti-abus (candidat `anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre`).
 - **En-têtes et CSP** — deux porteurs (`_headers` pour le public, middleware pour l'administration), CSP stricte propre à l'administration (ADR-0004, ADR-0008, ADR-0010).
-- **Tests** — Vitest dans `workerd`, Playwright pour les parcours, épreuve de réversibilité scriptée (ADR-0003).
+- **Tests** — Vitest dans `workerd`, Playwright pour les parcours, épreuve de réversibilité scriptée (ADR-0014, remplace ADR-0003).
 - **Configuration d'instance** — quatre lieux, un par nature de valeur ; aucun secret dans le dépôt (ADR-0005).
 
 ## Domaines transverses (base des ADR)

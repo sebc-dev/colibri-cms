@@ -26,7 +26,7 @@ les fichiers d'impl modifiés, le chemin du dépôt. La `cmd` exacte se lit dans
 ## Comment traiter cette partie
 
 `npm test` joue `vitest run --passWithNoTests` dans **workerd**, via
-`@cloudflare/vitest-plugin` (ADR-0003) : liaisons D1 et Durable Object réelles, servies
+`@cloudflare/vitest-plugin` (ADR-0014) : liaisons D1 et Durable Object réelles, servies
 localement par Miniflare. Check en **avis** — mais un rouge ici est le signal le plus fort de toute
 la gate, traite-le comme tel.
 
