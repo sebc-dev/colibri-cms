@@ -104,7 +104,7 @@ afterEach(async () => {
   } catch (erreur) {
     console.warn('nettoyage D1 ignoré (schéma absent, rouge attendu) :', erreur);
   }
-  delete (env as unknown as Record<string, unknown>)[CLE_LIAISON_EXPEDITION];
+  Reflect.deleteProperty(env, CLE_LIAISON_EXPEDITION);
 });
 
 /**

@@ -110,7 +110,7 @@ afterEach(async () => {
   }
   // Isolation (FIRST) : aucun test ne doit laisser d'expéditeur-espion posé
   // pour le suivant.
-  delete (env as unknown as Record<string, unknown>)[CLE_LIAISON_EXPEDITION];
+  Reflect.deleteProperty(env, CLE_LIAISON_EXPEDITION);
 });
 
 /**
