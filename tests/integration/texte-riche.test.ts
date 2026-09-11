@@ -491,7 +491,7 @@ it('SC-06f — l’éditeur de texte riche et sa barre de mise en forme ne porte
   // commentaires du fichier source ni les noms d'identifiants du code, qui ne
   // paraissent jamais à l'écran.
   const zoneMarkup = source.split('</script>')[1] ?? '';
-  const zoneTextesRefus = source.match(/const TEXTES_REFUS[\s\S]*?\};/)?.[0] ?? '';
+  const zoneTextesRefus = /const TEXTES_REFUS[\s\S]*?\};/.exec(source)?.[0] ?? '';
   expect(zoneMarkup.length, 'le gabarit HTML est introuvable dans la source').toBeGreaterThan(0);
   expect(zoneTextesRefus.length, 'TEXTES_REFUS introuvable dans la source').toBeGreaterThan(0);
 

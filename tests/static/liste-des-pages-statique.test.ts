@@ -61,7 +61,7 @@ describe('SC-02b — une instance sans aucune page déclarée', () => {
     // `<Gabarit>`, un message dédié à l'attention de l'éditrice.
     const template = source.slice(source.indexOf('---', source.indexOf('---') + 3) + 3);
     expect(source).toMatch(/pages\.length\s*===\s*0/);
-    const messageEtatVide = template.match(/<p>([^<]*)<\/p>/i)?.[1] ?? '';
+    const messageEtatVide = /<p>([^<]*)<\/p>/i.exec(template)?.[1] ?? '';
     expect(messageEtatVide.toLowerCase(), 'aucun message d’état vide trouvé dans le gabarit rendu').toMatch(
       /aucune page|rien à (modifier|éditer)/,
     );

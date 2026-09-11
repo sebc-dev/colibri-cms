@@ -281,7 +281,7 @@ describe('SC-05d — un lien non reconnu est refusé au niveau du champ, en disa
 
     // …et le message pour un lien hors liste blanche dit ce qui EST attendu
     // (un lien YouTube ou Vimeo), pas seulement que le lien est refusé.
-    const motifLienInvalide = source.match(/'lien-invalide':\s*"([^"]+)"/)?.[1] ?? '';
+    const motifLienInvalide = /'lien-invalide':\s*"([^"]+)"/.exec(source)?.[1] ?? '';
     expect(motifLienInvalide.length).toBeGreaterThan(0);
     expect(motifLienInvalide.toLowerCase()).toMatch(/youtube/);
     expect(motifLienInvalide.toLowerCase()).toMatch(/vimeo/);
@@ -320,8 +320,8 @@ it('SC-05e — le champ de réglage du lien et ses messages de refus ne portent 
   // Act / Assert : le texte réellement à l'écran — le libellé du champ et les
   // messages de refus (`TEXTES_REFUS`), pas les commentaires du fichier
   // source qui ne paraissent jamais à l'écran.
-  const zoneTextesVisibles = source.match(/const textes_refus[\s\S]*?\};/)?.[0] ?? '';
-  const zoneLibelle = source.match(/<label>[\s\S]*?<\/label>/)?.[0] ?? '';
+  const zoneTextesVisibles = /const textes_refus[\s\S]*?\};/.exec(source)?.[0] ?? '';
+  const zoneLibelle = /<label>[\s\S]*?<\/label>/.exec(source)?.[0] ?? '';
   expect(zoneTextesVisibles.length, 'TEXTES_REFUS introuvable dans la source').toBeGreaterThan(0);
   expect(zoneLibelle.length, 'le libellé du champ est introuvable dans la source').toBeGreaterThan(0);
 
