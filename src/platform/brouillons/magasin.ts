@@ -45,7 +45,7 @@ export interface DB {
   prepare(query: string): {
     bind(...valeurs: unknown[]): {
       run(): Promise<unknown>;
-      all<T = unknown>(): Promise<{ results: T[] }>;
+      all(): Promise<{ results: unknown[] }>;
     };
   };
 }
@@ -93,10 +93,10 @@ export async function obtenirBrouillon(db: DB, slugPage: string): Promise<Brouil
   const resultat = await db
     .prepare(`select id_emplacement, contenu from ${TABLE_BROUILLONS} where page_slug = ?1`)
     .bind(slugPage)
-    .all<LigneBrouillonBrute>();
+    .all();
 
   const brouillon = new Map<string, ContenuCorrige>();
-  for (const ligne of resultat.results) {
+  for (const ligne of resultat.results as LigneBrouillonBrute[]) {
     try {
       brouillon.set(ligne.id_emplacement, JSON.parse(ligne.contenu) as ContenuCorrige);
     } catch {
@@ -116,8 +116,8 @@ export async function listerSlugsAvecBrouillon(db: DB): Promise<ReadonlySet<stri
   const resultat = await db
     .prepare(`select distinct page_slug from ${TABLE_BROUILLONS}`)
     .bind()
-    .all<LigneSlugBrute>();
-  return new Set(resultat.results.map((ligne) => ligne.page_slug));
+    .all();
+  return new Set((resultat.results as LigneSlugBrute[]).map((ligne) => ligne.page_slug));
 }
 
 /**
