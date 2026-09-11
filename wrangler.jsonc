@@ -11,10 +11,9 @@
   "name": "colibri-cms",
   // Bornée par le binaire workerd figé au lockfile : au-delà de sa plus haute
   // date supportée, workerd refuse de démarrer et toute exécution de test
-  // échoue ; se relève avec le workerd du lockfile. Les deux lecteurs de CE
-  // fichier — le pool de test et `wrangler d1` — tiennent 1.20260903.1 depuis
-  // la montée de `@cloudflare/vitest-plugin` ; l'adaptateur Astro hisse encore
-  // 1.20260801.1, mais il lit `wrangler.astro.jsonc`, pas ce fichier.
+  // échoue ; se relève avec le workerd du lockfile. Depuis la montée de
+  // l'outillage, tout l'arbre partage UN seul workerd (1.20260903.1) : le pool
+  // de test, `wrangler d1` et l'adaptateur Astro.
   "compatibility_date": "2026-08-01",
   "d1_databases": [
     {
