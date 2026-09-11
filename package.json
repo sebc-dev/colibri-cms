@@ -23,12 +23,12 @@
     "db:migrate": "wrangler d1 migrations apply DB --local"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.2.0",
+    "@astrojs/cloudflare": "^14.3.0",
     "@astrojs/svelte": "^9.0.1",
     "@lucide/svelte": "^1.34.0",
     "@tiptap/core": "^3.30.6",
     "@tiptap/starter-kit": "^3.30.6",
-    "astro": "~7.2.10",
+    "astro": "^7.3.1",
     "bits-ui": "^2.19.0",
     "clsx": "^2.1.1",
     "svelte": "^5.56.10",
@@ -36,7 +36,7 @@
     "tailwind-variants": "^3.3.1"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.20.3",
+    "@cloudflare/vitest-plugin": "^1.1.4",
     "@eslint/js": "^10.0.1",
     "@stryker-mutator/core": "^9.6.1",
     "@tailwindcss/vite": "^4.3.3",
@@ -52,7 +52,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.66.0",
     "vitest": "^4.1.0",
-    "wrangler": "^4.120.0"
+    "wrangler": "^4.129.0"
   },
   "overrides": {
     "qs": "^6.16.0",

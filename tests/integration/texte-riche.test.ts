@@ -25,7 +25,7 @@
  *   monte bien ce champ sur l'emplacement de texte riche — et l'absence de
  *   tout terme de développeur dans le texte réellement visible (SC-06f).
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
 import { it, expect, afterEach, describe } from 'vitest';
 import {

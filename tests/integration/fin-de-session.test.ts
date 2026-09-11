@@ -46,7 +46,7 @@
  * compter combien de rafraîchissements une rafale de requêtes immédiates
  * déclenche réellement en base.
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
 import { it, expect, afterEach } from 'vitest';
 

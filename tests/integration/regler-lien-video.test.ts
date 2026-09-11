@@ -25,7 +25,7 @@
  *   HTTP que l'`Écran : Éditeur de page` monte bien ce champ sur l'emplacement
  *   de lien de vidéo.
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
 import { it, expect, afterEach, describe } from 'vitest';
 import { lienVideoAutorise } from '../../src/core/pages/lien-video.ts';

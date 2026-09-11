@@ -1,8 +1,8 @@
 // vitest.config.ts — job `test`/`coverage` (docs/ci.md). Les tests s'exécutent
-// dans workerd via @cloudflare/vitest-pool-workers (ADR-0003) : l'oracle est
+// dans workerd via @cloudflare/vitest-plugin (ADR-0014) : l'oracle est
 // celui du produit, contre les implémentations de D1 et non des simulacres.
 import { defineConfig, configDefaults } from 'vitest/config';
-import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
+import { cloudflareTest } from '@cloudflare/vitest-plugin';
 
 export default defineConfig({
   // Pont hôte → isolat pour la mutation : `process.env` de workerd est monté

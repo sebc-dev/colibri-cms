@@ -26,7 +26,7 @@ numéros 2.x.
 |---|---|---|
 | [0001](./0001-auth-implementation-maison-sur-d1.md) | 0006 | Authentification maison sur D1, quatre mécanismes |
 | [0002](./0002-acheminement-email-routing-send-email.md) | 0009 | Acheminement par Email Routing, courriel inerte |
-| [0003](./0003-tests-vitest-dans-workerd.md) | 0013 | Tests — Vitest dans `workerd`, Playwright pour les parcours |
+| [0003](./0003-tests-vitest-dans-workerd.md) | 0013 | Tests — Vitest dans `workerd`, Playwright pour les parcours — **remplacé par [0014](./0014-oracle-workerd-integration-vitest-plugin.md)** |
 | [0004](./0004-en-tetes-de-reponse-deux-porteurs.md) | 0015 | En-têtes de réponse — deux porteurs |
 | [0005](./0005-configuration-d-instance-quatre-lieux.md) | 0020 | Configuration d'instance — quatre lieux |
 | [0006](./0006-administration-sans-directive-client.md) | 0024 | Administration sans directive `client:*` |
@@ -37,12 +37,28 @@ numéros 2.x.
 | [0011](./0011-anti-forgerie-des-ecritures-admin-samesite-strict.md) | — | Anti-forgerie des écritures admin : SameSite=Strict |
 | [0012](./0012-declaration-des-emplacements-editables.md) | — | Déclaration des pages et emplacements éditables |
 | [0013](./0013-profondeur-des-tests-mesuree-par-la-mutation.md) | — | Profondeur des tests — la mutation, pas la couverture |
+| [0014](./0014-oracle-workerd-integration-vitest-plugin.md) | — | Tests — l'oracle reste `workerd` ; l'intégration se nomme `@cloudflare/vitest-plugin` (remplace [0003](./0003-tests-vitest-dans-workerd.md)) |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
 introduite en session de cadrage le 2026-09-01 (base de composants des îlots
 d'administration). `ADR-0013` non plus : décision neuve, née le 2026-09-10 d'une session
 qualité — la couverture par source s'est révélée hors d'atteinte derrière l'oracle d'ADR-0003.
+`ADR-0014` non plus : décision neuve, née le 2026-09-11 de la montée de l'outillage Cloudflare —
+Cloudflare a renommé le paquet de l'intégration de test et redémarré sa numérotation, ce qui a
+rendu fausse l'identification portée par `ADR-0003`.
+
+## Comment se lit un remplacement
+
+Un ADR remplacé **reste sur disque et ne se modifie pas** — c'est la propriété qui fait sa valeur.
+La redirection vit **ici**, dans la table : la colonne « Décision » du remplacé porte son
+successeur, et celle du successeur porte son prédécesseur. `ADR-0003` → `ADR-0014` est le premier
+remplacement du dépôt, et fixe cette forme.
+
+Conséquence de lecture : un ADR remplacé peut encore être **cité** par un autre ADR — `ADR-0013`
+cite `ADR-0003` pour son oracle, et ce renvoi reste juste, l'oracle étant précisément ce que le
+remplacement conserve. Un renvoi vers un ADR remplacé n'est donc pas un renvoi mort ; il se lit
+avec la table sous les yeux.
 
 ## Ce qui n'est pas encore promu
 

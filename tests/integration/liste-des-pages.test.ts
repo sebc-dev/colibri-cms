@@ -39,7 +39,7 @@
  * monté par script seul (ADR-0006) et `workerd` n'exécute aucun DOM ; elle
  * se vérifie en `observé` (voir le ticket, section « Vérif »).
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
 import { it, expect, afterEach } from 'vitest';
 

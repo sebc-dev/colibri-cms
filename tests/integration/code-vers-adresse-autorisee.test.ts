@@ -50,7 +50,7 @@
  * `SELF.fetch` POST — ce qui observe la demande d'expédition *depuis la
  * route*, sans jamais chercher à constater l'envoi réel ni sa forme.
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
 import { it, expect, afterEach } from 'vitest';
 

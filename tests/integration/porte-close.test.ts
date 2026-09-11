@@ -9,17 +9,17 @@
  * exception, et ce n'est pas provisoire.
  *
  * `SELF.fetch` exige que le worker principal soit résolu par
- * `@cloudflare/vitest-pool-workers` (`poolOptions.workers.main`) : tant
+ * `@cloudflare/vitest-plugin` (`poolOptions.workers.main`) : tant
  * qu'aucune route n'existe sous `src/pages/`, il n'y a rien à résoudre, et
  * c'est précisément ce que ce fichier constate.
  *
  * `tsconfig.json` est un fichier de configuration : ne pas y déroger pour
  * faire passer un test (hors de portée de ce lot) — il ne porte pas
- * `"types": ["@cloudflare/vitest-pool-workers"]` : la
+ * `"types": ["@cloudflare/vitest-plugin"]` : la
  * référence ci-dessous apporte les déclarations ambiantes du module
  * `cloudflare:test` sans y toucher.
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF } from 'cloudflare:test';
 import { it, expect } from 'vitest';
 

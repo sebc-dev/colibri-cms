@@ -86,7 +86,7 @@
   de signatures SSH : ces gardes n'existent plus. Ne pas raisonner comme s'ils étaient là.
 
 ## Gotchas / comportements non-évidents
-- Les tests s'exécutent dans `workerd` via `@cloudflare/vitest-pool-workers` (ADR-0003) : liaisons
+- Les tests s'exécutent dans `workerd` via `@cloudflare/vitest-plugin` (ADR-0014) : liaisons
   D1 et Durable Object réelles, servies localement par Miniflare (rien ne part vers un compte
   Cloudflare). Voir `docs/test.md`.
 - Un seul Worker sert le site public et l'administration (**même origine**) : tout script tiers
