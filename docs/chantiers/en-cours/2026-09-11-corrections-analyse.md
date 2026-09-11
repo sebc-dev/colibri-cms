@@ -1,7 +1,7 @@
 # Résorber ce que la passe d'analyse lève
 
 Portée : hors-cycle
-Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `67cb2ed`
+Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `6e55f5f`
 
 ## Objectif
 J'allais traiter par petits lots ce que `npm run analyse` lève — `src/` d'abord, `tests/` ensuite —
@@ -9,10 +9,9 @@ puis retirer les extinctions qui ne tiennent qu'à une API dépréciée en amont
 devienne vert, et donc promouvable en bloquant.
 
 ## Contexte à charger
-à extraire  `docs/ci.md` › « La boucle locale d'analyse » — à corriger en fin de chantier : elle
-            annonce « sept règles éteintes » là où la config en porte huit, et un décompte de
-            remontées que chaque lot périme (189 l.)
-à lire      `eslint.config.analyse.js` — les huit extinctions de `tests/**` et leur motif ; c'est ici
+à extraire  `docs/ci.md` › « La boucle locale d'analyse » — à corriger en fin de chantier : son
+            compte de règles éteintes et ses décomptes de remontées, que les lots périment (189 l.)
+à lire      `eslint.config.analyse.js` — les extinctions de `tests/**` et leur motif ; c'est ici
             qu'on en retire une quand sa cause disparaît (78 l.)
 à situer    `docs/chantiers/archive/2026-09-11-boucle-analyse-locale.md` — la fiche du montage,
             conclusions déjà distillées ici, ne pas la relire
@@ -25,20 +24,18 @@ devienne vert, et donc promouvable en bloquant.
   « toujours fausses », réelles à l'exécution. Un verdict ne dure pas : refaire l'épreuve.
 - Un constat en traîne d'autres, dans les deux sens : d'autres fichiers portent la même cause, et la
   corriger fait apparaître le constat suivant sur la même ligne — la bonne forme vient en deux temps.
-- Les tests d'intégration se ressemblent au mot près : une aide y est recopiée dans dix fichiers, une
-  cause s'y traite donc en un lot. Et les deux plugins relèvent parfois la même ligne : compter les
-  causes, jamais les remontées.
-- Le chiffre ne se recopie ni ne se relit : deux comptes faux annoncés, le second parce que
-  `noclobber` de zsh refusait d'écraser un rapport — rediriger par `>|`, et ne pas prendre l'`exit`
-  de la redirection pour celui de l'outil.
+- Les deux plugins relèvent parfois la même ligne : compter les causes, jamais les remontées.
+- Le chiffre ne se recopie ni ne se relit : trois comptes faux annoncés — `noclobber` de zsh refuse
+  d'écraser un rapport (rediriger par `>|`, **y compris `2>|`** : refusée, la redirection d'erreur
+  fait que rien ne tourne et le rapport reste vide), et `--format unix` n'est plus livré avec ESLint.
 - Une correction qui touche une assertion de test se réprouve par une sonde adverse — condition
-  inversée, le test doit virer au rouge — puis se restaure. Sans ça, rien ne distingue une assertion
-  vivante d'un décor.
+  inversée, le test doit virer au rouge. Restaurer ensuite par une copie prise hors de l'arbre, avec
+  vérification d'empreinte ; jamais par `git restore`, le travail du lot n'étant pas encore commité.
 
 ## Prochaine étape
-Attaquer `prefer-regexp-exec` sur `regler-lien-video.test.ts`, `texte-riche.test.ts` et
-`liste-des-pages-statique.test.ts` — les deux plugins y relèvent les mêmes lignes : le lot se compte
-en causes, pas en remontées.
+Attaquer les quatre `sonarjs/pseudo-random` — un `Math.random()` de fixture dans
+`corriger-bouton-action.test.ts`, `liste-des-pages.test.ts`, `regler-lien-video.test.ts` et
+`texte-riche.test.ts` : une seule cause de fond, quatre sites, à traiter d'un geste.
 
 ## Écarté
 - **Lancer `--fix` sur tout le dépôt sans relire le diff** — `||` et `??` ne coïncident pas sur `0` et
