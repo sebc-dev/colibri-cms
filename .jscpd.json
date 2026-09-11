@@ -1,0 +1,16 @@
+{
+  "threshold": 5,
+  "minTokens": 50,
+  "minLines": 5,
+  "reporters": ["console"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.astro/**",
+    "**/.wrangler/**",
+    "**/coverage/**",
+    "**/.stryker-tmp/**",
+    "**/reports/**"
+  ],
+  "absolute": false
+}

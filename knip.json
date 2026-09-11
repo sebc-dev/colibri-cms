@@ -1,6 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
+    "eslint.config.analyse.js",
+    "scripts/rapports-analyse.mjs",
     "src/pages/**/*.astro",
     "src/admin/ilots-svelte-5/monter.ts",
     "src/platform/d1/sonde-dev.ts"
