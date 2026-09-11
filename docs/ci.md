@@ -23,11 +23,51 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Couverture | `npm run coverage` | `coverage/lcov.info` — informatif |
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
 | Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, joué en **bloquant** par la quality gate du cycle `run` (`.claude/quality.json`) ; aucun workflow de CI ne le joue |
+| Analyse type-aware | `npm run analyse` | `eslint --config eslint.config.analyse.js .` — typescript-eslint `strictTypeChecked` + `stylisticTypeChecked` + `eslint-plugin-sonarjs`, sur les `.ts` seuls. Ce que le graphe de types rend visible et qu'aucune passe syntaxique ne voit. **En avis** dans la quality gate ; aucun workflow ne le joue |
+| Duplication | `npm run dup` | `jscpd src` — seuil 5 % (`.jscpd.json`), 4,00 % au relevé du 2026-09-11 |
+| Duplication neuve | `npm run dup:nouveau` | `jscpd src --baseline-from-ref origin/main --fail-on-new-clones` — n'échoue que sur un clone **absent de `origin/main`**. C'est la forme jouée par la quality gate |
+| Boucle complète | `npm run check` | `lint` → `lint:boundaries` → `analyse` → `dup` → `knip`, en console, à l'arrêt sur le premier rouge |
+| Boucle complète, en JSON | `npm run check:agent` | `node scripts/rapports-analyse.mjs` — joue les trois outils **jusqu'au bout** (une chaîne de `&&` s'arrêterait au premier), écrit `reports/analyse/{eslint.json,jscpd/jscpd-report.json,knip.json}` et imprime un digest. Rend toujours 0 : il constate, il ne juge pas |
 | Migrations locales | `npm run db:migrate` | `wrangler d1 migrations apply DB --local` — applique `migrations/` à la base D1 locale |
 | Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.astro.jsonc` — Astro ne lit jamais `wrangler.jsonc` (racine), réservé aux tests |
 
 `npm run knip` (code non utilisé) et `npm run mutation` (Stryker) sont des **outils manuels** :
 aucun workflow ne les joue, aucun seuil n'en dépend.
+
+### La boucle locale d'analyse (posée le 2026-09-11)
+
+Quatre outils, une seule intention : rendre un retour de qualité **lisible par un agent** pendant
+qu'il code, sans serveur, sans jeton, sans compte. Deux régimes, à ne pas confondre :
+
+- **Boucle serrée**, pendant que le code s'écrit — une passe, sur les seuls fichiers touchés :
+  `npx eslint --config eslint.config.analyse.js src/le/fichier.ts` (~3 s).
+- **Boucle complète**, quand une tranche est finie — `npm run check` (verdict, ~10 s) ou
+  `npm run check:agent` (les mêmes outils en JSON sous `reports/analyse/`, pour que l'agent lise un
+  rapport au lieu d'avaler une sortie console).
+
+Trois fichiers de configuration ESLint cohabitent, **un par intention** — `eslint.config.js` (style,
+bloquant), `eslint.config.boundaries.js` (invariant `I1`, bloquant), `eslint.config.analyse.js`
+(type-aware, en avis). Ce n'est pas de la dispersion : ce sont trois questions différentes, qu'on
+veut pouvoir jouer et faire échouer séparément.
+
+**Ce que la passe `analyse` ne couvre pas** : les fichiers `.astro` et `.svelte`. Le lint à types
+exige le programme TypeScript que leurs parsers tiers ne rendent pas. Les îlots restent donc tenus
+par `tsc`, par `lint:boundaries` — qui, lui, les parse — et par la review, pas par cette passe.
+
+**Dette antérieure, mesurée au montage** : `npm run analyse` sort **rouge** à 119 remontées, dont
+**29 dans `src/`** (le reste dans `tests/`). C'est pourquoi le check est en **avis** et non bloquant :
+un check qu'on pose rouge et qu'on déclare bloquant ne fait que paralyser le cycle. Il se promeut en
+bloquant le jour où il est vert — et ce jour-là, il suffit de passer `severity` à `blocking` dans
+`.claude/quality.json`, le ruleset GitHub n'exigeant aucun check.
+
+**Calibrage assumé** : sur `tests/**`, sept règles sont éteintes (la famille `no-unsafe-*`,
+`require-await`, `no-deprecated`, `sonarjs/deprecation`). Les tests d'intégration parlent au worker
+par HTTP — `res.json()` rend `any` par contrat — et `SELF`/`env` de `cloudflare:test` sont déclarés
+dépréciés en amont alors qu'ils sont la seule porte d'entrée du pool `workerd`. Sans ce calibrage :
+486 remontées dont 456 dans les tests, c'est-à-dire aucun signal. `src/` garde la grille entière.
+La migration `SELF`/`env` → `cloudflare:workers` que ces règles signalent (77 occurrences) est un
+travail à part entière, consigné dans
+[`docs/chantiers/archive/2026-09-11-boucle-analyse-locale.md`](./chantiers/archive/2026-09-11-boucle-analyse-locale.md).
 
 > ⚠️ **`npm run mutation` mesure désormais, mais aucun score n'a encore été relevé depuis.**
 > ADR-0013 fait du score de mutation l'indicateur de profondeur des tests ; le relevé du 2026-09-10 a
@@ -132,14 +172,17 @@ n'ont pas écrit le code, suivies d'un triage adversarial (`/scd-spec-dev:run`, 
 
 Une **quality gate déterministe** rejoue des checks à chaque ticket (phase 7½ de
 `/scd-spec-dev:run`) : elle est **possédée par le projet** dans `.claude/quality.json`
-(`/scd-spec-dev:quality-setup`). Posée le 2026-09-06, à six checks : `typecheck`, `lint` et
-`boundaries` **bloquants** (`lint` seul porte un autofix, `eslint --fix`), `build`, `test` et `knip`
-en **avis**. Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un
+(`/scd-spec-dev:quality-setup`). Posée le 2026-09-06 à six checks, portée à **huit** le
+2026-09-11 : `typecheck`, `lint` et `boundaries` **bloquants** (`lint` seul porte un autofix,
+`eslint --fix`), `build`, `test`, `knip`, `analyse` et `dup` en **avis**. Ni `analyse` ni `dup` ne
+porte d'autofix, délibérément : `eslint --fix` sait réécrire une partie des règles à types, mais ces
+réécritures touchent la sémantique (`||` et `??` ne coïncident pas sur `0` et `''`), et factoriser un
+clone, c'est réécrire de la logique — aucun des deux n'est un geste mécanique. Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un
 check n'est bloquant que si le projet le déclare.
 
 Chaque check a son **diagnostiqueur** dédié, `.claude/agents/quality-<id>.md`
 (`/scd-spec-dev:quality-agents`), lui aussi possédé par le projet : en échec non résorbé par
-l'autofix, le run route vers lui plutôt que vers le générique `quality-advisor`. Les six sont en
+l'autofix, le run route vers lui plutôt que vers le générique `quality-advisor`. Les huit sont en
 **lecture seule** — ils remontent et proposent, ils n'éditent rien. Aucun **applier** de projet
 n'est déclaré : les corrections passent par le `fix-applier` générique, qui exige un diff de test
 **vide**. Un applier — le seul agent autorisé à renforcer un test — ne se justifiera que le jour où
