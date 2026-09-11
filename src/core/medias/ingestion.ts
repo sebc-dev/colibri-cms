@@ -138,6 +138,35 @@ function estMarqueurSof(marqueur: number): boolean {
 }
 
 /**
+ * Le marqueur du segment qui commence à `pos`, ou `null` si l'en-tête est
+ * tronqué ou désynchronisé (tout marqueur est précédé de `FF`).
+ */
+function lireMarqueur(octets: Uint8Array, pos: number): number | null {
+  if (pos + 1 >= octets.length || octets[pos] !== 0xff) {
+    return null;
+  }
+  return octets[pos + 1];
+}
+
+/** Marqueurs sans segment de longueur : standalone (RST0-RST7, TEM). */
+function estMarqueurSansSegment(marqueur: number): boolean {
+  return (marqueur >= 0xd0 && marqueur <= 0xd7) || marqueur === 0x01;
+}
+
+/**
+ * Les dimensions portées par un segment SOF dont la charge commence à `pos`,
+ * ou `null` si le segment est tronqué ou trop court pour les porter.
+ */
+function lireDimensionsSof(octets: Uint8Array, pos: number, longueur: number): DimensionsImage | null {
+  if (longueur < 7 || pos + longueur > octets.length) {
+    return null;
+  }
+  const hauteur = (octets[pos + 3] << 8) | octets[pos + 4];
+  const largeur = (octets[pos + 5] << 8) | octets[pos + 6];
+  return { largeur, hauteur };
+}
+
+/**
  * Parcourt les segments JPEG à la recherche d'un marqueur SOF, en sautant
  * les segments (APP0/JFIF, EXIF…) qui peuvent le précéder (test-plan.md :
  * SOF non collé au SOI). Un en-tête tronqué, à quelque étape que ce soit,
@@ -145,18 +174,14 @@ function estMarqueurSof(marqueur: number): boolean {
  */
 function lireDimensionsJpeg(octets: Uint8Array): DimensionsImage | null {
   let pos = 2; // après le SOI (FF D8)
-  while (true) {
-    if (pos + 1 >= octets.length) {
+  for (;;) {
+    const marqueur = lireMarqueur(octets, pos);
+    if (marqueur === null) {
       return null;
     }
-    if (octets[pos] !== 0xff) {
-      return null;
-    }
-    const marqueur = octets[pos + 1];
     pos += 2;
 
-    // Marqueurs sans segment de longueur : standalone (RST0-RST7, TEM).
-    if ((marqueur >= 0xd0 && marqueur <= 0xd7) || marqueur === 0x01) {
+    if (estMarqueurSansSegment(marqueur)) {
       continue;
     }
     if (marqueur === 0xd9) {
@@ -170,12 +195,7 @@ function lireDimensionsJpeg(octets: Uint8Array): DimensionsImage | null {
     const longueur = ((octets[pos] << 8) | octets[pos + 1]) >>> 0;
 
     if (estMarqueurSof(marqueur)) {
-      if (longueur < 7 || pos + longueur > octets.length) {
-        return null;
-      }
-      const hauteur = (octets[pos + 3] << 8) | octets[pos + 4];
-      const largeur = (octets[pos + 5] << 8) | octets[pos + 6];
-      return { largeur, hauteur };
+      return lireDimensionsSof(octets, pos, longueur);
     }
 
     pos += longueur;
