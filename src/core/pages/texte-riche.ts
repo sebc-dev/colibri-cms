@@ -238,7 +238,7 @@ function analyserBloc(bloc: string): NoeudDocument {
     if (correspondanceTitre) {
       return {
         type: 'heading',
-        attrs: { level: correspondanceTitre[1]!.length },
+        attrs: { level: correspondanceTitre[1].length },
         content: analyserInline(correspondanceTitre[2] ?? ''),
       };
     }
