@@ -77,7 +77,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())

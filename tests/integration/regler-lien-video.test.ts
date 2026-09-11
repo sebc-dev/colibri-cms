@@ -55,7 +55,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())
@@ -283,7 +283,7 @@ describe('SC-05d — un lien non reconnu est refusé au niveau du champ, en disa
 
     // …et le message pour un lien hors liste blanche dit ce qui EST attendu
     // (un lien YouTube ou Vimeo), pas seulement que le lien est refusé.
-    const motifLienInvalide = source.match(/'lien-invalide':\s*\n?\s*"([^"]+)"/)?.[1] ?? '';
+    const motifLienInvalide = source.match(/'lien-invalide':\s*"([^"]+)"/)?.[1] ?? '';
     expect(motifLienInvalide.length).toBeGreaterThan(0);
     expect(motifLienInvalide.toLowerCase()).toMatch(/youtube/);
     expect(motifLienInvalide.toLowerCase()).toMatch(/vimeo/);

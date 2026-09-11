@@ -17,7 +17,7 @@
  */
 import { it, expect } from 'vitest';
 
-const GARDE_DE_SESSION = /import\s+[^;]*from\s+['"][^'"]*platform\/session[^'"]*['"]/;
+const GARDE_DE_SESSION = /import\s[^;]*from\s['"][^'"]*platform\/session[^'"]*['"]/;
 const DIRECTIVE_CLIENT = /client:(load|idle|visible|media|only)/;
 const BLOC_STYLE = /<style[\s>]/i;
 

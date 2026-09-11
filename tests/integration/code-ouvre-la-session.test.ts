@@ -95,7 +95,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())
@@ -303,7 +303,7 @@ it('une fois la session ouverte, l’accueil affiché ne porte aucun formulaire,
   const corps = await reponseAccueil.text();
   expect(corps).not.toMatch(/<form[\s>]/i);
   expect(corps).not.toMatch(/<button[\s>]/i);
-  expect(corps).not.toMatch(/<a\s+[^>]*href=/i);
+  expect(corps).not.toMatch(/<a\s[^>]*href=/i);
 });
 
 // --- c3 — la saisie est normalisée : casse indifférente ---
