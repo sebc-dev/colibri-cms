@@ -31,13 +31,17 @@ export function activerNavigationListeDesPages(idListe: string): void {
     return;
   }
   if (!Array.isArray(identifiants)) return;
+  // `Array.isArray` ne narrowe `unknown` qu'en `any[]` : c'est cette
+  // annotation, et non le garde, qui empêche les éléments de traverser en
+  // `any` le reste de la fonction.
+  const identifiantsBruts: unknown[] = identifiants;
 
   const lignes = Array.from(liste.children).filter(
     (element): element is HTMLLIElement => element instanceof HTMLLIElement,
   );
 
   lignes.forEach((ligne, index) => {
-    const identifiant = identifiants[index];
+    const identifiant = identifiantsBruts[index];
     if (typeof identifiant !== 'string') return;
 
     const destination = `/admin/pages/${identifiant}`;
