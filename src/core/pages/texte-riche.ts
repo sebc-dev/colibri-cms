@@ -175,7 +175,11 @@ const MOTIF_GRAS = /\*\*([^*]+)\*\*/g;
 const MOTIF_ITALIQUE = /_([^_]+)_/g;
 
 function prochainJeton(texte: string, depuis: number): JetonInline | null {
-  const candidats: JetonInline[] = [];
+  // Le plus à gauche gagne ; à égalité, l'ordre de la liste tranche (lien, gras,
+  // italique). Retenir le meilleur au fil du parcours plutôt que collecter puis
+  // réduire évite un `reduce()` sans valeur initiale, dont la sûreté ne tenait
+  // qu'à une garde `length === 0` posée à distance.
+  let meilleur: JetonInline | null = null;
   for (const [motif, type] of [
     [MOTIF_LIEN, 'lien'],
     [MOTIF_GRAS, 'gras'],
@@ -183,12 +187,11 @@ function prochainJeton(texte: string, depuis: number): JetonInline | null {
   ] as const) {
     motif.lastIndex = depuis;
     const correspondance = motif.exec(texte);
-    if (correspondance) {
-      candidats.push({ debut: correspondance.index, fin: motif.lastIndex, type, correspondance });
+    if (correspondance && (meilleur === null || correspondance.index < meilleur.debut)) {
+      meilleur = { debut: correspondance.index, fin: motif.lastIndex, type, correspondance };
     }
   }
-  if (candidats.length === 0) return null;
-  return candidats.reduce((meilleur, candidat) => (candidat.debut < meilleur.debut ? candidat : meilleur));
+  return meilleur;
 }
 
 function ajouterMarque(noeuds: readonly NoeudDocument[], marque: Marque): NoeudDocument[] {
