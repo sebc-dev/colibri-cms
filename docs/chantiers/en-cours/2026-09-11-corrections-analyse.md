@@ -1,7 +1,7 @@
-# Résorber ce que la passe d'analyse lève sur `src/`
+# Résorber ce que la passe d'analyse lève
 
 Portée : hors-cycle
-Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `502d53a`
+Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `271c4b2`
 
 ## Objectif
 J'allais traiter par petits lots ce que `npm run analyse` lève — `src/` d'abord, `tests/` ensuite —
@@ -9,10 +9,9 @@ puis retirer les extinctions qui ne tiennent qu'à une API dépréciée en amont
 devienne vert, et donc promouvable en bloquant.
 
 ## Contexte à charger
-à extraire  `docs/ci.md` › « La boucle locale d'analyse » — les deux régimes, le calibrage assumé et
-            la limite `.astro`/`.svelte` ; porte deux chiffres à reprendre en fin de chantier, « sept
-            règles éteintes » là où la config en porte huit, et un décompte de `src/` que chaque lot
-            périme (189 l., seule cette section compte)
+à extraire  `docs/ci.md` › « La boucle locale d'analyse » — les deux régimes et la limite
+            `.astro`/`.svelte` ; porte deux chiffres à reprendre en fin de chantier : « sept règles
+            éteintes » là où la config en porte huit, et un décompte que chaque lot périme (189 l.)
 à lire      `eslint.config.analyse.js` — les huit extinctions de `tests/**` et leur motif ; c'est ici
             qu'on en retire une quand sa cause disparaît (78 l.)
 à situer    `docs/chantiers/archive/2026-09-11-boucle-analyse-locale.md` — la fiche du montage,
@@ -21,24 +20,25 @@ devienne vert, et donc promouvable en bloquant.
             seulement si un run remonte l'arriéré au lieu des fichiers du ticket
 
 ## Acquis
-- J'ai retenu un ordre qui n'est pas celui du volume : les constats qui demandent un regard d'abord,
-  la migration `SELF`/`env` en dernier.
-- J'ai appris que `--fix` n'est pas « rien à juger » : sur trois corrections proposées, deux cassaient
-  `tsc`. Relire le diff ET rejouer le typage fait partie du lot, ce n'est pas un supplément.
-- J'ai trouvé comment trancher faux positif / vrai constat sans deviner : quel `tsconfig` couvre le
-  fichier, et `noUncheckedIndexedAccess` y est-il actif ? Ici un seul, l'option absente — c'est elle
-  qui fabrique les gardes dites « toujours fausses » qui sont pourtant réelles à l'exécution. Et le
-  verdict n'est pas durable : le faux positif de `pages.ts` s'est évaporé dès que le type est passé
-  ailleurs. Refaire l'épreuve avant de poser une extinction, jamais la croire sur parole.
-- J'ai appris qu'un constat nommé en traîne d'autres : ouvrir le fichier entier plutôt que les seules
-  lignes visées — la cause des `all<T>()` de D1 courait sur quatre fichiers.
-- Le chiffre ne se recopie ni ne se relit : `npm run check:agent` le refait. Un rapport gardé d'une
-  passe précédente m'a fait annoncer un compte faux.
+- `--fix` n'est pas « rien à juger » : sur trois corrections proposées, deux cassaient `tsc`. Relire
+  le diff ET rejouer le typage fait partie du lot.
+- Trancher faux positif / vrai constat sans deviner : quel `tsconfig` couvre le fichier, et
+  `noUncheckedIndexedAccess` y est-il actif ? Ici un seul, l'option absente — c'est elle qui fabrique
+  les gardes dites « toujours fausses », réelles à l'exécution. Un verdict ne dure pas : refaire
+  l'épreuve.
+- Un constat en traîne d'autres, dans les deux sens : d'autres fichiers portent la même cause, et la
+  corriger fait apparaître le constat suivant sur la même ligne — la bonne forme vient en deux temps.
+- Les tests d'intégration se ressemblent au mot près : une aide y est recopiée dans dix fichiers, une
+  cause s'y traite donc en un lot. Et les deux plugins relèvent parfois la même ligne : compter les
+  causes, jamais les remontées.
+- Le chiffre ne se recopie ni ne se relit : deux comptes faux annoncés, le second parce que
+  `noclobber` de zsh refusait d'écraser un rapport — rediriger par `>|`, et ne pas prendre l'`exit`
+  de la redirection pour celui de l'outil.
 
 ## Prochaine étape
-Attaquer `tests/**`, par la famille du duck-type `DB` recopié dans une dizaine de fichiers de test —
-même cause que celle traitée côté `src/`, même geste. Typage, build et tests à chaque fois ; un
-commit par cause.
+Attaquer `prefer-nullish-coalescing` — dix remontées, une par test d'intégration, sur la garde
+`if (!schemaPret)` / `if (!migrationAppliquee)`. C'est la famille que l'`Écarté` vise nommément :
+chaque site se relit, aucun `--fix` en lot.
 
 ## Écarté
 - **Lancer `--fix` sur tout le dépôt sans relire le diff** — `||` et `??` ne coïncident pas sur `0` et
