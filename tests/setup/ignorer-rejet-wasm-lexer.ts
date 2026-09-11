@@ -4,7 +4,7 @@
 // Astro embarque es-module-lexer — un outil de BUILD (parsing d'imports) — dans le
 // bundle SSR du Worker. Son initialisation lance un `WebAssembly.compile(...)`
 // fire-and-forget, sans `.catch`, dont le résultat est jeté. Le sandbox workerd
-// (@cloudflare/vitest-pool-workers, ADR-0003) interdit la génération de code WASM à
+// (@cloudflare/vitest-plugin, ADR-0003) interdit la génération de code WASM à
 // l'exécution → la promesse rejette → un rejet non géré par test qui démarre le
 // Worker. Le lexer ne sert qu'au build : aucun test n'en dépend, le vert est réel.
 //

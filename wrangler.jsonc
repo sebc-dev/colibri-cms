@@ -5,13 +5,16 @@
   // valeur propre à l'instance (FR-022). Le domaine et la clé publique
   // Turnstile vivent dans instance.json (I8), lu par astro.config.ts seul.
   // Lue par défaut (`wrangler d1 migrations apply DB --local`) et par
-  // `@cloudflare/vitest-pool-workers` (`vitest.config.ts`, configPath
+  // `@cloudflare/vitest-plugin` (`vitest.config.ts`, configPath
   // explicite) — jamais par Astro lui-même, qui lit `wrangler.astro.jsonc`
   // (ticket 01, voir `astro.config.ts`).
   "name": "colibri-cms",
-  // Bornée par le binaire workerd figé au lockfile (1.20260801.1, plus haute
-  // date supportée 2026-08-08) — au-delà, workerd refuse de démarrer et toute
-  // exécution de test échoue ; se relève avec le workerd du lockfile.
+  // Bornée par le binaire workerd figé au lockfile : au-delà de sa plus haute
+  // date supportée, workerd refuse de démarrer et toute exécution de test
+  // échoue ; se relève avec le workerd du lockfile. Les deux lecteurs de CE
+  // fichier — le pool de test et `wrangler d1` — tiennent 1.20260903.1 depuis
+  // la montée de `@cloudflare/vitest-plugin` ; l'adaptateur Astro hisse encore
+  // 1.20260801.1, mais il lit `wrangler.astro.jsonc`, pas ce fichier.
   "compatibility_date": "2026-08-01",
   "d1_databases": [
     {
@@ -35,7 +38,7 @@
     }
   ],
   // Couture de test (ticket 01 — la porte close, ADR-0003) : `SELF.fetch`
-  // (`@cloudflare/vitest-pool-workers`) exige `poolOptions.workers.main`, et
+  // (`@cloudflare/vitest-plugin`) exige `poolOptions.workers.main`, et
   // `vitest.config.ts` (fichier de configuration : ne pas y déroger pour
   // faire passer un test) donne un `configPath` explicite à CE
   // fichier — voir `scripts/preparer-worker-de-test.mjs` pour le pourquoi de

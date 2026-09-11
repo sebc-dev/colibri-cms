@@ -9,7 +9,7 @@ context: |
              un ADR accepté ; numérotation 2.x ; les ADR 0001–0008, promus depuis le cycle 1.x, citent
              des numéros 1.x dans leur corps, les ADR nés en 2.x (0009 et suivants) citent des numéros
              2.x — la table de correspondance est dans docs/adr/README.md)
-  Test     : workerd via @cloudflare/vitest-pool-workers ; mode de vérif (tdd/test/observé/aucun)
+  Test     : workerd via @cloudflare/vitest-plugin ; mode de vérif (tdd/test/observé/aucun)
              décidé par strategie-verif à la décomposition
   Sécurité : docs/security.md ; valider toute entrée externe, aucun secret en clair ; un seul Worker
              sert public + admin (même origine → tout script tiers = risque XSS sur le cookie admin)

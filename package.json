@@ -36,7 +36,7 @@
     "tailwind-variants": "^3.3.1"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.20.3",
+    "@cloudflare/vitest-plugin": "^1.1.4",
     "@eslint/js": "^10.0.1",
     "@stryker-mutator/core": "^9.6.1",
     "@tailwindcss/vite": "^4.3.3",
@@ -52,7 +52,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.66.0",
     "vitest": "^4.1.0",
-    "wrangler": "^4.120.0"
+    "wrangler": "^4.129.0"
   },
   "overrides": {
     "qs": "^6.16.0",

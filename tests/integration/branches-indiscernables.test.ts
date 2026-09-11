@@ -36,7 +36,7 @@
  * 03 (mutation de `env` via `cloudflare:test`, jamais un double interne) :
  * seule dépendance hors-process de cette route (`send_email`, ADR-0002).
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
 import { it, expect, afterEach } from 'vitest';
 

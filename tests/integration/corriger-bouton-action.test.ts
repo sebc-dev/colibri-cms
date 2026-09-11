@@ -14,7 +14,7 @@
  * réel (`bouton-devis`) : ce fichier ne sème aucune fixture de déclaration,
  * il s'appuie sur celle déjà posée (ADR-0012), comme `liste-des-pages.test.ts`.
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
 import { it, expect, afterEach, describe } from 'vitest';
 

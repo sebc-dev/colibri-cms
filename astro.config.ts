@@ -86,7 +86,7 @@ export default defineConfig({
   // un service d'images local).
   // `configPath` : Astro (dev et build) lit `wrangler.astro.jsonc`, jamais
   // `wrangler.jsonc` (racine) — ticket 01 (la porte close). La racine porte
-  // en plus `main`/`assets`, lus par `@cloudflare/vitest-pool-workers` seul
+  // en plus `main`/`assets`, lus par `@cloudflare/vitest-plugin` seul
   // (`vitest.config.ts`, protégé) ; si Astro les lisait aussi, il bâtirait
   // depuis ce champ au lieu de son propre graphe de pages (mesuré : voir
   // `scripts/preparer-worker-de-test.mjs`).

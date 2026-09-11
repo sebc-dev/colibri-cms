@@ -29,7 +29,7 @@
  * explicitement pour que le jour où une feature Turnstile l'ouvrira, ce
  * soit un changement délibéré de ce test, jamais un relâchement silencieux.
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF } from 'cloudflare:test';
 import { it, expect } from 'vitest';
 

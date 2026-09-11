@@ -61,7 +61,7 @@
  * dépendance hors-process de cette route (`send_email`, ADR-0002), jamais un
  * double interne.
  */
-/// <reference types="@cloudflare/vitest-pool-workers/types" />
+/// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
 import { it, expect, afterEach } from 'vitest';
 

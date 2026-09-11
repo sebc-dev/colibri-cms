@@ -11,7 +11,7 @@ d'un Durable Object. Un test qui ne rencontre jamais ces implémentations n'atte
 sera déployé. La question n'est pas *quel outil de test* mais **quel oracle** — et l'oracle retenu
 est celui du produit.
 
-- **Vitest exécuté dans `workerd`** via **`@cloudflare/vitest-pool-workers`**, avec un stockage
+- **Vitest exécuté dans `workerd`** via **`@cloudflare/vitest-plugin`**, avec un stockage
   partagé entre les tests d'un même fichier (aucune isolation par test : les tables persistent d'un
   `it()` à l'autre, d'où les nettoyages explicites) — les liaisons D1 et Durable Object rencontrées
   sont les implémentations réelles,
@@ -73,7 +73,7 @@ Les tests écrits sous le système précédent — les `tests/integration/*.test
 
 - **Ouvrir par la directive de types.** `tsconfig.json` étend `astro/tsconfigs/strict` et ne déclare
   aucune clé `types` : chaque fichier qui touche `cloudflare:test` commence donc par
-  `/// <reference types="@cloudflare/vitest-pool-workers/types" />`, juste avant ses imports (patron
+  `/// <reference types="@cloudflare/vitest-plugin/types" />`, juste avant ses imports (patron
   tenu par les huit fichiers de `tests/integration/`).
 - **Passer par le produit.** `import { SELF, env } from 'cloudflare:test'` : `SELF.fetch(...)` lance
   une requête HTTP réelle contre le worker tel qu'il tournerait déployé, `env` donne les liaisons de

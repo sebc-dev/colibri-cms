@@ -8,7 +8,7 @@
  * test, et le lint n'analyse pas du code de sortie de build.
  *
  * Pourquoi ce détour existe (ticket 01 — la porte close, ADR-0003) :
- * `@cloudflare/vitest-pool-workers` (`SELF.fetch`) exige que
+ * `@cloudflare/vitest-plugin` (`SELF.fetch`) exige que
  * `poolOptions.workers.main` résolve un point d'entrée réel.
  * `vitest.config.ts` (protégé, hors de portée de ce lot) donne un
  * `configPath` explicite à `wrangler.jsonc` — ce qui empêche `wrangler` de
