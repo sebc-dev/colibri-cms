@@ -89,7 +89,7 @@ interface DBLike {
   prepare(query: string): {
     bind(...valeurs: unknown[]): { run(): Promise<unknown> };
     run(): Promise<unknown>;
-    all<T = unknown>(): Promise<{ results: T[] }>;
+    all(): Promise<{ results: unknown[] }>;
   };
 }
 

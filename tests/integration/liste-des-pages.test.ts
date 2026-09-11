@@ -48,9 +48,9 @@ const TABLE_SESSIONS = 'sessions';
 const ROUTE_MES_PAGES = 'https://example.com/admin/mes-pages';
 
 interface InstructionLike {
-  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all<T = unknown>(): Promise<{ results: T[] }> };
+  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all(): Promise<{ results: unknown[] }> };
   run(): Promise<unknown>;
-  all<T = unknown>(): Promise<{ results: T[] }>;
+  all(): Promise<{ results: unknown[] }>;
 }
 
 interface DBLike {

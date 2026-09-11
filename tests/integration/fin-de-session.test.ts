@@ -61,9 +61,9 @@ const PATH_CONNEXION_RE = /^\/admin\/connexion\/?$/;
 const REDIRECT_STATUSES = [301, 302, 303, 307, 308];
 
 interface InstructionLike {
-  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all<T = unknown>(): Promise<{ results: T[] }> };
+  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all(): Promise<{ results: unknown[] }> };
   run(): Promise<unknown>;
-  all<T = unknown>(): Promise<{ results: T[] }>;
+  all(): Promise<{ results: unknown[] }>;
 }
 
 interface DBLike {
@@ -134,8 +134,8 @@ async function lireDernierUsage(db: DBLike, id: string): Promise<number | null> 
   const resultat = await db
     .prepare(`select dernier_usage_le from ${TABLE_SESSIONS} where id = ?1`)
     .bind(id)
-    .all<{ dernier_usage_le: number | null }>();
-  return resultat.results[0]?.dernier_usage_le ?? null;
+    .all();
+  return (resultat.results as { dernier_usage_le: number | null }[]).at(0)?.dernier_usage_le ?? null;
 }
 
 async function accederAAccueil(cookieSession: string | null): Promise<Response> {

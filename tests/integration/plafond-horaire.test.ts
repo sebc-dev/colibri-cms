@@ -63,7 +63,7 @@ interface DBLike {
   prepare(query: string): {
     bind(...valeurs: unknown[]): { run(): Promise<unknown> };
     run(): Promise<unknown>;
-    all<T = unknown>(): Promise<{ results: T[] }>;
+    all(): Promise<{ results: unknown[] }>;
   };
 }
 
@@ -170,8 +170,8 @@ async function semerAdresseAutorisee(db: DBLike, adresse: string): Promise<void>
 }
 
 async function compterCodes(db: DBLike): Promise<number> {
-  const resultat = await db.prepare(`select count(*) as n from ${TABLE_CODES}`).all<{ n: number }>();
-  return resultat.results[0]?.n ?? 0;
+  const resultat = await db.prepare(`select count(*) as n from ${TABLE_CODES}`).all();
+  return (resultat.results as { n: number }[]).at(0)?.n ?? 0;
 }
 
 /**
