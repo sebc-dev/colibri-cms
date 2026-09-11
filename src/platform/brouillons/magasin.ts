@@ -59,10 +59,9 @@ let schemaBrouillonsAssure: Promise<void> | null = null;
  * D1 où cette migration n'a pas été rejouée par la couture de test courante.
  */
 async function assurerTableBrouillons(db: DB): Promise<void> {
-  if (!schemaBrouillonsAssure) {
-    schemaBrouillonsAssure = db
-      .prepare(
-        `create table if not exists ${TABLE_BROUILLONS} (
+  schemaBrouillonsAssure ??= db
+    .prepare(
+      `create table if not exists ${TABLE_BROUILLONS} (
           page_slug text not null,
           id_emplacement text not null,
           nature text not null,
@@ -70,11 +69,10 @@ async function assurerTableBrouillons(db: DB): Promise<void> {
           maj_le integer not null,
           primary key (page_slug, id_emplacement)
         )`,
-      )
-      .bind()
-      .run()
-      .then(() => undefined);
-  }
+    )
+    .bind()
+    .run()
+    .then(() => undefined);
   await schemaBrouillonsAssure;
 }
 
