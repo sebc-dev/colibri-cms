@@ -1,7 +1,7 @@
 # Résorber ce que la passe d'analyse lève sur `src/`
 
 Portée : hors-cycle
-Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `ff7d8e3`
+Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `9d8e354`
 
 ## Objectif
 J'allais traiter par petits lots ce que `npm run analyse` lève sur `src/`, puis retirer les deux
@@ -30,23 +30,28 @@ donc promouvable en bloquant.
 - Les deux `as Record<…>` sur `import.meta.glob` de `src/platform/contenu/pages.ts` sont des FAUX
   POSITIFS de `no-unnecessary-type-assertion` — le programme TypeScript que résout le projectService
   d'ESLint n'est pas celui de `tsc`. Ce sont les seules corrections que `--fix` propose encore sur
-  `src/` : le vert passera par une extinction motivée, comme celles de `tests/**`, pas par une
-  correction.
-- Deux constats de `src/` sentent le défaut réel et non le style — une comparaison toujours vraie et
-  un `reduce()` sans valeur initiale, tous deux dans `core/pages/texte-riche.ts`. Pas encore ouverts.
+  `src/` : le vert passera par une extinction motivée, comme celles de `tests/**`, pas par une correction.
+- J'ai trouvé comment trancher faux positif / vrai constat sans deviner : regarder si un autre
+  `tsconfig` couvre le fichier, et si `noUncheckedIndexedAccess` y est actif. Ici il n'y en a qu'un et
+  l'option est absente — hors `pages.ts`, les remontées de typage sont donc vraies, pas suspectes.
+- J'ai appris qu'un constat nommé en traîne d'autres : ouvrir le fichier entier plutôt que les seules
+  lignes visées, la cause est souvent commune et se traite d'un coup.
 - Le chiffre ne se recopie pas : `npm run check:agent` le refait, et `reports/analyse/eslint.json`
   porte le détail par règle et par fichier.
 
 ## Prochaine étape
-Ouvrir `src/core/pages/texte-riche.ts` et traiter ses deux défauts réels — le `reduce()` sans valeur
-initiale, puis le `!==` toujours vrai dont les types n'ont aucun recouvrement. Typage, build et
-`tests/integration/texte-riche.test.ts` à chaque fois ; un commit isolé par défaut traité.
+Ouvrir `src/platform/brouillons/magasin.ts`, le plus gros reliquat de `src/`. Traiter d'abord ce qui
+sent le défaut réel — `sonarjs/no-invariant-returns` et `no-unnecessary-condition` —, les signatures
+(`no-unnecessary-type-parameters`) ensuite. Typage, build et tests à chaque fois ; un commit par cause.
 
 ## Écarté
 - **Lancer `--fix` sur tout le dépôt sans relire le diff** — `prefer-nullish-coalescing` est dans le
   lot, et `||` et `??` ne coïncident pas sur `0` et `''` : c'est sémantique, pas du formatage.
 - **Corriger les deux `as Record<…>` de `pages.ts`** — écarté à l'épreuve : `--fix` les retire et
   `tsc` casse aussitôt (TS18046, TS2339). La remontée est fausse ; la « correction » est une régression.
+- **Étendre ce soupçon aux autres remontées sans le vérifier** — écarté à l'épreuve aussi : sur
+  `texte-riche.ts`, sept remontées qui sentaient le faux positif étaient toutes réelles. Le soupçon se
+  vérifie par le `tsconfig`, il ne se présume pas — sinon on classe des défauts en bruit.
 - **Éteindre une règle plutôt que corriger** — `sonarjs/cognitive-complexity` en tête. Le calibrage
   est le contrat ; une extinction ne se justifie que par une cause nommée, comme celles de `tests/**`.
 - **Commencer par la migration `SELF`/`env`** — elle touche beaucoup d'endroits sans changer aucun
