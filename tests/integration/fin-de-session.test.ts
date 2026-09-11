@@ -87,19 +87,17 @@ function separerRequetes(sql: string): string[] {
 let schemaPret: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!schemaPret) {
-    schemaPret = (async () => {
-      const module = await import('../../migrations/0003_sessions.sql?raw');
-      for (const requete of separerRequetes(module.default)) {
-        await db.prepare(requete).run();
-      }
-      try {
-        await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
-      } catch {
-        // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
-      }
-    })();
-  }
+  schemaPret ??= (async () => {
+    const module = await import('../../migrations/0003_sessions.sql?raw');
+    for (const requete of separerRequetes(module.default)) {
+      await db.prepare(requete).run();
+    }
+    try {
+      await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
+    } catch {
+      // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+    }
+  })();
   await schemaPret;
   return db;
 }

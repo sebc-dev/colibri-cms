@@ -68,23 +68,21 @@ function separerRequetes(sql: string): string[] {
 let schemaPret: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!schemaPret) {
-    schemaPret = (async () => {
-      const sessions = await import('../../migrations/0003_sessions.sql?raw');
-      for (const requete of separerRequetes(sessions.default)) {
-        await db.prepare(requete).run();
-      }
-      try {
-        await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
-      } catch {
-        // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
-      }
-      const brouillons = await import('../../migrations/0004_brouillons_emplacements.sql?raw');
-      for (const requete of separerRequetes(brouillons.default)) {
-        await db.prepare(requete).run();
-      }
-    })();
-  }
+  schemaPret ??= (async () => {
+    const sessions = await import('../../migrations/0003_sessions.sql?raw');
+    for (const requete of separerRequetes(sessions.default)) {
+      await db.prepare(requete).run();
+    }
+    try {
+      await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
+    } catch {
+      // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+    }
+    const brouillons = await import('../../migrations/0004_brouillons_emplacements.sql?raw');
+    for (const requete of separerRequetes(brouillons.default)) {
+      await db.prepare(requete).run();
+    }
+  })();
   await schemaPret;
   return db;
 }

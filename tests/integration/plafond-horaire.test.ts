@@ -84,14 +84,12 @@ function separerRequetes(sql: string): string[] {
 let migrationAppliquee: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!migrationAppliquee) {
-    migrationAppliquee = (async () => {
-      const module = await import('../../migrations/0002_adresses_autorisees_et_codes_connexion.sql?raw');
-      for (const requete of separerRequetes(module.default)) {
-        await db.prepare(requete).run();
-      }
-    })();
-  }
+  migrationAppliquee ??= (async () => {
+    const module = await import('../../migrations/0002_adresses_autorisees_et_codes_connexion.sql?raw');
+    for (const requete of separerRequetes(module.default)) {
+      await db.prepare(requete).run();
+    }
+  })();
   await migrationAppliquee;
   return db;
 }
