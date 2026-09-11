@@ -64,7 +64,7 @@
  */
 /// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
-import { it, expect, afterEach } from 'vitest';
+import { it, expect, assert, afterEach } from 'vitest';
 
 const NOM_COOKIE_APPAREIL = 'identifiant-appareil';
 const NOM_COOKIE_SESSION = '__Host-session'; // Contrat supposé — voir en-tête.
@@ -486,9 +486,10 @@ it('la valeur du cookie de session ne laisse rien lire de la session', async () 
 
   const reponse = await soumettreCode('K3R7V1Z5', identifiantAppareil);
 
-  const valeur = extraireCookieValeur(reponse, NOM_COOKIE_SESSION);
-  expect(valeur).not.toBeNull();
-  const brut = valeur as string;
+  const brut = extraireCookieValeur(reponse, NOM_COOKIE_SESSION);
+  // `assert` plutôt que `expect(...).not.toBeNull()` : même échec si le cookie
+  // manque, mais il resserre le type, là où l'assertion `as` le forçait.
+  assert(brut !== null, 'aucune valeur portée par le cookie de session');
   // Ni l'appareil, ni le code, ni l'adresse ne doivent apparaître en clair
   // dans la valeur portée par le cookie.
   expect(brut).not.toContain(identifiantAppareil);

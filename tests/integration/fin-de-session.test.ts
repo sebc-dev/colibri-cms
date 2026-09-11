@@ -48,7 +48,7 @@
  */
 /// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
-import { it, expect, afterEach } from 'vitest';
+import { it, expect, assert, afterEach } from 'vitest';
 
 const NOM_COOKIE_SESSION = '__Host-session';
 const TABLE_SESSIONS = 'sessions';
@@ -256,9 +256,11 @@ it('accéder à l’accueil à l’intérieur de la fenêtre des sept jours repo
   const dernierUsageApres = await lireDernierUsage(db, 'jeton-c3-usage-repousse');
 
   expect(reponse.status).toBe(200);
-  expect(dernierUsageApres).not.toBeNull();
-  expect(dernierUsageApres as number).toBeGreaterThan(justeAvantSeptJours);
-  expect(maintenant - (dernierUsageApres as number)).toBeLessThan(60 * 1000);
+  // `assert` plutôt que `expect(...).not.toBeNull()` : même échec si la date
+  // manque, mais il resserre le type, là où l'assertion `as` le forçait.
+  assert(dernierUsageApres !== null, 'aucune date de dernier usage en base');
+  expect(dernierUsageApres).toBeGreaterThan(justeAvantSeptJours);
+  expect(maintenant - dernierUsageApres).toBeLessThan(60 * 1000);
 });
 
 // --- c4 — le rafraîchissement n'écrit pas en base à chaque requête ---
