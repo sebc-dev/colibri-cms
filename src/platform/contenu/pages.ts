@@ -36,7 +36,7 @@ const MODULES_PAGE_JSON: ReadonlyMap<string, { default: unknown }> = new Map(
   Object.entries(
     import.meta.glob('/content/pages/*/page.json', {
       eager: true,
-    }) as Record<string, { default: unknown }>,
+    }),
   ),
 );
 
@@ -44,7 +44,7 @@ const MODULES_TEXTE_RICHE = import.meta.glob('/content/pages/*/*.md', {
   eager: true,
   query: '?raw',
   import: 'default',
-}) as Record<string, string>;
+});
 
 /**
  * Extrait le slug (nom du répertoire posé par l'intégrateur) depuis le
