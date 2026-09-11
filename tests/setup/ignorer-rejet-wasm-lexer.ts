@@ -25,4 +25,4 @@ WebAssembly.compile = ((...args: Parameters<typeof WebAssembly.compile>) => {
     }
     throw err;
   });
-}) as typeof WebAssembly.compile;
+});

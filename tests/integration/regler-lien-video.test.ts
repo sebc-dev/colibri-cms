@@ -270,7 +270,7 @@ describe('SC-05d — un lien non reconnu est refusé au niveau du champ, en disa
     // même geste que `tests/static/gabarits-admin.test.ts`).
     const source = (
       await import('../../src/admin/ilots-svelte-5/ReglageLienVideo.svelte?raw')
-    ).default as string;
+    ).default;
 
     // Assert : un état d'erreur EST rendu au niveau du champ — une alerte
     // conditionnée à un message de refus tenu dans l'état local du champ, pas
@@ -293,8 +293,9 @@ describe('SC-05d — un lien non reconnu est refusé au niveau du champ, en disa
 
 it('SC-05e — le champ de réglage du lien et ses messages de refus ne portent aucun terme de développeur', async () => {
   // Arrange
-  const source = ((await import('../../src/admin/ilots-svelte-5/ReglageLienVideo.svelte?raw')).default as string)
-    .toLowerCase();
+  const source = (
+    await import('../../src/admin/ilots-svelte-5/ReglageLienVideo.svelte?raw')
+  ).default.toLowerCase();
 
   const TERMES_DEVELOPPEUR = [
     'commit',

@@ -96,19 +96,19 @@ describe('SC-03a — image, galerie et carrousel sont reconnues avec leur conten
 // --- SC-03b — une pose visant un emplacement non déclaré, ou déclaré d'une
 // autre nature, est refusée sans qu'aucun brouillon ne soit écrit ---
 
-const EMPLACEMENT_IMAGE: Emplacement = { id: 'photo-hero', nature: 'image', rang: 1, mediaId: 'media-abc' } as Emplacement;
+const EMPLACEMENT_IMAGE: Emplacement = { id: 'photo-hero', nature: 'image', rang: 1, mediaId: 'media-abc' };
 const EMPLACEMENT_GALERIE: Emplacement = {
   id: 'galerie-realisations',
   nature: 'galerie',
   rang: 2,
   mediaIds: ['media-1', 'media-2'],
-} as Emplacement;
+};
 const EMPLACEMENT_CARROUSEL: Emplacement = {
   id: 'carrousel-accueil',
   nature: 'carrousel',
   rang: 3,
   mediaIds: ['media-x', 'media-y'],
-} as Emplacement;
+};
 
 const EMPLACEMENTS_DECLARES: readonly Emplacement[] = [
   EMPLACEMENT_BOUTON,

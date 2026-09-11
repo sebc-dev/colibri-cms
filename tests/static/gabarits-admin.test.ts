@@ -67,7 +67,7 @@ it('au moins un gabarit d’administration existe, et aucun ne porte de directiv
     query: '?raw',
     import: 'default',
     eager: true,
-  }) as Record<string, string>;
+  });
 
   expect(Object.keys(fichiers).length, 'aucun gabarit .astro trouvé sous src/admin/').toBeGreaterThan(0);
   for (const [chemin, source] of Object.entries(fichiers)) {
@@ -80,7 +80,7 @@ it('au moins un gabarit d’administration existe, et aucun ne porte de bloc <st
     query: '?raw',
     import: 'default',
     eager: true,
-  }) as Record<string, string>;
+  });
 
   expect(Object.keys(fichiers).length, 'aucun gabarit .astro trouvé sous src/admin/').toBeGreaterThan(0);
   for (const [chemin, source] of Object.entries(fichiers)) {

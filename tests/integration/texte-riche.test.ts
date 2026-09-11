@@ -365,7 +365,7 @@ describe('SC-06d — la barre de mise en forme pose gras, italique, lien, liste 
     // mettre en forme ce champ (aucune infrastructure de test de composant
     // Svelte n'existe dans ce dépôt, docs/test.md — la source est donc
     // l'oracle, même geste que `ReglageLienVideo.svelte` pour SC-05d).
-    const source = (await import('../../src/admin/ilots-svelte-5/TexteRiche.svelte?raw')).default as string;
+    const source = (await import('../../src/admin/ilots-svelte-5/TexteRiche.svelte?raw')).default;
 
     // Assert : une barre de mise en forme, avec un bouton par commande —
     // jamais un champ texte libre où écrire du Markdown ou du HTML.
@@ -465,7 +465,7 @@ it('SC-06e — corriger le texte riche persiste le Markdown restreint, bascule l
 
 it('SC-06f — l’éditeur de texte riche et sa barre de mise en forme ne portent aucun terme de développeur', async () => {
   // Arrange
-  const source = (await import('../../src/admin/ilots-svelte-5/TexteRiche.svelte?raw')).default as string;
+  const source = (await import('../../src/admin/ilots-svelte-5/TexteRiche.svelte?raw')).default;
 
   const TERMES_DEVELOPPEUR = [
     'commit',

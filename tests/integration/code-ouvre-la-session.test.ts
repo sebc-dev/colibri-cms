@@ -506,7 +506,7 @@ it('la valeur du cookie de session ne laisse rien lire de la session', async () 
     decodage = null;
   }
   if (decodage !== null) {
-    expect(() => JSON.parse(decodage as string)).toThrow();
+    expect(() => JSON.parse(decodage)).toThrow();
   }
 });
 
