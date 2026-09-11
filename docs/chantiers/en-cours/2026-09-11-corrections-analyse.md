@@ -1,7 +1,7 @@
 # Résorber ce que la passe d'analyse lève
 
 Portée : hors-cycle
-Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `30354a6`
+Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `67cb2ed`
 
 ## Objectif
 J'allais traiter par petits lots ce que `npm run analyse` lève — `src/` d'abord, `tests/` ensuite —
@@ -20,9 +20,6 @@ devienne vert, et donc promouvable en bloquant.
 ## Acquis
 - `--fix` n'est pas « rien à juger » : sur trois corrections proposées, deux cassaient `tsc`. Relire
   le diff ET rejouer le typage fait partie du lot.
-- Sur `||` → `??`, c'est le TYPE qui tranche, pas la lecture du site : quand le seul falsy qu'il
-  autorise est `null`, les deux coïncident et tout le lot devient sûr d'un coup. Vérifier la
-  déclaration, jamais la seule forme de la garde.
 - Trancher faux positif / vrai constat sans deviner : quel `tsconfig` couvre le fichier, et
   `noUncheckedIndexedAccess` y est-il actif ? C'est cette option qui fabrique les gardes dites
   « toujours fausses », réelles à l'exécution. Un verdict ne dure pas : refaire l'épreuve.
@@ -34,11 +31,14 @@ devienne vert, et donc promouvable en bloquant.
 - Le chiffre ne se recopie ni ne se relit : deux comptes faux annoncés, le second parce que
   `noclobber` de zsh refusait d'écraser un rapport — rediriger par `>|`, et ne pas prendre l'`exit`
   de la redirection pour celui de l'outil.
+- Une correction qui touche une assertion de test se réprouve par une sonde adverse — condition
+  inversée, le test doit virer au rouge — puis se restaure. Sans ça, rien ne distingue une assertion
+  vivante d'un décor.
 
 ## Prochaine étape
-Attaquer les assertions de type superflues des tests — `no-unnecessary-type-assertion` et sa voisine
-`non-nullable-type-assertion-style`, même famille. Soupçon à éprouver et non à croire : sur
-`texte-riche.ts`, sept remontées qui sentaient le faux positif étaient toutes réelles.
+Attaquer `prefer-regexp-exec` sur `regler-lien-video.test.ts`, `texte-riche.test.ts` et
+`liste-des-pages-statique.test.ts` — les deux plugins y relèvent les mêmes lignes : le lot se compte
+en causes, pas en remontées.
 
 ## Écarté
 - **Lancer `--fix` sur tout le dépôt sans relire le diff** — `||` et `??` ne coïncident pas sur `0` et
@@ -48,6 +48,8 @@ Attaquer les assertions de type superflues des tests — `no-unnecessary-type-as
   `ReadonlyMap`. Aucune extinction à poser sur ce fichier, contre ce qui était prévu.
 - **Étendre ce soupçon sans le vérifier** — sur `texte-riche.ts`, sept remontées qui sentaient le faux
   positif étaient toutes réelles.
+- **Appliquer telle quelle la correction qu'une règle suggère** — une autre règle de la même grille
+  peut l'interdire ; il faut alors une troisième forme, qu'aucune des deux ne nomme.
 - **Annoter une `const` en `| undefined` pour rendre une garde réelle** — TypeScript re-narrowe depuis
   le type de l'initialiseur ; ce qui marche, c'est `Map.get` ou `.at(0)`.
 - **Éteindre une règle plutôt que corriger** — le calibrage est le contrat ; une extinction ne se
