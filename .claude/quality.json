@@ -23,6 +23,20 @@
       "autofix": null
     },
     {
+      "id": "analyse",
+      "agent": "quality-analyse",
+      "cmd": "npm run analyse",
+      "severity": "advisory",
+      "autofix": null
+    },
+    {
+      "id": "dup",
+      "agent": "quality-dup",
+      "cmd": "npm run dup:nouveau",
+      "severity": "advisory",
+      "autofix": null
+    },
+    {
       "id": "build",
       "agent": "quality-build",
       "cmd": "npm run build",
