@@ -214,18 +214,20 @@ function analyserInline(texte: string): NoeudDocument[] {
   const apres = texte.slice(jeton.fin);
   const noeudsAvant = avant.length > 0 ? [{ type: 'text', text: desechapperTexte(avant) }] : [];
 
+  // Aucun groupe de capture de ces trois motifs n'est optionnel ni porté par une
+  // alternance : `(…)*` et `([^*]+)` participent toujours, quitte à rendre `''`.
+  // Les groupes sont donc des `string`, jamais `undefined` — ni repli ni garde.
   let noeudsJeton: NoeudDocument[];
   if (jeton.type === 'lien') {
     const [, libelle, href] = jeton.correspondance;
-    const noeudsLibelle = analyserInline(libelle ?? '');
-    noeudsJeton =
-      href !== undefined && lienDeTexteRicheAutorise(href)
-        ? ajouterMarque(noeudsLibelle, { type: 'link', attrs: { href } })
-        : noeudsLibelle;
+    const noeudsLibelle = analyserInline(libelle);
+    noeudsJeton = lienDeTexteRicheAutorise(href)
+      ? ajouterMarque(noeudsLibelle, { type: 'link', attrs: { href } })
+      : noeudsLibelle;
   } else if (jeton.type === 'gras') {
-    noeudsJeton = ajouterMarque(analyserInline(jeton.correspondance[1] ?? ''), { type: 'bold' });
+    noeudsJeton = ajouterMarque(analyserInline(jeton.correspondance[1]), { type: 'bold' });
   } else {
-    noeudsJeton = ajouterMarque(analyserInline(jeton.correspondance[1] ?? ''), { type: 'italic' });
+    noeudsJeton = ajouterMarque(analyserInline(jeton.correspondance[1]), { type: 'italic' });
   }
 
   return [...noeudsAvant, ...noeudsJeton, ...analyserInline(apres)];
@@ -242,7 +244,7 @@ function analyserBloc(bloc: string): NoeudDocument {
       return {
         type: 'heading',
         attrs: { level: correspondanceTitre[1].length },
-        content: analyserInline(correspondanceTitre[2] ?? ''),
+        content: analyserInline(correspondanceTitre[2]),
       };
     }
   }
