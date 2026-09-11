@@ -123,14 +123,26 @@ export async function listerSlugsAvecBrouillon(db: DB): Promise<ReadonlySet<stri
 }
 
 /**
- * Applique et persiste une correction de bouton d'action (SC-04a/e) : lit le
- * brouillon courant de la page, applique la correction en `core/` (pure),
- * puis, si elle est acceptée, écrit (ou remplace) la seule ligne de
- * l'emplacement corrigé — jamais l'état publié, qui n'est pas représenté ici.
- * Rien n'est écrit si la correction est refusée (SC-04c/h) : `core/` rend le
- * refus par valeur avant que ce magasin n'atteigne l'écriture.
+ * Le patron commun aux trois enregistrements ci-dessous, et la raison pour
+ * laquelle aucun ne le réécrit : lire le brouillon courant de la page,
+ * appliquer la correction en `core/` (pure), puis, si elle est acceptée,
+ * écrire (ou remplacer) la seule ligne de l'emplacement corrigé — jamais
+ * l'état publié, qui n'est pas représenté ici. Rien n'est écrit quand la
+ * correction est refusée (SC-04c/h, SC-05c) : `core/` rend le refus par
+ * valeur avant que ce magasin n'atteigne l'écriture.
+ *
+ * Chaque `appliquerCorrection*` de `core/pages/brouillon.ts` porte cette
+ * signature ; c'est elle qui distingue les trois enregistrements.
  */
-export async function enregistrerCorrectionBoutonAction(
+type ApplicationCorrection = (
+  emplacementsDeclares: readonly Emplacement[],
+  brouillonActuel: Brouillon,
+  idEmplacement: string,
+  correctionBrute: unknown,
+) => ResultatCorrection;
+
+async function enregistrerCorrection(
+  appliquer: ApplicationCorrection,
   db: DB,
   slugPage: string,
   emplacementsDeclares: readonly Emplacement[],
@@ -139,44 +151,34 @@ export async function enregistrerCorrectionBoutonAction(
   maintenant: number,
 ): Promise<ResultatCorrection> {
   const brouillonActuel = await obtenirBrouillon(db, slugPage);
-  const resultat = appliquerCorrectionBoutonAction(
+  const resultat = appliquer(
     emplacementsDeclares,
     brouillonActuel,
     idEmplacement,
     correctionBrute,
   );
-  if (!resultat.accepte) return resultat;
 
-  // Garde défensive : `appliquerCorrectionBoutonAction` pose toujours la clé
-  // qu'elle vient de traiter quand elle accepte — cette branche ne s'exerce
-  // jamais en pratique, elle protège seulement contre une future divergence.
-  const contenu = resultat.brouillon.get(idEmplacement);
-  if (!contenu) return resultat;
-
-  await db
-    .prepare(
-      `insert into ${TABLE_BROUILLONS} (page_slug, id_emplacement, nature, contenu, maj_le)
+  // `appliquer` pose toujours la clé qu'elle vient de traiter quand elle
+  // accepte : un `contenu` absent sur une acceptation est une garde défensive
+  // contre une future divergence, jamais un chemin exercé en pratique.
+  const contenu = resultat.accepte ? resultat.brouillon.get(idEmplacement) : undefined;
+  if (contenu) {
+    await db
+      .prepare(
+        `insert into ${TABLE_BROUILLONS} (page_slug, id_emplacement, nature, contenu, maj_le)
        values (?1, ?2, ?3, ?4, ?5)
        on conflict(page_slug, id_emplacement) do update set
          nature = excluded.nature, contenu = excluded.contenu, maj_le = excluded.maj_le`,
-    )
-    .bind(slugPage, idEmplacement, contenu.nature, JSON.stringify(contenu), maintenant)
-    .run();
+      )
+      .bind(slugPage, idEmplacement, contenu.nature, JSON.stringify(contenu), maintenant)
+      .run();
+  }
 
   return resultat;
 }
 
-/**
- * Applique et persiste une correction de lien de vidéo (ticket 05,
- * SC-05b/c) — même patron que `enregistrerCorrectionBoutonAction` ci-dessus :
- * lit le brouillon courant, applique la correction en `core/` (pure,
- * `appliquerCorrectionLienVideo`), puis, si elle est acceptée, écrit (ou
- * remplace) la seule ligne de l'emplacement corrigé. Rien n'est écrit si la
- * correction est refusée (lien hors liste blanche, forme invalide,
- * emplacement non déclaré ou d'une autre nature, SC-05c) : `core/` rend le
- * refus par valeur avant que ce magasin n'atteigne l'écriture.
- */
-export async function enregistrerCorrectionLienVideo(
+/** Applique et persiste une correction de bouton d'action (SC-04a/e). */
+export function enregistrerCorrectionBoutonAction(
   db: DB,
   slugPage: string,
   emplacementsDeclares: readonly Emplacement[],
@@ -184,42 +186,47 @@ export async function enregistrerCorrectionLienVideo(
   correctionBrute: unknown,
   maintenant: number,
 ): Promise<ResultatCorrection> {
-  const brouillonActuel = await obtenirBrouillon(db, slugPage);
-  const resultat = appliquerCorrectionLienVideo(
+  return enregistrerCorrection(
+    appliquerCorrectionBoutonAction,
+    db,
+    slugPage,
     emplacementsDeclares,
-    brouillonActuel,
     idEmplacement,
     correctionBrute,
+    maintenant,
   );
-  if (!resultat.accepte) return resultat;
+}
 
-  // Garde défensive : même remarque que `enregistrerCorrectionBoutonAction`
-  // ci-dessus — cette branche ne s'exerce jamais en pratique.
-  const contenu = resultat.brouillon.get(idEmplacement);
-  if (!contenu) return resultat;
-
-  await db
-    .prepare(
-      `insert into ${TABLE_BROUILLONS} (page_slug, id_emplacement, nature, contenu, maj_le)
-       values (?1, ?2, ?3, ?4, ?5)
-       on conflict(page_slug, id_emplacement) do update set
-         nature = excluded.nature, contenu = excluded.contenu, maj_le = excluded.maj_le`,
-    )
-    .bind(slugPage, idEmplacement, contenu.nature, JSON.stringify(contenu), maintenant)
-    .run();
-
-  return resultat;
+/**
+ * Applique et persiste une correction de lien de vidéo (ticket 05, SC-05b/c).
+ * Un lien hors liste blanche, une forme invalide, un emplacement non déclaré
+ * ou d'une autre nature sont des refus rendus par `core/` (SC-05c).
+ */
+export function enregistrerCorrectionLienVideo(
+  db: DB,
+  slugPage: string,
+  emplacementsDeclares: readonly Emplacement[],
+  idEmplacement: string,
+  correctionBrute: unknown,
+  maintenant: number,
+): Promise<ResultatCorrection> {
+  return enregistrerCorrection(
+    appliquerCorrectionLienVideo,
+    db,
+    slugPage,
+    emplacementsDeclares,
+    idEmplacement,
+    correctionBrute,
+    maintenant,
+  );
 }
 
 /**
  * Applique et persiste une correction de texte riche (ticket 06, SC-06e) —
- * même patron que `enregistrerCorrectionLienVideo` ci-dessus : lit le
- * brouillon courant, applique la correction en `core/` (pure,
- * `appliquerCorrectionTexteRiche`, qui sérialise déjà le document en Markdown
- * restreint), puis, si elle est acceptée, écrit (ou remplace) la seule ligne
- * de l'emplacement corrigé.
+ * `appliquerCorrectionTexteRiche` sérialise déjà le document en Markdown
+ * restreint avant que ce magasin ne l'écrive.
  */
-export async function enregistrerCorrectionTexteRiche(
+export function enregistrerCorrectionTexteRiche(
   db: DB,
   slugPage: string,
   emplacementsDeclares: readonly Emplacement[],
@@ -227,29 +234,13 @@ export async function enregistrerCorrectionTexteRiche(
   correctionBrute: unknown,
   maintenant: number,
 ): Promise<ResultatCorrection> {
-  const brouillonActuel = await obtenirBrouillon(db, slugPage);
-  const resultat = appliquerCorrectionTexteRiche(
+  return enregistrerCorrection(
+    appliquerCorrectionTexteRiche,
+    db,
+    slugPage,
     emplacementsDeclares,
-    brouillonActuel,
     idEmplacement,
     correctionBrute,
+    maintenant,
   );
-  if (!resultat.accepte) return resultat;
-
-  // Garde défensive : même remarque que `enregistrerCorrectionBoutonAction`
-  // ci-dessus — cette branche ne s'exerce jamais en pratique.
-  const contenu = resultat.brouillon.get(idEmplacement);
-  if (!contenu) return resultat;
-
-  await db
-    .prepare(
-      `insert into ${TABLE_BROUILLONS} (page_slug, id_emplacement, nature, contenu, maj_le)
-       values (?1, ?2, ?3, ?4, ?5)
-       on conflict(page_slug, id_emplacement) do update set
-         nature = excluded.nature, contenu = excluded.contenu, maj_le = excluded.maj_le`,
-    )
-    .bind(slugPage, idEmplacement, contenu.nature, JSON.stringify(contenu), maintenant)
-    .run();
-
-  return resultat;
 }
