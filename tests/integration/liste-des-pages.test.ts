@@ -48,9 +48,9 @@ const TABLE_SESSIONS = 'sessions';
 const ROUTE_MES_PAGES = 'https://example.com/admin/mes-pages';
 
 interface InstructionLike {
-  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all<T = unknown>(): Promise<{ results: T[] }> };
+  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all(): Promise<{ results: unknown[] }> };
   run(): Promise<unknown>;
-  all<T = unknown>(): Promise<{ results: T[] }>;
+  all(): Promise<{ results: unknown[] }>;
 }
 
 interface DBLike {
@@ -64,7 +64,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())
@@ -74,19 +74,17 @@ function separerRequetes(sql: string): string[] {
 let schemaPret: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!schemaPret) {
-    schemaPret = (async () => {
-      const module = await import('../../migrations/0003_sessions.sql?raw');
-      for (const requete of separerRequetes(module.default)) {
-        await db.prepare(requete).run();
-      }
-      try {
-        await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
-      } catch {
-        // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
-      }
-    })();
-  }
+  schemaPret ??= (async () => {
+    const module = await import('../../migrations/0003_sessions.sql?raw');
+    for (const requete of separerRequetes(module.default)) {
+      await db.prepare(requete).run();
+    }
+    try {
+      await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
+    } catch {
+      // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+    }
+  })();
   await schemaPret;
   return db;
 }
@@ -101,7 +99,7 @@ afterEach(async () => {
 });
 
 async function semerSessionValide(db: DBLike): Promise<string> {
-  const id = `session-liste-des-pages-${Math.random().toString(36).slice(2)}`;
+  const id = `session-liste-des-pages-${crypto.randomUUID()}`;
   const maintenant = Date.now();
   await db
     .prepare(

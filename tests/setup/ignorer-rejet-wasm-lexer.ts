@@ -15,14 +15,17 @@
 const compilerOriginal = WebAssembly.compile.bind(WebAssembly);
 
 WebAssembly.compile = ((...args: Parameters<typeof WebAssembly.compile>) => {
-  return compilerOriginal(...args).catch((err: { name?: string; message?: string }) => {
+  return compilerOriginal(...args).catch((err: unknown) => {
     if (
-      err?.name === 'CompileError' &&
-      typeof err.message === 'string' &&
+      err instanceof Error &&
+      err.name === 'CompileError' &&
       err.message.includes('Wasm code generation disallowed by embedder')
     ) {
-      return new Promise<WebAssembly.Module>(() => {});
+      return new Promise<WebAssembly.Module>(() => {
+        // Volontairement pendante, et jamais résolue : c'est ce qui rend la
+        // chaîne `.then(...)` du lexer inerte au lieu de la faire rejeter.
+      });
     }
     throw err;
   });
-}) as typeof WebAssembly.compile;
+});

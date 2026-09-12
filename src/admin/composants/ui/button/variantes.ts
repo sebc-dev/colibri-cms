@@ -49,8 +49,10 @@ export const buttonVariants = tv({
   },
 });
 
-export type ButtonVariant = VariantProps<typeof buttonVariants>['variant'];
-export type ButtonSize = VariantProps<typeof buttonVariants>['size'];
+// `VariantProps` inclut `undefined` dans chaque variante ; le garder ici
+// doublerait le `?` des props ci-dessous, qui porte déjà l'absence.
+export type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>['variant']>;
+export type ButtonSize = NonNullable<VariantProps<typeof buttonVariants>['size']>;
 
 export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
   WithElementRef<HTMLAnchorAttributes> & {

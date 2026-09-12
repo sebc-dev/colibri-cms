@@ -48,7 +48,7 @@
  */
 /// <reference types="@cloudflare/vitest-plugin/types" />
 import { SELF, env } from 'cloudflare:test';
-import { it, expect, afterEach } from 'vitest';
+import { it, expect, assert, afterEach } from 'vitest';
 
 const NOM_COOKIE_SESSION = '__Host-session';
 const TABLE_SESSIONS = 'sessions';
@@ -61,9 +61,9 @@ const PATH_CONNEXION_RE = /^\/admin\/connexion\/?$/;
 const REDIRECT_STATUSES = [301, 302, 303, 307, 308];
 
 interface InstructionLike {
-  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all<T = unknown>(): Promise<{ results: T[] }> };
+  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all(): Promise<{ results: unknown[] }> };
   run(): Promise<unknown>;
-  all<T = unknown>(): Promise<{ results: T[] }>;
+  all(): Promise<{ results: unknown[] }>;
 }
 
 interface DBLike {
@@ -77,7 +77,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())
@@ -87,19 +87,17 @@ function separerRequetes(sql: string): string[] {
 let schemaPret: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!schemaPret) {
-    schemaPret = (async () => {
-      const module = await import('../../migrations/0003_sessions.sql?raw');
-      for (const requete of separerRequetes(module.default)) {
-        await db.prepare(requete).run();
-      }
-      try {
-        await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
-      } catch {
-        // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
-      }
-    })();
-  }
+  schemaPret ??= (async () => {
+    const module = await import('../../migrations/0003_sessions.sql?raw');
+    for (const requete of separerRequetes(module.default)) {
+      await db.prepare(requete).run();
+    }
+    try {
+      await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
+    } catch {
+      // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+    }
+  })();
   await schemaPret;
   return db;
 }
@@ -134,8 +132,8 @@ async function lireDernierUsage(db: DBLike, id: string): Promise<number | null> 
   const resultat = await db
     .prepare(`select dernier_usage_le from ${TABLE_SESSIONS} where id = ?1`)
     .bind(id)
-    .all<{ dernier_usage_le: number | null }>();
-  return resultat.results[0]?.dernier_usage_le ?? null;
+    .all();
+  return (resultat.results as { dernier_usage_le: number | null }[]).at(0)?.dernier_usage_le ?? null;
 }
 
 async function accederAAccueil(cookieSession: string | null): Promise<Response> {
@@ -258,9 +256,11 @@ it('accéder à l’accueil à l’intérieur de la fenêtre des sept jours repo
   const dernierUsageApres = await lireDernierUsage(db, 'jeton-c3-usage-repousse');
 
   expect(reponse.status).toBe(200);
-  expect(dernierUsageApres).not.toBeNull();
-  expect(dernierUsageApres as number).toBeGreaterThan(justeAvantSeptJours);
-  expect(maintenant - (dernierUsageApres as number)).toBeLessThan(60 * 1000);
+  // `assert` plutôt que `expect(...).not.toBeNull()` : même échec si la date
+  // manque, mais il resserre le type, là où l'assertion `as` le forçait.
+  assert(dernierUsageApres !== null, 'aucune date de dernier usage en base');
+  expect(dernierUsageApres).toBeGreaterThan(justeAvantSeptJours);
+  expect(maintenant - dernierUsageApres).toBeLessThan(60 * 1000);
 });
 
 // --- c4 — le rafraîchissement n'écrit pas en base à chaque requête ---

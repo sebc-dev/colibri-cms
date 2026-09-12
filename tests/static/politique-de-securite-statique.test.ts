@@ -41,7 +41,7 @@ it('aucun gabarit de route servi sous /admin/ (src/pages/admin/*.astro) ne porte
     query: '?raw',
     import: 'default',
     eager: true,
-  }) as Record<string, string>;
+  });
 
   expect(Object.keys(fichiers).length, 'aucun gabarit .astro trouvé sous src/pages/admin/').toBeGreaterThan(0);
   for (const [chemin, source] of Object.entries(fichiers)) {

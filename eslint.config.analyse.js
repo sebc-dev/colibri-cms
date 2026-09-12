@@ -75,4 +75,14 @@ export default defineConfig(
       'sonarjs/deprecation': 'off',
     },
   },
+  {
+    // Le test du rejet non-https porte sa donnée d'épreuve en clair : un lien
+    // `http://` sur un hôte de la liste blanche, que `lienVideoAutorise` doit
+    // refuser. Ce n'est jamais une connexion — la remplacer par `https` rendrait
+    // le test tautologique, et changer l'hôte le ferait rejeter pour la mauvaise
+    // raison. Extinction bornée à ce fichier, à dessein : mesuré le 2026-09-12,
+    // un `http://` vers un domaine réel ajouté ailleurs dans `tests/**` reste vu.
+    files: ['tests/integration/regler-lien-video.test.ts'],
+    rules: { 'sonarjs/no-clear-text-protocols': 'off' },
+  },
 );

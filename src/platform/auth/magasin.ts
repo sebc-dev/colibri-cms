@@ -42,9 +42,9 @@ export interface DB {
   prepare(query: string): {
     bind(...valeurs: unknown[]): {
       run(): Promise<{ meta: { changes: number } }>;
-      all<T = unknown>(): Promise<{ results: T[] }>;
+      all(): Promise<{ results: unknown[] }>;
     };
-    all<T = unknown>(): Promise<{ results: T[] }>;
+    all(): Promise<{ results: unknown[] }>;
   };
 }
 
@@ -71,7 +71,7 @@ export async function estAdresseAutorisee(db: DB, adresse: string): Promise<bool
   const resultat = await db
     .prepare(`select 1 as trouve from ${TABLE_ADRESSES} where adresse = ?1 limit 1`)
     .bind(adresse)
-    .all<{ trouve: number }>();
+    .all();
   return resultat.results.length > 0;
 }
 
@@ -92,8 +92,8 @@ export async function compterCodesDansLaFenetre(db: DB, maintenant: number): Pro
   const resultat = await db
     .prepare(`select count(*) as n from ${TABLE_CODES} where creee_le > ?1`)
     .bind(debutFenetre)
-    .all<{ n: number }>();
-  return resultat.results[0]?.n ?? 0;
+    .all();
+  return (resultat.results as { n: number }[]).at(0)?.n ?? 0;
 }
 
 /**
@@ -207,8 +207,8 @@ async function trouverLigneParCode(db: DB, codeNormalise: string): Promise<Ligne
   const resultat = await db
     .prepare(`select ${COLONNES_LIGNE_CODE} from ${TABLE_CODES} order by creee_le desc`)
     .bind()
-    .all<LigneCodeBrute>();
-  for (const ligne of resultat.results) {
+    .all();
+  for (const ligne of resultat.results as LigneCodeBrute[]) {
     const empreinteCalculee = await empreinteSalee(ligne.sel, codeNormalise);
     if (empreinteCalculee === ligne.empreinte) return ligne;
   }
@@ -228,8 +228,8 @@ async function trouverLigneActiveDeLAppareil(db: DB, identifiantAppareil: string
       `select ${COLONNES_LIGNE_CODE} from ${TABLE_CODES} where identifiant_appareil = ?1 and annule_le is null order by creee_le desc limit 1`,
     )
     .bind(identifiantAppareil)
-    .all<LigneCodeBrute>();
-  return resultat.results[0] ?? null;
+    .all();
+  return (resultat.results as LigneCodeBrute[]).at(0) ?? null;
 }
 
 /**
@@ -243,8 +243,8 @@ async function incrementerEssais(db: DB, id: number): Promise<number> {
   const resultat = await db
     .prepare(`select essais from ${TABLE_CODES} where id = ?1`)
     .bind(id)
-    .all<{ essais: number }>();
-  return resultat.results[0]?.essais ?? SEUIL_ESSAIS_BRULAGE;
+    .all();
+  return (resultat.results as { essais: number }[]).at(0)?.essais ?? SEUIL_ESSAIS_BRULAGE;
 }
 
 /** Le résultat d'une soumission de code (ticket 07) : la session ouverte, ou la raison du refus. */

@@ -89,7 +89,7 @@ interface DBLike {
   prepare(query: string): {
     bind(...valeurs: unknown[]): { run(): Promise<unknown> };
     run(): Promise<unknown>;
-    all<T = unknown>(): Promise<{ results: T[] }>;
+    all(): Promise<{ results: unknown[] }>;
   };
 }
 
@@ -100,7 +100,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())
@@ -110,14 +110,12 @@ function separerRequetes(sql: string): string[] {
 let migrationAppliquee: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!migrationAppliquee) {
-    migrationAppliquee = (async () => {
-      const module = await import('../../migrations/0002_adresses_autorisees_et_codes_connexion.sql?raw');
-      for (const requete of separerRequetes(module.default)) {
-        await db.prepare(requete).run();
-      }
-    })();
-  }
+  migrationAppliquee ??= (async () => {
+    const module = await import('../../migrations/0002_adresses_autorisees_et_codes_connexion.sql?raw');
+    for (const requete of separerRequetes(module.default)) {
+      await db.prepare(requete).run();
+    }
+  })();
   await migrationAppliquee;
   return db;
 }
@@ -130,13 +128,18 @@ afterEach(async () => {
   } catch (erreur) {
     console.warn('nettoyage D1 ignoré (schéma absent, rouge attendu) :', erreur);
   }
-  delete (env as unknown as Record<string, unknown>)[CLE_LIAISON_EXPEDITION];
+  Reflect.deleteProperty(env, CLE_LIAISON_EXPEDITION);
 });
 
 function poserExpediteurEspionInerte(): unknown {
   const enveloppe = env as unknown as Record<string, unknown>;
   const precedent = enveloppe[CLE_LIAISON_EXPEDITION];
-  enveloppe[CLE_LIAISON_EXPEDITION] = { send: async () => {} };
+  enveloppe[CLE_LIAISON_EXPEDITION] = {
+    send: async () => {
+      // Espion inerte : la liaison ne doit rien expédier pendant ce test —
+      // c'est son absence d'effet qui est observée, jamais son appel.
+    },
+  };
   return precedent;
 }
 
@@ -498,7 +501,7 @@ it('aucun des cinq refus (saisie fautive, brûlé, mauvais appareil, expiré, d�
 
   for (const [index, texte] of corps.entries()) {
     for (const terme of termesDeveloppeur) {
-      expect(texte, `le refus n°${index + 1} ne devrait pas contenir « ${terme} »`).not.toContain(terme);
+      expect(texte, `le refus n°${String(index + 1)} ne devrait pas contenir « ${terme} »`).not.toContain(terme);
     }
   }
 });

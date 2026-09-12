@@ -42,9 +42,9 @@ const ROUTE_MES_PAGES = 'https://example.com/admin/mes-pages';
 const ROUTE_EDITEUR_ACCUEIL = 'https://example.com/admin/pages/accueil';
 
 interface InstructionLike {
-  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all<T = unknown>(): Promise<{ results: T[] }> };
+  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all(): Promise<{ results: unknown[] }> };
   run(): Promise<unknown>;
-  all<T = unknown>(): Promise<{ results: T[] }>;
+  all(): Promise<{ results: unknown[] }>;
 }
 
 interface DBLike {
@@ -58,7 +58,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())
@@ -68,23 +68,21 @@ function separerRequetes(sql: string): string[] {
 let schemaPret: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!schemaPret) {
-    schemaPret = (async () => {
-      const sessions = await import('../../migrations/0003_sessions.sql?raw');
-      for (const requete of separerRequetes(sessions.default)) {
-        await db.prepare(requete).run();
-      }
-      try {
-        await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
-      } catch {
-        // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
-      }
-      const brouillons = await import('../../migrations/0004_brouillons_emplacements.sql?raw');
-      for (const requete of separerRequetes(brouillons.default)) {
-        await db.prepare(requete).run();
-      }
-    })();
-  }
+  schemaPret ??= (async () => {
+    const sessions = await import('../../migrations/0003_sessions.sql?raw');
+    for (const requete of separerRequetes(sessions.default)) {
+      await db.prepare(requete).run();
+    }
+    try {
+      await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
+    } catch {
+      // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+    }
+    const brouillons = await import('../../migrations/0004_brouillons_emplacements.sql?raw');
+    for (const requete of separerRequetes(brouillons.default)) {
+      await db.prepare(requete).run();
+    }
+  })();
   await schemaPret;
   return db;
 }
@@ -101,7 +99,7 @@ afterEach(async () => {
 });
 
 async function semerSessionValide(db: DBLike): Promise<string> {
-  const id = `session-texte-riche-${Math.random().toString(36).slice(2)}`;
+  const id = `session-texte-riche-${crypto.randomUUID()}`;
   const maintenant = Date.now();
   await db
     .prepare(
@@ -367,7 +365,7 @@ describe('SC-06d — la barre de mise en forme pose gras, italique, lien, liste 
     // mettre en forme ce champ (aucune infrastructure de test de composant
     // Svelte n'existe dans ce dépôt, docs/test.md — la source est donc
     // l'oracle, même geste que `ReglageLienVideo.svelte` pour SC-05d).
-    const source = (await import('../../src/admin/ilots-svelte-5/TexteRiche.svelte?raw')).default as string;
+    const source = (await import('../../src/admin/ilots-svelte-5/TexteRiche.svelte?raw')).default;
 
     // Assert : une barre de mise en forme, avec un bouton par commande —
     // jamais un champ texte libre où écrire du Markdown ou du HTML.
@@ -423,12 +421,13 @@ it('SC-06e — corriger le texte riche persiste le Markdown restreint, bascule l
 
   // …la ligne existe bien en D1, sous l'identité stable (page, emplacement),
   // et son contenu est le Markdown restreint (jamais le document JSON brut)…
-  const ligne = await db
+  const resultat = await db
     .prepare(`select nature, contenu from ${TABLE_BROUILLONS} where page_slug = ?1 and id_emplacement = ?2`)
     .bind('accueil', 'presentation')
-    .all<{ nature: string; contenu: string }>();
-  expect(ligne.results).toHaveLength(1);
-  expect(JSON.parse(ligne.results[0]!.contenu)).toEqual({
+    .all();
+  const lignes = resultat.results as { nature: string; contenu: string }[];
+  expect(lignes).toHaveLength(1);
+  expect(JSON.parse(lignes[0].contenu)).toEqual({
     nature: 'texte-riche',
     markdown: '**Nouveaux **[gâteaux du mois](https://exemple.test/nouveautes)',
   });
@@ -466,7 +465,7 @@ it('SC-06e — corriger le texte riche persiste le Markdown restreint, bascule l
 
 it('SC-06f — l’éditeur de texte riche et sa barre de mise en forme ne portent aucun terme de développeur', async () => {
   // Arrange
-  const source = (await import('../../src/admin/ilots-svelte-5/TexteRiche.svelte?raw')).default as string;
+  const source = (await import('../../src/admin/ilots-svelte-5/TexteRiche.svelte?raw')).default;
 
   const TERMES_DEVELOPPEUR = [
     'commit',
@@ -492,7 +491,7 @@ it('SC-06f — l’éditeur de texte riche et sa barre de mise en forme ne porte
   // commentaires du fichier source ni les noms d'identifiants du code, qui ne
   // paraissent jamais à l'écran.
   const zoneMarkup = source.split('</script>')[1] ?? '';
-  const zoneTextesRefus = source.match(/const TEXTES_REFUS[\s\S]*?\};/)?.[0] ?? '';
+  const zoneTextesRefus = /const TEXTES_REFUS[\s\S]*?\};/.exec(source)?.[0] ?? '';
   expect(zoneMarkup.length, 'le gabarit HTML est introuvable dans la source').toBeGreaterThan(0);
   expect(zoneTextesRefus.length, 'TEXTES_REFUS introuvable dans la source').toBeGreaterThan(0);
 

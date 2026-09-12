@@ -26,9 +26,9 @@ const ROUTE_MES_PAGES = 'https://example.com/admin/mes-pages';
 const ROUTE_EDITEUR_ACCUEIL = 'https://example.com/admin/pages/accueil';
 
 interface InstructionLike {
-  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all<T = unknown>(): Promise<{ results: T[] }> };
+  bind(...valeurs: unknown[]): { run(): Promise<unknown>; all(): Promise<{ results: unknown[] }> };
   run(): Promise<unknown>;
-  all<T = unknown>(): Promise<{ results: T[] }>;
+  all(): Promise<{ results: unknown[] }>;
 }
 
 interface DBLike {
@@ -42,7 +42,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())
@@ -52,23 +52,21 @@ function separerRequetes(sql: string): string[] {
 let schemaPret: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!schemaPret) {
-    schemaPret = (async () => {
-      const sessions = await import('../../migrations/0003_sessions.sql?raw');
-      for (const requete of separerRequetes(sessions.default)) {
-        await db.prepare(requete).run();
-      }
-      try {
-        await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
-      } catch {
-        // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
-      }
-      const brouillons = await import('../../migrations/0004_brouillons_emplacements.sql?raw');
-      for (const requete of separerRequetes(brouillons.default)) {
-        await db.prepare(requete).run();
-      }
-    })();
-  }
+  schemaPret ??= (async () => {
+    const sessions = await import('../../migrations/0003_sessions.sql?raw');
+    for (const requete of separerRequetes(sessions.default)) {
+      await db.prepare(requete).run();
+    }
+    try {
+      await db.prepare(`alter table ${TABLE_SESSIONS} add column dernier_usage_le integer`).run();
+    } catch {
+      // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+    }
+    const brouillons = await import('../../migrations/0004_brouillons_emplacements.sql?raw');
+    for (const requete of separerRequetes(brouillons.default)) {
+      await db.prepare(requete).run();
+    }
+  })();
   await schemaPret;
   return db;
 }
@@ -85,7 +83,7 @@ afterEach(async () => {
 });
 
 async function semerSessionValide(db: DBLike): Promise<string> {
-  const id = `session-corriger-bouton-action-${Math.random().toString(36).slice(2)}`;
+  const id = `session-corriger-bouton-action-${crypto.randomUUID()}`;
   const maintenant = Date.now();
   await db
     .prepare(
@@ -142,9 +140,9 @@ describe('SC-04d — la table des brouillons, créée par la migration 0004, lie
     const resultat = await db
       .prepare(`select contenu from ${TABLE_BROUILLONS} where page_slug = ?1 and id_emplacement = ?2`)
       .bind('accueil', 'bouton-devis')
-      .all<{ contenu: string }>();
+      .all();
     expect(resultat.results).toHaveLength(1);
-    expect(resultat.results[0]?.contenu).toBe('{"libelle":"A"}');
+    expect((resultat.results as { contenu: string }[]).at(0)?.contenu).toBe('{"libelle":"A"}');
   });
 });
 
@@ -168,12 +166,13 @@ it('SC-04e — enregistrer une correction de bouton la persiste en D1 et laisse 
   expect(corpsReponse.ok).toBe(true);
 
   // …la ligne existe bien en D1, sous l'identité stable (page, emplacement)…
-  const ligne = await db
+  const resultat = await db
     .prepare(`select nature, contenu from ${TABLE_BROUILLONS} where page_slug = ?1 and id_emplacement = ?2`)
     .bind('accueil', 'bouton-devis')
-    .all<{ nature: string; contenu: string }>();
-  expect(ligne.results).toHaveLength(1);
-  expect(JSON.parse(ligne.results[0]!.contenu)).toEqual({
+    .all();
+  const lignes = resultat.results as { nature: string; contenu: string }[];
+  expect(lignes).toHaveLength(1);
+  expect(JSON.parse(lignes[0].contenu)).toEqual({
     nature: 'bouton-action',
     libelle: 'Obtenir un devis gratuit',
     destination: 'https://exemple.test/devis',

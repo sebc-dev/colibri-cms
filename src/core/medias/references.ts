@@ -20,18 +20,16 @@
  * référence est effaçable.
  */
 
-/** L'identifiant d'une image, tel que référencé par un emplacement. */
-export type IdentifiantImage = string;
-
 /**
  * Dit si une image est effaçable : vrai si et seulement si aucun des deux
  * ensembles de références — publié et brouillon — ne la contient
- * (SC-02a/SC-02b).
+ * (SC-02a/SC-02b). `idImage` est l'identifiant d'une image tel qu'un
+ * emplacement le référence.
  */
 export function imageEffacable(
-  idImage: IdentifiantImage,
-  referencesPubliees: ReadonlySet<IdentifiantImage>,
-  referencesBrouillon: ReadonlySet<IdentifiantImage>,
+  idImage: string,
+  referencesPubliees: ReadonlySet<string>,
+  referencesBrouillon: ReadonlySet<string>,
 ): boolean {
   return !referencesPubliees.has(idImage) && !referencesBrouillon.has(idImage);
 }

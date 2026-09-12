@@ -76,7 +76,7 @@ interface DBLike {
   prepare(query: string): {
     bind(...valeurs: unknown[]): { run(): Promise<unknown> };
     run(): Promise<unknown>;
-    all<T = unknown>(): Promise<{ results: T[] }>;
+    all(): Promise<{ results: unknown[] }>;
   };
 }
 
@@ -92,7 +92,7 @@ function obtenirDB(): DBLike {
 function separerRequetes(sql: string): string[] {
   return sql
     .split('\n')
-    .map((ligne) => ligne.replace(/--.*$/, ''))
+    .map((ligne) => ligne.replace(/--.*/, ''))
     .join('\n')
     .split(';')
     .map((requete) => requete.trim())
@@ -110,14 +110,12 @@ function separerRequetes(sql: string): string[] {
 let migrationAppliquee: Promise<void> | null = null;
 async function assurerSchema(): Promise<DBLike> {
   const db = obtenirDB();
-  if (!migrationAppliquee) {
-    migrationAppliquee = (async () => {
-      const module = await import('../../migrations/0002_adresses_autorisees_et_codes_connexion.sql?raw');
-      for (const requete of separerRequetes(module.default)) {
-        await db.prepare(requete).run();
-      }
-    })();
-  }
+  migrationAppliquee ??= (async () => {
+    const module = await import('../../migrations/0002_adresses_autorisees_et_codes_connexion.sql?raw');
+    for (const requete of separerRequetes(module.default)) {
+      await db.prepare(requete).run();
+    }
+  })();
   await migrationAppliquee;
   return db;
 }
@@ -134,7 +132,7 @@ afterEach(async () => {
   }
   // Isolation (FIRST) : aucun test ne doit laisser d'expéditeur-espion posé
   // pour le suivant.
-  delete (env as unknown as Record<string, unknown>)[CLE_LIAISON_EXPEDITION];
+  Reflect.deleteProperty(env, CLE_LIAISON_EXPEDITION);
 });
 
 /**
@@ -194,15 +192,15 @@ async function semerAdresseAutorisee(db: DBLike, adresse: string): Promise<void>
 }
 
 async function compterCodes(db: DBLike): Promise<number> {
-  const resultat = await db.prepare(`select count(*) as n from ${TABLE_CODES}`).all<{ n: number }>();
-  return resultat.results[0]?.n ?? 0;
+  const resultat = await db.prepare(`select count(*) as n from ${TABLE_CODES}`).all();
+  return (resultat.results as { n: number }[]).at(0)?.n ?? 0;
 }
 
 async function derniereLigneDeCode(db: DBLike): Promise<Record<string, unknown> | null> {
   const resultat = await db
     .prepare(`select * from ${TABLE_CODES} order by rowid desc limit 1`)
-    .all<Record<string, unknown>>();
-  return resultat.results[0] ?? null;
+    .all();
+  return (resultat.results as Record<string, unknown>[]).at(0) ?? null;
 }
 
 function extraireCookie(reponse: Response, nom: string): { valeur: string; maxAge: number | null } | null {
@@ -314,7 +312,7 @@ it('soumettre l’adresse autorisée demande une expédition à la plateforme, v
     restaurerLiaisonExpedition(precedent);
   }
 
-  expect(appels.length).toBe(1);
+  expect(appels).toHaveLength(1);
 });
 
 // --- FR-005 (c4) — toute autre adresse n'écrit rien et ne demande rien ---

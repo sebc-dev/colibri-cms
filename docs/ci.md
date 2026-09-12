@@ -23,7 +23,7 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Couverture | `npm run coverage` | `coverage/lcov.info` — informatif |
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
 | Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, joué en **bloquant** par la quality gate du cycle `run` (`.claude/quality.json`) ; aucun workflow de CI ne le joue |
-| Analyse type-aware | `npm run analyse` | `eslint --config eslint.config.analyse.js .` — typescript-eslint `strictTypeChecked` + `stylisticTypeChecked` + `eslint-plugin-sonarjs`, sur les `.ts` seuls. Ce que le graphe de types rend visible et qu'aucune passe syntaxique ne voit. **En avis** dans la quality gate ; aucun workflow ne le joue |
+| Analyse type-aware | `npm run analyse` | `eslint --config eslint.config.analyse.js .` — typescript-eslint `strictTypeChecked` + `stylisticTypeChecked` + `eslint-plugin-sonarjs`, sur les `.ts` seuls. Ce que le graphe de types rend visible et qu'aucune passe syntaxique ne voit. **Bloquant** dans la quality gate depuis le 2026-09-12 ; aucun workflow ne le joue |
 | Duplication | `npm run dup` | `jscpd src` — seuil 5 % (`.jscpd.json`), 4,00 % au relevé du 2026-09-11 |
 | Duplication neuve | `npm run dup:nouveau` | `jscpd src --baseline-from-ref origin/main --fail-on-new-clones` — n'échoue que sur un clone **absent de `origin/main`**. C'est la forme jouée par la quality gate |
 | Boucle complète | `npm run check` | `lint` → `lint:boundaries` → `analyse` → `dup` → `knip`, en console, à l'arrêt sur le premier rouge |
@@ -47,24 +47,31 @@ qu'il code, sans serveur, sans jeton, sans compte. Deux régimes, à ne pas conf
 
 Trois fichiers de configuration ESLint cohabitent, **un par intention** — `eslint.config.js` (style,
 bloquant), `eslint.config.boundaries.js` (invariant `I1`, bloquant), `eslint.config.analyse.js`
-(type-aware, en avis). Ce n'est pas de la dispersion : ce sont trois questions différentes, qu'on
+(type-aware, bloquant). Ce n'est pas de la dispersion : ce sont trois questions différentes, qu'on
 veut pouvoir jouer et faire échouer séparément.
 
 **Ce que la passe `analyse` ne couvre pas** : les fichiers `.astro` et `.svelte`. Le lint à types
 exige le programme TypeScript que leurs parsers tiers ne rendent pas. Les îlots restent donc tenus
 par `tsc`, par `lint:boundaries` — qui, lui, les parse — et par la review, pas par cette passe.
 
-**Dette antérieure, mesurée au montage** : `npm run analyse` sort **rouge** à 119 remontées, dont
-**29 dans `src/`** (le reste dans `tests/`). C'est pourquoi le check est en **avis** et non bloquant :
-un check qu'on pose rouge et qu'on déclare bloquant ne fait que paralyser le cycle. Il se promeut en
-bloquant le jour où il est vert — et ce jour-là, il suffit de passer `severity` à `blocking` dans
-`.claude/quality.json`, le ruleset GitHub n'exigeant aucun check.
+**Résorbée, et le check est bloquant depuis le 2026-09-12.** `npm run analyse` sortait **rouge** au
+montage, à 119 remontées dont **29 dans `src/`** ; il sort **vert** sur tout le dépôt depuis que la
+dette a été traitée par petits lots (`docs/chantiers/archive/2026-09-11-corrections-analyse.md`).
+C'est cet état vert, et lui seul, qui autorise la promotion : un check qu'on pose rouge et qu'on
+déclare bloquant ne fait que paralyser le cycle. `severity` vaut donc `blocking` dans
+`.claude/quality.json` — la seule surface en jeu, le ruleset GitHub n'exigeant aucun check et
+`analyse` n'étant pas un job de `ci.yml`.
 
-**Calibrage assumé** : sur `tests/**`, sept règles sont éteintes (la famille `no-unsafe-*`,
-`require-await`, `no-deprecated`, `sonarjs/deprecation`). Les tests d'intégration parlent au worker
-par HTTP — `res.json()` rend `any` par contrat — et `SELF`/`env` de `cloudflare:test` sont déclarés
-dépréciés en amont alors qu'ils sont la seule porte d'entrée du pool `workerd`. Sans ce calibrage :
-486 remontées dont 456 dans les tests, c'est-à-dire aucun signal. `src/` garde la grille entière.
+**Calibrage assumé, en deux blocs.** Sur `tests/**`, **huit** règles sont éteintes (la famille
+`no-unsafe-*` — cinq règles —, `require-await`, `no-deprecated`, `sonarjs/deprecation`). Les tests
+d'intégration parlent au worker par HTTP — `res.json()` rend `any` par contrat — et `SELF`/`env` de
+`cloudflare:test` sont déclarés dépréciés en amont alors qu'ils sont la seule porte d'entrée du pool
+`workerd`. Sans ce calibrage : 486 remontées dont 456 dans les tests, c'est-à-dire aucun signal.
+Le second bloc éteint `sonarjs/no-clear-text-protocols` sur le **seul**
+`tests/integration/regler-lien-video.test.ts`, dont le test du rejet non-https porte un `http://`
+comme donnée d'épreuve : ni une connexion, ni remplaçable sans rendre le test tautologique. La portée
+a été **mesurée**, pas supposée — sous une extinction élargie à `tests/**`, un `http://` planté
+ailleurs cesserait d'être vu ; bornée à ce fichier, il reste vu. `src/` garde la grille entière.
 La migration `SELF`/`env` → `cloudflare:workers` que ces règles signalent (77 occurrences) est un
 travail à part entière, consigné dans
 [`docs/chantiers/archive/2026-09-11-boucle-analyse-locale.md`](./chantiers/archive/2026-09-11-boucle-analyse-locale.md).
@@ -173,8 +180,9 @@ n'ont pas écrit le code, suivies d'un triage adversarial (`/scd-spec-dev:run`, 
 Une **quality gate déterministe** rejoue des checks à chaque ticket (phase 7½ de
 `/scd-spec-dev:run`) : elle est **possédée par le projet** dans `.claude/quality.json`
 (`/scd-spec-dev:quality-setup`). Posée le 2026-09-06 à six checks, portée à **huit** le
-2026-09-11 : `typecheck`, `lint` et `boundaries` **bloquants** (`lint` seul porte un autofix,
-`eslint --fix`), `build`, `test`, `knip`, `analyse` et `dup` en **avis**. Ni `analyse` ni `dup` ne
+2026-09-11 : `typecheck`, `lint`, `boundaries` et — depuis le 2026-09-12, sa dette résorbée —
+`analyse` **bloquants** (`lint` seul porte un autofix, `eslint --fix`), `build`, `test`, `knip` et
+`dup` en **avis**. Ni `analyse` ni `dup` ne
 porte d'autofix, délibérément : `eslint --fix` sait réécrire une partie des règles à types, mais ces
 réécritures touchent la sémantique (`||` et `??` ne coïncident pas sur `0` et `''`), et factoriser un
 clone, c'est réécrire de la logique — aucun des deux n'est un geste mécanique. Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un

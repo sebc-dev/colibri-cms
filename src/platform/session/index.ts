@@ -63,7 +63,7 @@ export interface DB {
   prepare(query: string): {
     bind(...valeurs: unknown[]): {
       run(): Promise<unknown>;
-      all<T = unknown>(): Promise<{ results: T[] }>;
+      all(): Promise<{ results: unknown[] }>;
     };
   };
 }
@@ -108,6 +108,12 @@ function lireCookie(request: Request, nom: string): string | null {
   return null;
 }
 
+/** Une ligne de `sessions` telle que D1 la rend — non validée, d'où l'assertion à la lecture. */
+interface LigneSessionBrute {
+  readonly creee_le: number;
+  readonly dernier_usage_le: number | null;
+}
+
 /**
  * Rend la session valide portée par la requête, ou `null` s'il n'en existe
  * aucune (aucun cookie `__Host-session`, cookie ne correspondant à aucune
@@ -128,8 +134,8 @@ export async function verifierSession(db: DB, request: Request): Promise<Session
   const resultat = await db
     .prepare(`select creee_le, dernier_usage_le from ${TABLE_SESSIONS} where id = ?1`)
     .bind(jeton)
-    .all<{ creee_le: number; dernier_usage_le: number | null }>();
-  const ligne = resultat.results[0];
+    .all();
+  const ligne = (resultat.results as LigneSessionBrute[]).at(0);
   if (!ligne) return null;
 
   const maintenant = Date.now();

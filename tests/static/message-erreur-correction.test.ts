@@ -27,11 +27,41 @@ describe("message d'erreur des îlots de correction", () => {
     expect(messageErreurCorrection(0)).toBe(MESSAGE_ECHEC);
   });
 
+  // FR-117 — la liste est une DONNÉE, pas une alternance : chaque terme est
+  // éprouvé séparément, si bien qu'un échec nomme celui qui a fuité au lieu
+  // de signaler qu'« une » regex de vingt-deux branches a mordu.
+  const TERMES_DEVELOPPEUR = [
+    'commit',
+    'branche',
+    'build',
+    'déploiement',
+    'serveur',
+    'http',
+    'json',
+    'api',
+    'url',
+    'hôte',
+    'host',
+    'endpoint',
+    'token',
+    'cookie',
+    'session',
+    'statut',
+    'status',
+    'fetch',
+    'requête',
+    '502',
+    '401',
+    '404',
+  ];
+
   it("n'emploie aucun terme de développeur (FR-117)", () => {
-    const jargon =
-      /\b(commit|branche|build|déploiement|serveur|http|json|api|url|hôte|host|endpoint|token|cookie|session|statut|status|fetch|requête|502|401|404)\b/i;
     for (const message of [MESSAGE_ACCES_EXPIRE, MESSAGE_ECRAN_PERIME, MESSAGE_ECHEC, MESSAGE_RESEAU]) {
-      expect(message).not.toMatch(jargon);
+      for (const terme of TERMES_DEVELOPPEUR) {
+        expect(message, `« ${terme} » est un terme de développeur (FR-117)`).not.toMatch(
+          new RegExp(`\\b${terme}\\b`, 'i'),
+        );
+      }
     }
   });
 });

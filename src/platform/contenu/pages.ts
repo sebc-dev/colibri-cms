@@ -26,15 +26,25 @@ import {
   type PageAvecEmplacements,
 } from '../../core/pages/declaration.ts';
 
-const MODULES_PAGE_JSON = import.meta.glob('/content/pages/*/page.json', {
-  eager: true,
-}) as Record<string, { default: unknown }>;
+/**
+ * Les `page.json` déclarés, indexés par chemin résolu. Une `Map` et non
+ * l'objet rendu par `import.meta.glob` : `.get` dit qu'un slug inconnu ne
+ * désigne aucun module, là où l'indexation d'un `Record` rend un type qui
+ * ne l'avoue jamais.
+ */
+const MODULES_PAGE_JSON: ReadonlyMap<string, { default: unknown }> = new Map(
+  Object.entries(
+    import.meta.glob('/content/pages/*/page.json', {
+      eager: true,
+    }),
+  ),
+);
 
 const MODULES_TEXTE_RICHE = import.meta.glob('/content/pages/*/*.md', {
   eager: true,
   query: '?raw',
   import: 'default',
-}) as Record<string, string>;
+});
 
 /**
  * Extrait le slug (nom du répertoire posé par l'intégrateur) depuis le
@@ -47,7 +57,7 @@ function slugDepuisChemin(chemin: string): string {
 
 /** Les pages déclarées par l'intégrateur, dans l'ordre posé (SC-02a). */
 export function listerPagesDeclarees(): PageDeclaree[] {
-  const fichiers = Object.entries(MODULES_PAGE_JSON).map(([chemin, module]) => ({
+  const fichiers = Array.from(MODULES_PAGE_JSON, ([chemin, module]) => ({
     slug: slugDepuisChemin(chemin),
     contenu: module.default,
   }));
@@ -75,7 +85,7 @@ function contenusTexteRichePourSlug(slug: string): Map<string, string> {
  * sous ce slug.
  */
 export function obtenirPageAvecEmplacements(slug: string): PageAvecEmplacements | null {
-  const module = MODULES_PAGE_JSON[`/content/pages/${slug}/page.json`];
+  const module = MODULES_PAGE_JSON.get(`/content/pages/${slug}/page.json`);
   if (!module) return null;
   return construirePageAvecEmplacements(module.default, contenusTexteRichePourSlug(slug));
 }

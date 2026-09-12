@@ -26,7 +26,7 @@
       "id": "analyse",
       "agent": "quality-analyse",
       "cmd": "npm run analyse",
-      "severity": "advisory",
+      "severity": "blocking",
       "autofix": null
     },
     {

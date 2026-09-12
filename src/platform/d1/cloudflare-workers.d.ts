@@ -24,11 +24,11 @@ declare module 'cloudflare:workers' {
       prepare(query: string): {
         bind(...valeurs: unknown[]): {
           run(): Promise<unknown>;
-          all<T = unknown>(): Promise<{ results: T[] }>;
+          all(): Promise<{ results: unknown[] }>;
           first<T = unknown>(column?: string): Promise<T | null>;
         };
         run(): Promise<unknown>;
-        all<T = unknown>(): Promise<{ results: T[] }>;
+        all(): Promise<{ results: unknown[] }>;
         first<T = unknown>(column?: string): Promise<T | null>;
       };
     };
