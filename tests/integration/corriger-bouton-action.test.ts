@@ -3,7 +3,7 @@
  * (openspec/changes/003-remplir-emplacements/tickets/04-corriger-bouton-action.md).
  *
  * Couture retenue, à l'image de `liste-des-pages.test.ts` (ticket 02) :
- * requête HTTP réelle via `SELF.fetch` contre le worker compilé, dans
+ * requête HTTP réelle via `exports.default.fetch` contre le worker compilé, dans
  * `workerd`, contre la vraie D1 locale (ADR-0003) — jamais de double
  * interne. Les migrations `0003_sessions.sql` et
  * `0004_brouillons_emplacements.sql` sont rejouées ici même (aucune n'est
@@ -14,8 +14,7 @@
  * réel (`bouton-devis`) : ce fichier ne sème aucune fixture de déclaration,
  * il s'appuie sur celle déjà posée (ADR-0012), comme `liste-des-pages.test.ts`.
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach, describe } from 'vitest';
 
 const NOM_COOKIE_SESSION = '__Host-session';
@@ -98,14 +97,14 @@ async function corrigerLeBouton(
   cookieSession: string | null,
   corps: unknown,
 ): Promise<Response> {
-  return SELF.fetch(ROUTE_ACCUEIL_BOUTON, {
+  return exports.default.fetch(new Request(ROUTE_ACCUEIL_BOUTON, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       ...(cookieSession ? { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` } : {}),
     },
     body: JSON.stringify(corps),
-  });
+  }));
 }
 
 // --- SC-04d — la migration crée une table qui lie le brouillon à l'emplacement
@@ -194,11 +193,11 @@ it('SC-04f — après enregistrement, la pastille de brouillon apparaît sur la 
   // Arrange : avant toute correction, aucune pastille pour « accueil ».
   const db = await assurerSchema();
   const cookieSession = await semerSessionValide(db);
-  const listeAvant = await SELF.fetch(ROUTE_MES_PAGES, {
+  const listeAvant = await exports.default.fetch(new Request(ROUTE_MES_PAGES, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
+  }));
   const corpsListeAvant = await listeAvant.text();
-  const ligneAccueilAvant = corpsListeAvant.match(/<li>Accueil[\s\S]*?<\/li>/)?.[0] ?? '';
+  const ligneAccueilAvant = /<li>Accueil[\s\S]*?<\/li>/.exec(corpsListeAvant)?.[0] ?? '';
   expect(ligneAccueilAvant).not.toMatch(/data-pastille-brouillon/);
 
   // Act : la correction s'enregistre…
@@ -209,24 +208,24 @@ it('SC-04f — après enregistrement, la pastille de brouillon apparaît sur la 
   expect(reponseCorrection.status).toBe(200);
 
   // Assert : … la ligne « Accueil » de la liste porte désormais la pastille…
-  const listeApres = await SELF.fetch(ROUTE_MES_PAGES, {
+  const listeApres = await exports.default.fetch(new Request(ROUTE_MES_PAGES, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
+  }));
   const corpsListeApres = await listeApres.text();
-  const ligneAccueilApres = corpsListeApres.match(/<li>Accueil[\s\S]*?<\/li>/)?.[0] ?? '';
+  const ligneAccueilApres = /<li>Accueil[\s\S]*?<\/li>/.exec(corpsListeApres)?.[0] ?? '';
   expect(ligneAccueilApres).toMatch(/data-pastille-brouillon/);
 
   // …et le fil de retour de l'`Écran : Éditeur de page` la porte aussi, sans
   // qu'aucune autre page non corrigée n'en porte une.
-  const editeurApres = await SELF.fetch(ROUTE_EDITEUR_ACCUEIL, {
+  const editeurApres = await exports.default.fetch(new Request(ROUTE_EDITEUR_ACCUEIL, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
+  }));
   const corpsEditeurApres = await editeurApres.text();
   const zonePastilleEditeur =
-    corpsEditeurApres.match(/<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/)?.[0] ?? '';
+    /<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/.exec(corpsEditeurApres)?.[0] ?? '';
   expect(zonePastilleEditeur).toMatch(/data-pastille-brouillon/);
 
-  const ligneContactApres = corpsListeApres.match(/<li>Contact[\s\S]*?<\/li>/)?.[0] ?? '';
+  const ligneContactApres = /<li>Contact[\s\S]*?<\/li>/.exec(corpsListeApres)?.[0] ?? '';
   expect(ligneContactApres).not.toMatch(/data-pastille-brouillon/);
 });
 
@@ -259,7 +258,7 @@ describe('SC-04g — une écriture sans le cookie de session valide n’aboutit 
     // Act : un jeton qui ne correspond à aucune ligne de `sessions`, tenté
     // à la fois comme cookie ET comme en-tête/paramètre d'URL — aucun de ces
     // replis n'est jamais lu par la route (ADR-0011, aucun jeton dédié).
-    const reponse = await SELF.fetch(`${ROUTE_ACCUEIL_BOUTON}?session=jeton-invente`, {
+    const reponse = await exports.default.fetch(new Request(`${ROUTE_ACCUEIL_BOUTON}?session=jeton-invente`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -267,7 +266,7 @@ describe('SC-04g — une écriture sans le cookie de session valide n’aboutit 
         'x-session-id': 'jeton-invente-encore',
       },
       body: JSON.stringify({ libelle: 'Forgé', destination: '/forge' }),
-    });
+    }));
 
     // Assert : refusée, et rien n'a été écrit.
     expect(reponse.status).toBe(401);

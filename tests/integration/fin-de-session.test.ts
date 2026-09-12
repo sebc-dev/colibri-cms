@@ -3,7 +3,7 @@
  * (specs/001-connexion-par-code/08-fin-de-session.md).
  *
  * Couture retenue (héritée des tickets 01/06, SPEC.md § Décisions de test,
- * ADR-0003) : requête HTTP réelle via `SELF.fetch` contre le worker compilé,
+ * ADR-0003) : requête HTTP réelle via `exports.default.fetch` contre le worker compilé,
  * dans workerd, contre la vraie D1 locale — jamais de double interne. La
  * migration `migrations/0003_sessions.sql` (ticket 06) porte la table
  * `sessions` ; ce fichier la rejoue (comme `code-ouvre-la-session.test.ts`
@@ -41,13 +41,12 @@
  *
  * **c4 : un espion posé sur la liaison `DB` seule**, comme les tickets 03/04/
  * 05/06 posent un espion sur la liaison d'expédition (mutation de `env` via
- * `cloudflare:test`) — jamais un double interne. Il intercepte les seules
+ * `cloudflare:workers`) — jamais un double interne. Il intercepte les seules
  * requêtes d'écriture (`insert`/`update`) qui ciblent `sessions`, pour
  * compter combien de rafraîchissements une rafale de requêtes immédiates
  * déclenche réellement en base.
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, assert, afterEach } from 'vitest';
 
 const NOM_COOKIE_SESSION = '__Host-session';
@@ -137,10 +136,10 @@ async function lireDernierUsage(db: DBLike, id: string): Promise<number | null> 
 }
 
 async function accederAAccueil(cookieSession: string | null): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/', {
+  return exports.default.fetch(new Request('https://example.com/admin/', {
     redirect: 'manual',
     headers: cookieSession ? { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` } : {},
-  });
+  }));
 }
 
 function cheminDeLocation(reponse: Response): string | null {

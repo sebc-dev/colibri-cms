@@ -3,7 +3,7 @@
  * (specs/001-connexion-par-code/07-refus-de-code.md).
  *
  * Couture retenue (héritée des tickets 03-06, SPEC.md § Décisions de test,
- * ADR-0003) : requête HTTP réelle via `SELF.fetch` contre le worker compilé,
+ * ADR-0003) : requête HTTP réelle via `exports.default.fetch` contre le worker compilé,
  * dans workerd, contre la vraie D1 locale — jamais de double interne. La
  * migration `migrations/0002_adresses_autorisees_et_codes_connexion.sql`
  * porte déjà les colonnes qu'exige ce ticket (`essais`, `annule_le`) ; ce
@@ -56,13 +56,12 @@
  * dans le passé, jamais obtenue en attendant réellement.
  *
  * **Un espion posé sur la liaison d'environnement seule**, comme aux
- * tickets 03-06 (mutation de `env` via `cloudflare:test`), pour les deux
+ * tickets 03-06 (mutation de `env` via `cloudflare:workers`), pour les deux
  * tests (c4a/c4b) qui déclenchent une nouvelle demande de code — la seule
  * dépendance hors-process de cette route (`send_email`, ADR-0002), jamais un
  * double interne.
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach } from 'vitest';
 
 const NOM_COOKIE_APPAREIL = 'identifiant-appareil';
@@ -221,9 +220,9 @@ function extraireCookieValeur(reponse: Response, nom: string): string | null {
 }
 
 async function afficherEcranDeConnexion(cookieExistant?: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     headers: cookieExistant ? { cookie: `${NOM_COOKIE_APPAREIL}=${cookieExistant}` } : {},
-  });
+  }));
 }
 
 async function obtenirIdentifiantAppareil(): Promise<string> {
@@ -238,7 +237,7 @@ async function obtenirIdentifiantAppareil(): Promise<string> {
 }
 
 async function soumettreCode(saisie: string, identifiantAppareil: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     method: 'POST',
     redirect: 'manual',
     headers: {
@@ -247,11 +246,11 @@ async function soumettreCode(saisie: string, identifiantAppareil: string): Promi
       cookie: `${NOM_COOKIE_APPAREIL}=${identifiantAppareil}`,
     },
     body: `code=${encodeURIComponent(saisie)}`,
-  });
+  }));
 }
 
 async function soumettreAdresse(adresse: string, identifiantAppareil: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     method: 'POST',
     headers: {
       'content-type': 'application/x-www-form-urlencoded',
@@ -259,7 +258,7 @@ async function soumettreAdresse(adresse: string, identifiantAppareil: string): P
       cookie: `${NOM_COOKIE_APPAREIL}=${identifiantAppareil}`,
     },
     body: `adresse=${encodeURIComponent(adresse)}`,
-  });
+  }));
 }
 
 function cheminDeLocation(reponse: Response): string | null {

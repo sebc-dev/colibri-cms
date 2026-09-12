@@ -3,7 +3,7 @@
  * (specs/001-connexion-par-code/02-politique-de-securite.md).
  *
  * Couture héritée du ticket 01 (SPEC.md § Décisions de test, ADR-0003) :
- * requête HTTP réelle via `SELF.fetch` contre le worker compilé, dans
+ * requête HTTP réelle via `exports.default.fetch` contre le worker compilé, dans
  * workerd — jamais de double interne, jamais de lecture du middleware par
  * import direct (« The Inspector » : on ne teste que ce qu'une vraie
  * réponse HTTP porte).
@@ -29,8 +29,7 @@
  * explicitement pour que le jour où une feature Turnstile l'ouvrira, ce
  * soit un changement délibéré de ce test, jamais un relâchement silencieux.
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF } from 'cloudflare:test';
+import { exports } from 'cloudflare:workers';
 import { it, expect } from 'vitest';
 
 // Les quatre en-têtes que la politique doit poser, identiquement, sur les
@@ -61,31 +60,31 @@ function refuseDetreMisEnCadre(reponse: Response): boolean {
 }
 
 it('l’écran de connexion servi porte une Content-Security-Policy', async () => {
-  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const reponse = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
 
   expect(reponse.headers.get('content-security-policy')).not.toBeNull();
 });
 
 it('l’écran de connexion servi porte le refus de reniflage de type (X-Content-Type-Options: nosniff)', async () => {
-  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const reponse = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
 
   expect(reponse.headers.get('x-content-type-options')).toBe('nosniff');
 });
 
 it('l’écran de connexion servi porte une politique de référent', async () => {
-  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const reponse = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
 
   expect(reponse.headers.get('referrer-policy')).toBeTruthy();
 });
 
 it('l’écran de connexion servi refuse d’être mis en cadre', async () => {
-  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const reponse = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
 
   expect(refuseDetreMisEnCadre(reponse)).toBe(true);
 });
 
 it('le renvoi rendu par le garde de session porte exactement les mêmes en-têtes de sécurité, aux mêmes valeurs, que l’écran de connexion', async () => {
-  const ecranDeConnexion = await SELF.fetch('https://example.com/admin/connexion');
+  const ecranDeConnexion = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
   const enTetesReference = enTetesDeSecurite(ecranDeConnexion);
 
   // Sanity : sans cette précondition, deux ensembles vides seraient jugés
@@ -93,26 +92,26 @@ it('le renvoi rendu par le garde de session porte exactement les mêmes en-tête
   // ce ne serait pas une preuve, mais un test qui ment (« The Liar »).
   expect(Object.keys(enTetesReference).length, 'l’écran de connexion devrait déjà porter les en-têtes de sécurité').toBe(CHAMPS_DE_SECURITE.length);
 
-  const renvoi = await SELF.fetch('https://example.com/admin/', { redirect: 'manual' });
+  const renvoi = await exports.default.fetch(new Request('https://example.com/admin/', { redirect: 'manual' }));
 
   expect([301, 302, 303, 307, 308]).toContain(renvoi.status);
   expect(enTetesDeSecurite(renvoi)).toEqual(enTetesReference);
 });
 
 it('un chemin inconnu sous /admin/ porte exactement les mêmes en-têtes de sécurité, aux mêmes valeurs, que l’écran de connexion', async () => {
-  const ecranDeConnexion = await SELF.fetch('https://example.com/admin/connexion');
+  const ecranDeConnexion = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
   const enTetesReference = enTetesDeSecurite(ecranDeConnexion);
 
   expect(Object.keys(enTetesReference).length, 'l’écran de connexion devrait déjà porter les en-têtes de sécurité').toBe(CHAMPS_DE_SECURITE.length);
 
-  const cheminInconnu = await SELF.fetch('https://example.com/admin/ceci-nexiste-pas');
+  const cheminInconnu = await exports.default.fetch(new Request('https://example.com/admin/ceci-nexiste-pas'));
 
   expect(cheminInconnu.status).toBe(404);
   expect(enTetesDeSecurite(cheminInconnu)).toEqual(enTetesReference);
 });
 
 it('la Content-Security-Policy ne porte pas unsafe-inline dans script-src', async () => {
-  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const reponse = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
   const csp = reponse.headers.get('content-security-policy');
 
   expect(csp, 'une Content-Security-Policy devrait être posée').toBeTruthy();
@@ -123,7 +122,7 @@ it('la Content-Security-Policy ne porte pas unsafe-inline dans script-src', asyn
 });
 
 it('la Content-Security-Policy ne porte pas unsafe-eval', async () => {
-  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const reponse = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
   const csp = reponse.headers.get('content-security-policy');
 
   expect(csp, 'une Content-Security-Policy devrait être posée').toBeTruthy();
@@ -131,7 +130,7 @@ it('la Content-Security-Policy ne porte pas unsafe-eval', async () => {
 });
 
 it("la Content-Security-Policy autorise les fetch d’administration même origine (connect-src 'self', SC-04f/SC-05b)", async () => {
-  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const reponse = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
   const csp = reponse.headers.get('content-security-policy');
 
   expect(csp, 'une Content-Security-Policy devrait être posée').toBeTruthy();
@@ -145,7 +144,7 @@ it("la Content-Security-Policy autorise les fetch d’administration même origi
 });
 
 it('la Content-Security-Policy n’ouvre aucune source tierce, pas même challenges.cloudflare.com réservée à Turnstile (ADR-0004, hors périmètre de cette feature)', async () => {
-  const reponse = await SELF.fetch('https://example.com/admin/connexion');
+  const reponse = await exports.default.fetch(new Request('https://example.com/admin/connexion'));
   const csp = reponse.headers.get('content-security-policy');
 
   expect(csp, 'une Content-Security-Policy devrait être posée').toBeTruthy();

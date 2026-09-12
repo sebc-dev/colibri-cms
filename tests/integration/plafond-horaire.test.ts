@@ -3,7 +3,7 @@
  * (specs/001-connexion-par-code/05-plafond-horaire.md).
  *
  * Couture retenue (héritée des tickets 03/04, SPEC.md § Décisions de test,
- * ADR-0003) : requête HTTP réelle via `SELF.fetch` contre le worker compilé,
+ * ADR-0003) : requête HTTP réelle via `exports.default.fetch` contre le worker compilé,
  * dans workerd, contre la vraie D1 locale. La migration
  * `migrations/0002_adresses_autorisees_et_codes_connexion.sql` (ticket 03)
  * porte déjà les colonnes qu'exige ce ticket (`essais`, `annule_le`) — ce
@@ -31,20 +31,19 @@
  * avec un `creee_le` situé dans le passé, jamais obtenue en patientant.
  *
  * **Un espion posé sur la liaison d'environnement seule**, comme aux
- * tickets 03/04 (mutation de `env` via `cloudflare:test`, jamais un double
+ * tickets 03/04 (mutation de `env` via `cloudflare:workers`, jamais un double
  * interne) : seule dépendance hors-process de cette route (`send_email`,
  * ADR-0002).
  *
  * **c5 (indivisibilité sous concurrence, signalé par le brief).** Deux
- * `SELF.fetch` lancées via `Promise.all` sont nécessaires pour espérer
+ * `exports.default.fetch` lancées via `Promise.all` sont nécessaires pour espérer
  * déclencher une course, sans garantie absolue de la déclencher à tout coup.
  * L'assertion porte donc sur un invariant qui doit tenir *que la course ait
  * eu lieu ou non* — jamais un nombre différent selon 5+1 ou 4+2 : le compte
  * final ne dépasse jamais cinq — plutôt que sur l'observation directe d'une
  * collision.
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach } from 'vitest';
 
 const NOM_COOKIE_APPAREIL = 'identifiant-appareil';
@@ -110,7 +109,7 @@ afterEach(async () => {
  * tickets 03/04). Expose `demande` : une promesse qui ne résout qu'au premier
  * appel — le seul point de synchronisation fiable, l'expédition étant remise
  * à la plateforme *après* la réponse (ADR-0007, `ctx.waitUntil`) : rien ne
- * garantit qu'elle a déjà eu lieu au seul retour de `SELF.fetch` (même
+ * garantit qu'elle a déjà eu lieu au seul retour de `exports.default.fetch` (même
  * précaution qu'aux tickets 03/04).
  */
 function creerExpediteurEspion(options?: { echoue?: boolean }): {
@@ -141,7 +140,7 @@ function creerExpediteurEspion(options?: { echoue?: boolean }): {
 /**
  * Attend un court délai réel. Sert uniquement à laisser sa chance à un appel
  * *différé* de se produire avant de constater son absence (`ctx.waitUntil`
- * ne garantit rien au retour de `SELF.fetch` — voir `creerExpediteurEspion`).
+ * ne garantit rien au retour de `exports.default.fetch` — voir `creerExpediteurEspion`).
  * Une promesse qui n'a pas vocation à résoudre un jour (« aucun appel ») ne
  * peut se borner que par un délai — jamais par une attente indéfinie.
  */
@@ -228,9 +227,9 @@ function entetesTriables(reponse: Response): [string, string][] {
 }
 
 async function afficherEcranDeConnexion(cookieExistant?: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     headers: cookieExistant ? { cookie: `${NOM_COOKIE_APPAREIL}=${cookieExistant}` } : {},
-  });
+  }));
 }
 
 async function obtenirIdentifiantAppareil(): Promise<string> {
@@ -245,7 +244,7 @@ async function obtenirIdentifiantAppareil(): Promise<string> {
 }
 
 async function soumettreAdresse(adresse: string, identifiantAppareil: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     method: 'POST',
     headers: {
       'content-type': 'application/x-www-form-urlencoded',
@@ -253,7 +252,7 @@ async function soumettreAdresse(adresse: string, identifiantAppareil: string): P
       cookie: `${NOM_COOKIE_APPAREIL}=${identifiantAppareil}`,
     },
     body: `adresse=${encodeURIComponent(adresse)}`,
-  });
+  }));
 }
 
 // --- c1 — le sixième code d'une heure pleine n'est ni écrit, ni demandé ---
@@ -374,7 +373,7 @@ it('cinq lignes écrites il y a plus d’une heure ne comptent plus : une nouvel
     await soumettreAdresse(ADRESSE_AUTORISEE, identifiantAppareil);
     // L'expédition est remise après la réponse (`ctx.waitUntil`) : attendre
     // qu'elle ait eu lieu avant d'observer, sinon l'espion n'a pas encore
-    // été appelé au seul retour de `SELF.fetch` (même précaution qu'aux
+    // été appelé au seul retour de `exports.default.fetch` (même précaution qu'aux
     // tickets 03/04).
     await demande;
   } finally {

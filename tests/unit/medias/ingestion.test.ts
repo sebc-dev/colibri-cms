@@ -6,7 +6,7 @@
  * Cible : `src/core/medias/ingestion.ts` — zone `core` (docs/architecture.md,
  * I1/I2) : fonction pure, zéro dépendance, ni framework ni plateforme,
  * instanciable sans D1 ni Worker (ARCH-5). Ce test n'utilise donc ni
- * `cloudflare:test` ni `SELF.fetch` — seule la fonction est exercée, en
+ * `cloudflare:workers` ni `exports.default.fetch` — seule la fonction est exercée, en
  * mémoire, avec des en-têtes construits ici même (octets magiques minimaux :
  * JPEG `FF D8 FF` + segment SOF0 — collé au SOI ou précédé d'un APP0/JFIF —,
  * PNG `89 50 4E 47…` + chunk `IHDR`, WebP `RIFF…WEBP` + chunk `VP8X`, `VP8 `

@@ -3,7 +3,7 @@
  * (specs/001-connexion-par-code/03-code-vers-adresse-autorisee.md).
  *
  * Couture retenue par la spec (SPEC.md § Décisions de test, ADR-0003) :
- * requête HTTP réelle via `SELF.fetch` contre le worker de production, dans
+ * requête HTTP réelle via `exports.default.fetch` contre le worker de production, dans
  * son vrai moteur (workerd), et lecture de la vraie D1 locale — jamais de
  * simulacre. Ce fichier est le premier de la feature à toucher D1 : aucune
  * table de ce lot n'existe encore, et rien sous `src/core/auth/`,
@@ -44,14 +44,13 @@
  * que le module s'invoque lui-même : il ne traverse jamais `POST
  * /admin/connexion`. La couture retenue est donc plus haute : un espion posé
  * sur la liaison d'environnement `EXPEDITEUR_CODE_CONNEXION` (mutation de
- * `env`, cf. `import { env } from 'cloudflare:test'` — spike vérifié : cette
- * mutation est visible du même isolat via `cloudflare:workers`, donc de tout
- * code de route qui lit sa liaison par cette porte), avant un vrai
- * `SELF.fetch` POST — ce qui observe la demande d'expédition *depuis la
+ * `env`, cf. `import { env } from 'cloudflare:workers'` — spike vérifié : c'est
+ * le même objet que celui que lit tout code de route par cette porte, donc la
+ * mutation lui est visible), avant un vrai
+ * `exports.default.fetch` POST — ce qui observe la demande d'expédition *depuis la
  * route*, sans jamais chercher à constater l'envoi réel ni sa forme.
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach } from 'vitest';
 
 const NOM_COOKIE_APPAREIL = 'identifiant-appareil';
@@ -151,7 +150,7 @@ function creerExpediteurEspion(): {
   // `demande` résout au moment précis où la route invoque `send`. Point de
   // synchronisation devenu nécessaire au ticket 04 : l'expédition est remise
   // à la plateforme *après* la réponse (ADR-0007, `ctx.waitUntil`), donc
-  // `SELF.fetch` peut revenir avant qu'elle ait eu lieu. Sans ce point
+  // `exports.default.fetch` peut revenir avant qu'elle ait eu lieu. Sans ce point
   // d'attente, un `expect` posé aussitôt après `soumettreAdresse` mesurerait
   // l'instant de retour du handler, jamais celui de la remise différée, et
   // n'observerait jamais l'appel (même idiome que branches-indiscernables).
@@ -217,9 +216,9 @@ function extraireCookie(reponse: Response, nom: string): { valeur: string; maxAg
 }
 
 async function afficherEcranDeConnexion(cookieExistant?: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     headers: cookieExistant ? { cookie: `${NOM_COOKIE_APPAREIL}=${cookieExistant}` } : {},
-  });
+  }));
 }
 
 async function obtenirIdentifiantAppareil(): Promise<string> {
@@ -234,7 +233,7 @@ async function obtenirIdentifiantAppareil(): Promise<string> {
 }
 
 async function soumettreAdresse(adresse: string, identifiantAppareil: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     method: 'POST',
     headers: {
       'content-type': 'application/x-www-form-urlencoded',
@@ -245,7 +244,7 @@ async function soumettreAdresse(adresse: string, identifiantAppareil: string): P
       cookie: `${NOM_COOKIE_APPAREIL}=${identifiantAppareil}`,
     },
     body: `adresse=${encodeURIComponent(adresse)}`,
-  });
+  }));
 }
 
 // --- FR-120 (c1) — l'identifiant d'appareil, posé à l'affichage ---
@@ -306,7 +305,7 @@ it('soumettre l’adresse autorisée demande une expédition à la plateforme, v
     await soumettreAdresse(ADRESSE_AUTORISEE, identifiantAppareil);
     // L'expédition est remise après la réponse (ticket 04, `ctx.waitUntil`) :
     // attendre qu'elle ait eu lieu avant d'observer, sinon l'espion n'a pas
-    // encore été appelé au seul retour de `SELF.fetch`.
+    // encore été appelé au seul retour de `exports.default.fetch`.
     await demande;
   } finally {
     restaurerLiaisonExpedition(precedent);
