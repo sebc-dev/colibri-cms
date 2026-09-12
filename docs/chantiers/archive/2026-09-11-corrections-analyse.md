@@ -80,3 +80,26 @@ La passe verte, restait la clôture : corriger `docs/ci.md`, puis passer `analys
   lisibilité du test sans rien régler.
 - **Simplifier la regex du vocabulaire FR-117** — ses vingt-et-une branches sont une liste de mots,
   irréductible sans en retirer, donc sans affaiblir FR-117 : c'est la représentation qui change.
+
+## Issue
+`npm run analyse` sort **vert** sur tout le dépôt, et le check est passé **bloquant** dans
+`.claude/quality.json` — l'objectif du chantier, atteint le 2026-09-12.
+
+Les deux derniers lots, chacun rejoué par sa sonde adverse puis restauré depuis une copie prise hors
+de l'arbre : `prefer-specific-assertions` (`574d801`, deux `toHaveLength` — sonde : `2 failed | 17
+passed`), `parameterized-tests` (`3bacbcf`, deux tables `it.each` — sonde : `9 failed | 10 passed`,
+un rouge par cas). 19 cas avant, 19 après ; suite complète `174 passed (174)`, `0` en `Errors`.
+
+Le test c1 de `code-ouvre-la-session` a été laissé hors de la table des cas c3 : les regrouper aurait
+mêlé deux critères sous un seul nom, et la règle se tait sans cela.
+
+Clôture dans le commit qui porte cette fiche : `docs/ci.md` corrigé sur trois points qu'un mois de
+lots avait périmés (la dette de 119 remontées, le statut « en avis », les « sept » règles éteintes
+alors qu'elles sont huit et en deux blocs), et `severity` passée à `blocking`. Une seule surface :
+`analyse` n'est ni un job de `ci.yml` ni un status check du ruleset.
+
+Reste ouvert, hors de ce chantier : la migration `SELF`/`env` → `cloudflare:workers` (77 occurrences)
+qui seule permettra de rallumer `no-deprecated` sur `tests/**` — consignée dans
+`docs/chantiers/archive/2026-09-11-boucle-analyse-locale.md`.
+
+PR #85.
