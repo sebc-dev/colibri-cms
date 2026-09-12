@@ -129,7 +129,12 @@ afterEach(async () => {
 function poserExpediteurEspionInerte(): unknown {
   const enveloppe = env as unknown as Record<string, unknown>;
   const precedent = enveloppe[CLE_LIAISON_EXPEDITION];
-  enveloppe[CLE_LIAISON_EXPEDITION] = { send: async () => {} };
+  enveloppe[CLE_LIAISON_EXPEDITION] = {
+    send: async () => {
+      // Espion inerte : la liaison ne doit rien expédier pendant ce test —
+      // c'est son absence d'effet qui est observée, jamais son appel.
+    },
+  };
   return precedent;
 }
 
