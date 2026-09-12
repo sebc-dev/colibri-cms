@@ -1,7 +1,7 @@
 # Résorber ce que la passe d'analyse lève
 
 Portée : hors-cycle
-Ouvert le 2026-09-11 · Actualisé le 2026-09-11 · branche `chore/chantier-corrections-analyse` · HEAD `6e55f5f`
+Ouvert le 2026-09-11 · Actualisé le 2026-09-12 · branche `chore/chantier-corrections-analyse` · HEAD `fff1625`
 
 ## Objectif
 J'allais traiter par petits lots ce que `npm run analyse` lève — `src/` d'abord, `tests/` ensuite —
@@ -31,11 +31,14 @@ devienne vert, et donc promouvable en bloquant.
 - Une correction qui touche une assertion de test se réprouve par une sonde adverse — condition
   inversée, le test doit virer au rouge. Restaurer ensuite par une copie prise hors de l'arbre, avec
   vérification d'empreinte ; jamais par `git restore`, le travail du lot n'étant pas encore commité.
+- Un lot se prouve par quatre commandes, dans cet ordre : `npm run typecheck`, la passe d'analyse sur
+  les seuls fichiers touchés, `npm test` sur ces mêmes fichiers, `npm run lint`.
 
 ## Prochaine étape
-Attaquer les quatre `sonarjs/pseudo-random` — un `Math.random()` de fixture dans
-`corriger-bouton-action.test.ts`, `liste-des-pages.test.ts`, `regler-lien-video.test.ts` et
-`texte-riche.test.ts` : une seule cause de fond, quatre sites, à traiter d'un geste.
+J'allais prendre le lot de `tests/setup/ignorer-rejet-wasm-lexer.ts` — plusieurs constats sur un même
+petit fichier, une seule lecture, aucune assertion touchée. Les deux lots qui, eux, touchent des
+assertions (`prefer-specific-assertions`, `parameterized-tests`) attendent la fin : chacun exige sa
+sonde adverse.
 
 ## Écarté
 - **Lancer `--fix` sur tout le dépôt sans relire le diff** — `||` et `??` ne coïncident pas sur `0` et
@@ -50,7 +53,10 @@ Attaquer les quatre `sonarjs/pseudo-random` — un `Math.random()` de fixture da
 - **Annoter une `const` en `| undefined` pour rendre une garde réelle** — TypeScript re-narrowe depuis
   le type de l'initialiseur ; ce qui marche, c'est `Map.get` ou `.at(0)`.
 - **Éteindre une règle plutôt que corriger** — le calibrage est le contrat ; une extinction ne se
-  justifie que par une cause nommée, comme celles de `tests/**`.
+  justifie que par une cause nommée, comme celles de `tests/**`. Rééprouvé sur `pseudo-random` : la
+  forme de remplacement était déjà en usage ailleurs dans le dépôt.
+- **Grouper les lots qui touchent des assertions avec les autres** — chacun exige sa sonde adverse et
+  sa restauration par copie ; les garder ensemble en fin évite de payer ce rituel à chaque petit lot.
 - **Commencer par la migration `SELF`/`env`** — beaucoup d'endroits touchés, aucun comportement
   changé : elle noierait le diff des constats qui, eux, en changent.
 - **Promouvoir `analyse` en bloquant avant qu'il soit vert** — un check rouge déclaré bloquant
