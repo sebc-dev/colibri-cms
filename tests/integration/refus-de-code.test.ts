@@ -501,7 +501,7 @@ it('aucun des cinq refus (saisie fautive, brûlé, mauvais appareil, expiré, d�
 
   for (const [index, texte] of corps.entries()) {
     for (const terme of termesDeveloppeur) {
-      expect(texte, `le refus n°${index + 1} ne devrait pas contenir « ${terme} »`).not.toContain(terme);
+      expect(texte, `le refus n°${String(index + 1)} ne devrait pas contenir « ${terme} »`).not.toContain(terme);
     }
   }
 });
