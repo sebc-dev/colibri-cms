@@ -62,19 +62,18 @@ déclare bloquant ne fait que paralyser le cycle. `severity` vaut donc `blocking
 `.claude/quality.json` — la seule surface en jeu, le ruleset GitHub n'exigeant aucun check et
 `analyse` n'étant pas un job de `ci.yml`.
 
-**Calibrage assumé, en deux blocs.** Sur `tests/**`, **huit** règles sont éteintes (la famille
-`no-unsafe-*` — cinq règles —, `require-await`, `no-deprecated`, `sonarjs/deprecation`). Les tests
-d'intégration parlent au worker par HTTP — `res.json()` rend `any` par contrat — et `SELF`/`env` de
-`cloudflare:test` sont déclarés dépréciés en amont alors qu'ils sont la seule porte d'entrée du pool
-`workerd`. Sans ce calibrage : 486 remontées dont 456 dans les tests, c'est-à-dire aucun signal.
+**Calibrage assumé, en deux blocs.** Sur `tests/**`, **six** règles sont éteintes (la famille
+`no-unsafe-*` — cinq règles —, `require-await`). Les tests d'intégration parlent au worker par HTTP —
+`res.json()` rend `any` par contrat. Sans ce calibrage : 486 remontées dont 456 dans les tests,
+c'est-à-dire aucun signal. `no-deprecated` et `sonarjs/deprecation` y étaient éteintes aussi, tant
+que `SELF`/`env` de `cloudflare:test` — dépréciés en amont — restaient la porte d'entrée du pool
+`workerd` ; elles sont **revenues le 2026-09-12**, les tests passant désormais par
+`exports`/`env` de `cloudflare:workers` (docs/test.md § Écrire un test d'intégration).
 Le second bloc éteint `sonarjs/no-clear-text-protocols` sur le **seul**
 `tests/integration/regler-lien-video.test.ts`, dont le test du rejet non-https porte un `http://`
 comme donnée d'épreuve : ni une connexion, ni remplaçable sans rendre le test tautologique. La portée
 a été **mesurée**, pas supposée — sous une extinction élargie à `tests/**`, un `http://` planté
 ailleurs cesserait d'être vu ; bornée à ce fichier, il reste vu. `src/` garde la grille entière.
-La migration `SELF`/`env` → `cloudflare:workers` que ces règles signalent (77 occurrences) est un
-travail à part entière, consigné dans
-[`docs/chantiers/archive/2026-09-11-boucle-analyse-locale.md`](./chantiers/archive/2026-09-11-boucle-analyse-locale.md).
 
 > ⚠️ **`npm run mutation` mesure désormais, mais aucun score n'a encore été relevé depuis.**
 > ADR-0013 fait du score de mutation l'indicateur de profondeur des tests ; le relevé du 2026-09-10 a
