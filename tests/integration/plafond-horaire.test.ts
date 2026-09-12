@@ -381,7 +381,7 @@ it('cinq lignes écrites il y a plus d’une heure ne comptent plus : une nouvel
     restaurerLiaisonExpedition(precedent);
   }
 
-  expect(appels.length).toBe(1);
+  expect(appels).toHaveLength(1);
 });
 
 // --- c5 — l'épreuve du plafond et l'écriture sont indivisibles sous concurrence ---

@@ -312,7 +312,7 @@ it('soumettre l’adresse autorisée demande une expédition à la plateforme, v
     restaurerLiaisonExpedition(precedent);
   }
 
-  expect(appels.length).toBe(1);
+  expect(appels).toHaveLength(1);
 });
 
 // --- FR-005 (c4) — toute autre adresse n'écrit rien et ne demande rien ---
