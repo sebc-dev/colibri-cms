@@ -7,7 +7,7 @@
  * - SC-05a est purement `core/` (`lienVideoAutorise`, `src/core/pages/
  *   lien-video.ts`) : instanciable sans D1 ni Worker (ARCH-5), exercée ici
  *   directement, sans requête.
- * - SC-05b/c passent par la couture HTTP réelle (`SELF.fetch` contre le
+ * - SC-05b/c passent par la couture HTTP réelle (`exports.default.fetch` contre le
  *   worker compilé, dans `workerd`, contre la vraie D1 locale, ADR-0003) —
  *   les migrations `0003_sessions.sql` et `0004_brouillons_emplacements.sql`
  *   sont rejouées ici même, une session valide est semée directement.
@@ -25,8 +25,7 @@
  *   HTTP que l'`Écran : Éditeur de page` monte bien ce champ sur l'emplacement
  *   de lien de vidéo.
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach, describe } from 'vitest';
 import { lienVideoAutorise } from '../../src/core/pages/lien-video.ts';
 
@@ -108,14 +107,14 @@ async function semerSessionValide(db: DBLike): Promise<string> {
 }
 
 async function reglerLeLien(route: string, cookieSession: string | null, corps: unknown): Promise<Response> {
-  return SELF.fetch(route, {
+  return exports.default.fetch(new Request(route, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       ...(cookieSession ? { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` } : {}),
     },
     body: JSON.stringify(corps),
-  });
+  }));
 }
 
 // --- SC-05a — la reconnaissance d'un lien de vidéo, en `core/`, est une
@@ -153,10 +152,10 @@ it('SC-05b — coller un lien reconnu persiste le brouillon, bascule la page à 
   // Arrange
   const db = await assurerSchema();
   const cookieSession = await semerSessionValide(db);
-  const listeAvant = await SELF.fetch(ROUTE_MES_PAGES, {
+  const listeAvant = await exports.default.fetch(new Request(ROUTE_MES_PAGES, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
-  const ligneAccueilAvant = (await listeAvant.text()).match(/<li>Accueil[\s\S]*?<\/li>/)?.[0] ?? '';
+  }));
+  const ligneAccueilAvant = /<li>Accueil[\s\S]*?<\/li>/.exec(await listeAvant.text())?.[0] ?? '';
   expect(ligneAccueilAvant).not.toMatch(/data-pastille-brouillon/);
 
   // Act : un lien reconnu (YouTube, forme courte), différent du lien publié.
@@ -184,17 +183,17 @@ it('SC-05b — coller un lien reconnu persiste le brouillon, bascule la page à 
 
   // …la page « Accueil » porte désormais la pastille de brouillon, à la fois
   // sur la liste des pages et dans le fil de retour de l'éditeur…
-  const listeApres = await SELF.fetch(ROUTE_MES_PAGES, {
+  const listeApres = await exports.default.fetch(new Request(ROUTE_MES_PAGES, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
-  const ligneAccueilApres = (await listeApres.text()).match(/<li>Accueil[\s\S]*?<\/li>/)?.[0] ?? '';
+  }));
+  const ligneAccueilApres = /<li>Accueil[\s\S]*?<\/li>/.exec(await listeApres.text())?.[0] ?? '';
   expect(ligneAccueilApres).toMatch(/data-pastille-brouillon/);
 
-  const editeurApres = await SELF.fetch(ROUTE_EDITEUR_ACCUEIL, {
+  const editeurApres = await exports.default.fetch(new Request(ROUTE_EDITEUR_ACCUEIL, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
+  }));
   const zonePastilleEditeur =
-    (await editeurApres.text()).match(/<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/)?.[0] ?? '';
+    /<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/.exec(await editeurApres.text())?.[0] ?? '';
   expect(zonePastilleEditeur).toMatch(/data-pastille-brouillon/);
 
   // …et la déclaration versionnée (l'état publié) n'a pas bougé : lue depuis
@@ -233,10 +232,10 @@ it('SC-05c — coller un lien non reconnu n’écrit aucun brouillon et ne bascu
   expect(lignes.results).toHaveLength(0);
 
   // …et la page « Contact » ne porte aucune pastille de brouillon.
-  const listeApres = await SELF.fetch(ROUTE_MES_PAGES, {
+  const listeApres = await exports.default.fetch(new Request(ROUTE_MES_PAGES, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
-  const ligneContactApres = (await listeApres.text()).match(/<li>Contact[\s\S]*?<\/li>/)?.[0] ?? '';
+  }));
+  const ligneContactApres = /<li>Contact[\s\S]*?<\/li>/.exec(await listeApres.text())?.[0] ?? '';
   expect(ligneContactApres).not.toMatch(/data-pastille-brouillon/);
 });
 
@@ -250,9 +249,9 @@ describe('SC-05d — un lien non reconnu est refusé au niveau du champ, en disa
     const cookieSession = await semerSessionValide(db);
 
     // Act
-    const reponse = await SELF.fetch(ROUTE_EDITEUR_ACCUEIL, {
+    const reponse = await exports.default.fetch(new Request(ROUTE_EDITEUR_ACCUEIL, {
       headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-    });
+    }));
     const corps = await reponse.text();
 
     // Assert : le point de montage du champ de réglage existe bien pour

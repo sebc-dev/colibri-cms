@@ -4,7 +4,7 @@
  *
  * Couture retenue, à l'image de `code-ouvre-la-session.test.ts` et
  * `fin-de-session.test.ts` (SPEC.md § Décisions de test, ADR-0003) : requête
- * HTTP réelle via `SELF.fetch` contre le worker compilé, dans `workerd`,
+ * HTTP réelle via `exports.default.fetch` contre le worker compilé, dans `workerd`,
  * contre la vraie D1 locale — jamais de double interne. La table `sessions`
  * n'a besoin d'aucun parcours de connexion complet pour ce ticket : une
  * ligne y est semée directement (même geste que `fin-de-session.test.ts`),
@@ -39,8 +39,7 @@
  * monté par script seul (ADR-0006) et `workerd` n'exécute aucun DOM ; elle
  * se vérifie en `observé` (voir le ticket, section « Vérif »).
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach } from 'vitest';
 
 const NOM_COOKIE_SESSION = '__Host-session';
@@ -111,9 +110,9 @@ async function semerSessionValide(db: DBLike): Promise<string> {
 }
 
 async function accederAMesPages(cookieSession: string): Promise<Response> {
-  return SELF.fetch(ROUTE_MES_PAGES, {
+  return exports.default.fetch(new Request(ROUTE_MES_PAGES, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
+  }));
 }
 
 // --- SC-02a — les pages déclarées s'affichent dans l'ordre posé, une ligne par page ---

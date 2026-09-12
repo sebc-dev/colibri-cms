@@ -52,27 +52,21 @@ export default defineConfig(
   },
   {
     // Les tests d'intégration parlent à un worker par HTTP : `res.json()` rend
-    // `any` par contrat, et `SELF`/`env` de `cloudflare:test` sont marqués
-    // dépréciés en amont alors qu'ils sont la SEULE porte d'entrée du pool
-    // workerd (docs/test.md). Laisser ces familles actives ici noie le signal :
+    // `any` par contrat. Laisser cette famille active ici noie le signal :
     // 456 remontées sur les tests contre 29 sur `src/` au relevé du 2026-09-11.
     // Ce n'est pas un escape-hatch sur le code de production — `src/` garde la
-    // grille entière.
+    // grille entière. Les règles de dépréciation (`no-deprecated`,
+    // `sonarjs/deprecation`) y sont revenues le 2026-09-12, une fois `SELF`/`env`
+    // de `cloudflare:test` migrés vers `cloudflare:workers`
+    // (docs/chantiers/archive/2026-09-12-migration-cloudflare-workers.md).
     files: ['tests/**/*.ts'],
     rules: {
-      // 77 remontées, toutes sur `SELF`/`env` de `cloudflare:test` — l'amont
-      // les déclare dépréciés au profit de `cloudflare:workers`
-      // (`exports.default.fetch()` / `env`). La migration est un travail à
-      // part entière, pas un effet de bord de cette passe : elle est consignée
-      // dans docs/chantiers/archive/2026-09-11-boucle-analyse-locale.md.
-      '@typescript-eslint/no-deprecated': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/require-await': 'off',
-      'sonarjs/deprecation': 'off',
     },
   },
   {

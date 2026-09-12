@@ -3,7 +3,7 @@
  * (specs/001-connexion-par-code/04-branches-indiscernables.md).
  *
  * Couture retenue (héritée du ticket 03, SPEC.md § Décisions de test,
- * ADR-0003) : requête HTTP réelle via `SELF.fetch` contre le worker de
+ * ADR-0003) : requête HTTP réelle via `exports.default.fetch` contre le worker de
  * production, dans son vrai moteur (workerd), et lecture de la vraie D1
  * locale — jamais de simulacre pour la route elle-même. La migration
  * `migrations/0002_adresses_autorisees_et_codes_connexion.sql` existe déjà
@@ -33,11 +33,10 @@
  * serveur local) qui la mesure, sur une campagne dédiée et hors plafond.
  *
  * **Un espion posé sur la liaison d'environnement seule**, comme au ticket
- * 03 (mutation de `env` via `cloudflare:test`, jamais un double interne) :
+ * 03 (mutation de `env` via `cloudflare:workers`, jamais un double interne) :
  * seule dépendance hors-process de cette route (`send_email`, ADR-0002).
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach } from 'vitest';
 
 const NOM_COOKIE_APPAREIL = 'identifiant-appareil';
@@ -145,7 +144,7 @@ function creerExpediteurEspion(options?: { echoue?: boolean }): {
  * Expose aussi `demande` : une promesse qui ne résout qu'à cet appel. C'est
  * le point de synchronisation nécessaire à c4 — si l'expédition est remise
  * à la plateforme *après* la réponse (ADR-0007, `ctx.waitUntil`), rien ne
- * garantit qu'elle a déjà eu lieu au seul retour de `SELF.fetch` : sans ce
+ * garantit qu'elle a déjà eu lieu au seul retour de `exports.default.fetch` : sans ce
  * point d'attente, un `expect` posé immédiatement après `await
  * soumettreAdresse` mesurerait l'instant de retour du handler, jamais celui
  * de la remise différée, et ne pourrait jamais observer un ordre conforme.
@@ -228,9 +227,9 @@ function expectEcranDeConnexionLegitime(reponse: Response, corps: string): void 
 }
 
 async function afficherEcranDeConnexion(cookieExistant?: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     headers: cookieExistant ? { cookie: `${NOM_COOKIE_APPAREIL}=${cookieExistant}` } : {},
-  });
+  }));
 }
 
 async function obtenirIdentifiantAppareil(): Promise<string> {
@@ -245,7 +244,7 @@ async function obtenirIdentifiantAppareil(): Promise<string> {
 }
 
 async function soumettreAdresse(adresse: string, identifiantAppareil: string): Promise<Response> {
-  return SELF.fetch('https://example.com/admin/connexion', {
+  return exports.default.fetch(new Request('https://example.com/admin/connexion', {
     method: 'POST',
     headers: {
       'content-type': 'application/x-www-form-urlencoded',
@@ -257,7 +256,7 @@ async function soumettreAdresse(adresse: string, identifiantAppareil: string): P
       cookie: `${NOM_COOKIE_APPAREIL}=${identifiantAppareil}`,
     },
     body: `adresse=${encodeURIComponent(adresse)}`,
-  });
+  }));
 }
 
 // --- c1 — même corps, quelle que soit l'adresse soumise ---
@@ -356,7 +355,7 @@ it('l’expédition n’est demandée qu’après que la réponse est rendue, ja
     ordre.push('reponse-recue');
     // Point de synchronisation : la remise à la plateforme (ADR-0007,
     // `ctx.waitUntil`) est censée se poursuivre après le retour de
-    // `SELF.fetch`, donc après le jalon `reponse-recue` ci-dessus. Sans
+    // `exports.default.fetch`, donc après le jalon `reponse-recue` ci-dessus. Sans
     // cette attente explicite, le jalon `envoi-demande` d'une expédition
     // conforme (différée) n'aurait tout simplement pas encore eu lieu au
     // moment de l'assertion — ce n'est pas l'ordre qui serait faux, c'est
@@ -367,7 +366,7 @@ it('l’expédition n’est demandée qu’après que la réponse est rendue, ja
   }
 
   // Le jalon posé par la route ne doit apparaître qu'après celui que le
-  // test pose immédiatement au retour de `SELF.fetch` — jamais avant.
+  // test pose immédiatement au retour de `exports.default.fetch` — jamais avant.
   expect(ordre).toEqual(['reponse-recue', 'envoi-demande']);
 });
 

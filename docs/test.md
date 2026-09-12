@@ -72,14 +72,17 @@ Les tests écrits sous le système précédent — les `tests/integration/*.test
 
 ## Écrire un test d'intégration
 
-- **Ouvrir par la directive de types.** `tsconfig.json` étend `astro/tsconfigs/strict` et ne déclare
-  aucune clé `types` : chaque fichier qui touche `cloudflare:test` commence donc par
-  `/// <reference types="@cloudflare/vitest-plugin/types" />`, juste avant ses imports (patron
-  tenu par les huit fichiers de `tests/integration/`).
-- **Passer par le produit.** `import { SELF, env } from 'cloudflare:test'` : `SELF.fetch(...)` lance
-  une requête HTTP réelle contre le worker tel qu'il tournerait déployé, `env` donne les liaisons de
-  la plateforme (`env.DB` pour D1). Le worker visé est celui que `wrangler.jsonc` désigne en `main` —
-  d'où la précondition de build ci-dessus.
+- **Passer par le produit.** `import { env, exports } from 'cloudflare:workers'` :
+  `exports.default.fetch(new Request(url, init))` lance une requête HTTP réelle contre le worker tel
+  qu'il tournerait déployé — `init.redirect: 'manual'` s'y honore comme dans un `fetch` —, `env` donne
+  les liaisons de la plateforme (`env.DB` pour D1) et c'est le **même objet** que celui que lit le
+  code de route, donc un espion posé dessus lui est visible. Le worker visé est celui que
+  `wrangler.jsonc` désigne en `main` — d'où la précondition de build ci-dessus. `SELF` et `env` de
+  `cloudflare:test` sont dépréciés en amont : ne plus les importer.
+- **Aucune directive de types à ouvrir.** Le module `cloudflare:workers` est typé par la déclaration
+  ambiante du projet (`src/platform/d1/cloudflare-workers.d.ts`) — `@cloudflare/workers-types`
+  n'est pas une dépendance —, qui expose `env` sur les seules liaisons du produit et `exports.default`.
+  Une liaison nouvelle s'y déclare, elle ne s'emprunte pas ailleurs.
 - **Appliquer une migration depuis le test.** Aucune migration n'est jouée d'office : le fichier
   `migrations/*.sql` est importé en texte (`?raw`), découpé en requêtes, puis exécuté sur `env.DB`.
   Patron de référence :

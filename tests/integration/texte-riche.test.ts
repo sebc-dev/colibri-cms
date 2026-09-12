@@ -7,7 +7,7 @@
  *   `analyserMarkdownRestreint`, `src/core/pages/texte-riche.ts`) :
  *   instanciables sans D1 ni Worker (ARCH-5), exercées ici directement, sans
  *   requête.
- * - SC-06e passe par la couture HTTP réelle (`SELF.fetch` contre le worker
+ * - SC-06e passe par la couture HTTP réelle (`exports.default.fetch` contre le worker
  *   compilé, dans `workerd`, contre la vraie D1 locale, ADR-0003) — les
  *   migrations `0003_sessions.sql` et `0004_brouillons_emplacements.sql` sont
  *   rejouées ici même, une session valide est semée directement.
@@ -25,8 +25,7 @@
  *   monte bien ce champ sur l'emplacement de texte riche — et l'absence de
  *   tout terme de développeur dans le texte réellement visible (SC-06f).
  */
-/// <reference types="@cloudflare/vitest-plugin/types" />
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach, describe } from 'vitest';
 import {
   serialiserMarkdownRestreint,
@@ -111,14 +110,14 @@ async function semerSessionValide(db: DBLike): Promise<string> {
 }
 
 async function corrigerLeTexte(cookieSession: string | null, document: NoeudDocument): Promise<Response> {
-  return SELF.fetch(ROUTE_ACCUEIL_TEXTE_RICHE, {
+  return exports.default.fetch(new Request(ROUTE_ACCUEIL_TEXTE_RICHE, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       ...(cookieSession ? { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` } : {}),
     },
     body: JSON.stringify({ document }),
-  });
+  }));
 }
 
 function texte(contenu: string, marks?: readonly { readonly type: string; readonly attrs?: Record<string, unknown> }[]): NoeudDocument {
@@ -348,9 +347,9 @@ describe('SC-06d — la barre de mise en forme pose gras, italique, lien, liste 
     const cookieSession = await semerSessionValide(db);
 
     // Act
-    const reponse = await SELF.fetch(ROUTE_EDITEUR_ACCUEIL, {
+    const reponse = await exports.default.fetch(new Request(ROUTE_EDITEUR_ACCUEIL, {
       headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-    });
+    }));
     const corps = await reponse.text();
 
     // Assert : le point de montage existe pour l'emplacement « presentation »
@@ -391,10 +390,10 @@ it('SC-06e — corriger le texte riche persiste le Markdown restreint, bascule l
   // Arrange
   const db = await assurerSchema();
   const cookieSession = await semerSessionValide(db);
-  const listeAvant = await SELF.fetch(ROUTE_MES_PAGES, {
+  const listeAvant = await exports.default.fetch(new Request(ROUTE_MES_PAGES, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
-  const ligneAccueilAvant = (await listeAvant.text()).match(/<li>Accueil[\s\S]*?<\/li>/)?.[0] ?? '';
+  }));
+  const ligneAccueilAvant = /<li>Accueil[\s\S]*?<\/li>/.exec(await listeAvant.text())?.[0] ?? '';
   expect(ligneAccueilAvant).not.toMatch(/data-pastille-brouillon/);
 
   // Act : un document TipTap portant un gras et un lien (les deux marques
@@ -434,17 +433,17 @@ it('SC-06e — corriger le texte riche persiste le Markdown restreint, bascule l
 
   // …la page « Accueil » porte désormais la pastille de brouillon, à la fois
   // sur la liste des pages et dans le fil de retour de l'éditeur…
-  const listeApres = await SELF.fetch(ROUTE_MES_PAGES, {
+  const listeApres = await exports.default.fetch(new Request(ROUTE_MES_PAGES, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
-  const ligneAccueilApres = (await listeApres.text()).match(/<li>Accueil[\s\S]*?<\/li>/)?.[0] ?? '';
+  }));
+  const ligneAccueilApres = /<li>Accueil[\s\S]*?<\/li>/.exec(await listeApres.text())?.[0] ?? '';
   expect(ligneAccueilApres).toMatch(/data-pastille-brouillon/);
 
-  const editeurApres = await SELF.fetch(ROUTE_EDITEUR_ACCUEIL, {
+  const editeurApres = await exports.default.fetch(new Request(ROUTE_EDITEUR_ACCUEIL, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
-  });
+  }));
   const zonePastilleEditeur =
-    (await editeurApres.text()).match(/<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/)?.[0] ?? '';
+    /<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/.exec(await editeurApres.text())?.[0] ?? '';
   expect(zonePastilleEditeur).toMatch(/data-pastille-brouillon/);
 
   // …et la déclaration versionnée (l'état publié) n'a pas bougé : lue depuis

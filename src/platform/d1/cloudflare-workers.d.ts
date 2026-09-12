@@ -40,4 +40,12 @@ declare module 'cloudflare:workers' {
       send(message: unknown): void | Promise<void>;
     };
   };
+  // Les exports du worker principal, tels que `@cloudflare/vitest-plugin` les
+  // expose aux tests d'intégration en remplacement de `SELF` (déprécié) :
+  // `exports.default.fetch(new Request(...))` atteint le gestionnaire du
+  // worker sans passer par un client HTTP — donc sans suivi de redirection.
+  // Seul lecteur : `tests/integration/`.
+  export const exports: {
+    default: { fetch(requete: Request): Promise<Response> };
+  };
 }
