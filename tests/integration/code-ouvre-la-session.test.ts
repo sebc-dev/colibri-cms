@@ -309,75 +309,37 @@ it('une fois la session ouverte, l’accueil affiché ne porte aucun formulaire,
   expect(corps).not.toMatch(/<a\s[^>]*href=/i);
 });
 
-// --- c3 — la saisie est normalisée : casse indifférente ---
+// --- c3 — la saisie est normalisée : casse, séparateurs et confusables ---
 
-it('un code saisi tout en minuscules ouvre quand même la session', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'B4G8K2Q6', identifiantAppareil });
+// Une forme de saisie par cas : `codeClair` est ce que la base porte,
+// `saisie` ce que l'éditrice tape. Toutes doivent ouvrir la session — c'est
+// la normalisation qui les ramène l'une à l'autre.
+const SAISIES_NORMALISEES = [
+  { forme: 'tout en minuscules', codeClair: 'B4G8K2Q6', saisie: 'b4g8k2q6' },
+  {
+    forme: 'avec des espaces et des tirets',
+    codeClair: 'B4G8K2Q6',
+    saisie: 'B4-G8 K2-Q6',
+  },
+  { forme: 'avec un « O » à la place d’un zéro', codeClair: 'A0B4G8K2', saisie: 'AOB4G8K2' },
+  { forme: 'avec un « I » à la place d’un un', codeClair: 'A1B4G8K2', saisie: 'AIB4G8K2' },
+  { forme: 'avec un « L » à la place d’un un', codeClair: 'A1B4G8K2', saisie: 'ALB4G8K2' },
+];
 
-  const reponse = await soumettreCode('b4g8k2q6', identifiantAppareil);
+it.each(SAISIES_NORMALISEES)(
+  'un code saisi $forme ouvre quand même la session',
+  async ({ codeClair, saisie }) => {
+    const db = await assurerSchema();
+    await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
+    const identifiantAppareil = await obtenirIdentifiantAppareil();
+    await semerLigneDeCode(db, { codeClair, identifiantAppareil });
 
-  expect(REDIRECT_STATUSES).toContain(reponse.status);
-  expect(cheminDeLocation(reponse)).toMatch(PATH_ACCUEIL_RE);
-});
+    const reponse = await soumettreCode(saisie, identifiantAppareil);
 
-// --- c3 — la saisie est normalisée : séparateurs ignorés ---
-
-it('un code saisi avec des espaces et des tirets intercalés ouvre quand même la session', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'B4G8K2Q6', identifiantAppareil });
-
-  const reponse = await soumettreCode('B4-G8 K2-Q6', identifiantAppareil);
-
-  expect(REDIRECT_STATUSES).toContain(reponse.status);
-  expect(cheminDeLocation(reponse)).toMatch(PATH_ACCUEIL_RE);
-});
-
-// --- c3 — la saisie est normalisée : le confusable O ramené au zéro ---
-
-it('un « O » saisi à la place d’un zéro ouvre quand même la session', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'A0B4G8K2', identifiantAppareil });
-
-  const reponse = await soumettreCode('AOB4G8K2', identifiantAppareil);
-
-  expect(REDIRECT_STATUSES).toContain(reponse.status);
-  expect(cheminDeLocation(reponse)).toMatch(PATH_ACCUEIL_RE);
-});
-
-// --- c3 — la saisie est normalisée : le confusable I ramené au un ---
-
-it('un « I » saisi à la place d’un un ouvre quand même la session', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'A1B4G8K2', identifiantAppareil });
-
-  const reponse = await soumettreCode('AIB4G8K2', identifiantAppareil);
-
-  expect(REDIRECT_STATUSES).toContain(reponse.status);
-  expect(cheminDeLocation(reponse)).toMatch(PATH_ACCUEIL_RE);
-});
-
-// --- c3 — la saisie est normalisée : le confusable L ramené au un ---
-
-it('un « L » saisi à la place d’un un ouvre quand même la session', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'A1B4G8K2', identifiantAppareil });
-
-  const reponse = await soumettreCode('ALB4G8K2', identifiantAppareil);
-
-  expect(REDIRECT_STATUSES).toContain(reponse.status);
-  expect(cheminDeLocation(reponse)).toMatch(PATH_ACCUEIL_RE);
-});
+    expect(REDIRECT_STATUSES).toContain(reponse.status);
+    expect(cheminDeLocation(reponse)).toMatch(PATH_ACCUEIL_RE);
+  },
+);
 
 // --- c4 — le même code présenté une seconde fois n'ouvre pas de session ---
 
@@ -425,61 +387,32 @@ it('le cookie de session porte le préfixe __Host-', async () => {
   expect(extraireEnteteCookie(reponse, NOM_COOKIE_SESSION)).not.toBeNull();
 });
 
-// --- c6 — HttpOnly ---
+// --- c6 — les attributs que porte l'en-tête du cookie de session ---
 
-it('le cookie de session porte l’attribut HttpOnly', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'F8M3Q6V1', identifiantAppareil });
+// Un code distinct par cas, comme avant le regroupement : chacun ouvre sa
+// propre session, aucun ne dépend de l'ordre d'exécution. `marqueur` est la
+// forme minuscule cherchée dans l'en-tête, dont la casse ne fait pas foi.
+const ATTRIBUTS_DU_COOKIE = [
+  { attribut: 'HttpOnly', codeClair: 'F8M3Q6V1', marqueur: 'httponly' },
+  { attribut: 'Secure', codeClair: 'G9N4R7W2', marqueur: 'secure' },
+  { attribut: 'SameSite=Strict', codeClair: 'H1P5S8X3', marqueur: 'samesite=strict' },
+  { attribut: 'Path=/', codeClair: 'J2Q6T9Y4', marqueur: 'path=/' },
+];
 
-  const reponse = await soumettreCode('F8M3Q6V1', identifiantAppareil);
+it.each(ATTRIBUTS_DU_COOKIE)(
+  'le cookie de session porte l’attribut $attribut',
+  async ({ codeClair, marqueur }) => {
+    const db = await assurerSchema();
+    await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
+    const identifiantAppareil = await obtenirIdentifiantAppareil();
+    await semerLigneDeCode(db, { codeClair, identifiantAppareil });
 
-  const entete = extraireEnteteCookie(reponse, NOM_COOKIE_SESSION);
-  expect((entete ?? '').toLowerCase()).toContain('httponly');
-});
+    const reponse = await soumettreCode(codeClair, identifiantAppareil);
 
-// --- c6 — Secure ---
-
-it('le cookie de session porte l’attribut Secure', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'G9N4R7W2', identifiantAppareil });
-
-  const reponse = await soumettreCode('G9N4R7W2', identifiantAppareil);
-
-  const entete = extraireEnteteCookie(reponse, NOM_COOKIE_SESSION);
-  expect((entete ?? '').toLowerCase()).toContain('secure');
-});
-
-// --- c6 — SameSite=Strict ---
-
-it('le cookie de session porte l’attribut SameSite=Strict', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'H1P5S8X3', identifiantAppareil });
-
-  const reponse = await soumettreCode('H1P5S8X3', identifiantAppareil);
-
-  const entete = extraireEnteteCookie(reponse, NOM_COOKIE_SESSION);
-  expect((entete ?? '').toLowerCase()).toContain('samesite=strict');
-});
-
-// --- c6 — Path=/ ---
-
-it('le cookie de session porte l’attribut Path=/', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'J2Q6T9Y4', identifiantAppareil });
-
-  const reponse = await soumettreCode('J2Q6T9Y4', identifiantAppareil);
-
-  const entete = extraireEnteteCookie(reponse, NOM_COOKIE_SESSION);
-  expect((entete ?? '').toLowerCase()).toContain('path=/');
-});
+    const entete = extraireEnteteCookie(reponse, NOM_COOKIE_SESSION);
+    expect((entete ?? '').toLowerCase()).toContain(marqueur);
+  },
+);
 
 // --- c6 — rien de la session ne se lit dans le cookie (opacité) ---
 
