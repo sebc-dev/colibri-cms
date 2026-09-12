@@ -99,7 +99,7 @@ afterEach(async () => {
 });
 
 async function semerSessionValide(db: DBLike): Promise<string> {
-  const id = `session-liste-des-pages-${Math.random().toString(36).slice(2)}`;
+  const id = `session-liste-des-pages-${crypto.randomUUID()}`;
   const maintenant = Date.now();
   await db
     .prepare(
