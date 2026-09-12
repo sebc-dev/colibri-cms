@@ -1,7 +1,7 @@
 # Migrer `SELF`/`env` de `cloudflare:test` vers `cloudflare:workers`
 
 Portée : hors-cycle
-Ouvert le 2026-09-12 · Actualisé le 2026-09-12 · branche `chore/chantier-corrections-analyse` · HEAD `5d8a7c7`
+Ouvert le 2026-09-12 · Actualisé le 2026-09-12 · branche `main` · HEAD `27c01c9`
 
 ## Objectif
 J'allais migrer les tests d'intégration vers l'API que l'amont recommande, pour pouvoir retirer
