@@ -38,6 +38,15 @@ extinctions qui ne tiennent qu'à une dépréciation amont, non à une propriét
 - Les décomptes se refont par `npx eslint --config eslint.config.analyse.js --rule '{"@typescript-eslint/no-deprecated":"error","sonarjs/deprecation":"error"}' tests/`.
 - **Aucun ADR ne fige** l'exclusion de `@cloudflare/workers-types` — c'est une décision de spec de
   ticket, rouvrable.
+- `exports.default.fetch` passe par la liaison loopback du plugin, donc **`redirect: 'manual'` s'y
+  honore** comme dans `SELF.fetch` (302 en manuel, 200 sur la page d'arrivée en suivi) — la crainte
+  d'un appel direct du gestionnaire sans suivi de redirection ne tenait pas.
+- `env` de `cloudflare:workers` **est** l'objet de `cloudflare:test` (`Object.is` vrai) : les espions
+  posés par mutation restent visibles des routes.
+- Les références `/// <reference types="@cloudflare/vitest-plugin/types" />` ne servaient qu'à
+  `cloudflare:test` : retirées, typage vert.
+- Le `Response` désormais typé fait ressortir 11 `string.match(re)` non globaux sous
+  `prefer-regexp-exec` (deux règles, silencieuses avant) — réécrits en `re.exec(string)`.
 
 ## Prochaine étape
 J'allais étendre la déclaration ambiante locale avec `exports`, puis migrer les tests fichier par
@@ -54,3 +63,10 @@ passe verte, retirer les deux règles du bloc `tests/**` et corriger la synthès
   tomberait dans les catégories qui exigent la signature de l'humain.
 - **Conclure au blocage sur la seule erreur de typage** — c'est ce que j'ai fait d'abord, et c'était
   faux : il fallait chercher d'où venait la déclaration, pas quelle version manquait.
+
+## Issue
+Fait le 2026-09-12, branche `chore/migration-cloudflare-workers` : `6086206` (déclaration `exports`,
+13 fichiers de test migrés, 51 appels) puis `f3b71d5` (les deux règles rallumées, `docs/ci.md` et
+`docs/test.md` corrigés). 174/174 tests verts, `npm run analyse` vert sur tout le dépôt, 0 remontée
+des deux règles sur `tests/`. `tests/static/porte-close-statique.test.ts` cite encore `SELF` dans un
+récit historique du ticket 01 — laissé tel quel, ce n'est pas un import.
