@@ -225,6 +225,11 @@ it('SC-04f — après enregistrement, la pastille de brouillon apparaît sur la 
     /<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/.exec(corpsEditeurApres)?.[0] ?? '';
   expect(zonePastilleEditeur).toMatch(/data-pastille-brouillon/);
 
+  // …et l'éditeur montre la correction elle-même, jamais la seule valeur
+  // initiale de l'intégrateur : le brouillon est superposé à l'emplacement.
+  expect(corpsEditeurApres).toContain('data-libelle="Obtenir un devis gratuit"');
+  expect(corpsEditeurApres).toContain('data-destination="/contact"');
+
   const ligneContactApres = /<li>Contact[\s\S]*?<\/li>/.exec(corpsListeApres)?.[0] ?? '';
   expect(ligneContactApres).not.toMatch(/data-pastille-brouillon/);
 });

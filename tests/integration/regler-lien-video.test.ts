@@ -203,9 +203,14 @@ it('SC-05b — coller un lien reconnu persiste le brouillon, bascule la page à 
   const editeurApres = await exports.default.fetch(new Request(ROUTE_EDITEUR_ACCUEIL, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
   }));
+  const corpsEditeurApres = await editeurApres.text();
   const zonePastilleEditeur =
-    /<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/.exec(await editeurApres.text())?.[0] ?? '';
+    /<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/.exec(corpsEditeurApres)?.[0] ?? '';
   expect(zonePastilleEditeur).toMatch(/data-pastille-brouillon/);
+
+  // …et l'éditeur montre le lien corrigé, jamais le seul lien initial de
+  // l'intégrateur : le brouillon est superposé à l'emplacement.
+  expect(corpsEditeurApres).toContain('data-lien="https://youtu.be/oHg5SJYRHA0"');
 
   // …et la déclaration versionnée (l'état publié) n'a pas bougé : lue depuis
   // `content/pages/accueil/page.json` (jamais depuis le brouillon), elle

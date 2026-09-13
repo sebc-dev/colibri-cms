@@ -498,9 +498,14 @@ it('SC-06e — corriger le texte riche persiste le Markdown restreint, bascule l
   const editeurApres = await exports.default.fetch(new Request(ROUTE_EDITEUR_ACCUEIL, {
     headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
   }));
+  const corpsEditeurApres = await editeurApres.text();
   const zonePastilleEditeur =
-    /<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/.exec(await editeurApres.text())?.[0] ?? '';
+    /<span id="zone-pastille-brouillon">[\s\S]*?<\/span>\s*<\/h1>/.exec(corpsEditeurApres)?.[0] ?? '';
   expect(zonePastilleEditeur).toMatch(/data-pastille-brouillon/);
+
+  // …et l'éditeur recharge le Markdown corrigé, jamais le seul texte initial
+  // de l'intégrateur : le brouillon est superposé à l'emplacement.
+  expect(corpsEditeurApres).toContain('data-markdown="**Nouveaux **[gâteaux du mois](https://exemple.test/nouveautes)"');
 
   // …et la déclaration versionnée (l'état publié) n'a pas bougé : lue depuis
   // `content/pages/accueil/presentation.md` (jamais depuis le brouillon),
