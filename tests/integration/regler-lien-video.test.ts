@@ -140,6 +140,17 @@ describe('SC-05a — un lien de vidéo est accepté ssi son hôte est sur la lis
     expect(lienVideoAutorise('http://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(false);
   });
 
+  it('SC-05a — un hôte de la liste blanche sans le motif de l’hébergeur est rejeté : la liste est un motif, pas un nom d’hôte', () => {
+    // YouTube long : seul `/watch` avec un identifiant `v` non vide désigne une vidéo.
+    expect(lienVideoAutorise('https://www.youtube.com/channel/UCxyz')).toBe(false);
+    expect(lienVideoAutorise('https://www.youtube.com/watch')).toBe(false);
+    expect(lienVideoAutorise('https://www.youtube.com/watch?v=')).toBe(false);
+    expect(lienVideoAutorise('https://www.youtube.com/playlist?v=dQw4w9WgXcQ')).toBe(false);
+    // Formes courtes : il faut un identifiant après la barre.
+    expect(lienVideoAutorise('https://youtu.be/')).toBe(false);
+    expect(lienVideoAutorise('https://vimeo.com/')).toBe(false);
+  });
+
   it('SC-05a — une chaîne qui n’est même pas une URL est rejetée', () => {
     expect(lienVideoAutorise('pas une url')).toBe(false);
   });
