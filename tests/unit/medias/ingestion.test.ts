@@ -337,6 +337,38 @@ describe('SC-01b — un SVG ou tout format hors liste est refusé au titre du fo
 
     expect(resultat).toEqual({ admise: false, motif: 'format' });
   });
+
+  it('SC-01b — un en-tête PNG complet qui annonce une dimension impossible (nulle, ou hors la borne du format) est refusé au titre du format, comme un en-tête coupé', () => {
+    // Engagement de l'en-tête du module : « jamais une image sans dimensions
+    // persistée ». Un PNG dont un champ vaut 0, ou dépasse 2^31 − 1, est un
+    // fichier réel mal formé — chaque champ, sur chaque borne.
+    const impossibles: [number, number][] = [
+      [0, 10],
+      [10, 0],
+      [2 ** 31, 10],
+      [10, 2 ** 31],
+    ];
+    for (const [largeur, hauteur] of impossibles) {
+      const fichier: FichierPropose = { octets: construireEnTetePng(largeur, hauteur) };
+
+      expect(() => analyserImage(fichier)).not.toThrow();
+      expect(analyserImage(fichier), `${largeur}×${hauteur}`).toEqual({ admise: false, motif: 'format' });
+    }
+
+    // Contrôle : les bornes elles-mêmes passent la garde — la plus petite
+    // image possible, et la plus grande dimension que le format admet
+    // (2^31 − 1, inclusive).
+    expect(analyserImage({ octets: construireEnTetePng(1, 1) })).toEqual({
+      admise: true,
+      format: 'png',
+      dimensions: { largeur: 1, hauteur: 1 },
+    });
+    expect(analyserImage({ octets: construireEnTetePng(2 ** 31 - 1, 2 ** 31 - 1) })).toEqual({
+      admise: true,
+      format: 'png',
+      dimensions: { largeur: 2 ** 31 - 1, hauteur: 2 ** 31 - 1 },
+    });
+  });
 });
 
 describe('SC-01c — seuls les octets décident, jamais l’extension ni le type déclaré', () => {
