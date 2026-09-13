@@ -299,9 +299,15 @@ it('la cinquième saisie fautive sur un code actif le brûle : invite à demande
   expect(corps).not.toContain(GESTE_RETAPER);
 
   // Le code brûlé reste inutilisable pour toute présentation ultérieure —
-  // même présenté correctement.
+  // même présenté correctement — et c'est bien le brûlage que l'écran
+  // annonce alors, pas un code introuvable : c'est le verdict `brule`
+  // (rendu à la relecture de la ligne) qui distingue les deux, la requête
+  // de consommation seule ne le dirait jamais.
   const reponseCodeCorrectApresBrulage = await soumettreCode('20304050', identifiantAppareil);
   expect(extraireCookieValeur(reponseCodeCorrectApresBrulage, NOM_COOKIE_SESSION)).toBeNull();
+  const corpsApresBrulage = (await reponseCodeCorrectApresBrulage.text()).toLowerCase();
+  expect(corpsApresBrulage).toContain(GESTE_REDEMANDER);
+  expect(corpsApresBrulage).not.toContain(GESTE_RETAPER);
 });
 
 // --- c3 — un code valide présenté depuis un appareil qui ne l'a jamais demandé ---
