@@ -140,8 +140,11 @@ describe('SC-06a — l’aller-retour de sérialisation d’une marque retenue p
     const reanalyse = analyserMarkdownRestreint(markdown);
     const reserialise = serialiserMarkdownRestreint(reanalyse);
 
-    // Assert
+    // Assert — le document réanalysé est ce que l'éditeur rechargera : il doit
+    // être celui de départ, sans nœud texte vide autour de la marque (l'éditeur
+    // refuse un nœud texte vide).
     expect(markdown).toBe('**Bonjour**');
+    expect(reanalyse).toEqual(document);
     expect(reserialise).toBe(markdown);
   });
 
@@ -154,10 +157,12 @@ describe('SC-06a — l’aller-retour de sérialisation d’une marque retenue p
 
     // Act
     const markdown = serialiserMarkdownRestreint(document);
-    const reserialise = serialiserMarkdownRestreint(analyserMarkdownRestreint(markdown));
+    const reanalyse = analyserMarkdownRestreint(markdown);
+    const reserialise = serialiserMarkdownRestreint(reanalyse);
 
     // Assert
     expect(markdown).toBe('_Bonjour_');
+    expect(reanalyse).toEqual(document);
     expect(reserialise).toBe(markdown);
   });
 
@@ -175,10 +180,12 @@ describe('SC-06a — l’aller-retour de sérialisation d’une marque retenue p
 
     // Act
     const markdown = serialiserMarkdownRestreint(document);
-    const reserialise = serialiserMarkdownRestreint(analyserMarkdownRestreint(markdown));
+    const reanalyse = analyserMarkdownRestreint(markdown);
+    const reserialise = serialiserMarkdownRestreint(reanalyse);
 
     // Assert
     expect(markdown).toBe('[la page de contact](https://exemple.test/contact)');
+    expect(reanalyse).toEqual(document);
     expect(reserialise).toBe(markdown);
   });
 
@@ -198,10 +205,12 @@ describe('SC-06a — l’aller-retour de sérialisation d’une marque retenue p
 
     // Act
     const markdown = serialiserMarkdownRestreint(document);
-    const reserialise = serialiserMarkdownRestreint(analyserMarkdownRestreint(markdown));
+    const reanalyse = analyserMarkdownRestreint(markdown);
+    const reserialise = serialiserMarkdownRestreint(reanalyse);
 
     // Assert
     expect(markdown).toBe('[nos tarifs \\[2026\\]](https://exemple.test/tarifs)');
+    expect(reanalyse).toEqual(document);
     expect(reserialise).toBe(markdown);
   });
 
@@ -222,10 +231,14 @@ describe('SC-06a — l’aller-retour de sérialisation d’une marque retenue p
 
     // Act
     const markdown = serialiserMarkdownRestreint(document);
-    const reserialise = serialiserMarkdownRestreint(analyserMarkdownRestreint(markdown));
+    const reanalyse = analyserMarkdownRestreint(markdown);
+    const reserialise = serialiserMarkdownRestreint(reanalyse);
 
-    // Assert
+    // Assert — la chaîne égale ne suffit pas : un paragraphe « - Un gâteau »
+    // se resérialiserait à l'identique sans être une liste. C'est la
+    // structure réanalysée (liste, items) que l'éditeur rechargera.
     expect(markdown).toBe('- Un gâteau\n- Deux gâteaux');
+    expect(reanalyse).toEqual(document);
     expect(reserialise).toBe(markdown);
   });
 
@@ -238,11 +251,44 @@ describe('SC-06a — l’aller-retour de sérialisation d’une marque retenue p
 
     // Act
     const markdown = serialiserMarkdownRestreint(document);
-    const reserialise = serialiserMarkdownRestreint(analyserMarkdownRestreint(markdown));
+    const reanalyse = analyserMarkdownRestreint(markdown);
+    const reserialise = serialiserMarkdownRestreint(reanalyse);
+
+    // Assert — même raison que pour la liste : « ## Nos gâteaux » lu comme
+    // un paragraphe se resérialise à l'identique ; c'est le titre, avec son
+    // niveau, qui doit ressortir de l'analyse.
+    expect(markdown).toBe('## Nos gâteaux');
+    expect(reanalyse).toEqual(document);
+    expect(reserialise).toBe(markdown);
+
+    // Un `#` au milieu d'une ligne n'ouvre pas de titre : seul le début de
+    // ligne compte.
+    expect(analyserMarkdownRestreint('Prix # 3')).toEqual({
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [texte('Prix # 3')] }],
+    });
+  });
+
+  it('SC-06a — une marque au milieu d’un paragraphe garde le texte qui la précède et celui qui la suit', () => {
+    // Arrange — les autres cas couvrent tout le paragraphe d'une seule marque ;
+    // ici le texte avant la marque, que l'analyse doit conserver.
+    const document: NoeudDocument = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [texte('Bonjour '), texte('gras', [{ type: 'bold' }]), texte(' suite')],
+        },
+      ],
+    };
+
+    // Act
+    const markdown = serialiserMarkdownRestreint(document);
+    const reanalyse = analyserMarkdownRestreint(markdown);
 
     // Assert
-    expect(markdown).toBe('## Nos gâteaux');
-    expect(reserialise).toBe(markdown);
+    expect(markdown).toBe('Bonjour **gras** suite');
+    expect(reanalyse).toEqual(document);
   });
 });
 
@@ -300,6 +346,16 @@ describe('SC-06c — un lien vers un schéma d’URL non autorisé est rejeté',
 
     // Assert : ni crochets, ni parenthèses — seul le texte du lien survit.
     expect(markdown).toBe('cliquez ici');
+  });
+
+  it('SC-06c — un lien `javascript:` est rejeté à l’analyse aussi : le Markdown déclaré par l’intégrateur entre par ce chemin', () => {
+    // Act
+    const document = analyserMarkdownRestreint('[cliquez ici](javascript:alert(1))');
+
+    // Assert : aucune marque de lien, donc aucun `href` à charger dans l'éditeur.
+    expect(JSON.stringify(document)).not.toContain('"link"');
+    expect(JSON.stringify(document)).not.toContain('"href"');
+    expect(serialiserMarkdownRestreint(document)).toContain('cliquez ici');
   });
 
   it('SC-06c — un lien `ftp:` est rejeté à la sérialisation, le texte du lien survit sans la marque', () => {
