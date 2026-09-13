@@ -41,3 +41,22 @@ pour séparer « environnement du worktree » de « harnais Stryker » ; si vert
 - Relancer le timer tel quel « pour voir » — 2 h 47 et 19 Go par passage complet.
 - Repartir de la panne du 11/09 (PATH) — là, node ne démarrait jamais ; ici Stryker démarre et les
   tests tournent.
+
+## Issue
+Fermé le 2026-09-13 — corrigé par la PR #89 (`4eb46ad`, fusionnée en `d456055`).
+
+- `npm test` rejoué à la main dans le worktree de mesure : 174/174 vert — l'environnement du
+  timer n'était pas en cause. `npx stryker run --dryRunOnly` : les mêmes 8 rouges, reproduits en
+  20 s dans le bac à sable de Stryker — c'était le harnais.
+- Cause : l'instrumenteur de Stryker traite `x as T` comme une annotation de type et ne mute rien
+  dessous. Jusqu'à `9c02dab`, les deux `import.meta.glob` de `src/platform/contenu/pages.ts`
+  étaient écrits `… as Record<…>` — jamais instrumentés. Le chantier « analyse » (#85) a retiré
+  ces `as` ; Stryker mute alors le motif `'/content/pages/*/page.json'` en expression, Vite —
+  qui n'accepte qu'un littéral — résout zéro fichier sans avertir, et le Worker bâti dans le bac
+  à sable ne connaît aucune page (SC-02a rend `[]`, les éditeurs répondent 404).
+- Correctif : `// Stryker disable all` … `// Stryker restore all` autour des deux appels, avec le
+  pourquoi en commentaire. Dry run vert après (« Initial test run succeeded »).
+- L'avertissement « nettoyage D1 ignoré … no such table » était un faux suspect : présent aussi
+  quand tout est vert.
+- Le timer n'a pas été touché : il mesure `origin/main`, la correction prend effet au prochain
+  déclenchement (14/09 01:09 UTC).
