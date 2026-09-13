@@ -31,7 +31,15 @@ import {
  * l'objet rendu par `import.meta.glob` : `.get` dit qu'un slug inconnu ne
  * désigne aucun module, là où l'indexation d'un `Record` rend un type qui
  * ne l'avoue jamais.
+ *
+ * Les deux appels `import.meta.glob` ci-dessous sont soustraits au test de
+ * mutation : Vite les résout au build et n'accepte que des littéraux — un
+ * motif muté en expression ne résout plus rien, en silence, et le Worker
+ * bâti pour le passage ne connaît alors aucune page (dry run refusé le
+ * 13/09/2026, chantier `releve-de-mutation-casse-au-dry-run`). Aucun test
+ * ne peut tuer un tel mutant autrement qu'en cassant le build.
  */
+// Stryker disable all
 const MODULES_PAGE_JSON: ReadonlyMap<string, { default: unknown }> = new Map(
   Object.entries(
     import.meta.glob('/content/pages/*/page.json', {
@@ -45,6 +53,7 @@ const MODULES_TEXTE_RICHE = import.meta.glob('/content/pages/*/*.md', {
   query: '?raw',
   import: 'default',
 });
+// Stryker restore all
 
 /**
  * Extrait le slug (nom du répertoire posé par l'intégrateur) depuis le
