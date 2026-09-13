@@ -96,6 +96,13 @@ it('le renvoi rendu par le garde de session porte exactement les mêmes en-tête
 
   expect([301, 302, 303, 307, 308]).toContain(renvoi.status);
   expect(enTetesDeSecurite(renvoi)).toEqual(enTetesReference);
+
+  // `/admin` sans barre finale est une réponse d'administration au même
+  // titre : aucune forme de réponse ne reste à découvert.
+  const renvoiSansBarre = await exports.default.fetch(new Request('https://example.com/admin', { redirect: 'manual' }));
+
+  expect([301, 302, 303, 307, 308]).toContain(renvoiSansBarre.status);
+  expect(enTetesDeSecurite(renvoiSansBarre)).toEqual(enTetesReference);
 });
 
 it('un chemin inconnu sous /admin/ porte exactement les mêmes en-têtes de sécurité, aux mêmes valeurs, que l’écran de connexion', async () => {
