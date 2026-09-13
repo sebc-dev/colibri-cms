@@ -47,3 +47,26 @@ n'est assertée que sur l'absence de cookie, jamais sur le geste annoncé.
   incrémental un jour sur deux, complet le dimanche : la boucle de retour serait d'une nuit.
 - **Ajouter un test neuf là où le rapport désigne une assertion manquante** — il nomme à chaque fois
   le test existant et la ligne ; un test parallèle laisserait le premier aussi aveugle qu'avant.
+
+## Issue
+Fermé le 2026-09-13 — les trente survivants « à traiter » du relevé du 12/09 sont couverts, en
+sept commits sur `chore/survivants-de-mutation` (un par fichier de production visé), tous par
+des assertions ajoutées aux tests existants ; un seul `it` neuf par cas que le relevé désignait
+comme absent (mauvais motif sur un hôte de la liste blanche, dimensions impossibles, `page.json`
+mal formé).
+
+- Rejeu d'un seul fichier, la recette : `npx stryker run --mutate '<fichier>[:L-L]' --force`.
+  Le `--force` est indispensable : `incremental: true` dans la conf resserre les verdicts du
+  passage précédent sans voir un test modifié (le `commandRunner` ne sait pas quel test couvre
+  quoi) — un rejeu sans lui rend le même résultat en 20 s et fait croire à un échec. Coût
+  constaté : 1 min 45 pour 7 mutants, ~10 min pour 80 ; un fichier entier plutôt qu'une plage
+  quand il tient sous 60 mutants.
+- Chaque lot rejoué avant/après : `verdict.ts` 2→7/7, `lien-video.ts` 49/49, `texte-riche.ts`
+  (L207-270) 74 tués + 5 argumentés, `middleware.ts` le mutant visé tué + 2 « à ignorer »,
+  `brouillon.ts` les 10 visés tués (le reste : garde de nature, image/galerie non livrés),
+  `ingestion.ts` 24/24, `declaration.ts` 29/29.
+- Le rejeu local a montré des survivants que le relevé ne listait pas (nœud texte vide avant une
+  marque, `^` de la regex de titre) — vraisemblablement parmi les 83 péremptions comptées comme
+  tuées ; traités quand ils étaient sans ambiguïté, laissés quand ils touchaient le `hardBreak`.
+- Pas rejoué : la mesure complète ; le relevé du 14/09 (01:09 UTC, premier passage après la
+  PR #89) donnera le chiffre.
