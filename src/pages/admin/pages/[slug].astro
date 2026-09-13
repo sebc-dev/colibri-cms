@@ -30,6 +30,18 @@
  * SC-03e) : seule une correction de contenu d'un emplacement déjà déclaré
  * est possible.
  *
+ * Ticket 06 du change 004 (openspec/changes/004-bibliotheque-de-medias/
+ * tickets/06-editeur-presente-natures-image.md, bloqué par le ticket 03 du
+ * même change qui a étendu `core/pages/declaration.ts` aux trois natures
+ * d'image) ajoute la PRÉSENTATION des emplacements d'image, de galerie et de
+ * carrousel — même geste que le ticket 03 ci-dessus pour les trois natures
+ * d'origine : chacun montre son contenu courant (l'identité de l'image
+ * posée, ou le compte des images d'une galerie/d'un carrousel), sans le
+ * moindre moyen de la choisir ou de la composer (`EmplacementImage`,
+ * `EmplacementGalerie`, `EmplacementCarrousel`, présentation seule) — le
+ * sélecteur d'image et la composition d'une galerie viennent avec leur pose,
+ * aux tickets 08 et 09.
+ *
  * La structure d'une page (emplacements : identifiant stable, nature, rang)
  * est lue, jamais écrite (ADR-0012) : le lecteur pur vit dans
  * `src/core/pages/declaration.ts` (fonctions pures, sans D1 ni Worker) ; le
@@ -54,6 +66,7 @@
  * redirige plutôt que d'échouer.
  */
 import Gabarit from '../../../admin/Gabarit.astro';
+import { libelleCompteImages } from '../../../admin/ilots-svelte-5/libelle-compte-images.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { obtenirBrouillon } from '../../../platform/brouillons/magasin.ts';
@@ -136,6 +149,45 @@ const page = {
                 </div>
               </div>
             )}
+            {emplacement.nature === 'image' && (
+              <div>
+                <p>Image</p>
+                <div
+                  data-emplacement-image
+                  data-slug={slug}
+                  data-id-emplacement={emplacement.id}
+                  data-media-id={emplacement.mediaId}
+                >
+                  <p>Une image est posée à cet emplacement.</p>
+                </div>
+              </div>
+            )}
+            {emplacement.nature === 'galerie' && (
+              <div>
+                <p>Galerie</p>
+                <div
+                  data-emplacement-galerie
+                  data-slug={slug}
+                  data-id-emplacement={emplacement.id}
+                  data-media-ids={JSON.stringify(emplacement.mediaIds)}
+                >
+                  <p>{libelleCompteImages(emplacement.mediaIds.length, 'galerie')}</p>
+                </div>
+              </div>
+            )}
+            {emplacement.nature === 'carrousel' && (
+              <div>
+                <p>Carrousel</p>
+                <div
+                  data-emplacement-carrousel
+                  data-slug={slug}
+                  data-id-emplacement={emplacement.id}
+                  data-media-ids={JSON.stringify(emplacement.mediaIds)}
+                >
+                  <p>{libelleCompteImages(emplacement.mediaIds.length, 'carrousel')}</p>
+                </div>
+              </div>
+            )}
           </li>
         ))
       }
@@ -147,11 +199,17 @@ const page = {
       monterCorrectionsBoutonAction,
       monterReglagesLienVideo,
       monterCorrectionsTexteRiche,
+      monterEmplacementsImage,
+      monterEmplacementsGalerie,
+      monterEmplacementsCarrousel,
     } from '../../../admin/ilots-svelte-5/monter.ts';
 
     monterCadreAvecContenu('ilot-cadre');
     monterCorrectionsBoutonAction();
     monterReglagesLienVideo();
     monterCorrectionsTexteRiche();
+    monterEmplacementsImage();
+    monterEmplacementsGalerie();
+    monterEmplacementsCarrousel();
   </script>
 </Gabarit>
