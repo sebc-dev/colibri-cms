@@ -1,9 +1,8 @@
 # Run bloqué — la réserve : téléverser, persister, servir (ticket 04)
 
 Portée : 004-bibliotheque-de-medias · ticket 04
-Ouvert le 2026-09-13 · branche `impl/reserve-persister-servir-04` · HEAD `8971f5d`
-Worktree : `/home/negus/projets/colibri-cms/.git/scd-worktrees/reserve-persister-servir-04` —
-**seul exemplaire du travail**, rien n'est commité ni poussé.
+Ouvert le 2026-09-13 · Clos le 2026-09-14 · branche `impl/reserve-persister-servir-04`
+Worktree : `/home/negus/projets/colibri-cms/.git/scd-worktrees/reserve-persister-servir-04`
 
 ## Objectif
 Faire passer la quality gate du ticket 04 puis reprendre le run là où il s'est arrêté (review,
@@ -33,10 +32,10 @@ PR) — le comportement, lui, était vérifié.
   recopie celui de `brouillons/magasin.ts` — patron déjà en ligne de base (`brouillons` ↔ `session`),
   à acter en review comme duplication assumée.
 
-## Prochaine étape
-Resserrer l'annotation de retour des deux helpers du test en `Uint8Array<ArrayBuffer>` (l. 98 et
-121, rien d'autre), rejouer `npm run typecheck` dans le worktree, puis relancer
-`/scd-spec-dev:run 004-bibliotheque-de-medias 04` depuis ce worktree.
+## Issue
+Le correctif décrit — retour `Uint8Array<ArrayBuffer>` des deux helpers, l. 98 et 121 du test —
+est appliqué. `typecheck` est vert. Le run a abouti : implémentation commitée en `9d5d6c2`, tests
+en `67a5d61`.
 
 ## Écarté
 - Faire corriger le test par un agent du run — interdit par le contrat (producteur ≠ vérificateur,
