@@ -11,7 +11,7 @@
 -- d'en-tête (jamais celui déclaré au téléversement, SC-04d), ses
 -- dimensions lues au même en-tête, son poids et ses octets mêmes
 -- (`BLOB`, borne 2 Mo tenue par `core/medias/ingestion.ts`, ticket 01).
-create table medias_brouillon (
+create table if not exists medias_brouillon (
   id text primary key,
   nom_origine text not null,
   format text not null,

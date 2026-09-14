@@ -18,12 +18,12 @@
  *
  * `assurerTableMedias` (même geste défensif que `assurerTableBrouillons`,
  * `src/platform/brouillons/magasin.ts`, et `assurerTableSessions`,
- * `src/platform/session/index.ts`) recrée cette table si elle est absente :
- * la couture de test de ce ticket rejoue la migration elle-même, mais ce
- * garde tient la même promesse que ses voisins sur une D1 où elle ne
- * l'aurait pas encore été.
+ * `src/platform/session/index.ts`) crée cette table si elle est absente —
+ * en rejouant la migration elle-même, lue à la construction, pour que le
+ * schéma n'ait qu'une définition.
  */
 import type { DimensionsImage, FormatImageAdmis } from '../../core/medias/ingestion.ts';
+import ddlMediasBrouillon from '../../../migrations/0005_medias_brouillon.sql?raw';
 
 const TABLE_MEDIAS = 'medias_brouillon';
 
@@ -43,25 +43,15 @@ export interface DB {
 let schemaMediasAssure: Promise<void> | null = null;
 
 /**
- * Crée `medias_brouillon` si elle n'existe pas encore — même définition que
- * `migrations/0005_medias_brouillon.sql` (voir son commentaire) : ce garde
- * défensif la rejoue pour rester fonctionnel sur une D1 où cette migration
- * n'a pas été rejouée par la couture de test courante.
+ * Rejoue `migrations/0005_medias_brouillon.sql` — lue telle quelle, jamais
+ * recopiée : la migration est la seule définition de la table (son `create
+ * table if not exists` rend le rejeu inoffensif). Même promesse défensive
+ * que `assurerTableBrouillons`/`assurerTableSessions` sur une D1 où elle
+ * n'aurait pas encore été appliquée.
  */
 async function assurerTableMedias(db: DB): Promise<void> {
   schemaMediasAssure ??= db
-    .prepare(
-      `create table if not exists ${TABLE_MEDIAS} (
-          id text primary key,
-          nom_origine text not null,
-          format text not null,
-          largeur integer not null,
-          hauteur integer not null,
-          poids_octets integer not null,
-          octets blob not null,
-          creee_le integer not null
-        )`,
-    )
+    .prepare(ddlMediasBrouillon)
     .bind()
     .run()
     .then(() => undefined);
