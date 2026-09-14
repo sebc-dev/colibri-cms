@@ -86,3 +86,20 @@ export function texteDuRefusTeleversement(motif: string | undefined): string {
   }
   return TEXTE_ECHEC_TELEVERSEMENT_INATTENDU;
 }
+
+/**
+ * Les libellés de l'`Écran : Fiche d'une image` (ticket 07,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/07-fiche-renommer-decrire.md,
+ * SC-07c). Aucun terme de développeur : ni « brouillon », ni « base », ni
+ * rien qui évoque l'implémentation ou le magasin.
+ */
+export const TEXTE_LIEN_RETOUR_MEDIAS = 'Médias';
+export const TEXTE_LIBELLE_NOM_AFFICHAGE = 'Nom';
+export const TEXTE_LIBELLE_DESCRIPTION = 'Description';
+export const TEXTE_BOUTON_ENREGISTRER = 'Enregistrer';
+
+/** Le refus d'un renommage (SC-07a) : un nom vide n'est jamais enregistré. */
+export const TEXTE_REFUS_NOM_VIDE = 'Le nom ne peut pas être vide.';
+
+/** Un échec inattendu en enregistrant le nom ou la description de la fiche (SC-07a/SC-07b). */
+export const TEXTE_ECHEC_ENREGISTREMENT_FICHE = "L'enregistrement a échoué. Réessayez dans un instant.";
