@@ -17,9 +17,10 @@
   d'emplacement.
 -->
 <script lang="ts">
-  interface Props {
-    mediaId: string;
-  }
+  import type { EmplacementImage } from '../../core/pages/declaration.ts';
+
+  /** Les props sont le contenu courant lu par `core`, rien de plus. */
+  type Props = Pick<EmplacementImage, 'mediaId'>;
 
   const { mediaId }: Props = $props();
 </script>

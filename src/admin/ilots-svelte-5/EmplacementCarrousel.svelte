@@ -19,11 +19,11 @@
   d'emplacement.
 -->
 <script lang="ts">
+  import type { EmplacementCarrousel } from '../../core/pages/declaration.ts';
   import { libelleCompteImages } from './libelle-compte-images.ts';
 
-  interface Props {
-    mediaIds: readonly string[];
-  }
+  /** Les props sont le contenu courant lu par `core`, rien de plus. */
+  type Props = Pick<EmplacementCarrousel, 'mediaIds'>;
 
   const { mediaIds }: Props = $props();
 </script>
