@@ -37,6 +37,13 @@ export interface FichierPropose {
 /** Les seuls formats d'image admis, déduits des octets d'en-tête (jamais recopiés). */
 export type FormatImageAdmis = 'jpeg' | 'png' | 'webp';
 
+/** Le `Content-Type` de chacun des trois formats admis — tenu ici, à côté de la liste, pour qu'un format s'ajoute à un seul endroit ; jamais un type annoncé au téléversement. */
+export const TYPE_MIME_PAR_FORMAT: Readonly<Record<FormatImageAdmis, string>> = {
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+};
+
 /** Les dimensions lues à l'en-tête, en pixels. */
 export interface DimensionsImage {
   readonly largeur: number;

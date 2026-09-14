@@ -61,6 +61,9 @@ statique et intact (FR-097, FR-026).
   ni l'auth ni l'état publié.
 - **Épuisement** → borne de poids **2 Mo** appliquée en `core/` **avant** persistance (candidat
   `medias-deux-magasins-un-par-etat`) ; un fichier plus lourd est refusé (FR-040) sans être stocké.
+  La borne effective avant l'INSERT est celle du magasin (`CAPACITE_MAX_OCTETS_LIGNE_D1` =
+  2 000 000 octets moins la ligne), plus basse que la borne `core` ; l'unification des deux bornes
+  en `core/` reste à trancher (candidat ADR `medias-deux-magasins-un-par-etat`).
 - **Fuite d'octets** → la route de service importe le garde de session (I6) ; une requête sans session valide
   n'obtient aucun octet. À scruter : le placement de la route sous `src/pages/admin/` et l'import du garde.
 - **FR-117** → les messages de refus (format, poids) et les libellés de la fiche/suppression se relisent mot à

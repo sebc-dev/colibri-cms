@@ -10,7 +10,7 @@ Motif du mode `test` : le comportement livré tient à la persistance dans la vr
 La réserve d'images existe : une image admise, téléversée depuis l'administration, est rangée dans le magasin des brouillons avec son identité, son nom d'origine, ses dimensions et son type déduit — l'état publié n'est jamais touché. Ses octets se resservent sur la même adresse que l'administration, mais seulement à une session ouverte : une demande sans session n'obtient rien. Le type renvoyé est toujours celui déduit de la liste des trois formats, jamais celui annoncé au téléversement, et la réponse porte la protection qui empêche le navigateur de réinterpréter un fichier — protection posée en un seul endroit pour toute l'administration, jamais par cette route elle-même. C'est ce qui rend une vignette affichable sans ouvrir la porte à un fichier qui mentirait sur sa nature.
 
 ## Critères
-- [ ] Par la couture HTTP, une image admise téléversée est persistée au magasin brouillon avec son identité, son nom d'origine, ses dimensions et son type déduit ; l'état publié reste intact.   (SC-04a)
-- [ ] Par la couture HTTP, une session ouverte obtient les octets d'un média avec le type déduit de la liste des trois formats et la protection contre la réinterprétation du contenu.   (SC-04b)
-- [ ] Par la couture HTTP, une demande sans session valide n'obtient aucun octet.   (SC-04c)
-- [ ] Le type servi est toujours celui déduit de la liste, jamais celui annoncé au téléversement.   (SC-04d)
+- [x] Par la couture HTTP, une image admise téléversée est persistée au magasin brouillon avec son identité, son nom d'origine, ses dimensions et son type déduit ; l'état publié reste intact.   (SC-04a)
+- [x] Par la couture HTTP, une session ouverte obtient les octets d'un média avec le type déduit de la liste des trois formats et la protection contre la réinterprétation du contenu.   (SC-04b)
+- [x] Par la couture HTTP, une demande sans session valide n'obtient aucun octet.   (SC-04c)
+- [x] Le type servi est toujours celui déduit de la liste, jamais celui annoncé au téléversement.   (SC-04d)
