@@ -352,7 +352,7 @@ describe('SC-01b — un SVG ou tout format hors liste est refusé au titre du fo
       const fichier: FichierPropose = { octets: construireEnTetePng(largeur, hauteur) };
 
       expect(() => analyserImage(fichier)).not.toThrow();
-      expect(analyserImage(fichier), `${largeur}×${hauteur}`).toEqual({ admise: false, motif: 'format' });
+      expect(analyserImage(fichier), `${String(largeur)}×${String(hauteur)}`).toEqual({ admise: false, motif: 'format' });
     }
 
     // Contrôle : les bornes elles-mêmes passent la garde — la plus petite
