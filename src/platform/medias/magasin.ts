@@ -27,6 +27,9 @@ import type { DimensionsImage, FormatImageAdmis } from '../../core/medias/ingest
 
 const TABLE_MEDIAS = 'medias_brouillon';
 
+/** Limite D1 « Maximum string, BLOB or table row size » (developers.cloudflare.com/d1/platform/limits) — plus basse que `POIDS_MAX_OCTETS_IMAGE` (2 × 1024 × 1024) de `core/`. */
+export const CAPACITE_MAX_OCTETS_LIGNE_D1 = 2_000_000;
+
 /** Le sous-ensemble de D1 dont ce magasin a besoin (duck-typé, cf. D1Database). */
 export interface DB {
   prepare(query: string): {
@@ -93,13 +96,20 @@ function versOctets(valeur: unknown): Uint8Array<ArrayBuffer> {
  * engendrée ici (opaque, jamais devinable depuis l'extérieur), nom
  * d'origine, dimensions et type déduit tels que reçus — jamais recalculés.
  * L'état publié n'est jamais touché (aucune écriture hors de cette table).
- * Rend l'identifiant engendré.
+ * Fonction totale : si les octets et le nom d'origine ne tiendraient pas
+ * dans une ligne D1 (`CAPACITE_MAX_OCTETS_LIGNE_D1`), rend un refus au titre
+ * du poids plutôt que de tenter l'INSERT. Sinon, rend l'identifiant engendré.
  */
 export async function persisterMediaBrouillon(
   db: DB,
   media: MediaAdmisAPersister,
   maintenant: number,
-): Promise<string> {
+): Promise<{ persiste: true; id: string } | { persiste: false; motif: 'poids' }> {
+  const poidsLigne =
+    media.octets.length + new TextEncoder().encode(media.nomOrigine).length + 256; // 256 = marge pour id, format et entiers de la ligne
+  if (poidsLigne > CAPACITE_MAX_OCTETS_LIGNE_D1) {
+    return { persiste: false, motif: 'poids' };
+  }
   await assurerTableMedias(db);
   const id = engendrerIdentifiantMedia();
   await db
@@ -118,7 +128,7 @@ export async function persisterMediaBrouillon(
       maintenant,
     )
     .run();
-  return id;
+  return { persiste: true, id };
 }
 
 interface LigneMediaBrute {

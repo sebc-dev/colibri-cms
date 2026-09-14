@@ -62,7 +62,7 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ ok: false, raison: resultat.motif }, { status: 400 });
   }
 
-  const id = await persisterMediaBrouillon(
+  const persistance = await persisterMediaBrouillon(
     env.DB,
     {
       nomOrigine: fichier.name,
@@ -73,8 +73,12 @@ export const POST: APIRoute = async ({ request }) => {
     Date.now(),
   );
 
+  if (!persistance.persiste) {
+    return Response.json({ ok: false, raison: persistance.motif }, { status: 400 });
+  }
+
   return Response.json(
-    { ok: true, id, format: resultat.format, dimensions: resultat.dimensions },
+    { ok: true, id: persistance.id, format: resultat.format, dimensions: resultat.dimensions },
     { status: 201 },
   );
 };
