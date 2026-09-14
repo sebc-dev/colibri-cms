@@ -18,6 +18,7 @@
  */
 import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach } from 'vitest';
+import { POIDS_MAX_OCTETS_IMAGE } from '../../src/core/medias/ingestion.ts';
 
 const NOM_COOKIE_SESSION = '__Host-session';
 const TABLE_SESSIONS = 'sessions';
@@ -133,6 +134,13 @@ function construireEnTeteJpeg(largeur: number, hauteur: number): Uint8Array<Arra
     0x02, 0x11, 0x01,
     0x03, 0x11, 0x01,
   ]);
+}
+
+/** Complète `enTete` par des zéros jusqu'à `taille` (simule le poids d'un fichier réel) — même patron que `tests/unit/medias/ingestion.test.ts`. */
+function completerJusquA(enTete: Uint8Array<ArrayBuffer>, taille: number): Uint8Array<ArrayBuffer> {
+  const resultat = new Uint8Array(taille);
+  resultat.set(enTete, 0);
+  return resultat;
 }
 
 async function televerser(
@@ -322,5 +330,30 @@ it(
     expect(corpsTeleversement.format).toBe('jpeg');
     expect(reponseOctets.headers.get('content-type')).toBe('image/jpeg');
     expect(reponseOctets.headers.get('content-type')).not.toBe('image/png');
+  },
+);
+
+// --- SC-04a — une image admise par le cœur mais trop lourde pour une ligne
+// de la réserve est refusée au titre du poids, sans être stockée ---
+
+it(
+  'SC-04a — une image admise par le cœur mais trop lourde pour une ligne de la réserve est refusée au titre du poids, sans être stockée',
+  async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookieSession = await semerSessionValide(db);
+    const octetsLourds = completerJusquA(construireEnTetePng(10, 10), POIDS_MAX_OCTETS_IMAGE);
+    const fichier = new File([octetsLourds], 'photo-lourde.png', { type: 'image/png' });
+
+    // Act
+    const reponse = await televerser(cookieSession, fichier);
+
+    // Assert : refusée au titre du poids…
+    expect(reponse.status).toBe(400);
+    expect(await reponse.json()).toEqual({ ok: false, raison: 'poids' });
+
+    // …et jamais stockée.
+    const total = await db.prepare(`select id from ${TABLE_MEDIAS}`).all();
+    expect(total.results).toHaveLength(0);
   },
 );
