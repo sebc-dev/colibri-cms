@@ -15,6 +15,12 @@
       "rang": 2,
       "libelle": "Demander un devis",
       "destination": "/contact"
+    },
+    {
+      "id": "image-hero",
+      "nature": "image",
+      "rang": 3,
+      "mediaId": "media-fixture-hero"
     }
   ]
 }
