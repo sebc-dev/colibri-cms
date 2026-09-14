@@ -1,9 +1,7 @@
 # Run bloqué — l'écran médias (ticket 05)
 
 Portée : 004-bibliotheque-de-medias · ticket 05
-Ouvert le 2026-09-14 · branche `impl/ecran-medias-05` · HEAD `1623cfe`
-Worktree : `/home/negus/projets/colibri-cms/.git/scd-worktrees/ecran-medias-05` — **seul exemplaire
-du travail**, rien n'est commité ni poussé (4 fichiers modifiés, 3 nouveaux).
+Ouvert le 2026-09-14 · Clos le 2026-09-14 · branche `impl/ecran-medias-05`
 
 ## Objectif
 Faire passer la quality gate du ticket 05 puis reprendre le run là où il s'est arrêté (review, PR) —
@@ -41,11 +39,11 @@ le comportement, lui, était vérifié.
   `cadre.astro` — patron imposé par l'ADR-0007, à déroger en review ; et `knip`, artefact du
   worktree sans `node_modules` installé, vert sur `main`.
 
-## Prochaine étape
-Corriger la dette sur `main` par un change direct (`${String(nombre)}` l. 17 ;
-`${String(largeur)}×${String(hauteur)}` l. 355), la merger, puis relancer la chaîne
-`/scd-spec-dev:run-parallel 004-bibliotheque-de-medias 05 07 08` — le run rejoint ce worktree
-(`exists:true`) après un rebase sur `main` à jour.
+## Issue
+La dette `analyse` a été corrigée sur `main` par #94 (`eff644a`), puis la chaîne relancée : le run a
+rejoint ce worktree, rebasé sur `main`, et a abouti — critères validés, corrections de review
+appliquées, PR #95 ouverte. Le clone de la garde de session `medias.astro` ↔ `cadre.astro` reste
+en avis, dérogé comme patron de l'ADR-0007.
 
 ## Écarté
 - Corriger les deux fichiers depuis la PR de 05 — hors périmètre du ticket, et le fichier de test
