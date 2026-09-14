@@ -53,6 +53,25 @@ describe('SC-02b — une instance sans aucune page déclarée', () => {
     expect(pages).toEqual([]);
   });
 
+  it('SC-02a — une entrée mal formée est ignorée, les autres restent ordonnées par rang : une faute de forme de l’intégrateur ne fait jamais échouer tout l’écran', () => {
+    // Engagement de `trierPagesDeclarees` (ADR-0012 § Négatives) : sans ce
+    // filtre, un `rang` absent ferait planter le tri, et l'éditrice verrait une
+    // panne au lieu de sa liste.
+    const fichiers: FichierDeclarationBrut[] = [
+      { slug: 'contact', contenu: { titre: 'Contact', rang: 3 } },
+      { slug: 'sans-rang', contenu: { titre: 'Sans rang' } },
+      { slug: 'pas-un-objet', contenu: 'Accueil' },
+      { slug: 'nul', contenu: null },
+      { slug: 'accueil', contenu: { titre: 'Accueil', rang: 1 } },
+    ];
+
+    expect(() => trierPagesDeclarees(fichiers)).not.toThrow();
+    expect(trierPagesDeclarees(fichiers)).toEqual([
+      { slug: 'accueil', titre: 'Accueil' },
+      { slug: 'contact', titre: 'Contact' },
+    ]);
+  });
+
   it('SC-02b — la route affiche le message d’état vide, sans aucun geste de création, quand la liste est vide', async () => {
     const source = (await import('../../src/pages/admin/mes-pages.astro?raw')).default;
 
