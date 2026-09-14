@@ -14,6 +14,15 @@ le comportement, lui, était vérifié.
 à lire      `openspec/changes/004-bibliotheque-de-medias/proposal.md` — le change que le ticket honore
 
 ## Acquis
+- SC-05f n'est prouvé qu'à moitié à ce ticket : la recherche n'est observée que sur le nom
+  d'origine (`nomOrigine`, `src/admin/ilots-svelte-5/BibliothequeMedias.svelte`), la description et
+  le nom d'affichage n'existant pas encore dans `MediaListe` (`src/platform/medias/magasin.ts`). Le
+  delta « Recherche d'une image » exige nom et description, mais le ticket 07 (fiche/renommer/décrire)
+  ne porte aucun critère étendant la recherche au nom d'affichage ni à la description : à arbitrer
+  par l'humain (ajouter un critère au ticket 07, ou reformuler SC-05f) avant l'archivage du change,
+  sinon la spec vivante affirmera une recherche que le produit ne fait pas. Vérif observée à
+  reprendre au ticket 07 : un terme présent seulement dans la description doit restreindre la grille
+  à cette image, et le placeholder « Rechercher par nom ou description » devra alors être exact.
 - Run `run-parallel` (wf_ec552720-892, chaîne 05→07→08) arrêté en `blocked-quality` sur 05 ; 07 et
   08 interrompus en amont sans rien écrire. Les 7 critères de 05 avaient été vérifiés par le
   `verifier` en contexte frais, sans point à faire constater par un humain.

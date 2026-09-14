@@ -81,7 +81,7 @@ export const TEXTE_ECHEC_TELEVERSEMENT_INATTENDU = 'Le téléversement a échou�
  * ou une clé technique.
  */
 export function texteDuRefusTeleversement(motif: string | undefined): string {
-  if (motif !== undefined && motif in TEXTES_REFUS_TELEVERSEMENT) {
+  if (motif !== undefined && Object.hasOwn(TEXTES_REFUS_TELEVERSEMENT, motif)) {
     return TEXTES_REFUS_TELEVERSEMENT[motif as MotifRefusTeleversement];
   }
   return TEXTE_ECHEC_TELEVERSEMENT_INATTENDU;
