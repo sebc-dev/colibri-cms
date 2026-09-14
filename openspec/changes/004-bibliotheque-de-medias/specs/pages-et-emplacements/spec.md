@@ -1,5 +1,42 @@
 ## MODIFIED Requirements
 
+### Requirement: Cadre de navigation de l'administration
+
+L'administration SHALL présenter une barre latérale portant le menu des rubriques (« Mes pages », Médias,
+Réglages, Formulaires, Demandes), « Mes pages » et « Médias » étant les rubriques actives et servies
+(« Médias » menant à l'`Écran : Médias`) ; Réglages, Formulaires et Demandes situent la navigation sans
+mener à aucun écran. La barre DOIT pouvoir se replier en un rail d'icônes et se redéployer, l'état
+replié/déployé étant une préférence retenue sur l'appareil sans effet serveur. Aucun terme de développeur
+ne DOIT paraître, et le menu n'offre aucun geste de structure (FR-024/025, FR-117).
+
+#### Scenario: La barre latérale porte les cinq rubriques
+- **WHEN** l'`Écran : Cadre de l'administration` est affiché
+- **THEN** la barre latérale montre les cinq rubriques, la rubrique de l'écran courant marquée active (« Mes pages » sur la liste des pages, « Médias » sur la bibliothèque)
+
+#### Scenario: Replier la barre en un rail d'icônes
+- **WHEN** l'éditrice actionne le bouton de repli
+- **THEN** la barre se réduit à un rail d'icônes seules, la rubrique active y reste marquée, et la zone de contenu s'élargit d'autant
+
+#### Scenario: Redéployer la barre
+- **WHEN** l'éditrice redéploie la barre repliée
+- **THEN** les libellés reparaissent à côté des icônes
+
+#### Scenario: L'état replié/déployé est retenu sur l'appareil
+- **WHEN** l'écran est rechargé après un choix de repli ou de déploiement
+- **THEN** le dernier état choisi est conservé, sans requête serveur pour le porter
+
+#### Scenario: Aucune autre rubrique n'est servie et aucun geste de structure n'est offert
+- **WHEN** l'éditrice parcourt le menu du cadre
+- **THEN** aucune rubrique autre que « Mes pages » et « Médias » ne mène à un écran servi, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page
+
+#### Scenario: Aucun terme de développeur dans le cadre
+- **WHEN** l'éditrice lit le menu et les libellés du cadre
+- **THEN** aucun terme de développeur n'y paraît (FR-117)
+
+#### Scenario: Le cadre est servi sous CSP stricte
+- **WHEN** le cadre est servi
+- **THEN** il l'est sous les en-têtes réels (CSP stricte de l'administration, ADR-0004 + ADR-0008 ; tolérance des attributs `style="…"`, ADR-0010), sans script en ligne ni directive `client:*` (ADR-0006)
+
 ### Requirement: Éditeur d'une page et ses emplacements
 
 Ouvrir une page depuis la liste SHALL présenter ses emplacements dans l'ordre posé par l'intégrateur,

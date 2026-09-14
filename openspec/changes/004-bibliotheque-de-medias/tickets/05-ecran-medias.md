@@ -10,10 +10,10 @@ Motif du mode `observé` : l'écran est un îlot hydraté côté navigateur sous
 La rubrique « Médias » devient active et ouvre sur la réserve : une grille présente toutes les images du site, une par vignette, dans le cadre de navigation de l'administration. Un bouton de téléversement ajoute une image ; un fichier hors format ou trop lourd est refusé en disant lequel des deux, sans terme de développeur ni trace technique. Une barre de recherche restreint la grille aux images dont le nom ou la description contient le terme saisi. Quand il n'y a aucune image, un message d'état vide le dit ; quand une recherche ne correspond à rien, un message propre à la recherche le dit, la réserve restant intacte. Aucun terme de développeur ne paraît nulle part.
 
 ## Critères
-- [ ] La grille présente toutes les images du site, une par vignette.   (SC-05a)
-- [ ] Quand la réserve ne contient aucune image, l'écran affiche un message d'état vide.   (SC-05b)
-- [ ] L'écran est servi dans le cadre de l'administration (« Médias » marquée active), sous les en-têtes réels (CSP stricte, `script-src 'self'`), sans script en ligne ni directive d'hydratation d'île.   (SC-05c)
-- [ ] Aucun terme de développeur ne paraît dans la grille ni dans le message d'état vide.   (SC-05d)
-- [ ] Un téléversement refusé dit à l'éditrice si c'est le format ou le poids qui a été refusé, sans aucun terme de développeur.   (SC-05e)
-- [ ] La recherche restreint la grille aux images dont le nom ou la description contient le terme saisi.   (SC-05f)
-- [ ] Une recherche sans correspondance montre un état vide propre à la recherche, la réserve restant inchangée.   (SC-05g)
+- [x] La grille présente toutes les images du site, une par vignette.   (SC-05a)
+- [x] Quand la réserve ne contient aucune image, l'écran affiche un message d'état vide.   (SC-05b)
+- [x] L'écran est servi dans le cadre de l'administration (« Médias » marquée active), sous les en-têtes réels (CSP stricte, `script-src 'self'`), sans script en ligne ni directive d'hydratation d'île.   (SC-05c)
+- [x] Aucun terme de développeur ne paraît dans la grille ni dans le message d'état vide.   (SC-05d)
+- [x] Un téléversement refusé dit à l'éditrice si c'est le format ou le poids qui a été refusé, sans aucun terme de développeur.   (SC-05e)
+- [x] La recherche restreint la grille aux images dont le nom ou la description contient le terme saisi.   (SC-05f)
+- [x] Une recherche sans correspondance montre un état vide propre à la recherche, la réserve restant inchangée.   (SC-05g)

@@ -4,19 +4,28 @@
 
   Un unique îlot d'administration monté en application (SPEC.md § Décisions
   d'implémentation) : la barre latérale et son menu vivent ici, dans ce même
-  composant, pas dans une hydratation par page. Seule « Mes pages » est une
-  rubrique active à ce ticket, et la seule à porter un `href` : elle mène par
-  un vrai lien navigable à l'`Écran : Liste des pages` (ticket 02, SC-02e) —
-  les quatre autres (Médias, Réglages, Formulaires, Demandes) ne mènent à
-  aucun écran servi : elles sont rendues sans lien ni bouton, rien qui
-  « offre » un geste de navigation vers elles (C5). Aucun geste d'ajout, de
-  retrait, de déplacement ni de renommage de rubrique n'est offert par ce
-  menu.
+  composant, pas dans une hydratation par page. « Mes pages » portait, à ce
+  ticket, le seul `href` : elle menait par un vrai lien navigable à
+  l'`Écran : Liste des pages` (ticket 02, SC-02e) — les quatre autres
+  (Médias, Réglages, Formulaires, Demandes) ne menaient à aucun écran servi :
+  elles étaient rendues sans lien ni bouton, rien qui « offre » un geste de
+  navigation vers elles (C5). « Médias » a rejoint « Mes pages » au ticket 05
+  (voir plus bas) ; Réglages, Formulaires et Demandes restent sans `href`
+  tant qu'aucun ticket ne leur sert d'écran. Aucun geste d'ajout, de retrait,
+  de déplacement ni de renommage de rubrique n'est offert par ce menu.
 
   L'état replié/déployé est une préférence retenue sur l'appareil (UX-2,
   `localStorage`) : jamais une requête serveur (C4). Aucun bloc `<style>` :
   les styles viennent des utilitaires Tailwind posés par `admin.css`
   (ADR-0008 — `style-src 'self'` sans `unsafe-inline`).
+
+  Ticket 05 (openspec/changes/004-bibliotheque-de-medias/tickets/
+  05-ecran-medias.md, SC-05c) : « Médias » sert désormais un écran
+  (`/admin/medias`), donc porte à son tour un `href` — même exigence de lien
+  navigable que « Mes pages » ci-dessus, plus la même rubrique ne peut être
+  active sur deux écrans distincts : `rubriqueActive` (prop, par défaut
+  `'mes-pages'` pour ne rien changer aux écrans déjà servis) dit laquelle des
+  deux l'est ici.
 -->
 <script lang="ts">
   import type { Snippet } from 'svelte';
@@ -28,27 +37,30 @@
   import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
   import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
 
+  type IdRubriqueServie = 'mes-pages' | 'medias';
+
   interface Props {
     children?: Snippet;
+    rubriqueActive?: IdRubriqueServie;
   }
 
-  const { children }: Props = $props();
+  const { children, rubriqueActive = 'mes-pages' }: Props = $props();
 
   /**
-   * Rubrique active servie par ce ticket, menant à l'`Écran : Liste des
-   * pages` par un vrai lien navigable (`href`, ticket 02 SC-02e, arbitrage
-   * du chantier docs/chantiers/en-cours/2026-09-07-run-liste-des-pages-02.md,
-   * point 2 : « menant à cet écran » exige un lien, pas seulement une
-   * mise en évidence visuelle). Les autres rubriques n'ont pas de `href` :
-   * elles ne mènent à aucun écran servi, rien qui « offre » un geste de
-   * navigation vers elles (hors-périmètre, C5).
+   * Rubriques servies, chacune menant à son écran par un vrai lien navigable
+   * (`href`, ticket 02 SC-02e, arbitrage du chantier
+   * docs/chantiers/en-cours/2026-09-07-run-liste-des-pages-02.md, point 2 :
+   * « menant à cet écran » exige un lien, pas seulement une mise en évidence
+   * visuelle). Les trois autres rubriques n'ont pas de `href` : elles ne
+   * mènent à aucun écran servi, rien qui « offre » un geste de navigation
+   * vers elles (hors-périmètre, C5).
    */
   const RUBRIQUES = [
-    { id: 'mes-pages', libelle: 'Mes pages', icone: Files, active: true, href: '/admin/mes-pages' },
-    { id: 'medias', libelle: 'Médias', icone: Image, active: false, href: null },
-    { id: 'reglages', libelle: 'Réglages', icone: Settings, active: false, href: null },
-    { id: 'formulaires', libelle: 'Formulaires', icone: ClipboardList, active: false, href: null },
-    { id: 'demandes', libelle: 'Demandes', icone: Mail, active: false, href: null },
+    { id: 'mes-pages', libelle: 'Mes pages', icone: Files, href: '/admin/mes-pages' },
+    { id: 'medias', libelle: 'Médias', icone: Image, href: '/admin/medias' },
+    { id: 'reglages', libelle: 'Réglages', icone: Settings, href: null },
+    { id: 'formulaires', libelle: 'Formulaires', icone: ClipboardList, href: null },
+    { id: 'demandes', libelle: 'Demandes', icone: Mail, href: null },
   ] as const;
 
   const CLE_STOCKAGE = 'admin.cadre.replie';
@@ -104,38 +116,28 @@
       <ul class="flex flex-col gap-1">
         {#each RUBRIQUES as rubrique (rubrique.id)}
           <li>
-            {#if rubrique.href}
-              <a
-                href={rubrique.href}
-                class={[
-                  'flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm',
-                  rubrique.active
-                    ? 'bg-primary text-primary-foreground font-medium'
-                    : 'text-muted-foreground',
-                ]}
-                aria-current={rubrique.active ? 'page' : undefined}
-              >
-                <rubrique.icone class="size-4 shrink-0" aria-hidden="true" />
-                {#if !replie}
-                  <span>{rubrique.libelle}</span>
-                {/if}
-              </a>
-            {:else}
-              <span
-                class={[
-                  'flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm',
-                  rubrique.active
-                    ? 'bg-primary text-primary-foreground font-medium'
-                    : 'text-muted-foreground',
-                ]}
-                aria-current={rubrique.active ? 'page' : undefined}
-              >
-                <rubrique.icone class="size-4 shrink-0" aria-hidden="true" />
-                {#if !replie}
-                  <span>{rubrique.libelle}</span>
-                {/if}
-              </span>
-            {/if}
+            <!--
+              Un seul élément par rubrique : `<a>` quand un écran est servi
+              (`href`), `<span>` sinon — rien qui « offre » un geste de
+              navigation vers une rubrique sans écran (C5). `href={undefined}`
+              n'est pas rendu par Svelte.
+            -->
+            <svelte:element
+              this={rubrique.href ? 'a' : 'span'}
+              href={rubrique.href ?? undefined}
+              class={[
+                'flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm',
+                rubrique.id === rubriqueActive
+                  ? 'bg-primary text-primary-foreground font-medium'
+                  : 'text-muted-foreground',
+              ]}
+              aria-current={rubrique.id === rubriqueActive ? 'page' : undefined}
+            >
+              <rubrique.icone class="size-4 shrink-0" aria-hidden="true" />
+              {#if !replie}
+                <span>{rubrique.libelle}</span>
+              {/if}
+            </svelte:element>
           </li>
         {/each}
       </ul>
