@@ -24,7 +24,8 @@ import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementGalerie from './EmplacementGalerie.svelte';
 import EmplacementCarrousel from './EmplacementCarrousel.svelte';
 import EcranMedias from './EcranMedias.svelte';
-import type { MediaListe } from '../../platform/medias/magasin.ts';
+import EcranFicheMedia from './EcranFicheMedia.svelte';
+import type { MediaListe, MediaFiche } from '../../platform/medias/magasin.ts';
 
 /**
  * Monte l'îlot `Compteur` sur le premier élément portant l'identifiant donné.
@@ -336,4 +337,54 @@ export function monterEcranMedias(idCible: string): void {
 
   cible.innerHTML = '';
   mount(EcranMedias, { target: cible, props: { mediasInitiaux } });
+}
+
+/**
+ * `media` telle que sérialisée en JSON par le serveur
+ * (`src/pages/admin/medias/[id].astro`) dans l'attribut `data-media` du
+ * point de montage — `null` si la valeur ne correspond pas à une
+ * `MediaFiche` (attribut absent, corrompu, ou d'une autre forme) : même
+ * geste de garde qu'`analyserMediasInitiaux` ci-dessus.
+ */
+function analyserMediaFiche(valeurBrute: string): MediaFiche | null {
+  let valeur: unknown;
+  try {
+    valeur = JSON.parse(valeurBrute);
+  } catch {
+    return null;
+  }
+  if (
+    typeof valeur !== 'object' ||
+    valeur === null ||
+    typeof (valeur as MediaFiche).id !== 'string' ||
+    typeof (valeur as MediaFiche).nomOrigine !== 'string' ||
+    typeof (valeur as MediaFiche).nomAffichage !== 'string' ||
+    typeof (valeur as MediaFiche).description !== 'string' ||
+    typeof (valeur as MediaFiche).format !== 'string'
+  ) {
+    return null;
+  }
+  return valeur as MediaFiche;
+}
+
+/**
+ * Monte l'`Écran : Fiche d'une image` (ticket 07,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 07-fiche-renommer-decrire.md) — `EcranFicheMedia` (le cadre + la fiche)
+ * sur le premier élément portant l'identifiant donné, avec la fiche déjà
+ * lue côté serveur (`obtenirFicheMediaBrouillon`,
+ * `src/platform/medias/magasin.ts`) posée en attribut `data-media`. Même
+ * garde d'absence que `monterEcranMedias` ci-dessus.
+ */
+export function monterEcranFicheMedia(idCible: string): void {
+  const cible = document.getElementById(idCible);
+  if (!cible) return;
+
+  const donnees = cible.dataset.media;
+  if (donnees === undefined) return;
+  const media = analyserMediaFiche(donnees);
+  if (media === null) return;
+
+  cible.innerHTML = '';
+  mount(EcranFicheMedia, { target: cible, props: { media } });
 }

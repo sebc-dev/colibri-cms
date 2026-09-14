@@ -13,7 +13,12 @@
 
   Chaque vignette est un `<img>` servi par la route déjà livrée au ticket 04
   (`src/pages/admin/medias/[id]/octets.ts`), sur l'origine commune
-  (`img-src 'self'`, design.md) : aucun asset ni script tiers.
+  (`img-src 'self'`, design.md) : aucun asset ni script tiers. Depuis le
+  ticket 07 (openspec/changes/004-bibliotheque-de-medias/tickets/
+  07-fiche-renommer-decrire.md), chaque vignette est aussi un lien navigable
+  vers `/admin/medias/{id}` — l'`Écran : Fiche d'une image`
+  (`src/pages/admin/medias/[id].astro`) — c'est là, et non depuis la grille,
+  que l'éditrice renomme et décrit une image.
 
   Le téléversement poste vers `src/pages/admin/medias/televerser.ts` (ticket
   04, non modifiée ici) — un refus dit le motif (format ou poids, SC-05e) via
@@ -24,7 +29,9 @@
 
   La recherche (SC-05f) filtre en mémoire sur le nom d'origine, seul champ
   que ce magasin porte à ce ticket (le nom d'affichage et la description
-  arrivent au ticket 07) — sans index dédié, comme le permet design.md.
+  existent désormais, ticket 07, mais étendre la recherche à la description
+  reste hors périmètre de ce ticket-là — voir `magasin.ts`) — sans index
+  dédié, comme le permet design.md.
 
   Aucune directive `client:*` (ADR-0006) : monté par le point d'entrée
   externe `monter.ts`, même patron que les autres îlots.
@@ -135,12 +142,14 @@
     <ul class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
       {#each mediasFiltres as media (media.id)}
         <li class="overflow-hidden rounded-lg border border-border bg-card">
-          <img
-            src={`/admin/medias/${media.id}/octets`}
-            alt={media.nomOrigine}
-            loading="lazy"
-            class="aspect-square w-full object-cover"
-          />
+          <a href={`/admin/medias/${media.id}`}>
+            <img
+              src={`/admin/medias/${media.id}/octets`}
+              alt={media.nomOrigine}
+              loading="lazy"
+              class="aspect-square w-full object-cover"
+            />
+          </a>
         </li>
       {/each}
     </ul>
