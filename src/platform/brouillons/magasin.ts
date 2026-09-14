@@ -15,6 +15,11 @@
  * 06-corriger-texte-riche.md) y ajoute `enregistrerCorrectionTexteRiche`,
  * même patron.
  *
+ * Ticket 08 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 08-poser-remplacer-image.md) y ajoute `enregistrerCorrectionImage`, même
+ * patron — poser une image et la remplacer sont le même geste (`core/`,
+ * `appliquerCorrectionImage`).
+ *
  * Table `brouillons_emplacements` (`migrations/0004_brouillons_emplacements.sql`,
  * SC-04d) : une ligne par emplacement corrigé, clé `(page_slug,
  * id_emplacement)` — l'identité stable posée par la déclaration (ADR-0012).
@@ -32,6 +37,7 @@ import {
   appliquerCorrectionBoutonAction,
   appliquerCorrectionLienVideo,
   appliquerCorrectionTexteRiche,
+  appliquerCorrectionImage,
   type Brouillon,
   type ContenuCorrige,
   type ResultatCorrection,
@@ -234,6 +240,38 @@ export function enregistrerCorrectionTexteRiche(
 ): Promise<ResultatCorrection> {
   return enregistrerCorrection(
     appliquerCorrectionTexteRiche,
+    db,
+    slugPage,
+    emplacementsDeclares,
+    idEmplacement,
+    correctionBrute,
+    maintenant,
+  );
+}
+
+/**
+ * Applique et persiste la pose (ou le remplacement) d'une image dans un
+ * emplacement d'image (ticket 08,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 08-poser-remplacer-image.md, SC-08a/b) — même patron que les trois
+ * enregistrements ci-dessus : `appliquerCorrectionImage`
+ * (`core/pages/brouillon.ts`, livrée au ticket 03) décide seule de
+ * l'acceptation, en ne lisant jamais la bibliothèque des médias elle-même
+ * (aucune vérification que `mediaId` existe réellement, hors périmètre de
+ * ce ticket) — poser et remplacer sont ici le MÊME geste : la seconde pose
+ * sur un emplacement déjà corrigé remplace simplement la ligne existante
+ * (`on conflict … do update`, ci-dessus), jamais n'en ajoute une seconde.
+ */
+export function enregistrerCorrectionImage(
+  db: DB,
+  slugPage: string,
+  emplacementsDeclares: readonly Emplacement[],
+  idEmplacement: string,
+  correctionBrute: unknown,
+  maintenant: number,
+): Promise<ResultatCorrection> {
+  return enregistrerCorrection(
+    appliquerCorrectionImage,
     db,
     slugPage,
     emplacementsDeclares,

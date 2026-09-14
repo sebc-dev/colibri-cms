@@ -70,6 +70,7 @@ import { libelleCompteImages } from '../../../admin/ilots-svelte-5/libelle-compt
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { obtenirBrouillon } from '../../../platform/brouillons/magasin.ts';
+import { listerMediasBrouillon } from '../../../platform/medias/magasin.ts';
 import { appliquerBrouillonSurEmplacement, pagePorteUnBrouillon } from '../../../core/pages/brouillon.ts';
 import { env } from 'cloudflare:workers';
 
@@ -87,6 +88,12 @@ if (!pageDeclaree || !slug) {
 
 const brouillon = await obtenirBrouillon(env.DB, slug);
 const porteUnBrouillon = pagePorteUnBrouillon(brouillon);
+// Ticket 08 (openspec/changes/004-bibliotheque-de-medias/tickets/
+// 08-poser-remplacer-image.md) : la réserve déjà connue, pour que le
+// sélecteur d'un emplacement d'image (`EmplacementImage.svelte`) l'ouvre
+// sans requête au montage — même geste que `mediasInitiaux` de
+// `BibliothequeMedias.svelte` (ticket 05).
+const mediasDisponibles = await listerMediasBrouillon(env.DB);
 const page = {
   titre: pageDeclaree.titre,
   emplacements: pageDeclaree.emplacements.map((emplacement) =>
@@ -157,6 +164,7 @@ const page = {
                   data-slug={slug}
                   data-id-emplacement={emplacement.id}
                   data-media-id={emplacement.mediaId}
+                  data-medias={JSON.stringify(mediasDisponibles)}
                 >
                   <p>Une image est posée à cet emplacement.</p>
                 </div>

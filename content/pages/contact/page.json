@@ -8,6 +8,12 @@
       "nature": "lien-video",
       "rang": 1,
       "lien": "https://vimeo.com/76979871"
+    },
+    {
+      "id": "photo-equipe",
+      "nature": "image",
+      "rang": 2,
+      "mediaId": "media-fixture-equipe"
     }
   ]
 }
