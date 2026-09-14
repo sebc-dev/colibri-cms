@@ -14,5 +14,5 @@ export function libelleCompteImages(nombre: number, nature: 'galerie' | 'carrous
   const mot = nature === 'galerie' ? 'cette galerie' : 'ce carrousel';
   if (nombre === 0) return `Aucune image ne compose ${mot}.`;
   if (nombre === 1) return `1 image compose ${mot}.`;
-  return `${nombre} images composent ${mot}.`;
+  return `${String(nombre)} images composent ${mot}.`;
 }
