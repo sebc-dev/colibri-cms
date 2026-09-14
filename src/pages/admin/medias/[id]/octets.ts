@@ -21,14 +21,7 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { verifierSession } from '../../../../platform/session/index.ts';
 import { obtenirMediaBrouillon } from '../../../../platform/medias/magasin.ts';
-import type { FormatImageAdmis } from '../../../../core/medias/ingestion.ts';
-
-/** Le `Content-Type` associé à chacun des trois formats admis (SC-04b) — jamais un autre. */
-const TYPE_MIME_PAR_FORMAT: Record<FormatImageAdmis, string> = {
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  webp: 'image/webp',
-};
+import { TYPE_MIME_PAR_FORMAT } from '../../../../core/medias/ingestion.ts';
 
 export const GET: APIRoute = async ({ params, request }) => {
   const session = await verifierSession(env.DB, request);
