@@ -36,3 +36,53 @@ const TEXTES_REFUS: Readonly<Record<RaisonRefus, string>> = {
 export function texteDuRefus(raison: RaisonRefus): string {
   return TEXTES_REFUS[raison];
 }
+
+/**
+ * Les libellés de l'`Écran : Médias` (ticket 05,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/05-ecran-medias.md).
+ * Aucun terme de développeur (SC-05d) : ni « brouillon », ni « fichier »,
+ * ni rien qui évoque l'implémentation.
+ */
+export const TEXTE_BOUTON_TELEVERSER = 'Téléverser une image';
+export const TEXTE_LIBELLE_RECHERCHE_MEDIAS = 'Rechercher';
+export const TEXTE_PLACEHOLDER_RECHERCHE_MEDIAS = 'Rechercher par nom ou description';
+
+/** L'état vide de la bibliothèque elle-même, aucune image nulle part (SC-05b). */
+export const TEXTE_BIBLIOTHEQUE_VIDE = "La bibliothèque ne contient encore aucune image.";
+
+/** L'état vide propre à une recherche sans correspondance (SC-05g) — distinct du précédent : la réserve, elle, reste intacte. */
+export const TEXTE_RECHERCHE_MEDIAS_SANS_RESULTAT = 'Aucune image ne correspond à cette recherche.';
+
+/**
+ * Les motifs de refus d'un téléversement, tels que rendus par la route
+ * `src/pages/admin/medias/televerser.ts` (ticket 04) : `'format'` ou
+ * `'poids'` (`ResultatIngestionImage`/`persisterMediaBrouillon`,
+ * `src/core/medias/ingestion.ts` et `src/platform/medias/magasin.ts`), ou
+ * `'forme-invalide'` (corps de requête mal formé, avant même l'analyse de
+ * l'image). SC-05e n'exige de distinguer que le format et le poids ;
+ * `'forme-invalide'` reste couvert pour rester total sur toute réponse de
+ * la route, sans jamais nommer de terme de développeur.
+ */
+export type MotifRefusTeleversement = 'format' | 'poids' | 'forme-invalide';
+
+const TEXTES_REFUS_TELEVERSEMENT: Readonly<Record<MotifRefusTeleversement, string>> = {
+  format: "Cette image n'est pas dans un format accepté (JPEG, PNG ou WebP) : choisissez une autre image.",
+  poids: 'Cette image est trop lourde : choisissez une image plus légère.',
+  'forme-invalide': "Aucune image n'a été reçue : choisissez une image, puis réessayez.",
+};
+
+/** Le message d'échec générique, hors des motifs métier reconnus ci-dessus (réponse inattendue). */
+export const TEXTE_ECHEC_TELEVERSEMENT_INATTENDU = 'Le téléversement a échoué. Réessayez dans un instant.';
+
+/**
+ * Le texte à afficher pour un téléversement refusé (SC-05e) : dit si c'est
+ * le format ou le poids, sans terme de développeur. Un motif absent ou
+ * inconnu retombe sur le message générique plutôt que d'afficher `undefined`
+ * ou une clé technique.
+ */
+export function texteDuRefusTeleversement(motif: string | undefined): string {
+  if (motif !== undefined && motif in TEXTES_REFUS_TELEVERSEMENT) {
+    return TEXTES_REFUS_TELEVERSEMENT[motif as MotifRefusTeleversement];
+  }
+  return TEXTE_ECHEC_TELEVERSEMENT_INATTENDU;
+}

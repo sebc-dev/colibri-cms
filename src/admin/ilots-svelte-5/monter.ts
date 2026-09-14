@@ -23,6 +23,8 @@ import TexteRiche from './TexteRiche.svelte';
 import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementGalerie from './EmplacementGalerie.svelte';
 import EmplacementCarrousel from './EmplacementCarrousel.svelte';
+import EcranMedias from './EcranMedias.svelte';
+import type { MediaListe } from '../../platform/medias/magasin.ts';
 
 /**
  * Monte l'îlot `Compteur` sur le premier élément portant l'identifiant donné.
@@ -281,4 +283,57 @@ export function monterEmplacementsGalerie(): void {
  */
 export function monterEmplacementsCarrousel(): void {
   monterEmplacementsAvecMediaIds('[data-emplacement-carrousel]', EmplacementCarrousel);
+}
+
+/**
+ * `mediasInitiaux` telle que sérialisée en JSON par le serveur
+ * (`medias.astro`) dans l'attribut `data-medias` du point de montage —
+ * `null` si la valeur ne correspond pas à un tableau de `MediaListe` (attribut
+ * absent, corrompu, ou d'une autre forme) : même geste de garde
+ * qu'`analyserMediaIds` ci-dessus, qui ne monte rien plutôt que de planter
+ * sur une donnée serveur inattendue.
+ */
+function analyserMediasInitiaux(valeurBrute: string): readonly MediaListe[] | null {
+  let valeur: unknown;
+  try {
+    valeur = JSON.parse(valeurBrute);
+  } catch {
+    return null;
+  }
+  if (
+    !Array.isArray(valeur) ||
+    !valeur.every(
+      (element): element is MediaListe =>
+        typeof element === 'object' &&
+        element !== null &&
+        typeof (element as MediaListe).id === 'string' &&
+        typeof (element as MediaListe).nomOrigine === 'string',
+    )
+  ) {
+    return null;
+  }
+  return valeur;
+}
+
+/**
+ * Monte l'`Écran : Médias` (ticket 05,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/05-ecran-medias.md) —
+ * `EcranMedias` (le cadre + la réserve) sur le premier élément portant
+ * l'identifiant donné, avec la liste déjà lue côté serveur
+ * (`listerMediasBrouillon`, `src/platform/medias/magasin.ts`) posée en
+ * attribut `data-medias`. Même garde d'absence que les fonctions
+ * `monter*` ci-dessus ; ne monte rien non plus si l'attribut est absent ou
+ * mal formé.
+ */
+export function monterEcranMedias(idCible: string): void {
+  const cible = document.getElementById(idCible);
+  if (!cible) return;
+
+  const donnees = cible.dataset.medias;
+  if (donnees === undefined) return;
+  const mediasInitiaux = analyserMediasInitiaux(donnees);
+  if (mediasInitiaux === null) return;
+
+  cible.innerHTML = '';
+  mount(EcranMedias, { target: cible, props: { mediasInitiaux } });
 }
