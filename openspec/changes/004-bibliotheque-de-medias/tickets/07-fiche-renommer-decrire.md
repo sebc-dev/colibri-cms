@@ -10,6 +10,6 @@ Motif du mode `test` : renommer et décrire tiennent à une écriture dans la vr
 Depuis la grille, l'éditrice ouvre la fiche d'une image : son aperçu, son nom et sa description. Elle renomme l'image — le nouveau nom d'affichage est enregistré, le nom d'origine restant conservé à part. Elle saisit ou modifie la description, enregistrée elle aussi au magasin brouillon. La description est rangée telle quelle, comme une donnée : ce change ne la rend jamais en HTML (son affichage sur une page publiée viendra avec le site public). Aucun terme de développeur ne paraît sur la fiche.
 
 ## Critères
-- [ ] Par la couture HTTP, renommer une image enregistre le nouveau nom d'affichage ; le nom d'origine reste inchangé.   (SC-07a)
-- [ ] Par la couture HTTP, saisir ou modifier la description d'une image l'enregistre au magasin brouillon.   (SC-07b)
-- [ ] Aucun terme de développeur ne paraît dans la fiche d'une image.   (SC-07c)
+- [x] Par la couture HTTP, renommer une image enregistre le nouveau nom d'affichage ; le nom d'origine reste inchangé.   (SC-07a)
+- [x] Par la couture HTTP, saisir ou modifier la description d'une image l'enregistre au magasin brouillon.   (SC-07b)
+- [x] Aucun terme de développeur ne paraît dans la fiche d'une image.   (SC-07c)

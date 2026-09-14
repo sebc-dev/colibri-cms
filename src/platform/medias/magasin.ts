@@ -20,10 +20,17 @@
  * `src/platform/brouillons/magasin.ts`, et `assurerTableSessions`,
  * `src/platform/session/index.ts`) crée cette table si elle est absente —
  * en rejouant la migration elle-même, lue à la construction, pour que le
- * schéma n'ait qu'une définition.
+ * schéma n'ait qu'une définition. Ticket 07
+ * (openspec/changes/004-bibliotheque-de-medias/tickets/07-fiche-renommer-decrire.md,
+ * SC-07a/SC-07b) y ajoute deux colonnes NULLABLES, `nom_affichage` et
+ * `description` — `migrations/0006_medias_brouillon_affichage.sql` en reste
+ * la seule définition, rejouée ici énoncé par énoncé (D1 n'exécute qu'un
+ * énoncé par `prepare`, et la migration porte deux `alter table` distincts,
+ * d'où le découpage par `separerRequetes`).
  */
 import type { DimensionsImage, FormatImageAdmis } from '../../core/medias/ingestion.ts';
 import ddlMediasBrouillon from '../../../migrations/0005_medias_brouillon.sql?raw';
+import ddlMediasBrouillonAffichage from '../../../migrations/0006_medias_brouillon_affichage.sql?raw';
 
 const TABLE_MEDIAS = 'medias_brouillon';
 
@@ -43,18 +50,45 @@ export interface DB {
 let schemaMediasAssure: Promise<void> | null = null;
 
 /**
+ * Découpe un fichier `.sql` en énoncés individuels (commentaires `--`
+ * retirés) : D1 n'exécute qu'un énoncé par `prepare`, d'où ce découpage
+ * (même geste que `separerRequetes` de
+ * `tests/integration/fiche-renommer-decrire.test.ts`).
+ */
+function separerRequetes(sql: string): string[] {
+  return sql
+    .split('\n')
+    .map((ligne) => ligne.replace(/--.*/, ''))
+    .join('\n')
+    .split(';')
+    .map((requete) => requete.trim())
+    .filter(Boolean);
+}
+
+/**
  * Rejoue `migrations/0005_medias_brouillon.sql` — lue telle quelle, jamais
  * recopiée : la migration est la seule définition de la table (son `create
  * table if not exists` rend le rejeu inoffensif). Même promesse défensive
  * que `assurerTableBrouillons`/`assurerTableSessions` sur une D1 où elle
- * n'aurait pas encore été appliquée.
+ * n'aurait pas encore été appliquée. Rejoue ensuite, énoncé par énoncé,
+ * `migrations/0006_medias_brouillon_affichage.sql` (ticket 07) qui ajoute
+ * `nom_affichage` puis `description` — cette migration est la seule
+ * définition de ces deux colonnes, jamais recopiée ici. `alter table` échoue
+ * sans effet observable sur une D1 qui les porte déjà, l'échec est donc
+ * avalé (même geste que `dernier_usage_le` dans `assurerTableSessions`,
+ * `src/platform/session/index.ts`).
  */
 async function assurerTableMedias(db: DB): Promise<void> {
-  schemaMediasAssure ??= db
-    .prepare(ddlMediasBrouillon)
-    .bind()
-    .run()
-    .then(() => undefined);
+  schemaMediasAssure ??= (async () => {
+    await db.prepare(ddlMediasBrouillon).bind().run();
+    for (const requete of separerRequetes(ddlMediasBrouillonAffichage)) {
+      try {
+        await db.prepare(requete).bind().run();
+      } catch {
+        // colonne déjà ajoutée : sans effet.
+      }
+    }
+  })();
   await schemaMediasAssure;
 }
 
@@ -149,10 +183,12 @@ export async function obtenirMediaBrouillon(db: DB, id: string): Promise<MediaBr
  * 05-ecran-medias.md, SC-05a) : seule l'identité et le nom d'origine, JAMAIS
  * les octets (poids d'une ligne entière, servis à part par la route dédiée
  * `src/pages/admin/medias/[id]/octets.ts`). Le nom d'AFFICHAGE et la
- * description n'existent pas encore dans ce magasin (ils arrivent au
- * ticket 07, par une migration ultérieure) : ce ticket ne recherche donc,
- * pour l'instant, que sur le nom d'origine — la recherche s'étendra à la
- * description sans changement de forme le jour où elle existe.
+ * description existent désormais dans ce magasin (ticket 07,
+ * `MediaFiche`/`obtenirFicheMediaBrouillon` plus bas) mais la grille ni sa
+ * recherche n'en tiennent compte ici : étendre la liste et son filtre à la
+ * description est hors périmètre du ticket 07 (porté par la grille/recherche
+ * du ticket 05, déjà livrées) — ce ticket ne recherche donc encore que sur
+ * le nom d'origine, sans changement de forme.
  */
 export interface MediaListe {
   readonly id: string;
@@ -182,4 +218,107 @@ export async function listerMediasBrouillon(db: DB): Promise<MediaListe[]> {
     id: ligne.id,
     nomOrigine: ligne.nom_origine,
   }));
+}
+
+/**
+ * Une image en brouillon relue pour l'`Écran : Fiche d'une image` (ticket
+ * 07, SC-07a/SC-07b) : l'identité, le nom d'ORIGINE (jamais modifié par le
+ * renommage, SC-07a), le nom d'AFFICHAGE et la description tels que
+ * l'éditrice les a saisis. `nomAffichage` retombe sur `nomOrigine` tant que
+ * l'éditrice n'a jamais renommé l'image (colonne NULLABLE, `migrations/
+ * 0006_medias_brouillon_affichage.sql`) ; `description` retombe sur la
+ * chaîne vide tant qu'elle n'a jamais été saisie — jamais `null` rendu à
+ * l'appelant, qui n'a pas à distinguer les deux cas. Le format déduit est
+ * rendu pour composer, côté appelant, le `Content-Type`/`alt` de l'aperçu
+ * sans une seconde lecture.
+ */
+export interface MediaFiche {
+  readonly id: string;
+  readonly nomOrigine: string;
+  readonly nomAffichage: string;
+  readonly description: string;
+  readonly format: FormatImageAdmis;
+}
+
+interface LigneFicheMediaBrute {
+  readonly nom_origine: string;
+  readonly nom_affichage: string | null;
+  readonly description: string | null;
+  readonly format: string;
+}
+
+/**
+ * Relit la fiche d'une image en brouillon par son identifiant, ou `null` si
+ * aucune ne correspond (même contrat que `obtenirMediaBrouillon` : à charge
+ * de l'appelant d'en faire un 404 après le garde de session).
+ */
+export async function obtenirFicheMediaBrouillon(db: DB, id: string): Promise<MediaFiche | null> {
+  await assurerTableMedias(db);
+  const resultat = await db
+    .prepare(`select nom_origine, nom_affichage, description, format from ${TABLE_MEDIAS} where id = ?1`)
+    .bind(id)
+    .all();
+  const ligne = (resultat.results as LigneFicheMediaBrute[]).at(0);
+  if (!ligne) return null;
+  return {
+    id,
+    nomOrigine: ligne.nom_origine,
+    nomAffichage: ligne.nom_affichage ?? ligne.nom_origine,
+    description: ligne.description ?? '',
+    format: ligne.format as FormatImageAdmis,
+  };
+}
+
+/**
+ * Une image en brouillon existe-t-elle encore (par son identifiant) ? Geste
+ * partagé par `renommerMediaBrouillon`/`decrireMediaBrouillon` pour rendre
+ * un refus `'introuvable'` plutôt que d'exécuter une écriture sans effet sur
+ * un identifiant inconnu (même garde que `obtenirMediaBrouillon`/
+ * `obtenirFicheMediaBrouillon`, sans en payer la lecture complète).
+ */
+async function existeMediaBrouillon(db: DB, id: string): Promise<boolean> {
+  await assurerTableMedias(db);
+  const resultat = await db.prepare(`select id from ${TABLE_MEDIAS} where id = ?1`).bind(id).all();
+  return resultat.results.length > 0;
+}
+
+/**
+ * Renomme une image en brouillon (SC-07a) : écrit SEULEMENT `nom_affichage`
+ * — `nom_origine` n'est jamais touché ici (SC-04d/SC-07a, nom d'origine
+ * conservé à part). Fonction totale : rend `{ renomme: false, motif:
+ * 'introuvable' }` plutôt que d'exécuter une écriture sur un identifiant
+ * inconnu (à charge de l'appelant d'en faire un 404 après le garde de
+ * session), `{ renomme: true }` sinon.
+ */
+export async function renommerMediaBrouillon(
+  db: DB,
+  id: string,
+  nomAffichage: string,
+): Promise<{ renomme: true } | { renomme: false; motif: 'introuvable' }> {
+  const existe = await existeMediaBrouillon(db, id);
+  if (!existe) {
+    return { renomme: false, motif: 'introuvable' };
+  }
+  await db.prepare(`update ${TABLE_MEDIAS} set nom_affichage = ?1 where id = ?2`).bind(nomAffichage, id).run();
+  return { renomme: true };
+}
+
+/**
+ * Décrit une image en brouillon (SC-07b) : écrit `description`, rangée
+ * telle quelle — jamais rendue en HTML ici, ce magasin ne fait aucun rendu
+ * (le service en page publiée, FR-039, est hors périmètre du ticket 07).
+ * Même contrat total que `renommerMediaBrouillon` ci-dessus (refus
+ * `'introuvable'` plutôt qu'une écriture sans effet).
+ */
+export async function decrireMediaBrouillon(
+  db: DB,
+  id: string,
+  description: string,
+): Promise<{ decrite: true } | { decrite: false; motif: 'introuvable' }> {
+  const existe = await existeMediaBrouillon(db, id);
+  if (!existe) {
+    return { decrite: false, motif: 'introuvable' };
+  }
+  await db.prepare(`update ${TABLE_MEDIAS} set description = ?1 where id = ?2`).bind(description, id).run();
+  return { decrite: true };
 }
