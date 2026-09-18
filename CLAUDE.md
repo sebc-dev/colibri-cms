@@ -79,7 +79,7 @@
 ## État de la CI (informative, ne bloque pas)
 - Le ruleset « Main protect » n'exige **aucun** status check ; il ne garde que le structurel : PR
   obligatoire vers `main`, anti-force-push, anti-suppression de `main`.
-- `.github/workflows/ci.yml` exécute `build` et `test` (non requis) ; `scd-escape-hatch-guard.yml`
+- `.github/workflows/ci.yml` exécute `build`, `test` et `analyse` (non requis) ; `scd-escape-hatch-guard.yml`
   `git grep` les escape-hatches (`@ts-ignore`, `as any`, `eslint-disable`, `.skip(`…) et **annote**.
   Un rouge se voit, il ne bloque pas la fusion. Un escape-hatch légitime se **déroge en review**.
 - Plus de portail à douze bloquants, plus de hooks de session, plus de scopes de commit imposés ni
