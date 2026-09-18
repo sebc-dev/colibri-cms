@@ -1,0 +1,49 @@
+---
+/**
+ * L'`Écran : Fiche d'une image` (ticket 07,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/07-fiche-renommer-decrire.md,
+ * SC-07a/SC-07b/SC-07c).
+ *
+ * Route sous `src/pages/admin/`, gardée par `verifierSession` (ADR-0007),
+ * même patron que `medias.astro` (ticket 05).
+ *
+ * La fiche (SC-07a/b) est lue côté serveur (`obtenirFicheMediaBrouillon`,
+ * `src/platform/medias/magasin.ts`, ticket 07) et posée en attribut
+ * `data-media` (JSON) sur le point de montage — même patron que
+ * `data-medias` de `medias.astro`. L'aperçu, le champ nom et le champ
+ * description vivent dans l'îlot `EcranFicheMedia` (`src/admin/
+ * ilots-svelte-5/EcranFicheMedia.svelte`), monté ici par le `<script>` de
+ * module ci-dessous — aucune directive `client:*` (ADR-0006), aucun script
+ * en ligne (`script-src 'self'`, ADR-0008).
+ *
+ * Un identifiant qui ne correspond à aucune image en brouillon renvoie vers
+ * l'`Écran : Médias` — aucune fiche n'existe à cette adresse, jamais une
+ * panne silencieuse (même principe de garde que `[slug].astro`, qui
+ * redirige plutôt que d'échouer).
+ */
+import Gabarit from '../../../admin/Gabarit.astro';
+import { verifierSession } from '../../../platform/session/index.ts';
+import { obtenirFicheMediaBrouillon } from '../../../platform/medias/magasin.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const { id } = Astro.params;
+const media = id ? await obtenirFicheMediaBrouillon(env.DB, id) : null;
+
+if (!media) {
+  return Astro.redirect('/admin/medias');
+}
+---
+
+<Gabarit titre={`${media.nomAffichage} — Médias — Administration`}>
+  <div id="ilot-fiche-media" data-media={JSON.stringify(media)}></div>
+  <script>
+    import { monterEcranFicheMedia } from '../../../admin/ilots-svelte-5/monter.ts';
+
+    monterEcranFicheMedia('ilot-fiche-media');
+  </script>
+</Gabarit>
