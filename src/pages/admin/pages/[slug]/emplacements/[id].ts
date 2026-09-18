@@ -13,7 +13,11 @@
  * déclarée de `id` décide quelle fonction `platform/` traiter la correction
  * — `bouton-action` (ticket 04), `lien-video` (ticket 05) ou `texte-riche`
  * (ticket 06, openspec/changes/003-remplir-emplacements/tickets/
- * 06-corriger-texte-riche.md). Les tickets 05 et 06 ne sont pas
+ * 06-corriger-texte-riche.md), ou `image` (ticket 08,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 08-poser-remplacer-image.md — poser ET remplacer une image sont le même
+ * geste : la seconde pose sur un emplacement déjà corrigé remplace
+ * simplement la ligne existante). Les tickets 05 et 06 ne sont pas
  * co-parallélisables (même route, même embranchement).
  *
  * Anti-forgerie (ADR-0011, SC-04g) : le seul rempart est le cookie de session
@@ -36,6 +40,7 @@ import {
   enregistrerCorrectionBoutonAction,
   enregistrerCorrectionLienVideo,
   enregistrerCorrectionTexteRiche,
+  enregistrerCorrectionImage,
 } from '../../../../../platform/brouillons/magasin.ts';
 import { pagePorteUnBrouillon, type ResultatCorrection } from '../../../../../core/pages/brouillon.ts';
 
@@ -66,7 +71,8 @@ export const POST: APIRoute = async ({ params, request }) => {
   // jamais sur celle prétendue par le corps de la requête. Un `id` non
   // déclaré est refusé par la fonction `core/` de la branche choisie
   // elle-même (`emplacement-non-declare`/`nature-non-corrigible`, SC-04c) —
-  // le même refus vaut donc pour les trois branches, on retient
+  // le même refus vaut donc pour les quatre branches (lien-video,
+  // texte-riche, image, bouton-action) ; on retient
   // `enregistrerCorrectionBoutonAction` par défaut.
   const emplacementDeclare = page.emplacements.find((emplacement) => emplacement.id === id);
 
@@ -75,6 +81,8 @@ export const POST: APIRoute = async ({ params, request }) => {
     resultat = await enregistrerCorrectionLienVideo(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
   } else if (emplacementDeclare?.nature === 'texte-riche') {
     resultat = await enregistrerCorrectionTexteRiche(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
+  } else if (emplacementDeclare?.nature === 'image') {
+    resultat = await enregistrerCorrectionImage(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
   } else {
     resultat = await enregistrerCorrectionBoutonAction(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
   }

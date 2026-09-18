@@ -221,11 +221,17 @@ function analyserMediaIds(valeurBrute: string): readonly string[] | null {
 /**
  * Monte l'îlot `EmplacementImage` (ticket 06,
  * openspec/changes/004-bibliotheque-de-medias/tickets/
- * 06-editeur-presente-natures-image.md) sur chaque emplacement d'image
- * rendu par l'`Écran : Éditeur de page` — repérés par l'attribut
- * `data-emplacement-image`, un par emplacement de cette nature. Présentation
- * SEULE (SC-06c) : aucun moyen de choisir ou de remplacer l'image, qui vient
- * avec sa pose (ticket 08). Même patron (donnée déjà posée côté serveur,
+ * 06-editeur-presente-natures-image.md ; ticket 08,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 08-poser-remplacer-image.md) sur chaque emplacement d'image rendu par
+ * l'`Écran : Éditeur de page` — repérés par l'attribut
+ * `data-emplacement-image`, un par emplacement de cette nature. Depuis le
+ * ticket 08, ce n'est plus une présentation seule : le sélecteur ouvre sur
+ * la réserve déjà posée côté serveur en `data-medias` (JSON, même patron
+ * que `data-media-ids` des emplacements de galerie et de carrousel) — `[]`
+ * si l'attribut est absent ou mal formé, plutôt que de ne pas monter du
+ * tout (l'emplacement reste alors présenté, seul le sélecteur ressort
+ * vide). Même patron par ailleurs (donnée déjà posée côté serveur,
  * présentation statique vidée avant montage, garde d'absence) que
  * `monterCorrectionsTexteRiche` ci-dessus.
  */
@@ -233,11 +239,15 @@ export function monterEmplacementsImage(): void {
   const cibles = document.querySelectorAll<HTMLElement>('[data-emplacement-image]');
 
   cibles.forEach((cible) => {
-    const { mediaId } = cible.dataset;
-    if (mediaId === undefined) return;
+    const { slug, idEmplacement, mediaId, medias } = cible.dataset;
+    if (slug === undefined || idEmplacement === undefined || mediaId === undefined) return;
+    const mediasInitiaux = medias === undefined ? [] : (analyserMediasInitiaux(medias) ?? []);
 
     cible.innerHTML = '';
-    mount(EmplacementImage, { target: cible, props: { mediaId } });
+    mount(EmplacementImage, {
+      target: cible,
+      props: { slug, idEmplacement, mediaIdInitial: mediaId, mediasInitiaux },
+    });
   });
 }
 
