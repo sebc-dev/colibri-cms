@@ -1,0 +1,42 @@
+---
+/**
+ * L'`Écran : Médias` (ticket 05,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/05-ecran-medias.md).
+ *
+ * Route sous `src/pages/admin/`, gardée par `verifierSession` comme toute
+ * route d'administration (ADR-0007), même patron que `ilots.astro` /
+ * `mes-pages.astro`.
+ *
+ * La liste des images (SC-05a) est lue côté serveur
+ * (`listerMediasBrouillon`, `src/platform/medias/magasin.ts`, ticket 05) et
+ * posée en attribut `data-medias` (JSON) sur le point de montage — même
+ * patron que `data-pages`/`data-media-ids` ailleurs dans l'administration.
+ * La grille elle-même, ses vignettes, la recherche et le téléversement
+ * vivent dans l'îlot `EcranMedias` (`src/admin/ilots-svelte-5/
+ * EcranMedias.svelte`), monté ici par le `<script>` de module ci-dessous —
+ * aucune directive `client:*` (ADR-0006), aucun script en ligne
+ * (`script-src 'self'`, ADR-0008) : c'est pourquoi ce ticket est vérifié en
+ * mode `observé` (la grille ne se constate qu'à l'œil, une fois le script
+ * exécuté par un navigateur).
+ */
+import Gabarit from '../../admin/Gabarit.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+import { listerMediasBrouillon } from '../../platform/medias/magasin.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const medias = await listerMediasBrouillon(env.DB);
+---
+
+<Gabarit titre="Médias — Administration">
+  <div id="ilot-medias" data-medias={JSON.stringify(medias)}></div>
+  <script>
+    import { monterEcranMedias } from '../../admin/ilots-svelte-5/monter.ts';
+
+    monterEcranMedias('ilot-medias');
+  </script>
+</Gabarit>

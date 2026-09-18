@@ -142,3 +142,44 @@ export async function obtenirMediaBrouillon(db: DB, id: string): Promise<MediaBr
   if (!ligne) return null;
   return { format: ligne.format as FormatImageAdmis, octets: versOctets(ligne.octets) };
 }
+
+/**
+ * Une image en brouillon relue pour la grille de l'`Écran : Médias`
+ * (ticket 05, openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 05-ecran-medias.md, SC-05a) : seule l'identité et le nom d'origine, JAMAIS
+ * les octets (poids d'une ligne entière, servis à part par la route dédiée
+ * `src/pages/admin/medias/[id]/octets.ts`). Le nom d'AFFICHAGE et la
+ * description n'existent pas encore dans ce magasin (ils arrivent au
+ * ticket 07, par une migration ultérieure) : ce ticket ne recherche donc,
+ * pour l'instant, que sur le nom d'origine — la recherche s'étendra à la
+ * description sans changement de forme le jour où elle existe.
+ */
+export interface MediaListe {
+  readonly id: string;
+  readonly nomOrigine: string;
+}
+
+interface LigneMediaListeBrute {
+  readonly id: string;
+  readonly nom_origine: string;
+}
+
+/**
+ * Liste toutes les images de la réserve brouillon, la plus récente en tête
+ * (SC-05a). Une réserve vide rend un tableau vide (SC-05b), sans branche
+ * dédiée : la table nouvellement créée par `assurerTableMedias` n'a
+ * simplement aucune ligne. La recherche elle-même (SC-05f/g) est un filtre
+ * en mémoire côté `admin/` sur ce résultat, jamais un second lieu de
+ * requête — ce magasin n'a donc qu'une seule fonction de lecture de liste.
+ */
+export async function listerMediasBrouillon(db: DB): Promise<MediaListe[]> {
+  await assurerTableMedias(db);
+  const resultat = await db
+    .prepare(`select id, nom_origine from ${TABLE_MEDIAS} order by creee_le desc`)
+    .bind()
+    .all();
+  return (resultat.results as LigneMediaListeBrute[]).map((ligne) => ({
+    id: ligne.id,
+    nomOrigine: ligne.nom_origine,
+  }));
+}
