@@ -224,7 +224,7 @@ it(
     // Assert : refusée, et rien n'a été écrit.
     expect(reponse.status).toBe(401);
     const ligne = await lireLigne(db, id);
-    expect(ligne.nom_affichage).toBe(null);
+    expect(ligne.nom_affichage).toBeNull();
     expect(ligne.nom_origine).toBe('photo.png');
   },
 );
@@ -244,7 +244,7 @@ it(
     // Assert : refusée, et rien n'a été écrit.
     expect(reponse.status).toBe(401);
     const ligne = await lireLigne(db, id);
-    expect(ligne.description).toBe(null);
+    expect(ligne.description).toBeNull();
   },
 );
 
@@ -269,8 +269,8 @@ it(
     expect(await reponseDecrire.json()).toEqual({ ok: false, raison: 'forme-invalide' });
 
     const ligne = await lireLigne(db, id);
-    expect(ligne.nom_affichage).toBe(null);
-    expect(ligne.description).toBe(null);
+    expect(ligne.nom_affichage).toBeNull();
+    expect(ligne.description).toBeNull();
   },
 );
 

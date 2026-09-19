@@ -1,7 +1,10 @@
 # Portail de contrôles — ColibriCMS
 #
 # Réduit le 2026-09-06 aux deux seuls jobs `build` et `test`, lors de la bascule
-# d'outillage vers scd-spec-dev (OpenSpec). Ont été retirés :
+# d'outillage vers scd-spec-dev (OpenSpec) ; `analyse` (lint à types) ajouté le
+# 2026-09-18 en annotation, après que deux tickets de suite ont été bloqués par
+# la quality gate sur une dette introduite par le ticket précédent — la CI
+# rend le rouge visible sur la PR qui l'introduit. Ont été retirés :
 #   · les gardes    : arch-invariants · boundaries · workflow-integrity ·
 #                     test-integrity · quality-config-guard · verifier-guard ·
 #                     specs-integrity
@@ -10,7 +13,7 @@
 #
 # Le ruleset « Main protect » n'exige plus AUCUN status check (il ne garde que
 # PR obligatoire, anti-force-push et anti-suppression de `main`) : `build` et
-# `test` tournent encore et annotent la PR, mais ne la bloquent plus.
+# `test` (et `analyse`) tournent encore et annotent la PR, mais ne la bloquent plus.
 #
 # Les actions restent épinglées au SHA complet et les images au DIGEST.
 
@@ -105,3 +108,32 @@ jobs:
         run: npm ci
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm test
+
+  # ── analyse · lint à types (typescript-eslint strictTypeChecked + sonarjs) ──
+  # Bloquant dans la quality gate du cycle (docs/ci.md) ; ici en annotation
+  # seulement, pour que la dette se voie sur la PR qui l'introduit et non sur
+  # le ticket suivant.
+  analyse:
+    name: analyse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Hors portée::Aucun package.json — scaffold absent, ce contrôle ne vérifie rien (docs/ci.md)."
+          fi
+      - if: steps.scaffold.outputs.ok == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: npm run analyse

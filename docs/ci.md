@@ -6,8 +6,8 @@ passe plus par un portail de gardes bloquants : elle passe par la **review** du 
 
 > **Bascule du 2026-09-06.** L'ancien portail à douze contrôles bloquants (gardes d'intégrité, scans
 > d'approvisionnement, invariants d'architecture) a été **retiré**. Le workflow `ci.yml` ne porte
-> plus que `build` et `test`, et le ruleset de branche n'exige **aucun** status check. Toute
-> description d'un portail à douze gardes est caduque.
+> plus que `build` et `test` — rejoints le 2026-09-18 par `analyse`, en annotation —, et le ruleset
+> de branche n'exige **aucun** status check. Toute description d'un portail à douze gardes est caduque.
 
 ## Commandes du projet
 
@@ -23,7 +23,7 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Couverture | `npm run coverage` | `coverage/lcov.info` — informatif |
 | Lint / format | `npm run lint` | `eslint .` — source de vérité du style |
 | Frontières de zones | `npm run lint:boundaries` | `eslint --config eslint.config.boundaries.js .` — le porteur falsifiable de l'invariant `I1`, joué en **bloquant** par la quality gate du cycle `run` (`.claude/quality.json`) ; aucun workflow de CI ne le joue |
-| Analyse type-aware | `npm run analyse` | `eslint --config eslint.config.analyse.js .` — typescript-eslint `strictTypeChecked` + `stylisticTypeChecked` + `eslint-plugin-sonarjs`, sur les `.ts` seuls. Ce que le graphe de types rend visible et qu'aucune passe syntaxique ne voit. **Bloquant** dans la quality gate depuis le 2026-09-12 ; aucun workflow ne le joue |
+| Analyse type-aware | `npm run analyse` | `eslint --config eslint.config.analyse.js .` — typescript-eslint `strictTypeChecked` + `stylisticTypeChecked` + `eslint-plugin-sonarjs`, sur les `.ts` seuls. Ce que le graphe de types rend visible et qu'aucune passe syntaxique ne voit. **Bloquant** dans la quality gate depuis le 2026-09-12 ; job `analyse` de `ci.yml` en annotation depuis le 2026-09-18 |
 | Duplication | `npm run dup` | `jscpd src` — seuil 5 % (`.jscpd.json`), 4,00 % au relevé du 2026-09-11 |
 | Duplication neuve | `npm run dup:nouveau` | `jscpd src --baseline-from-ref origin/main --fail-on-new-clones` — n'échoue que sur un clone **absent de `origin/main`**. C'est la forme jouée par la quality gate |
 | Boucle complète | `npm run check` | `lint` → `lint:boundaries` → `analyse` → `dup` → `knip`, en console, à l'arrêt sur le premier rouge |
@@ -59,8 +59,10 @@ montage, à 119 remontées dont **29 dans `src/`** ; il sort **vert** sur tout l
 dette a été traitée par petits lots (`docs/chantiers/archive/2026-09-11-corrections-analyse.md`).
 C'est cet état vert, et lui seul, qui autorise la promotion : un check qu'on pose rouge et qu'on
 déclare bloquant ne fait que paralyser le cycle. `severity` vaut donc `blocking` dans
-`.claude/quality.json` — la seule surface en jeu, le ruleset GitHub n'exigeant aucun check et
-`analyse` n'étant pas un job de `ci.yml`.
+`.claude/quality.json` — la seule surface bloquante en jeu, le ruleset GitHub n'exigeant aucun check.
+Depuis le 2026-09-18, `ci.yml` le joue aussi, en **annotation** : deux tickets de suite (#95, puis 09)
+ont été bloqués par la gate sur une dette `analyse` introduite par le ticket précédent dans un fichier
+de test — invisible à la PR fautive, puisque rien ne la jouait. Le job la montre là où elle naît.
 
 **Calibrage assumé, en deux blocs.** Sur `tests/**`, **six** règles sont éteintes (la famille
 `no-unsafe-*` — cinq règles —, `require-await`). Les tests d'intégration parlent au worker par HTTP —
