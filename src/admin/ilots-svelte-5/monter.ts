@@ -25,6 +25,7 @@ import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
 import type { MediaListe, MediaFiche } from '../../platform/medias/magasin.ts';
+import type { EmplacementOuPoseeMedia } from './emplacements-media.ts';
 
 /**
  * Monte l'îlot `Compteur` sur le premier élément portant l'identifiant donné.
@@ -383,6 +384,36 @@ function analyserMediaFiche(valeurBrute: string): MediaFiche | null {
 }
 
 /**
+ * `emplacements` telle que sérialisée en JSON par le serveur (`[id].astro`,
+ * ticket 11, openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 11-ou-posee-et-supprimer.md, SC-11a) dans l'attribut `data-emplacements`
+ * du point de montage — `null` si la valeur ne correspond pas à un tableau
+ * d'`EmplacementOuPoseeMedia`, même geste de garde qu'`analyserMediasInitiaux`
+ * ci-dessus.
+ */
+function analyserEmplacementsPosant(valeurBrute: string): readonly EmplacementOuPoseeMedia[] | null {
+  let valeur: unknown;
+  try {
+    valeur = JSON.parse(valeurBrute);
+  } catch {
+    return null;
+  }
+  if (
+    !Array.isArray(valeur) ||
+    !valeur.every(
+      (element): element is EmplacementOuPoseeMedia =>
+        typeof element === 'object' &&
+        element !== null &&
+        typeof (element as EmplacementOuPoseeMedia).pageTitre === 'string' &&
+        typeof (element as EmplacementOuPoseeMedia).place === 'string',
+    )
+  ) {
+    return null;
+  }
+  return valeur;
+}
+
+/**
  * Monte l'`Écran : Fiche d'une image` (ticket 07,
  * openspec/changes/004-bibliotheque-de-medias/tickets/
  * 07-fiche-renommer-decrire.md) — `EcranFicheMedia` (le cadre + la fiche)
@@ -390,6 +421,12 @@ function analyserMediaFiche(valeurBrute: string): MediaFiche | null {
  * lue côté serveur (`obtenirFicheMediaBrouillon`,
  * `src/platform/medias/magasin.ts`) posée en attribut `data-media`. Même
  * garde d'absence que `monterEcranMedias` ci-dessus.
+ *
+ * Ticket 11 (SC-11a/b) : `data-emplacements` porte la liste des emplacements
+ * qui posent l'image, déjà composée côté serveur — un attribut absent ou
+ * mal formé retombe sur un tableau vide (même geste que `mediasInitiaux` de
+ * `monterEmplacementsImage` ci-dessus) plutôt que de ne pas monter du tout :
+ * une fiche sans cette liste reste consultable.
  */
 export function monterEcranFicheMedia(idCible: string): void {
   const cible = document.getElementById(idCible);
@@ -400,6 +437,9 @@ export function monterEcranFicheMedia(idCible: string): void {
   const media = analyserMediaFiche(donnees);
   if (media === null) return;
 
+  const donneesEmplacements = cible.dataset.emplacements;
+  const emplacements = donneesEmplacements === undefined ? [] : (analyserEmplacementsPosant(donneesEmplacements) ?? []);
+
   cible.innerHTML = '';
-  mount(EcranFicheMedia, { target: cible, props: { media } });
+  mount(EcranFicheMedia, { target: cible, props: { media, emplacements } });
 }
