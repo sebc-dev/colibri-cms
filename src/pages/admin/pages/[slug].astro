@@ -38,9 +38,18 @@
  * d'origine : chacun montre son contenu courant (l'identité de l'image
  * posée, ou le compte des images d'une galerie/d'un carrousel), sans le
  * moindre moyen de la choisir ou de la composer (`EmplacementImage`,
- * `EmplacementGalerie`, `EmplacementCarrousel`, présentation seule) — le
- * sélecteur d'image et la composition d'une galerie viennent avec leur pose,
- * aux tickets 08 et 09.
+ * `EmplacementComposition`, alors deux îlots par nature, présentation
+ * seule) — le sélecteur d'image et la composition d'une galerie viennent
+ * avec leur pose, aux tickets 08 et 09.
+ *
+ * Ticket 08 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 08-poser-remplacer-image.md) transforme `EmplacementImage` en un vrai
+ * sélecteur, posant/remplaçant l'image par la route générique ci-dessus.
+ * Ticket 09 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 09-composer-galerie-carrousel.md) fait de même pour `EmplacementComposition`
+ * (galerie et carrousel) : ajouter, réordonner ou retirer une image de
+ * l'ensemble POSTE `{ mediaIds: [...] }` (remplacement en bloc, jamais un
+ * geste de structure, FR-024/025, SC-09a/b) vers la MÊME route générique.
  *
  * La structure d'une page (emplacements : identifiant stable, nature, rang)
  * est lue, jamais écrite (ADR-0012) : le lecteur pur vit dans
@@ -92,7 +101,10 @@ const porteUnBrouillon = pagePorteUnBrouillon(brouillon);
 // 08-poser-remplacer-image.md) : la réserve déjà connue, pour que le
 // sélecteur d'un emplacement d'image (`EmplacementImage.svelte`) l'ouvre
 // sans requête au montage — même geste que `mediasInitiaux` de
-// `BibliothequeMedias.svelte` (ticket 05).
+// `BibliothequeMedias.svelte` (ticket 05). Ticket 09
+// (openspec/changes/004-bibliotheque-de-medias/tickets/
+// 09-composer-galerie-carrousel.md) réutilise la MÊME réserve pour les
+// sélecteurs d'ajout des emplacements de galerie et de carrousel.
 const mediasDisponibles = await listerMediasBrouillon(env.DB);
 const page = {
   titre: pageDeclaree.titre,
@@ -178,6 +190,7 @@ const page = {
                   data-slug={slug}
                   data-id-emplacement={emplacement.id}
                   data-media-ids={JSON.stringify(emplacement.mediaIds)}
+                  data-medias={JSON.stringify(mediasDisponibles)}
                 >
                   <p>{libelleCompteImages(emplacement.mediaIds.length, 'galerie')}</p>
                 </div>
@@ -191,6 +204,7 @@ const page = {
                   data-slug={slug}
                   data-id-emplacement={emplacement.id}
                   data-media-ids={JSON.stringify(emplacement.mediaIds)}
+                  data-medias={JSON.stringify(mediasDisponibles)}
                 >
                   <p>{libelleCompteImages(emplacement.mediaIds.length, 'carrousel')}</p>
                 </div>

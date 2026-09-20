@@ -14,6 +14,12 @@
       "nature": "image",
       "rang": 2,
       "mediaId": "media-fixture-equipe"
+    },
+    {
+      "id": "carrousel-clients",
+      "nature": "carrousel",
+      "rang": 3,
+      "mediaIds": []
     }
   ]
 }
