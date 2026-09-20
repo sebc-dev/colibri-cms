@@ -1,10 +1,7 @@
 # Run bloqué — composer une galerie, un carrousel (ticket 09)
 
 Portée : 004-bibliotheque-de-medias · ticket 09
-Ouvert le 2026-09-18 · branche `impl/composer-galerie-carrousel-09` · HEAD `faa72b7`
-Worktree : `/home/negus/projets/colibri-cms/.git/scd-worktrees/composer-galerie-carrousel-09` —
-**seul exemplaire du travail**, rien n'est commité ni poussé (7 fichiers modifiés, 2 supprimés,
-2 nouveaux dont le test).
+Ouvert le 2026-09-18 · Clos le 2026-09-20 · branche `impl/composer-galerie-carrousel-09`
 
 ## Objectif
 Faire passer la quality gate du ticket 09 puis reprendre le run là où il s'est arrêté (review, PR) —
@@ -37,10 +34,12 @@ le comportement, lui, était vérifié.
   `content/pages/contact` (`carrousel-clients`) — hors de la ligne `**Fichiers :**` du ticket, à
   relire en review comme pose d'intégrateur.
 
-## Prochaine étape
-Corriger la dette sur `main` par un change direct (`toBe(null)` → `toBeNull()` aux 4 lignes),
-la merger, puis relancer `/scd-spec-dev:run-parallel 004-bibliotheque-de-medias 09 10 11` — le run
-rejoint ce worktree (`exists:true`) après rebase sur `main` à jour.
+## Issue
+La dette `analyse` a été corrigée sur `main` par #98 (`449e94c`), qui a aussi mis `analyse` en
+annotation dans la CI. La chaîne relancée a rejoint ce worktree, rebasé sur `main`, et a abouti pour
+09 — critères validés, corrections de review appliquées — mais la session s'est éteinte pendant la
+publication de la PR : branche poussée, PR ouverte à la main ensuite, avec deux fichiers de review
+oubliés du commit (`VignetteMedia.svelte`, `soumettre-correction.ts`) rattrapés avant.
 
 ## Écarté
 - Corriger le test de 07 depuis la PR de 09 — hors périmètre, et fichier de test interdit aux
