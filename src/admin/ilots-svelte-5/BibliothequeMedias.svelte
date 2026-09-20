@@ -25,7 +25,16 @@
   `texteDuRefusTeleversement` (`src/admin/textes.ts`), jamais un terme de
   développeur. Un ajout accepté rejoint la grille sans recharger l'écran : le
   nom d'origine vient du `File` posé par l'éditrice (identique à celui que la
-  route persiste), l'identité de la réponse `{ ok: true, id }`.
+  route persiste), l'identité de la réponse `{ ok: true, id }` — `effacable`
+  vaut `true` (ticket 10) : une image tout juste téléversée n'est encore
+  posée dans aucun emplacement.
+
+  Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
+  10-signaler-images-orphelines.md, SC-10a/b) : chaque vignette porte la
+  marque `TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT` (`../textes.ts`) quand
+  `media.effacable` (posé côté serveur par `listerMediasBrouillon`,
+  `src/platform/medias/magasin.ts`) — jamais un terme de développeur
+  (« orpheline », « référence »).
 
   La recherche (SC-05f) filtre en mémoire sur le nom d'origine, seul champ
   que ce magasin porte à ce ticket (le nom d'affichage et la description
@@ -43,6 +52,7 @@
     TEXTE_BIBLIOTHEQUE_VIDE,
     TEXTE_BOUTON_TELEVERSER,
     TEXTE_LIBELLE_RECHERCHE_MEDIAS,
+    TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT,
     TEXTE_PLACEHOLDER_RECHERCHE_MEDIAS,
     TEXTE_RECHERCHE_MEDIAS_SANS_RESULTAT,
     texteDuRefusTeleversement,
@@ -95,7 +105,7 @@
         messageErreur = texteDuRefusTeleversement(resultat.raison);
         return;
       }
-      medias = [{ id: resultat.id, nomOrigine: fichier.name }, ...medias];
+      medias = [{ id: resultat.id, nomOrigine: fichier.name, effacable: true }, ...medias];
     } catch {
       messageErreur = MESSAGE_RESEAU;
     } finally {
@@ -141,7 +151,7 @@
   {:else}
     <ul class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
       {#each mediasFiltres as media (media.id)}
-        <li class="overflow-hidden rounded-lg border border-border bg-card">
+        <li class="relative overflow-hidden rounded-lg border border-border bg-card">
           <a href={`/admin/medias/${media.id}`}>
             <img
               src={`/admin/medias/${media.id}/octets`}
@@ -149,6 +159,15 @@
               loading="lazy"
               class="aspect-square w-full object-cover"
             />
+            {#if media.effacable}
+              <span
+                class="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive/10 text-destructive"
+                title={TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT}
+              >
+                <span aria-hidden="true">⚠</span>
+                <span class="sr-only">{TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT}</span>
+              </span>
+            {/if}
           </a>
         </li>
       {/each}
