@@ -155,12 +155,16 @@ publication ».
 
 ### Requirement: Signalement des images orphelines
 
-La bibliothèque SHALL **signaler** dans la grille les images qu'aucun emplacement ne référence plus et qui
+La bibliothèque SHALL **signaler**, dans la grille et sur la fiche de l'image, les images qu'aucun emplacement ne référence plus et qui
 seront **effacées à la prochaine publication** (FR-038), sans terme de développeur (FR-117).
 
 #### Scenario: Une image orpheline est signalée dans la grille
 - **WHEN** l'`Écran : Médias` présente une image que plus aucun emplacement ne référence
 - **THEN** elle est signalée comme vouée à l'effacement à la prochaine publication, sans terme de développeur (FR-117)
+
+#### Scenario: Une image orpheline est signalée sur sa fiche
+- **WHEN** l'éditrice consulte la fiche d'une image que plus aucun emplacement ne référence
+- **THEN** la fiche la signale comme vouée à l'effacement à la prochaine publication, sans terme de développeur (FR-117)
 
 #### Scenario: Une image encore posée n'est pas signalée
 - **WHEN** l'`Écran : Médias` présente une image posée dans au moins un emplacement
