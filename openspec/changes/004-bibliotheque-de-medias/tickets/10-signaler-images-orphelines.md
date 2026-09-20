@@ -10,5 +10,5 @@ Motif du mode `observé` : le signalement est une marque visuelle dans la grille
 Dans la grille et sur la fiche, une image que plus aucun emplacement ne référence est signalée comme vouée à l'effacement à la prochaine publication — la marque qui prévient l'éditrice avant qu'une image inutilisée ne disparaisse. Une image encore posée dans au moins un emplacement ne porte pas cette marque. Aucun terme de développeur ne paraît dans le signalement.
 
 ## Critères
-- [ ] Une image que plus aucun emplacement ne référence est signalée, dans la grille comme sur sa fiche, comme vouée à l'effacement à la prochaine publication, sans terme de développeur.   (SC-10a)
-- [ ] Une image posée dans au moins un emplacement n'est pas signalée comme orpheline.   (SC-10b)
+- [x] Une image que plus aucun emplacement ne référence est signalée, dans la grille comme sur sa fiche, comme vouée à l'effacement à la prochaine publication, sans terme de développeur.   (SC-10a)
+- [x] Une image posée dans au moins un emplacement n'est pas signalée comme orpheline.   (SC-10b)

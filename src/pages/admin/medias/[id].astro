@@ -20,10 +20,17 @@
  * l'`Écran : Médias` — aucune fiche n'existe à cette adresse, jamais une
  * panne silencieuse (même principe de garde que `[slug].astro`, qui
  * redirige plutôt que d'échouer).
+ *
+ * Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 10-signaler-images-orphelines.md, SC-10a/b) : même composition que
+ * `medias.astro` — cette route lit `listerReferencesMediasBrouillon`
+ * (`src/platform/brouillons/magasin.ts`) et la fournit à
+ * `obtenirFicheMediaBrouillon`, qui n'importe que `core/`.
  */
 import Gabarit from '../../../admin/Gabarit.astro';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirFicheMediaBrouillon } from '../../../platform/medias/magasin.ts';
+import { listerReferencesMediasBrouillon } from '../../../platform/brouillons/magasin.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -32,7 +39,8 @@ if (!session) {
 }
 
 const { id } = Astro.params;
-const media = id ? await obtenirFicheMediaBrouillon(env.DB, id) : null;
+const referencesBrouillon = await listerReferencesMediasBrouillon(env.DB);
+const media = id ? await obtenirFicheMediaBrouillon(env.DB, id, referencesBrouillon) : null;
 
 if (!media) {
   return Astro.redirect('/admin/medias');
