@@ -78,6 +78,13 @@ décisions structurantes qu'il pointe sont des ADR acceptés ou des candidats, j
   (`script-src 'self'`, I12 ; ADR-0004, ADR-0008 ; tolérance `style="…"` d'ADR-0010). Les vignettes se
   chargent via `<img src="/admin/…">` sur l'origine commune (`img-src 'self'` de la politique
   d'administration) ; aucun script ni asset tiers, tout embarqué dans le bundle de l'îlot (SEC-1).
+- **La « place » d'un emplacement, sur la fiche d'une image et dans la liste préalable à une suppression,
+  se dit par sa nature en français** (« image », « galerie », « carrousel »), suivie du rang parmi les
+  emplacements de même nature de la page quand il y en a plusieurs — le précédent de l'éditeur de page, qui
+  n'affiche jamais l'identifiant d'un emplacement. La route joint les lignes de brouillon à la déclaration
+  de la page (`construirePageAvecEmplacements`) pour obtenir nature et rang ; aucun champ nouveau dans
+  `page.json` (arbitrage humain du 2026-09-20 sur SC-11a ; un libellé posé par l'intégrateur reste possible
+  plus tard, en change à part, sans rien défaire).
 - **La recherche (FR-029) filtre sur nom d'affichage et description**, sur le petit jeu d'images d'un site
   vitrine — un filtre simple côté `platform/` (D1) ou en mémoire, sans index dédié.
 
