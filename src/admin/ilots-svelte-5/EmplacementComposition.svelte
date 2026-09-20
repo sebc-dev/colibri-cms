@@ -40,15 +40,15 @@
   moyen suffisant et observable pour satisfaire SC-09b sans dépendre d'une
   interaction souris.
 
-  Aucune directive `client:*` (ADR-0006) : monté par le point d'entrée
-  externe `monter.ts`, même patron que les autres présentations
-  d'emplacement.
+  Monté sans directive `client:*` (ADR-0006) par `monter.ts`, qui lui passe
+  la nature déclarée en plus de l'ensemble initial et de la réserve.
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
   import type { MediaListe } from '../../platform/medias/magasin.ts';
   import { afficherPastilleDeBrouillon } from '../pastille-brouillon.ts';
-  import { messageErreurCorrection, MESSAGE_ECHEC, MESSAGE_RESEAU } from './message-erreur-correction.ts';
+  import { soumettreCorrection } from './soumettre-correction.ts';
+  import VignetteMedia from './VignetteMedia.svelte';
   import { libelleCompteImages } from './libelle-compte-images.ts';
 
   interface Props {
@@ -69,7 +69,6 @@
   // SC-09b — aucun terme de développeur : le motif du refus dit ce qui
   // manque, jamais « ID », « payload » ou « requête ».
   const TEXTES_REFUS: Readonly<Record<string, string>> = {
-    'emplacement-non-declare': "Cet emplacement n'existe plus dans la page : rechargez l'écran.",
     'nature-non-corrigible':
       nature === 'galerie'
         ? 'Cet emplacement ne se corrige pas comme une galerie.'
@@ -83,48 +82,28 @@
     return mediasInitiaux.find((media) => media.id === idMedia)?.nomOrigine ?? idMedia;
   }
 
-  interface ReponseCorrection {
-    readonly ok: boolean;
-    readonly raison?: string;
-  }
-
   /**
    * Remplace en bloc l'ensemble ordonné, jamais un diff incrémental
    * (FR-024/025, SC-09b) — le patron commun aux trois gestes (ajouter,
    * réordonner, retirer) ci-dessous.
    */
-  async function enregistrer(nouveauxMediaIds: readonly string[]): Promise<void> {
+  async function enregistrer(nouveauxMediaIds: readonly string[]): Promise<boolean> {
     enCours = true;
     messageErreur = null;
-    try {
-      const reponse = await fetch(`/admin/pages/${slug}/emplacements/${idEmplacement}`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ mediaIds: nouveauxMediaIds }),
-      });
-      // Seuls 200 (accepté) et 400 (refus métier) portent un corps JSON —
-      // même distinction que `EmplacementImage.svelte`.
-      if (reponse.status !== 200 && reponse.status !== 400) {
-        messageErreur = messageErreurCorrection(reponse.status);
-        return;
-      }
-      const resultat = (await reponse.json()) as ReponseCorrection;
-      if (!resultat.ok) {
-        messageErreur = TEXTES_REFUS[resultat.raison ?? ''] ?? MESSAGE_ECHEC;
-        return;
-      }
-      mediaIds = [...nouveauxMediaIds];
-      afficherPastilleDeBrouillon();
-    } catch {
-      messageErreur = MESSAGE_RESEAU;
-    } finally {
-      enCours = false;
+    const issue = await soumettreCorrection(slug, idEmplacement, { mediaIds: nouveauxMediaIds }, TEXTES_REFUS);
+    enCours = false;
+    if (!issue.ok) {
+      messageErreur = issue.message;
+      return false;
     }
+    mediaIds = [...nouveauxMediaIds];
+    afficherPastilleDeBrouillon();
+    return true;
   }
 
   async function ajouter(idMedia: string): Promise<void> {
-    await enregistrer([...mediaIds, idMedia]);
-    ouvert = false;
+    const accepte = await enregistrer([...mediaIds, idMedia]);
+    if (accepte) ouvert = false;
   }
 
   async function retirer(index: number): Promise<void> {
@@ -157,12 +136,7 @@
     <ul class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
       {#each mediaIds as idMedia, index (idMedia + String(index))}
         <li class="flex flex-col gap-2">
-          <img
-            src={`/admin/medias/${idMedia}/octets`}
-            alt={nomOrigineDe(idMedia)}
-            loading="lazy"
-            class="aspect-square w-full object-cover"
-          />
+          <VignetteMedia id={idMedia} alt={nomOrigineDe(idMedia)} />
           <div class="flex gap-1">
             <Button
               type="button"
@@ -210,12 +184,7 @@
                 disabled={enCours}
                 aria-label={`Ajouter l'image ${media.nomOrigine}`}
               >
-                <img
-                  src={`/admin/medias/${media.id}/octets`}
-                  alt={media.nomOrigine}
-                  loading="lazy"
-                  class="aspect-square w-full object-cover"
-                />
+                <VignetteMedia id={media.id} alt={media.nomOrigine} />
               </button>
             </li>
           {/each}
