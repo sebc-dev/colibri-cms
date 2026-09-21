@@ -25,6 +25,14 @@ import {
   TEXTE_BOUTON_ENREGISTRER,
   TEXTE_REFUS_NOM_VIDE,
   TEXTE_ECHEC_ENREGISTREMENT_FICHE,
+  TEXTE_TITRE_POSEE_DANS,
+  TEXTE_POSEE_NULLE_PART,
+  TEXTE_BOUTON_SUPPRIMER_MEDIA,
+  texteConfirmationSuppression,
+  TEXTE_INTRO_EMPLACEMENTS_CONFIRMATION,
+  TEXTE_BOUTON_ANNULER_SUPPRESSION,
+  TEXTE_BOUTON_CONFIRMER_SUPPRESSION,
+  TEXTE_ECHEC_SUPPRESSION,
 } from '../../src/admin/textes.ts';
 
 describe("la fiche d'une image (ticket 07)", () => {
@@ -68,6 +76,32 @@ describe("la fiche d'une image (ticket 07)", () => {
     ];
 
     for (const texte of textesDeLaFiche) {
+      for (const terme of TERMES_DEVELOPPEUR) {
+        expect(texte, `« ${terme} » est un terme de développeur (FR-117) dans « ${texte} »`).not.toMatch(
+          new RegExp(`\\b${terme}\\b`, 'i'),
+        );
+      }
+    }
+  });
+
+  // Ticket 11 (openspec/changes/004-bibliotheque-de-medias/tickets/
+  // 11-ou-posee-et-supprimer.md, SC-11f) : les textes de la liste préalable
+  // des emplacements et de la confirmation de suppression, mêmes CONSTANTES
+  // que `FicheMedia.svelte` affiche (SC-11a/b/c) — jamais un terme de
+  // développeur, même geste que SC-07c ci-dessus.
+  it('SC-11f — aucun texte de la liste des emplacements ni de la confirmation de suppression ne porte de terme de développeur', () => {
+    const textesDeLaSuppression = [
+      TEXTE_TITRE_POSEE_DANS,
+      TEXTE_POSEE_NULLE_PART,
+      TEXTE_BOUTON_SUPPRIMER_MEDIA,
+      texteConfirmationSuppression('Bandeau de la page Accueil'),
+      TEXTE_INTRO_EMPLACEMENTS_CONFIRMATION,
+      TEXTE_BOUTON_ANNULER_SUPPRESSION,
+      TEXTE_BOUTON_CONFIRMER_SUPPRESSION,
+      TEXTE_ECHEC_SUPPRESSION,
+    ];
+
+    for (const texte of textesDeLaSuppression) {
       for (const terme of TERMES_DEVELOPPEUR) {
         expect(texte, `« ${terme} » est un terme de développeur (FR-117) dans « ${texte} »`).not.toMatch(
           new RegExp(`\\b${terme}\\b`, 'i'),

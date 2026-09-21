@@ -10,9 +10,9 @@ Motif du mode `test` : la suppression retire l'image de tous ses emplacements en
 Sur la fiche d'une image, l'éditrice voit où l'image est posée : la liste des emplacements qui la référencent, désignés par leur page et leur place ; si aucun ne la pose, la fiche le dit. Pour supprimer une image, la liste des emplacements concernés lui est d'abord présentée ; à la confirmation, l'image est retirée de tous ses emplacements à la fois, chaque retrait enregistré dans le brouillon de la page concernée — sans jamais toucher l'état publié, et sans qu'une page publiée puisse un jour montrer une image absente. Chaque page touchée bascule à « brouillon », et l'image, n'étant plus posée nulle part, devient orpheline. Supprimer une image que rien ne pose ne touche aucun brouillon.
 
 ## Critères
-- [ ] La fiche d'une image posée présente la liste des emplacements qui la posent, désignés par leur page et leur place, sans terme de développeur.   (SC-11a)
-- [ ] La fiche d'une image posée dans aucun emplacement indique qu'elle n'est posée nulle part.   (SC-11b)
-- [ ] Demander la suppression d'une image présente d'abord la liste des emplacements concernés, avant toute application.   (SC-11c)
-- [ ] Par la couture HTTP, confirmer la suppression d'une image posée dans plusieurs emplacements de pages différentes la retire de chacun, chaque retrait enregistré dans le brouillon de la page concernée ; l'état publié reste intact et chaque page touchée bascule à « brouillon ».   (SC-11d)
-- [ ] Supprimer une image posée dans aucun emplacement ne touche aucun brouillon, et l'image devient orpheline.   (SC-11e)
-- [ ] Aucun terme de développeur ne paraît dans la liste préalable ni dans la confirmation de suppression.   (SC-11f)
+- [x] La fiche d'une image posée présente la liste des emplacements qui la posent, désignés par leur page et leur place, sans terme de développeur.   (SC-11a)
+- [x] La fiche d'une image posée dans aucun emplacement indique qu'elle n'est posée nulle part.   (SC-11b)
+- [x] Demander la suppression d'une image présente d'abord la liste des emplacements concernés, avant toute application.   (SC-11c)
+- [x] Par la couture HTTP, confirmer la suppression d'une image posée dans plusieurs emplacements de pages différentes la retire de chacun, chaque retrait enregistré dans le brouillon de la page concernée ; l'état publié reste intact et chaque page touchée bascule à « brouillon ».   (SC-11d)
+- [x] Supprimer une image posée dans aucun emplacement ne touche aucun brouillon, et l'image devient orpheline.   (SC-11e)
+- [x] Aucun terme de développeur ne paraît dans la liste préalable ni dans la confirmation de suppression.   (SC-11f)

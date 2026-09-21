@@ -35,6 +35,13 @@
  * fourni à `src/platform/medias/magasin.ts` (qui n'importe, lui, que `core/`
  * — jamais ce magasin-ci) par l'appelant commun, la route `.astro`.
  *
+ * Ticket 11 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 11-ou-posee-et-supprimer.md) y ajoute `listerEmplacementsReferencantMedia`
+ * — même lecture que `listerReferencesMediasBrouillon`, mais gardant la clé
+ * (page, emplacement) pour que l'appelant en tire la page ET la place — et
+ * `retirerMediaDesEmplacements`, la SEULE écriture qui retire une image de
+ * tous ses emplacements à la fois (suppression d'une image, SC-11d/e).
+ *
 
  * Table `brouillons_emplacements` (`migrations/0004_brouillons_emplacements.sql`,
  * SC-04d) : une ligne par emplacement corrigé, clé `(page_slug,
@@ -186,6 +193,120 @@ export async function listerReferencesMediasBrouillon(db: DB): Promise<ReadonlyS
     }
   }
   return references;
+}
+
+interface LigneBrouillonCleContenuBrute {
+  readonly page_slug: string;
+  readonly id_emplacement: string;
+  readonly contenu: string;
+}
+
+/** Un emplacement en brouillon, désigné par sa page et son identifiant (ticket 11, SC-11a/c) — jamais son contenu entier. */
+export interface ReferenceEmplacementMedia {
+  readonly pageSlug: string;
+  readonly idEmplacement: string;
+}
+
+/**
+ * Les emplacements en brouillon qui posent l'image `mediaId` — la page et
+ * l'identifiant d'emplacement, jamais leur contenu entier (ticket 11,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 11-ou-posee-et-supprimer.md, SC-11a/c). Même lecture et même geste
+ * défensif (ligne corrompue ignorée) que `listerReferencesMediasBrouillon`
+ * ci-dessus, mais gardant la clé (page, emplacement) au lieu de n'agréger que
+ * les identités de médias : c'est l'appelant — la route
+ * (`src/pages/admin/medias/[id].astro`, `src/pages/admin/medias/[id]/
+ * supprimer.ts`), composée avec `obtenirPageAvecEmplacements`
+ * (`src/platform/contenu/pages.ts`) — qui en tire la page et la place
+ * (`placeEmplacement`, `src/admin/ilots-svelte-5/emplacements-media.ts`,
+ * design.md § Decisions). Un identifiant de média posé dans aucun
+ * emplacement rend un tableau vide (SC-11b).
+ */
+export async function listerEmplacementsReferencantMedia(
+  db: DB,
+  mediaId: string,
+): Promise<readonly ReferenceEmplacementMedia[]> {
+  await assurerTableBrouillons(db);
+  const resultat = await db
+    .prepare(`select page_slug, id_emplacement, contenu from ${TABLE_BROUILLONS}`)
+    .bind()
+    .all();
+
+  const references: ReferenceEmplacementMedia[] = [];
+  for (const ligne of resultat.results as LigneBrouillonCleContenuBrute[]) {
+    let contenu: ContenuCorrige;
+    try {
+      contenu = JSON.parse(ligne.contenu) as ContenuCorrige;
+    } catch {
+      continue; // Ligne corrompue : ignorée, sans faire échouer la lecture des autres.
+    }
+    const reference =
+      (contenu.nature === 'image' && contenu.mediaId === mediaId) ||
+      ((contenu.nature === 'galerie' || contenu.nature === 'carrousel') && contenu.mediaIds.includes(mediaId));
+    if (reference) {
+      references.push({ pageSlug: ligne.page_slug, idEmplacement: ligne.id_emplacement });
+    }
+  }
+  return references;
+}
+
+/**
+ * Retire une image de TOUS les emplacements qui la posent, toutes pages
+ * confondues (ticket 11, SC-11d/e) : chaque ligne de `brouillons_emplacements`
+ * dont le contenu référence `mediaId` est réécrite — un remplacement en bloc
+ * de `mediaIds` pour une galerie ou un carrousel (même règle que
+ * `enregistrerCorrectionGalerie`/`enregistrerCorrectionCarrousel` ci-dessous :
+ * jamais un diff incrémental), un `mediaId` VIDÉ pour un emplacement d'image
+ * simple (design.md § Decisions) — jamais la suppression de la ligne
+ * elle-même, qui ferait retomber l'emplacement sur la valeur DÉCLARÉE par
+ * l'intégrateur (potentiellement la même image, désormais effacée) : la
+ * ligne reste, corrigée à vide, jusqu'à ce que l'éditrice y pose une autre
+ * image — sans qu'une page publiée puisse un jour montrer une image absente.
+ * Une image posée dans aucun emplacement ne touche aucune ligne (SC-11e).
+ * Rend les slugs des pages effectivement touchées (chacune bascule ainsi à
+ * « brouillon », `pagePorteUnBrouillon`, puisqu'elle porte désormais au moins
+ * une ligne).
+ */
+export async function retirerMediaDesEmplacements(
+  db: DB,
+  mediaId: string,
+  maintenant: number,
+): Promise<readonly string[]> {
+  await assurerTableBrouillons(db);
+  const resultat = await db
+    .prepare(`select page_slug, id_emplacement, contenu from ${TABLE_BROUILLONS}`)
+    .bind()
+    .all();
+
+  const slugsTouches = new Set<string>();
+  for (const ligne of resultat.results as LigneBrouillonCleContenuBrute[]) {
+    let contenu: ContenuCorrige;
+    try {
+      contenu = JSON.parse(ligne.contenu) as ContenuCorrige;
+    } catch {
+      continue; // Ligne corrompue : ignorée, sans faire échouer le retrait des autres.
+    }
+
+    let nouveauContenu: ContenuCorrige | undefined;
+    if (contenu.nature === 'image' && contenu.mediaId === mediaId) {
+      nouveauContenu = { nature: 'image', mediaId: '' };
+    } else if (
+      (contenu.nature === 'galerie' || contenu.nature === 'carrousel') &&
+      contenu.mediaIds.includes(mediaId)
+    ) {
+      nouveauContenu = { nature: contenu.nature, mediaIds: contenu.mediaIds.filter((autre) => autre !== mediaId) };
+    }
+    if (!nouveauContenu) continue;
+
+    await db
+      .prepare(
+        `update ${TABLE_BROUILLONS} set nature = ?1, contenu = ?2, maj_le = ?3 where page_slug = ?4 and id_emplacement = ?5`,
+      )
+      .bind(nouveauContenu.nature, JSON.stringify(nouveauContenu), maintenant, ligne.page_slug, ligne.id_emplacement)
+      .run();
+    slugsTouches.add(ligne.page_slug);
+  }
+  return Array.from(slugsTouches);
 }
 
 /**
