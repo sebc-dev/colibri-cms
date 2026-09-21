@@ -326,9 +326,11 @@ export async function obtenirFicheMediaBrouillon(
  * partagé par `renommerMediaBrouillon`/`decrireMediaBrouillon` pour rendre
  * un refus `'introuvable'` plutôt que d'exécuter une écriture sans effet sur
  * un identifiant inconnu (même garde que `obtenirMediaBrouillon`/
- * `obtenirFicheMediaBrouillon`, sans en payer la lecture complète).
+ * `obtenirFicheMediaBrouillon`, sans en payer la lecture complète). La route
+ * de suppression (`src/pages/admin/medias/[id]/supprimer.ts`) s'en sert
+ * pour rendre 404 sur un identifiant inconnu sans toucher aux emplacements.
  */
-async function existeMediaBrouillon(db: DB, id: string): Promise<boolean> {
+export async function existeMediaBrouillon(db: DB, id: string): Promise<boolean> {
   await assurerTableMedias(db);
   const resultat = await db.prepare(`select id from ${TABLE_MEDIAS} where id = ?1`).bind(id).all();
   return resultat.results.length > 0;

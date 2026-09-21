@@ -114,3 +114,32 @@ export const TEXTE_ECHEC_ENREGISTREMENT_FICHE = "L'enregistrement a échoué. R�
  */
 export const TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT =
   "Cette image n'est posée dans aucun emplacement : elle sera effacée à la prochaine publication.";
+
+/**
+ * Les libellés de la liste des emplacements et de la suppression, sur
+ * l'`Écran : Fiche d'une image` (ticket 11, openspec/changes/
+ * 004-bibliotheque-de-medias/tickets/11-ou-posee-et-supprimer.md,
+ * SC-11a/b/c/f). Aucun terme de développeur : la place d'un emplacement se
+ * dit par sa nature en français, jamais son identifiant
+ * (`placeEmplacement`, `src/admin/ilots-svelte-5/emplacements-media.ts`).
+ */
+export const TEXTE_TITRE_POSEE_DANS = 'Posée dans';
+
+/** L'état d'une image posée dans aucun emplacement (SC-11b), sur la fiche comme dans la confirmation de suppression. */
+export const TEXTE_POSEE_NULLE_PART = "Cette image n'est posée dans aucun emplacement.";
+
+export const TEXTE_BOUTON_SUPPRIMER_MEDIA = 'Supprimer…';
+
+/** Le titre de la confirmation de suppression (SC-11c), avec le nom d'affichage courant de l'image. */
+export function texteConfirmationSuppression(nomAffichage: string): string {
+  return `Supprimer « ${nomAffichage} » ?`;
+}
+
+/** L'introduction de la liste, dans la confirmation de suppression, quand l'image est posée quelque part (SC-11c). */
+export const TEXTE_INTRO_EMPLACEMENTS_CONFIRMATION = 'Elle est posée dans :';
+
+export const TEXTE_BOUTON_ANNULER_SUPPRESSION = 'Annuler';
+export const TEXTE_BOUTON_CONFIRMER_SUPPRESSION = 'Supprimer';
+
+/** Un échec inattendu en supprimant l'image (SC-11d/e). */
+export const TEXTE_ECHEC_SUPPRESSION = "La suppression a échoué. Réessayez dans un instant.";

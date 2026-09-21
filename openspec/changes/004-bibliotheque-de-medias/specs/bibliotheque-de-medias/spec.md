@@ -132,6 +132,7 @@ représentation et ne contribue donc à aucune référence.
 #### Scenario: Indiquer les emplacements posant une image
 - **WHEN** l'éditrice consulte la fiche d'une image posée dans un ou plusieurs emplacements
 - **THEN** la liste des emplacements qui la posent est présentée, désignés par leur page et leur place, sans terme de développeur (FR-117)
+- **AND** la page est désignée par son titre, et la place par la **nature de l'emplacement en français** (« image », « galerie », « carrousel ») — jamais par son identifiant —, suivie de son rang parmi les emplacements de même nature de la page (« 1re galerie », « 2e galerie ») dès qu'il y en a plusieurs
 
 #### Scenario: Une image posée nulle part
 - **WHEN** l'éditrice consulte la fiche d'une image qu'aucun emplacement ne pose

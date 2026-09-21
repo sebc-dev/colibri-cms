@@ -26,11 +26,31 @@
  * `medias.astro` — cette route lit `listerReferencesMediasBrouillon`
  * (`src/platform/brouillons/magasin.ts`) et la fournit à
  * `obtenirFicheMediaBrouillon`, qui n'importe que `core/`.
+ *
+ * Ticket 11 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 11-ou-posee-et-supprimer.md, SC-11a/b) : la fiche montre désormais OÙ
+ * l'image est posée — la liste des emplacements qui la référencent, désignés
+ * par leur page et leur place, jamais un identifiant technique (design.md §
+ * Decisions). Cette route est l'appelante commune qui lit les DEUX
+ * magasins, cloisonnés l'un de l'autre (I1) : `listerEmplacementsReferencantMedia`
+ * (`src/platform/brouillons/magasin.ts`) dit QUELS couples (page,
+ * emplacement) la posent ; `obtenirPageAvecEmplacements`
+ * (`src/platform/contenu/pages.ts`, déjà utilisée par l'éditeur de page) en
+ * tire le titre de la page et sert de base à `placeEmplacement`
+ * (`src/admin/ilots-svelte-5/emplacements-media.ts`, pure) pour la place
+ * (nature + rang parmi les emplacements de même nature de la page). Un
+ * couple dont la page n'existe plus (déclaration modifiée depuis
+ * l'écriture du brouillon) est ignoré plutôt que de faire échouer la fiche.
  */
 import Gabarit from '../../../admin/Gabarit.astro';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirFicheMediaBrouillon } from '../../../platform/medias/magasin.ts';
-import { listerReferencesMediasBrouillon } from '../../../platform/brouillons/magasin.ts';
+import {
+  listerReferencesMediasBrouillon,
+  listerEmplacementsReferencantMedia,
+} from '../../../platform/brouillons/magasin.ts';
+import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
+import { placeEmplacement, type EmplacementOuPoseeMedia } from '../../../admin/ilots-svelte-5/emplacements-media.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -39,16 +59,33 @@ if (!session) {
 }
 
 const { id } = Astro.params;
+if (!id) {
+  return Astro.redirect('/admin/medias');
+}
+
 const referencesBrouillon = await listerReferencesMediasBrouillon(env.DB);
-const media = id ? await obtenirFicheMediaBrouillon(env.DB, id, referencesBrouillon) : null;
+const media = await obtenirFicheMediaBrouillon(env.DB, id, referencesBrouillon);
 
 if (!media) {
   return Astro.redirect('/admin/medias');
 }
+
+const references = await listerEmplacementsReferencantMedia(env.DB, id);
+const emplacementsPosant: EmplacementOuPoseeMedia[] = [];
+for (const reference of references) {
+  const page = obtenirPageAvecEmplacements(reference.pageSlug);
+  if (!page) continue;
+  const place = placeEmplacement(page.emplacements, reference.idEmplacement);
+  if (place) emplacementsPosant.push({ pageTitre: page.titre, place });
+}
 ---
 
 <Gabarit titre={`${media.nomAffichage} — Médias — Administration`}>
-  <div id="ilot-fiche-media" data-media={JSON.stringify(media)}></div>
+  <div
+    id="ilot-fiche-media"
+    data-media={JSON.stringify(media)}
+    data-emplacements={JSON.stringify(emplacementsPosant)}
+  ></div>
   <script>
     import { monterEcranFicheMedia } from '../../../admin/ilots-svelte-5/monter.ts';
 
