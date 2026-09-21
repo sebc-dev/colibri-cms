@@ -21,6 +21,12 @@
       "nature": "image",
       "rang": 3,
       "mediaId": "media-fixture-hero"
+    },
+    {
+      "id": "galerie-realisations",
+      "nature": "galerie",
+      "rang": 4,
+      "mediaIds": []
     }
   ]
 }

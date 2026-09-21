@@ -20,6 +20,14 @@
  * patron — poser une image et la remplacer sont le même geste (`core/`,
  * `appliquerCorrectionImage`).
  *
+ * Ticket 09 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 09-composer-galerie-carrousel.md) y ajoute `enregistrerCorrectionGalerie`
+ * et `enregistrerCorrectionCarrousel`, même patron — ajouter, réordonner ou
+ * retirer une image de l'ensemble est un remplacement en bloc de `mediaIds`
+ * (`core/`, `appliquerCorrectionGalerie`/`appliquerCorrectionCarrousel`),
+ * jamais un diff incrémental : c'est ce remplacement qui rend le geste
+ * « contenu, pas structure » (SC-09a/b, FR-024/025).
+ *
  * Table `brouillons_emplacements` (`migrations/0004_brouillons_emplacements.sql`,
  * SC-04d) : une ligne par emplacement corrigé, clé `(page_slug,
  * id_emplacement)` — l'identité stable posée par la déclaration (ADR-0012).
@@ -38,6 +46,8 @@ import {
   appliquerCorrectionLienVideo,
   appliquerCorrectionTexteRiche,
   appliquerCorrectionImage,
+  appliquerCorrectionGalerie,
+  appliquerCorrectionCarrousel,
   type Brouillon,
   type ContenuCorrige,
   type ResultatCorrection,
@@ -272,6 +282,63 @@ export function enregistrerCorrectionImage(
 ): Promise<ResultatCorrection> {
   return enregistrerCorrection(
     appliquerCorrectionImage,
+    db,
+    slugPage,
+    emplacementsDeclares,
+    idEmplacement,
+    correctionBrute,
+    maintenant,
+  );
+}
+
+/**
+ * Applique et persiste la composition (ajout, réordonnancement ou retrait
+ * d'une image) d'un emplacement de galerie (ticket 09,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 09-composer-galerie-carrousel.md, SC-09a/b) — même patron que
+ * `enregistrerCorrectionImage` ci-dessus : `appliquerCorrectionGalerie`
+ * (`core/pages/brouillon.ts`, livrée au ticket 03) décide seule de
+ * l'acceptation et REMPLACE en bloc `mediaIds`, jamais un ajout/retrait
+ * incrémental côté magasin — c'est ce remplacement qui rend le geste
+ * « contenu, pas structure » (FR-024/025). Aucune vérification que chaque
+ * `mediaId` existe réellement dans la réserve (hors périmètre, comme pour
+ * l'image simple du ticket 08).
+ */
+export function enregistrerCorrectionGalerie(
+  db: DB,
+  slugPage: string,
+  emplacementsDeclares: readonly Emplacement[],
+  idEmplacement: string,
+  correctionBrute: unknown,
+  maintenant: number,
+): Promise<ResultatCorrection> {
+  return enregistrerCorrection(
+    appliquerCorrectionGalerie,
+    db,
+    slugPage,
+    emplacementsDeclares,
+    idEmplacement,
+    correctionBrute,
+    maintenant,
+  );
+}
+
+/**
+ * Applique et persiste la composition d'un emplacement de carrousel (ticket
+ * 09, SC-09a/b) — même patron et même règle que
+ * `enregistrerCorrectionGalerie` ci-dessus : un remplacement en bloc de
+ * `mediaIds` (`appliquerCorrectionCarrousel`, `core/pages/brouillon.ts`).
+ */
+export function enregistrerCorrectionCarrousel(
+  db: DB,
+  slugPage: string,
+  emplacementsDeclares: readonly Emplacement[],
+  idEmplacement: string,
+  correctionBrute: unknown,
+  maintenant: number,
+): Promise<ResultatCorrection> {
+  return enregistrerCorrection(
+    appliquerCorrectionCarrousel,
     db,
     slugPage,
     emplacementsDeclares,

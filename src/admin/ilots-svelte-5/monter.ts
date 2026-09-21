@@ -13,7 +13,7 @@
  * le constructeur `new Component(...)` de Svelte 4 : c'est l'appel qui monte
  * réellement un composant sur un nœud du DOM déjà présent dans la réponse.
  */
-import { mount, createRawSnippet, type Component } from 'svelte';
+import { mount, createRawSnippet } from 'svelte';
 import Compteur from './Compteur.svelte';
 import ActionRapide from './ActionRapide.svelte';
 import Cadre from './Cadre.svelte';
@@ -21,8 +21,7 @@ import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 import ReglageLienVideo from './ReglageLienVideo.svelte';
 import TexteRiche from './TexteRiche.svelte';
 import EmplacementImage from './EmplacementImage.svelte';
-import EmplacementGalerie from './EmplacementGalerie.svelte';
-import EmplacementCarrousel from './EmplacementCarrousel.svelte';
+import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
 import type { MediaListe, MediaFiche } from '../../platform/medias/magasin.ts';
@@ -252,48 +251,54 @@ export function monterEmplacementsImage(): void {
 }
 
 /**
- * Geste commun aux natures d'emplacement qui portent un ensemble d'identités
- * d'images (`data-media-ids`, sérialisé en JSON) : galerie et carrousel.
- * Monte `Ilot` sur chaque élément répondant à `selecteur`, avec le même
- * patron (donnée posée côté serveur, garde d'absence ou de forme inattendue,
- * présentation statique vidée avant montage) que `monterEmplacementsImage`.
+ * Geste commun aux natures d'emplacement qui composent un ensemble ordonné
+ * d'identités d'images (`data-media-ids`, sérialisé en JSON) : galerie et
+ * carrousel (ticket 09, openspec/changes/004-bibliotheque-de-medias/
+ * tickets/09-composer-galerie-carrousel.md). Monte l'îlot `EmplacementComposition`
+ * avec la nature sur chaque élément répondant à `selecteur`, avec le même
+ * patron (données posées côté serveur, garde d'absence ou de forme
+ * inattendue, présentation statique vidée avant montage) que
+ * `monterEmplacementsImage` — `data-medias` porte la même réserve que celle
+ * du sélecteur d'image (`[]` si absente ou mal formée, plutôt que de ne pas
+ * monter du tout).
  */
-function monterEmplacementsAvecMediaIds(
-  selecteur: string,
-  Ilot: Component<{ mediaIds: readonly string[] }>,
-): void {
+function monterEmplacementsAvecComposition(selecteur: string, nature: 'galerie' | 'carrousel'): void {
   const cibles = document.querySelectorAll<HTMLElement>(selecteur);
 
   cibles.forEach((cible) => {
-    const { mediaIds } = cible.dataset;
-    if (mediaIds === undefined) return;
-    const liste = analyserMediaIds(mediaIds);
-    if (liste === null) return;
+    const { slug, idEmplacement, mediaIds, medias } = cible.dataset;
+    if (slug === undefined || idEmplacement === undefined || mediaIds === undefined) return;
+    const mediaIdsInitial = analyserMediaIds(mediaIds);
+    if (mediaIdsInitial === null) return;
+    const mediasInitiaux = medias === undefined ? [] : (analyserMediasInitiaux(medias) ?? []);
 
     cible.innerHTML = '';
-    mount(Ilot, { target: cible, props: { mediaIds: liste } });
+    mount(EmplacementComposition, {
+      target: cible,
+      props: { slug, idEmplacement, mediaIdsInitial, mediasInitiaux, nature },
+    });
   });
 }
 
 /**
- * Monte l'îlot `EmplacementGalerie` (ticket 06) sur chaque emplacement de
+ * Monte l'îlot `EmplacementComposition` (nature galerie / carrousel) (ticket
+ * 06, présentation ; ticket 09, composition) sur chaque emplacement de
  * galerie — repérés par `data-emplacement-galerie`, un par emplacement de
  * cette nature ; `data-media-ids` porte les identités posées, sérialisées en
- * JSON. Présentation SEULE (SC-06c) : aucun moyen de composer la galerie,
- * qui vient avec sa pose (ticket 09). Même patron que
- * `monterEmplacementsImage` ci-dessus.
+ * JSON. Même patron que `monterEmplacementsImage` ci-dessus.
  */
 export function monterEmplacementsGalerie(): void {
-  monterEmplacementsAvecMediaIds('[data-emplacement-galerie]', EmplacementGalerie);
+  monterEmplacementsAvecComposition('[data-emplacement-galerie]', 'galerie');
 }
 
 /**
- * Monte l'îlot `EmplacementCarrousel` (ticket 06) sur chaque emplacement de
- * carrousel — même patron que `monterEmplacementsGalerie` ci-dessus,
- * repérés par `data-emplacement-carrousel`.
+ * Monte l'îlot `EmplacementComposition` (nature galerie / carrousel) (ticket
+ * 06, présentation ; ticket 09, composition) — même patron que
+ * `monterEmplacementsGalerie` ci-dessus, repérés par
+ * `data-emplacement-carrousel`.
  */
 export function monterEmplacementsCarrousel(): void {
-  monterEmplacementsAvecMediaIds('[data-emplacement-carrousel]', EmplacementCarrousel);
+  monterEmplacementsAvecComposition('[data-emplacement-carrousel]', 'carrousel');
 }
 
 /**

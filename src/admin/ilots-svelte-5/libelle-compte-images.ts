@@ -3,8 +3,9 @@
  *
  * Utilitaire pur (même rôle que `message-erreur-correction.ts`) qui accorde
  * correctement le texte selon le nombre d'images — le défaut recopié à
- * quatre endroits (`EmplacementGalerie.svelte`, `EmplacementCarrousel.svelte`
- * et les deux blocs de `src/pages/admin/pages/[slug].astro`) rendait
+ * quatre endroits (`EmplacementComposition.svelte` (alors deux fichiers,
+ * galerie et carrousel) et les deux blocs de
+ * `src/pages/admin/pages/[slug].astro`) rendait
  * « 1 image composent cette galerie. » pour une seule image. Un seul lieu
  * d'accord, aucun terme de développeur (FR-117).
  */
