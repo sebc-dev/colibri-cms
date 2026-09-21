@@ -28,6 +28,14 @@
  * jamais un diff incrémental : c'est ce remplacement qui rend le geste
  * « contenu, pas structure » (SC-09a/b, FR-024/025).
  *
+ * Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 10-signaler-images-orphelines.md) y ajoute `listerReferencesMediasBrouillon`
+ * — une lecture, jamais une écriture : l'ensemble des identités de médias que
+ * les emplacements en brouillon référencent encore, toutes pages confondues,
+ * fourni à `src/platform/medias/magasin.ts` (qui n'importe, lui, que `core/`
+ * — jamais ce magasin-ci) par l'appelant commun, la route `.astro`.
+ *
+
  * Table `brouillons_emplacements` (`migrations/0004_brouillons_emplacements.sql`,
  * SC-04d) : une ligne par emplacement corrigé, clé `(page_slug,
  * id_emplacement)` — l'identité stable posée par la déclaration (ADR-0012).
@@ -134,6 +142,50 @@ export async function listerSlugsAvecBrouillon(db: DB): Promise<ReadonlySet<stri
     .bind()
     .all();
   return new Set((resultat.results as LigneSlugBrute[]).map((ligne) => ligne.page_slug));
+}
+
+interface LigneContenuBrute {
+  readonly contenu: string;
+}
+
+/**
+ * L'ensemble des identifiants de médias référencés par au moins un
+ * emplacement en brouillon, toutes pages confondues (ticket 10,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 10-signaler-images-orphelines.md) — l'ensemble « brouillon » que reçoit
+ * `imageEffacable` (`core/medias/references.ts`, ticket 02) pour dériver le
+ * signalement d'une image orpheline (FR-038, SC-10a/b). Une ligne dont le
+ * `contenu` n'est pas un JSON valide est ignorée, même geste défensif que
+ * `obtenirBrouillon` ci-dessus. Seules les natures `image` (un `mediaId`),
+ * `galerie` et `carrousel` (des `mediaIds`) contribuent à l'ensemble ;
+ * `bouton-action`, `lien-video` et `texte-riche` ne référencent aucune
+ * image.
+ */
+export async function listerReferencesMediasBrouillon(db: DB): Promise<ReadonlySet<string>> {
+  await assurerTableBrouillons(db);
+  const resultat = await db.prepare(`select contenu from ${TABLE_BROUILLONS}`).bind().all();
+
+  const references = new Set<string>();
+  for (const ligne of resultat.results as LigneContenuBrute[]) {
+    let contenu: ContenuCorrige;
+    try {
+      contenu = JSON.parse(ligne.contenu) as ContenuCorrige;
+    } catch {
+      continue; // Ligne corrompue : ignorée, sans faire échouer la lecture des autres.
+    }
+    switch (contenu.nature) {
+      case 'image':
+        references.add(contenu.mediaId);
+        break;
+      case 'galerie':
+      case 'carrousel':
+        for (const mediaId of contenu.mediaIds) references.add(mediaId);
+        break;
+      default:
+        break;
+    }
+  }
+  return references;
 }
 
 /**

@@ -24,6 +24,13 @@
   « brouillon », ni « ID », ni rien qui évoque l'implémentation — les seuls
   textes viennent de `../textes.ts`.
 
+  Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
+  10-signaler-images-orphelines.md, SC-10a/b, UX5) : un bandeau signale
+  l'image quand `media.effacable` (posé côté serveur par
+  `obtenirFicheMediaBrouillon`, `src/platform/medias/magasin.ts`), sans
+  terme de développeur — même texte, `TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT`,
+  que la marque de la grille (`BibliothequeMedias.svelte`).
+
   Aucune directive `client:*` (ADR-0006) : monté par le point d'entrée
   externe `monter.ts`, même patron que les autres îlots.
 -->
@@ -37,6 +44,7 @@
     TEXTE_BOUTON_ENREGISTRER,
     TEXTE_REFUS_NOM_VIDE,
     TEXTE_ECHEC_ENREGISTREMENT_FICHE,
+    TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT,
   } from '../textes.ts';
   import { messageErreurCorrection, MESSAGE_RESEAU } from './message-erreur-correction.ts';
 
@@ -123,6 +131,12 @@
   <p>
     <a href="/admin/medias" class="text-sm text-muted-foreground hover:underline">‹ {TEXTE_LIEN_RETOUR_MEDIAS}</a>
   </p>
+
+  {#if media.effacable}
+    <p role="status" class="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+      {TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT}
+    </p>
+  {/if}
 
   <div class="flex flex-col gap-6 sm:flex-row">
     <img

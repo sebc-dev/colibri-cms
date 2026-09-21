@@ -18,10 +18,20 @@
  * (`script-src 'self'`, ADR-0008) : c'est pourquoi ce ticket est vérifié en
  * mode `observé` (la grille ne se constate qu'à l'œil, une fois le script
  * exécuté par un navigateur).
+ *
+ * Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 10-signaler-images-orphelines.md, SC-10a/b) : c'est ICI, et non dans un
+ * magasin `platform/`, que se compose le signalement des images orphelines
+ * — `listerMediasBrouillon` (`src/platform/medias/magasin.ts`) n'importe
+ * que `core/`, jamais `src/platform/brouillons/magasin.ts`. Cette route lit
+ * donc les deux magasins et fournit à `listerMediasBrouillon` l'ensemble des
+ * références brouillon dont elle a besoin pour dériver `effacable` par
+ * image.
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { listerMediasBrouillon } from '../../platform/medias/magasin.ts';
+import { listerReferencesMediasBrouillon } from '../../platform/brouillons/magasin.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -29,7 +39,8 @@ if (!session) {
   return Astro.redirect('/admin/connexion');
 }
 
-const medias = await listerMediasBrouillon(env.DB);
+const referencesBrouillon = await listerReferencesMediasBrouillon(env.DB);
+const medias = await listerMediasBrouillon(env.DB, referencesBrouillon);
 ---
 
 <Gabarit titre="Médias — Administration">
