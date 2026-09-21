@@ -103,3 +103,14 @@ export const TEXTE_REFUS_NOM_VIDE = 'Le nom ne peut pas être vide.';
 
 /** Un échec inattendu en enregistrant le nom ou la description de la fiche (SC-07a/SC-07b). */
 export const TEXTE_ECHEC_ENREGISTREMENT_FICHE = "L'enregistrement a échoué. Réessayez dans un instant.";
+
+/**
+ * La marque d'une image que plus aucun emplacement ne référence (ticket 10,
+ * openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 10-signaler-images-orphelines.md, SC-10a, UX5) — posée sur la vignette de
+ * la grille comme sur la fiche. Aucun terme de développeur : ni
+ * « orpheline », ni « référence », ni « brouillon » (FR-117) — seule la
+ * publication, mot du métier (glossaire), y paraît.
+ */
+export const TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT =
+  "Cette image n'est posée dans aucun emplacement : elle sera effacée à la prochaine publication.";

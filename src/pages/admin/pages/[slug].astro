@@ -78,7 +78,7 @@ import Gabarit from '../../../admin/Gabarit.astro';
 import { libelleCompteImages } from '../../../admin/ilots-svelte-5/libelle-compte-images.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
-import { obtenirBrouillon } from '../../../platform/brouillons/magasin.ts';
+import { obtenirBrouillon, listerReferencesMediasBrouillon } from '../../../platform/brouillons/magasin.ts';
 import { listerMediasBrouillon } from '../../../platform/medias/magasin.ts';
 import { appliquerBrouillonSurEmplacement, pagePorteUnBrouillon } from '../../../core/pages/brouillon.ts';
 import { env } from 'cloudflare:workers';
@@ -104,8 +104,14 @@ const porteUnBrouillon = pagePorteUnBrouillon(brouillon);
 // `BibliothequeMedias.svelte` (ticket 05). Ticket 09
 // (openspec/changes/004-bibliotheque-de-medias/tickets/
 // 09-composer-galerie-carrousel.md) réutilise la MÊME réserve pour les
-// sélecteurs d'ajout des emplacements de galerie et de carrousel.
-const mediasDisponibles = await listerMediasBrouillon(env.DB);
+// sélecteurs d'ajout des emplacements de galerie et de carrousel. Ticket 10
+// (openspec/changes/004-bibliotheque-de-medias/tickets/
+// 10-signaler-images-orphelines.md) : `listerMediasBrouillon` exige
+// désormais l'ensemble des références brouillon (`effacable` par image,
+// non exploité par ces sélecteurs, mais requis par la signature partagée
+// avec `medias.astro`).
+const referencesBrouillon = await listerReferencesMediasBrouillon(env.DB);
+const mediasDisponibles = await listerMediasBrouillon(env.DB, referencesBrouillon);
 const page = {
   titre: pageDeclaree.titre,
   emplacements: pageDeclaree.emplacements.map((emplacement) =>

@@ -16,6 +16,19 @@
  * ici à la persistance). L'état publié n'a ici aucune représentation : ce
  * magasin ne connaît que la réserve brouillon.
  *
+ * Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
+ * 10-signaler-images-orphelines.md, SC-10a/b) : `listerMediasBrouillon` et
+ * `obtenirFicheMediaBrouillon` reçoivent désormais l'ensemble des références
+ * brouillon EN DONNÉES (`ReadonlySet<string>`), jamais en l'interrogeant —
+ * ce magasin n'importe toujours que `core/` (ici aussi `imageEffacable`,
+ * `core/medias/references.ts`, ticket 02), jamais
+ * `src/platform/brouillons/magasin.ts` qui les lit réellement (même matrice
+ * qu'énoncée ci-dessous : jamais un autre fichier de `platform/`) — c'est
+ * l'appelant commun, la route `.astro`, qui lit les deux magasins et compose.
+ * L'ensemble PUBLIÉ n'a toujours aucune représentation (candidat
+ * `medias-deux-magasins-un-par-etat`) : `REFERENCES_PUBLIEES_VIDE` en tient
+ * lieu jusqu'à la feature de publication, jamais recalculé ici.
+ *
  * `assurerTableMedias` (même geste défensif que `assurerTableBrouillons`,
  * `src/platform/brouillons/magasin.ts`, et `assurerTableSessions`,
  * `src/platform/session/index.ts`) crée cette table si elle est absente —
@@ -29,10 +42,20 @@
  * d'où le découpage par `separerRequetes`).
  */
 import type { DimensionsImage, FormatImageAdmis } from '../../core/medias/ingestion.ts';
+import { imageEffacable } from '../../core/medias/references.ts';
 import ddlMediasBrouillon from '../../../migrations/0005_medias_brouillon.sql?raw';
 import ddlMediasBrouillonAffichage from '../../../migrations/0006_medias_brouillon_affichage.sql?raw';
 
 const TABLE_MEDIAS = 'medias_brouillon';
+
+/**
+ * L'ensemble « publié » que reçoit `imageEffacable` (ticket 02) — toujours
+ * vide aujourd'hui, faute de toute représentation de l'état publié (ticket
+ * 10, voir le commentaire de fichier ci-dessus). Une seule instance
+ * partagée : ni `listerMediasBrouillon` ni `obtenirFicheMediaBrouillon` ne
+ * recalculent cet ensemble.
+ */
+const REFERENCES_PUBLIEES_VIDE: ReadonlySet<string> = new Set();
 
 /** Limite D1 « Maximum string, BLOB or table row size » (developers.cloudflare.com/d1/platform/limits) — plus basse que `POIDS_MAX_OCTETS_IMAGE` (2 × 1024 × 1024) de `core/`. */
 export const CAPACITE_MAX_OCTETS_LIGNE_D1 = 2_000_000;
@@ -189,10 +212,16 @@ export async function obtenirMediaBrouillon(db: DB, id: string): Promise<MediaBr
  * description est hors périmètre du ticket 07 (porté par la grille/recherche
  * du ticket 05, déjà livrées) — ce ticket ne recherche donc encore que sur
  * le nom d'origine, sans changement de forme.
+ *
+ * `effacable` (ticket 10, SC-10a/b) : vraie quand plus aucun emplacement,
+ * publié ou brouillon, ne référence l'image (`imageEffacable`, ticket 02) —
+ * la marque, côté vue, d'une image vouée à l'effacement à la prochaine
+ * publication (FR-038).
  */
 export interface MediaListe {
   readonly id: string;
   readonly nomOrigine: string;
+  readonly effacable: boolean;
 }
 
 interface LigneMediaListeBrute {
@@ -207,8 +236,18 @@ interface LigneMediaListeBrute {
  * simplement aucune ligne. La recherche elle-même (SC-05f/g) est un filtre
  * en mémoire côté `admin/` sur ce résultat, jamais un second lieu de
  * requête — ce magasin n'a donc qu'une seule fonction de lecture de liste.
+ *
+ * `referencesBrouillon` (ticket 10) : l'ensemble des identités de médias
+ * encore référencées par au moins un emplacement en brouillon, toutes pages
+ * confondues — REÇU en paramètre (`listerReferencesMediasBrouillon`,
+ * `src/platform/brouillons/magasin.ts`), jamais relu ici (ce magasin
+ * n'importe toujours que `core/`, voir le commentaire de fichier). Sert à
+ * dériver `effacable` par image, via `imageEffacable`.
  */
-export async function listerMediasBrouillon(db: DB): Promise<MediaListe[]> {
+export async function listerMediasBrouillon(
+  db: DB,
+  referencesBrouillon: ReadonlySet<string>,
+): Promise<MediaListe[]> {
   await assurerTableMedias(db);
   const resultat = await db
     .prepare(`select id, nom_origine from ${TABLE_MEDIAS} order by creee_le desc`)
@@ -217,6 +256,7 @@ export async function listerMediasBrouillon(db: DB): Promise<MediaListe[]> {
   return (resultat.results as LigneMediaListeBrute[]).map((ligne) => ({
     id: ligne.id,
     nomOrigine: ligne.nom_origine,
+    effacable: imageEffacable(ligne.id, REFERENCES_PUBLIEES_VIDE, referencesBrouillon),
   }));
 }
 
@@ -231,6 +271,9 @@ export async function listerMediasBrouillon(db: DB): Promise<MediaListe[]> {
  * l'appelant, qui n'a pas à distinguer les deux cas. Le format déduit est
  * rendu pour composer, côté appelant, le `Content-Type`/`alt` de l'aperçu
  * sans une seconde lecture.
+ *
+ * `effacable` (ticket 10, SC-10a/b) : même dérivation que `MediaListe`
+ * ci-dessus.
  */
 export interface MediaFiche {
   readonly id: string;
@@ -238,6 +281,7 @@ export interface MediaFiche {
   readonly nomAffichage: string;
   readonly description: string;
   readonly format: FormatImageAdmis;
+  readonly effacable: boolean;
 }
 
 interface LigneFicheMediaBrute {
@@ -251,8 +295,15 @@ interface LigneFicheMediaBrute {
  * Relit la fiche d'une image en brouillon par son identifiant, ou `null` si
  * aucune ne correspond (même contrat que `obtenirMediaBrouillon` : à charge
  * de l'appelant d'en faire un 404 après le garde de session).
+ *
+ * `referencesBrouillon` (ticket 10) : même paramètre, reçu en données, que
+ * `listerMediasBrouillon` ci-dessus.
  */
-export async function obtenirFicheMediaBrouillon(db: DB, id: string): Promise<MediaFiche | null> {
+export async function obtenirFicheMediaBrouillon(
+  db: DB,
+  id: string,
+  referencesBrouillon: ReadonlySet<string>,
+): Promise<MediaFiche | null> {
   await assurerTableMedias(db);
   const resultat = await db
     .prepare(`select nom_origine, nom_affichage, description, format from ${TABLE_MEDIAS} where id = ?1`)
@@ -266,6 +317,7 @@ export async function obtenirFicheMediaBrouillon(db: DB, id: string): Promise<Me
     nomAffichage: ligne.nom_affichage ?? ligne.nom_origine,
     description: ligne.description ?? '',
     format: ligne.format as FormatImageAdmis,
+    effacable: imageEffacable(id, REFERENCES_PUBLIEES_VIDE, referencesBrouillon),
   };
 }
 
