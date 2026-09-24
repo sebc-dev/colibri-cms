@@ -15,6 +15,11 @@ export default defineConfig(
     // ignorés par .gitignore ; le bac à sable de Stryker porte une copie de
     // tsconfig.json, ce qui fait échouer le parsing de tout le dépôt et
     // masque les diagnostics des sources réelles.
+    //
+    // .claude/skills/ porte des copies rapatriées telles quelles — le canvas
+    // de design (docs/design-system.md § Canvas maître) y pose des .jsx React
+    // et un data.js de navigateur. Ce n'est pas du code du produit : rien n'y
+    // est bâti ni servi, et le corriger ferait diverger la copie de sa source.
     ignores: [
       'dist/**',
       'node_modules/**',
@@ -23,6 +28,7 @@ export default defineConfig(
       'coverage/**',
       '.stryker-tmp/**',
       'reports/**',
+      '.claude/skills/**',
     ],
   },
   js.configs.recommended,

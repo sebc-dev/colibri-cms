@@ -24,6 +24,9 @@ import { defineConfig } from 'eslint/config';
 
 export default defineConfig(
   {
+    // .claude/skills/ porte des copies rapatriées telles quelles (canvas de
+    // design) : leurs .d.ts ne sont dans aucun tsconfig, et l'analyse typée
+    // échoue à les résoudre. Ce n'est pas du code du produit.
     ignores: [
       'dist/**',
       'node_modules/**',
@@ -32,6 +35,7 @@ export default defineConfig(
       'coverage/**',
       '.stryker-tmp/**',
       'reports/**',
+      '.claude/skills/**',
     ],
   },
   {
