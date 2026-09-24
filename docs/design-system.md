@@ -44,9 +44,25 @@ publication, liste des demandes. Leur base est le **registre shadcn-svelte**.
 
 ## Canvas maître
 
-Le canvas de design de référence (artboards, écrans, flux) : **[à compléter]** — lien à poser par
-l'humain.
+Le canvas de référence est le projet **Colibri CMS Design System** sur claude.ai/design : tokens
+des deux thèmes, 21 composants contractualisés, 21 cartes de fondations et un kit d'interface
+d'administration. Il fait autorité sur la **marque** — couleur, typographie, espace, formes, voix.
 
-Les maquettes textuelles existantes servent de référence en attendant :
-[`openspec/changes/003-remplir-emplacements/ux.md`](../openspec/changes/003-remplir-emplacements/ux.md)
-(cadre de l'administration, liste des pages, éditeur d'emplacements).
+Une copie datée en vit dans le dépôt, sous `.claude/skills/colibri-cms-design/`, invocable par
+`/colibri-cms-design` : c'est elle que lisent les sessions de travail. Elle **ne se resynchronise
+pas toute seule** — le projet en ligne reste la source. Ce qu'elle ne porte pas à l'identique est
+consigné dans
+[`.claude/skills/colibri-cms-design/RECUPERATION.md`](../.claude/skills/colibri-cms-design/RECUPERATION.md).
+
+**Ce canvas n'est pas encore adopté par le produit.** L'administration se rend toujours sur le
+thème « neutral » du registre shadcn-svelte (`src/admin/admin.css`, plus haut). Trois écarts
+restent à trancher **par ADR** avant tout portage : le code des composants est en React quand le
+produit est en Svelte ; les polices et les icônes y sont chargées depuis des origines tierces que
+`default-src 'none'` interdit ; et le canvas porte deux thèmes là où l'administration n'en a qu'un.
+Ce qui se transpose, ce sont les valeurs et les dispositions, jamais le code tel quel.
+
+Les maquettes textuelles des changes livrés complètent le tableau, écran par écran :
+[003 — remplir les emplacements](../openspec/changes/archive/2026-09-09-003-remplir-emplacements/ux.md)
+(cadre de l'administration, liste des pages, éditeur d'emplacements) et
+[004 — bibliothèque de médias](../openspec/changes/archive/2026-09-21-004-bibliotheque-de-medias/ux.md)
+(écran Médias, fiche d'une image).
