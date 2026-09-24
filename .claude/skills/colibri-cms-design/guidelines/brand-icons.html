@@ -1,0 +1,10 @@
+<!-- @dsCard group="Brand" viewport="700x170" name="Iconographie (Lucide, à valider)" subtitle="Substitution : trait 1,5 px, 20 px, currentColor, toujours avec un libellé" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Icônes</title><link rel="stylesheet" href="../styles.css"><style>body{margin:0;padding:20px 24px;background:var(--surface);font-family:var(--font-sans);color:var(--ink)}.r{display:flex;flex-wrap:wrap;gap:20px}.i{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--ink-muted)}</style></head><body>
+<div class="r" id="r"></div>
+<p style="font-size:11px;color:var(--ambre);margin-top:14px">Aucune bibliothèque n'est arrêtée dans la source. Lucide est une substitution proposée, à valider.</p>
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.js"></script>
+<script>
+const names=['layout-dashboard','file-text','images','inbox','settings','upload-cloud','pencil','trash-2','eye','plus'];
+document.getElementById('r').innerHTML=names.map(n=>'<span class="i"><i data-lucide="'+n+'"></i>'+n+'</span>').join('');
+lucide.createIcons({attrs:{width:20,height:20,'stroke-width':1.5}});
+</script></body></html>
