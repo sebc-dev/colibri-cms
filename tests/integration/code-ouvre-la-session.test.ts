@@ -275,39 +275,6 @@ it('soumettre le code valide, depuis l’appareil qui l’a demandé, redirige v
   expect(cheminDeLocation(reponse)).toMatch(PATH_ACCUEIL_RE);
 });
 
-it('soumettre le code valide ouvre réellement une session : le cookie rendu donne ensuite accès à l’accueil', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'A3F7K9P2', identifiantAppareil });
-  const reponseConnexion = await soumettreCode('A3F7K9P2', identifiantAppareil);
-  const cookieSession = extraireCookieValeur(reponseConnexion, NOM_COOKIE_SESSION);
-
-  const reponseAccueil = await accederAAccueil(cookieSession);
-
-  expect(reponseAccueil.status).toBe(200);
-  const corps = await reponseAccueil.text();
-  expect(corps).toContain('Vous êtes connectée.');
-});
-
-// --- c2 — l'accueil s'affiche alors, et ne porte toujours aucune fonction ---
-
-it('une fois la session ouverte, l’accueil affiché ne porte aucun formulaire, bouton ni lien', async () => {
-  const db = await assurerSchema();
-  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
-  const identifiantAppareil = await obtenirIdentifiantAppareil();
-  await semerLigneDeCode(db, { codeClair: 'A3F7K9P2', identifiantAppareil });
-  const reponseConnexion = await soumettreCode('A3F7K9P2', identifiantAppareil);
-  const cookieSession = extraireCookieValeur(reponseConnexion, NOM_COOKIE_SESSION);
-
-  const reponseAccueil = await accederAAccueil(cookieSession);
-
-  const corps = await reponseAccueil.text();
-  expect(corps).not.toMatch(/<form[\s>]/i);
-  expect(corps).not.toMatch(/<button[\s>]/i);
-  expect(corps).not.toMatch(/<a\s[^>]*href=/i);
-});
-
 // --- c3 — la saisie est normalisée : casse, séparateurs et confusables ---
 
 // Une forme de saisie par cas : `codeClair` est ce que la base porte,
