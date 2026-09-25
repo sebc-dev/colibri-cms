@@ -1,0 +1,18 @@
+/* Colibri CMS — échelle typographique. Fraunces pour les titres, Instrument Sans pour l'interface, JetBrains Mono pour la technique. */
+:root{
+--display-font:var(--font-display);--display-size:40px;--display-line:44px;--display-weight:600;--display-tracking:-0.02em;
+--title-font:var(--font-display);--title-size:28px;--title-line:34px;--title-weight:600;--title-tracking:-0.01em;
+--heading-font:var(--font-sans);--heading-size:20px;--heading-line:28px;--heading-weight:600;
+--body-font:var(--font-sans);--body-size:15px;--body-line:22px;--body-weight:400;
+--body-strong-weight:600;
+--label-font:var(--font-sans);--label-size:13px;--label-line:18px;--label-weight:500;--label-tracking:0.01em;
+--caption-font:var(--font-sans);--caption-size:12px;--caption-line:16px;--caption-weight:400;
+--code-font:var(--font-mono);--code-size:13px;--code-line:20px;--code-weight:400}
+.cb-display{font-family:var(--display-font);font-size:var(--display-size);line-height:var(--display-line);font-weight:var(--display-weight);letter-spacing:var(--display-tracking);color:var(--ink);margin:0}
+.cb-title{font-family:var(--title-font);font-size:var(--title-size);line-height:var(--title-line);font-weight:var(--title-weight);letter-spacing:var(--title-tracking);color:var(--ink);margin:0}
+.cb-heading{font-family:var(--heading-font);font-size:var(--heading-size);line-height:var(--heading-line);font-weight:var(--heading-weight);color:var(--ink);margin:0}
+.cb-body{font-family:var(--body-font);font-size:var(--body-size);line-height:var(--body-line);font-weight:var(--body-weight);color:var(--ink);margin:0}
+.cb-body-strong{font-family:var(--body-font);font-size:var(--body-size);line-height:var(--body-line);font-weight:var(--body-strong-weight);color:var(--ink);margin:0}
+.cb-label{font-family:var(--label-font);font-size:var(--label-size);line-height:var(--label-line);font-weight:var(--label-weight);letter-spacing:var(--label-tracking);color:var(--ink);margin:0}
+.cb-caption{font-family:var(--caption-font);font-size:var(--caption-size);line-height:var(--caption-line);font-weight:var(--caption-weight);color:var(--ink-muted);margin:0}
+.cb-code{font-family:var(--code-font);font-size:var(--code-size);line-height:var(--code-line);font-weight:var(--code-weight)}

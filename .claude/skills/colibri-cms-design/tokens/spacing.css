@@ -1,0 +1,6 @@
+/* Colibri CMS — grille de 4 px. */
+:root{--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;--space-12:48px;
+--field-padding-y:var(--space-3);--field-padding-x:var(--space-3);
+--card-padding:var(--space-4);--panel-padding:var(--space-6);
+--section-gap:var(--space-8);--page-margin:var(--space-12);
+--control-height:38px;--control-height-sm:30px;--icon-size:20px;--icon-stroke:1.5}

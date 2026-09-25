@@ -1,0 +1,41 @@
+<!-- @dsCard group="Components" viewport="700x420" name="États — badges, bandeaux, jauge, modale" subtitle="Les huit états, les cinq bandeaux, la jauge de quota et la confirmation" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>États</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:var(--space-6);background:var(--surface);font-family:var(--font-sans)}.row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center}.col{display:flex;flex-direction:column;gap:var(--space-4)}.tag{font-size:var(--caption-size);color:var(--ink-muted);text-transform:uppercase;letter-spacing:.06em}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const NS = window.ColibriCMSDesignSystem_aa1b5b;
+const { StatusBadge, Banner, QuotaGauge, Modal, Button, LogView } = NS;
+function Demo() {
+  return (
+    <div className="col">
+      <div className="row">
+        <StatusBadge state="publie" /><StatusBadge state="modifie" /><StatusBadge state="brouillon" />
+        <StatusBadge state="publication" /><StatusBadge state="echec" />
+      </div>
+      <div className="row">
+        <StatusBadge state="sans-suite" /><StatusBadge state="devis-envoye" /><StatusBadge state="commande" />
+      </div>
+      <Banner tone="gorge" title="3 modifications à publier" actions={<Button size="sm" icon="upload-cloud">Publier</Button>}>Vos visiteurs voient encore la version précédente.</Banner>
+      <Banner tone="info" title="Publication en cours">Vos photos seront en ligne dans une minute environ.</Banner>
+      <Banner tone="danger" title="La publication n'a pas abouti" actions={<Button size="sm" variant="secondary">Réessayer</Button>}>Votre travail est conservé.</Banner>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'var(--space-6)'}}>
+        <QuotaGauge label="Photos" value={340} max={2000} remainingText="Environ 1 660 photos de marge." />
+        <QuotaGauge label="Publications" value={430} max={500} remainingText="Il reste 70 publications ce mois-ci." />
+        <QuotaGauge label="Stockage" value={500} max={500} remainingText="La limite est atteinte." />
+      </div>
+      <div style={{position:'relative',minHeight:180,background:'var(--surface-sunken)',borderRadius:'var(--radius-lg)'}}>
+        <Modal tone="danger" title="Supprimer définitivement cette photo ?" description="Elle disparaîtra aussi du site."
+          actions={<><Button variant="secondary" size="sm">Annuler</Button><Button variant="danger" size="sm">Supprimer</Button></>} />
+      </div>
+      <LogView lines={[{text:'14:32:01  build start   astro build'},{text:'14:32:44  deploy ok     colibri-site.pages.dev',tone:'plumage'}]} />
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script></body></html>

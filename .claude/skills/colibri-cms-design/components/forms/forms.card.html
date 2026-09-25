@@ -1,0 +1,43 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Formulaires — champs, cases, dépôt" subtitle="Champ, adresse de page en mono, liste, case, interrupteur, zone de dépôt" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Formulaires</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:var(--space-6);background:var(--surface);font-family:var(--font-sans)}.row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center}.col{display:flex;flex-direction:column;gap:var(--space-4)}.tag{font-size:var(--caption-size);color:var(--ink-muted);text-transform:uppercase;letter-spacing:.06em}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const NS = window.ColibriCMSDesignSystem_aa1b5b;
+const { Field, TextInput, Textarea, Select, Checkbox, Switch, DropZone } = NS;
+function Demo() {
+  const [v, setV] = React.useState('Pièces montées');
+  const [c, setC] = React.useState(true);
+  const [s, setS] = React.useState(true);
+  return (
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'var(--space-6)'}}>
+      <div className="col">
+        <Field label="Titre de la page" htmlFor="t"><TextInput id="t" value={v} onChange={setV} /></Field>
+        <Field label="Adresse de la page" htmlFor="u" help="Visible dans la barre du navigateur.">
+          <TextInput id="u" mono prefix="monsite.fr" value="/galerie/pieces-montees" onChange={()=>{}} />
+        </Field>
+        <Field label="Texte alternatif" htmlFor="a" error="Décrivez la photo : ce texte est lu à voix haute.">
+          <TextInput id="a" invalid value="" onChange={()=>{}} placeholder="Une pièce montée à trois étages" />
+        </Field>
+        <Field label="État de la demande" htmlFor="e">
+          <Select id="e" value="devis-envoye" onChange={()=>{}} options={[{value:'sans-suite',label:'Sans suite'},{value:'devis-envoye',label:'Devis envoyé'},{value:'commande',label:'Commande'}]} />
+        </Field>
+      </div>
+      <div className="col">
+        <Field label="Description" htmlFor="d" optional><Textarea id="d" rows={3} value="Chaque pièce est montée le matin même." onChange={()=>{}} /></Field>
+        <Checkbox id="m" checked={c} onChange={setC} label="Afficher cette page dans le menu" />
+        <Checkbox id="m2" checked={false} onChange={()=>{}} label="Masquer aux moteurs de recherche" help="La page reste accessible par son adresse." />
+        <Switch checked={s} onChange={setS} label="Formulaire de devis actif" help="Les demandes arrivent dans « Demandes »." />
+        <DropZone help="JPEG ou PNG, 10 Mo au maximum par photo." />
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script></body></html>

@@ -7,7 +7,7 @@
     "src/admin/ilots-svelte-5/monter.ts",
     "src/platform/d1/sonde-dev.ts"
   ],
-  "ignore": ["src/**/zone.ts", "src/admin/composants/ui/**"],
+  "ignore": ["src/**/zone.ts", "src/admin/composants/ui/**", ".claude/skills/**"],
   "ignoreDependencies": ["cloudflare", "@stryker-mutator/command-runner"],
   "ignoreExportsUsedInFile": true
 }

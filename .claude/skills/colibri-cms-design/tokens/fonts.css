@@ -1,0 +1,5 @@
+/* Colibri CMS — polices. Fraunces, Instrument Sans, JetBrains Mono (Google Fonts).
+   Chargées depuis le CDN Google : aucun binaire n'est distribué avec ce système.
+   Les piles de repli (Georgia, system-ui, Menlo) assurent le rendu hors ligne. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--font-display:"Fraunces",Georgia,"Times New Roman",serif;--font-sans:"Instrument Sans",ui-sans-serif,system-ui,"Segoe UI",sans-serif;--font-mono:"JetBrains Mono",ui-monospace,Menlo,monospace}

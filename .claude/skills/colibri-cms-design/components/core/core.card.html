@@ -1,0 +1,39 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Core — boutons, icônes, cartes" subtitle="Bouton primaire plumage, secondaire, fantôme, danger ; boutons-icônes ; carte à filet" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Core</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:var(--space-6);background:var(--surface);font-family:var(--font-sans)}.row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center}.col{display:flex;flex-direction:column;gap:var(--space-4)}.tag{font-size:var(--caption-size);color:var(--ink-muted);text-transform:uppercase;letter-spacing:.06em}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const NS = window.ColibriCMSDesignSystem_aa1b5b;
+const { Button, IconButton, Card, Icon } = NS;
+function Demo() {
+  return (
+    <div className="col">
+      <div className="row">
+        <Button variant="primary" icon="upload-cloud">Publier les modifications</Button>
+        <Button variant="secondary">Annuler</Button>
+        <Button variant="ghost" icon="eye">Voir le site</Button>
+        <Button variant="danger" icon="trash-2">Supprimer</Button>
+      </div>
+      <div className="row">
+        <Button size="sm" variant="primary">Enregistrer</Button>
+        <Button size="sm" variant="secondary">Dupliquer</Button>
+        <Button variant="primary" disabled>Publier</Button>
+        <Button variant="primary" loading>Publication…</Button>
+        <IconButton icon="pencil" label="Modifier" variant="outline" />
+        <IconButton icon="grip-vertical" label="Déplacer" />
+        <IconButton icon="trash-2" label="Supprimer" variant="danger" />
+      </div>
+      <Card title="Photos de la page d'accueil" meta="12 photos · 8,4 Mo" actions={<Button size="sm" variant="secondary" icon="plus">Ajouter</Button>}>
+        <p className="cb-body" style={{color:'var(--ink-muted)'}}>Filet <code>line</code>, rayon <code>radius-md</code>, aucune ombre.</p>
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script></body></html>

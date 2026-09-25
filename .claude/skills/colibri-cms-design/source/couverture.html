@@ -1,0 +1,54 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Colibri CMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Instrument+Sans:wght@400;500&display=swap">
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--surface); color:var(--ink); font-family:var(--font-sans); overflow:hidden; }
+  .cover { position:relative; height:288px; overflow:hidden; }
+  .art { position:absolute; top:0; left:480px; width:480px; height:288px; overflow:hidden; }
+  .art svg { display:block; width:480px; height:288px; }
+  .plumage { fill:var(--plumage); }
+  .tint { fill:var(--plumage-soft); }
+  .gorge { fill:var(--gorge); }
+  .deep { fill:var(--ink); }
+  .nuage { fill:var(--nuage); }
+  .quill { fill:var(--surface); }
+  .words { position:absolute; left:var(--space-6); right:var(--space-6); bottom:var(--space-6); max-width:440px; }
+  .name { margin:0; font-family:var(--font-display); font-size:104px; line-height:.95; font-weight:600; letter-spacing:-.02em; color:var(--ink); }
+  .tag { margin:var(--space-2) 0 0 4px; font-size:14px; line-height:20px; color:var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      five tapered feather blades fanned from one pivot below the box: plumage 400 long (the brand, longest) · ink 300 long bleeding off the top · plumage-soft 370 (the tint) · gorge 176 (the ruby throat, short: it only means "not yet published") · nuage 120, a sliver (the Cloudflare nod) — about 40% of 960×288
+  arrangement a wing: blades fanned up and to the left, 112° to 167°, from a pivot off the bottom-right corner — the direction the logo's wing points, overlapping at the root like the logo's feathers
+  pattern     literal motif, the logo's wing: four hairline quills cut in the ground colour between the blades (fan pitch 14°), so each blade reads as a separate feather
+  scales      blade widths in space-6 / space-8 multiples, quills space-2 wide at the root; no radii — the logo draws with straight cuts and sharp tips
+-->
+<path class="deep" d="M406.2 306.2 L487.8 273.3 L411.6 103.4 L341.2 9.0Z"/>
+<path class="plumage" d="M393.7 307.9 L471.3 251.4 L319.3 55.3 L203.6 -48.5Z"/>
+<path class="tint" d="M387.4 306.6 L438.8 245.4 L259.0 102.8 L133.8 33.3Z"/>
+<path class="gorge" d="M379.0 305.6 L403.6 255.3 L262.3 191.4 L168.6 166.8Z"/>
+<path class="nuage" d="M366.7 307.8 L373.9 276.6 L282.7 258.2 L224.7 256.0Z"/>
+<path class="quill" d="M437.0 286.0 L444.0 282.1 L344.2 103.4 L280.5 -4.6Z"/>
+<path class="quill" d="M420.3 279.6 L426.2 274.2 L256.6 93.2 L150.5 -15.6Z"/>
+<path class="quill" d="M400.1 280.5 L404.5 273.8 L232.6 162.9 L125.6 97.4Z"/>
+<path class="quill" d="M379.5 288.4 L382.2 280.9 L253.8 234.8 L174.1 209.4Z"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">Colibri CMS</h1>
+<p class="tag">Léger, rapide, précis : le contenu d'un site statique, dans le plan gratuit.</p>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+/* Colibri CMS — rayons, filets, ombres, focus. Coins tenus : le logo coupe droit. */
+:root{--radius-sm:4px;--radius-md:6px;--radius-lg:10px;--radius-pill:999px;
+--border-width:1px;
+--shadow-raised:0 1px 2px rgba(23,32,28,0.06),0 4px 12px rgba(23,32,28,0.06);
+--shadow-none:none;
+--focus-offset:2px;--focus-width:2px;
+--transition-fast:120ms ease-out;/* @kind other */
+--transition-base:160ms ease-out/* @kind other */}
+[data-theme="dark"]{--shadow-raised:0 1px 2px rgba(0,0,0,0.4),0 4px 12px rgba(0,0,0,0.3)}
+.cb-focusable:focus-visible{outline:var(--focus-width) solid var(--focus-ring);outline-offset:var(--focus-offset)}

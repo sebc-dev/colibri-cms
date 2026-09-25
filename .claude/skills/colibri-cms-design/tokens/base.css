@@ -1,0 +1,9 @@
+/* Colibri CMS — réglages de base. */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--font-sans);font-size:var(--body-size);line-height:var(--body-line);-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:underline;text-underline-offset:2px}
+a:hover{color:var(--link-hover);text-decoration-thickness:2px}
+a:active{opacity:.8}
+:focus-visible{outline:var(--focus-width) solid var(--focus-ring);outline-offset:var(--focus-offset)}
+code,pre,kbd{font-family:var(--font-mono);font-size:var(--code-size)}
+::selection{background:var(--plumage-soft);color:var(--ink)}

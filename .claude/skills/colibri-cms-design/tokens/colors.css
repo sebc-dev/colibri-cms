@@ -1,0 +1,38 @@
+/* Colibri CMS — couleurs. Deux thèmes : clair (défaut) et sombre via [data-theme="dark"]. */
+:root,[data-theme="light"]{
+/* Surfaces — neutres chauds, jamais de blanc pur en fond de page */
+--surface:#F7F6F1;--surface-raised:#FFFFFF;--surface-sunken:#EFEDE6;
+/* Filets */
+--line:#E1DFD6;--line-strong:#838983;
+/* Encre */
+--ink:#17201C;--ink-muted:#5B645F;
+/* Plumage — vert émeraude du colibri, seule couleur d'action */
+--plumage:#0E6B55;--plumage-soft:#DDF1E8;--on-plumage:#FFFFFF;
+/* Gorge — rubis, uniquement « modifié, non publié » */
+--gorge:#B4235A;--gorge-soft:#FBE3EC;
+/* Signaux */
+--ambre:#8A5A00;--ambre-soft:#FCEFD2;
+--danger:#B42318;--danger-soft:#FDE7E5;--on-danger:#FFFFFF;
+--info:#1D4F91;--info-soft:#E3ECF9;
+/* Nuage — clin d'œil Cloudflare, aplat seulement */
+--nuage:#F38020;--nuage-ink:#A24300;
+/* Alias sémantiques */
+--text-body:var(--ink);--text-muted:var(--ink-muted);--text-on-accent:var(--on-plumage);
+--surface-page:var(--surface);--surface-card:var(--surface-raised);--surface-inset:var(--surface-sunken);
+--border-decorative:var(--line);--border-control:var(--line-strong);
+--action-primary:var(--plumage);--action-primary-soft:var(--plumage-soft);
+--action-danger:var(--danger);--action-danger-soft:var(--danger-soft);
+--state-published:var(--plumage);--state-unpublished:var(--gorge);--state-building:var(--info);--state-warning:var(--ambre);
+--focus-ring:var(--plumage);--link:var(--plumage);--link-hover:var(--plumage);
+--overlay:rgba(23,32,28,.45)}
+[data-theme="dark"]{
+--surface:#141816;--surface-raised:#1C211F;--surface-sunken:#0F1311;
+--line:#2F3632;--line-strong:#6A746D;
+--ink:#EEF1EC;--ink-muted:#A3ADA7;
+--plumage:#4FD1A5;--plumage-soft:#10352A;--on-plumage:#0B1411;
+--gorge:#FF7AA8;--gorge-soft:#3D1422;
+--ambre:#F2B84B;--ambre-soft:#3A2A08;
+--danger:#FF8A80;--danger-soft:#3D1310;--on-danger:#0B1411;
+--info:#8DB8F5;--info-soft:#132540;
+--nuage:#F38020;--nuage-ink:#FFA95E;
+--overlay:rgba(0,0,0,.6)}
