@@ -80,6 +80,7 @@ src/core/     → aucune
 | **I12** | La directive `script-src` de la politique d'administration vaut `'self'` seul — jamais `'unsafe-inline'`, jamais `'unsafe-eval'`, jamais un hôte tiers ; la seule tolérance d'*inline* de toute la politique est `style-src-attr 'unsafe-inline'` | la valeur de `POLITIQUE_DE_SECURITE`, dans `src/platform/entetes/middleware.ts` | ADR-0010, ADR-0004 |
 | **I13** | L'en-tête `Set-Cookie` de la session n'est composé qu'en un lieu — `enteteCookieSession` de `src/platform/session/index.ts` — avec le préfixe `__Host-`, `Path=/`, `HttpOnly`, `Secure`, `SameSite=Strict` ; aucune route ne compose le sien | les cinq attributs, en chaînes littérales, dans `src/platform/session/index.ts` ; un `Set-Cookie` de session dont la valeur ne vient pas de `enteteCookieSession` | ADR-0011, ADR-0001 |
 | **I14** | Aucune valeur de couleur littérale (`#…`, `rgb(…)`, `oklch(…)`) dans un fichier de `src/admin/` hors `src/admin/admin.css`, seul porteur des tokens de l'administration ; cette feuille n'importe aucune URL d'une autre origine | l'occurrence de la valeur, hors de `src/admin/admin.css` ; un `@import` d'une URL absolue dans `src/admin/admin.css` | ADR-0015 |
+| **I15** | La directive `font-src` de la politique d'administration vaut `'self'` seul — jamais un hôte tiers, jamais `data:` | la valeur de `POLITIQUE_DE_SECURITE`, dans `src/platform/entetes/middleware.ts` | ADR-0016 |
 
 Huit invariants (`I1`, `I2`, `I3`, `I5`, `I7`, `I8`, `I9`, `I10`) reposent sur des décisions encore
 candidates (`docs/adr/_candidates/`) : tant qu'elles ne sont pas promues, c'est ce document qui les
@@ -95,4 +96,4 @@ Hors périmètre par construction — le taire ferait croire le contraire :
   l'expiration des sessions (FR-118), la durée d'un bail de publication — ce sont des `SC`/`FR`.
 - **Propriétés holistiques** : « l'aperçu rend exactement le publié », « aucun secret dans le
   fichier d'instance », « la posture de sécurité de l'administration ». `I3`, `I8`, et `I4`, `I11`,
-  `I12`, `I13` pour la dernière, en tiennent chacun la part structurelle, jamais le tout.
+  `I12`, `I13`, `I15` pour la dernière, en tiennent chacun la part structurelle, jamais le tout.
