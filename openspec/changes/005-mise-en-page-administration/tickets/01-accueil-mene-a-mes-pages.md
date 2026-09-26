@@ -34,5 +34,5 @@ validité affichée). Ce ticket ne doit rien y changer.
 **Hors périmètre :** tout habillage de l'écran « Mes pages » ; tout contenu propre à l'accueil.
 
 ## Critères
-- [ ] L'accueil `/admin/` demandé avec une session valide répond par un renvoi vers `/admin/mes-pages`, sans rendre aucun contenu propre à l'accueil   (SC-01a)
-- [ ] Juste après l'ouverture de session par le code recopié, suivre les renvois depuis la connexion mène à l'écran « Mes pages » (réponse 200), sans traverser aucun écran sans suite   (SC-01b)
+- [x] L'accueil `/admin/` demandé avec une session valide répond par un renvoi vers `/admin/mes-pages`, sans rendre aucun contenu propre à l'accueil   (SC-01a)
+- [x] Juste après l'ouverture de session par le code recopié, suivre les renvois depuis la connexion mène à l'écran « Mes pages » (réponse 200), sans traverser aucun écran sans suite   (SC-01b)
