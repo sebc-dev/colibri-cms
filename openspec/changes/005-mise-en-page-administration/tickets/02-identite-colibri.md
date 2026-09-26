@@ -61,8 +61,8 @@ onglet réseau ; console.
 propre à chaque écran ; le site public.
 
 ## Critères
-- [ ] Un écran servi affiché sur un appareil réglé en apparence sombre se présente dans le thème clair, à l'identique   (SC-02a)
-- [ ] Un écran servi affiché sous ses en-têtes réels ne charge que des ressources de sa propre origine (feuilles, polices, logo, icônes, scripts), et la console ne rapporte aucune violation de la politique de sécurité   (SC-02b)
-- [ ] Quand un fichier de police ne peut pas être chargé, le texte concerné s'affiche dans sa police de repli, sans texte invisible ni mise en page cassée   (SC-02c)
-- [ ] Parcouru à la touche Tab, chaque élément atteint montre un contour de focus visible, jamais masqué par un autre élément   (SC-02d)
+- [x] Un écran servi affiché sur un appareil réglé en apparence sombre se présente dans le thème clair, à l'identique   (SC-02a)
+- [x] Un écran servi affiché sous ses en-têtes réels ne charge que des ressources de sa propre origine (feuilles, polices, logo, icônes, scripts), et la console ne rapporte aucune violation de la politique de sécurité   (SC-02b)
+- [x] Quand un fichier de police ne peut pas être chargé, le texte concerné s'affiche dans sa police de repli, sans texte invisible ni mise en page cassée   (SC-02c)
+- [x] Parcouru à la touche Tab, chaque élément atteint montre un contour de focus visible, jamais masqué par un autre élément   (SC-02d)
 - [ ] Sur un téléphone, toucher un champ de saisie n'agrandit pas la page, et le champ reste visible au-dessus du clavier   (SC-02e)
