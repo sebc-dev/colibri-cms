@@ -1,7 +1,7 @@
 # Run bloqué — l'identité Colibri
 
 Portée : 005-mise-en-page-administration · ticket 02
-Ouvert le 2026-09-25 · branche `impl/identite-colibri-02` (worktree, aucun commit) · HEAD `6ad044e`
+Ouvert le 2026-09-25 · Clos le 2026-09-26 · branche `impl/identite-colibri-02` (worktree, aucun commit) · HEAD `6ad044e`
 
 ## Objectif
 Poser le socle visuel (tokens Colibri, polices même origine, logo, composants shadcn de base), lancé
@@ -31,6 +31,14 @@ Dans le worktree : neutraliser la variante `dark` dans `admin.css` (piste du vé
 `@custom-variant dark (&:where(.dark, .dark *));`, aucune classe `.dark` jamais posée) et poser la
 règle 16 px / 15 px sur les champs au niveau global ; puis faire rejouer la vérif, et confirmer SC-02e
 sur un vrai iPhone et un Android (le headless ne voit pas le clavier virtuel).
+
+## Issue
+J'ai repris le travail dans son worktree : `@custom-variant dark` rattaché à une classe `.dark` jamais
+posée (SC-02a), et une règle `@layer base` qui met tous les champs à 16 px sous 768 px (SC-02e). Une
+review à la demande en 8 dimensions a retenu deux corrections, appliquées : transitions sous
+`motion-safe:` et « Close » → « Fermer ». Vérif rejouée dans Chromium sur l'artefact bâti du HEAD.
+Livré par #112, avec SC-02e laissé ouvert : le clavier virtuel ne se constate que sur un vrai
+téléphone.
 
 ## Écarté
 - Juger SC-02a sur les seuls écrans servis aujourd'hui : le défaut apparaîtrait au premier écran qui

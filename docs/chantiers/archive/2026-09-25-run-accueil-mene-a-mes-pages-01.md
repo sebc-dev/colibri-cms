@@ -1,7 +1,7 @@
 # Run bloqué — l'accueil mène à « Mes pages »
 
 Portée : 005-mise-en-page-administration · ticket 01
-Ouvert le 2026-09-25 · branche `impl/accueil-mene-a-mes-pages-01` (worktree, aucun commit) · HEAD `6ad044e`
+Ouvert le 2026-09-25 · Clos le 2026-09-26 · branche `impl/accueil-mene-a-mes-pages-01` (worktree, aucun commit) · HEAD `6ad044e`
 
 ## Objectif
 Faire de `/admin/` un renvoi vers `/admin/mes-pages` derrière la garde de session inchangée, lancé
@@ -27,6 +27,14 @@ en `run-parallel` avec le ticket 02 (run `wf_f3929391-dcb`).
 Trancher, côté humain, comment `fin-de-session.test.ts` cesse d'utiliser `/admin/` comme sonde
 « session valide → 200 » (par ex. sonder `/admin/mes-pages`), en PR directe comme #107 ; puis relancer
 `/scd-spec-dev:run 005-mise-en-page-administration 01`, ou reprendre depuis le worktree.
+
+## Issue
+J'ai fait trancher l'humain : les deux cas de `fin-de-session.test.ts` sondent désormais
+`/admin/mes-pages`, en PR directe #110. Le worktree de l'ancien run a été supprimé (son diff mis de
+côté en patch), puis le ticket relancé par `/scd-spec-dev:run`. Ce run a tout passé mais s'est arrêté
+en `blocked-branch-drift` : son progress-recorder lisait le worktree du ticket 02, où je travaillais
+par un `cd` nu. Rien n'avait été commité ; j'ai rejoué l'enregistrement, la description et la PR à la
+main. Livré par #111.
 
 ## Écarté
 - Laisser l'implementer éditer `fin-de-session.test.ts` : un test existant ne se touche jamais dans le run.
