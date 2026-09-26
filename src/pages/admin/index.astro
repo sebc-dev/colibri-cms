@@ -2,26 +2,27 @@
 /**
  * L'écran d'accueil de l'administration (ticket 01 — la porte close ;
  * ticket 06 — le code recopié ouvre la session,
- * specs/001-connexion-par-code/06-code-ouvre-la-session.md).
+ * specs/001-connexion-par-code/06-code-ouvre-la-session.md ; ticket 01 de
+ * 005-mise-en-page-administration — l'accueil mène à « Mes pages »,
+ * openspec/changes/005-mise-en-page-administration/tickets/
+ * 01-accueil-mene-a-mes-pages.md).
  *
  * Derrière la garde : `verifierSession` renvoie toute requête sans session
- * valide vers l'écran de connexion (C1, C4) ; une fois la session ouverte
- * par ce ticket, l'accueil devient réellement atteignable. Il ne porte
- * toujours lui-même aucune fonction — ni lien, ni action — il n'est que le
- * point d'arrivée du parcours.
+ * valide vers l'écran de connexion (C1, C4, ADR-0007, I6). Une fois la
+ * session vérifiée valide, cet accueil ne rend plus aucun contenu qui lui
+ * soit propre : il renvoie systématiquement vers l'écran « Mes pages »
+ * (`/admin/mes-pages`, ticket 02 de 003-remplir-emplacements) — cible
+ * littérale, jamais lue dans la requête, pour ne jamais devenir un renvoi
+ * ouvert. La connexion continue elle-même de renvoyer vers cet accueil : le
+ * parcours emprunte donc deux renvois successifs, sans écran intermédiaire.
  *
  * Frontière figée par `tests/static/gabarits-admin.test.ts` (ticket 01 de
  * 001-connexion-par-code) : la source de ce fichier ne doit porter aucun
  * lien, aucun formulaire, aucun bouton, aucun attribut d'action ni aucun
  * terme de développeur — vérifié sur la source elle-même, pas seulement sur
- * la réponse rendue. Le ticket 02 de 003-remplir-emplacements (la liste des
- * pages, openspec/changes/003-remplir-emplacements/tickets/
- * 02-liste-des-pages.md) sert donc « Mes pages » sur une route dédiée
- * (`src/pages/admin/mes-pages.astro`), jamais ici : l'hypothèse posée par le
- * commentaire de `cadre.astro` ne tient pas face à cette frontière déjà en
- * place — ce fichier reste donc, à dessein, non révisé par ce ticket.
+ * la réponse rendue. Ce renvoi respecte cette frontière : aucun contenu
+ * n'est plus rendu par ce fichier une fois la session valide.
  */
-import Gabarit from '../../admin/Gabarit.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { env } from 'cloudflare:workers';
 
@@ -29,8 +30,6 @@ const session = await verifierSession(env.DB, Astro.request);
 if (!session) {
   return Astro.redirect('/admin/connexion');
 }
----
 
-<Gabarit titre="Administration">
-  <p>Vous êtes connectée.</p>
-</Gabarit>
+return Astro.redirect('/admin/mes-pages');
+---
