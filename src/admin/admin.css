@@ -1,56 +1,174 @@
 /*
- * Feuille de style de l'administration (ADR-0006, ADR-0008) — liée par
- * `src/admin/Gabarit.astro` via un import ESM, jamais un bloc <style> en
- * ligne : c'est ce qui rend `script-src 'self'` (et son pendant CSS) tenable
- * sans nonce ni empreinte calculée à chaque réponse.
+ * Feuille de style de l'administration (ADR-0006, ADR-0008, ADR-0015,
+ * ADR-0016) — liée par `src/admin/Gabarit.astro` via un import ESM, jamais
+ * un bloc <style> en ligne : c'est ce qui rend `script-src 'self'` (et son
+ * pendant CSS) tenable sans nonce ni empreinte calculée à chaque réponse.
  *
- * Ticket 02 (specs/002-socle-ilots-admin/02-composant-shadcn-sous-csp.md,
- * ADR-0009) : Tailwind CSS entre ici, cantonné à cette seule feuille — le
- * site public n'importe jamais ce fichier (ADR-0009 § Le site public n'est
- * pas concerné). `@import "tailwindcss"` (v4, sans fichier de config JS) est
- * traité au build par le plugin `@tailwindcss/vite` (astro.config.ts) ; la
- * CSS produite reste servie en `<link>` externe par `build: { inlineStylesheets:
- * 'never' }` (voir Gabarit.astro), jamais en ligne.
+ * Ticket 02 (openspec/changes/005-mise-en-page-administration/tickets/
+ * 02-identite-colibri.md) : les tokens du canvas Colibri CMS Design System
+ * (`.claude/skills/colibri-cms-design/tokens/`) remplacent le thème
+ * « neutral » du registre shadcn-svelte posé au ticket précédent
+ * (ADR-0009). Ce fichier reste le SEUL porteur des tokens de
+ * l'administration (invariant `I14` : aucune couleur littérale sous
+ * `src/admin/` en dehors d'ici) — un composant copié par la CLI shadcn-
+ * svelte n'est jamais retouché pour changer un nom de couleur, il continue
+ * de lire `--primary`, `--background`… (ADR-0015 § Décision 3 et 5).
  *
- * Les variables `--*` ci-dessous sont le thème « neutral » du registre
- * shadcn-svelte (`components.json` § tailwind.baseColor), une palette
- * standard et publique — reprises telles quelles depuis le registre
- * (https://shadcn-svelte.com/registry/colors/neutral.json). Un seul jeu de
- * valeurs (pas de variante sombre) : l'administration reste `color-scheme:
- * light` seule, comme avant ce ticket.
+ * Polices (ADR-0016) : Fraunces, Instrument Sans et JetBrains Mono sont
+ * servies par le Worker lui-même, depuis les paquets `@fontsource/*`
+ * (jamais Google Fonts) — sept imports ciblés, un par graisse et par
+ * alphabet (latin), jamais la feuille d'index d'un paquet qui tirerait
+ * toutes les graisses et tous les alphabets. `font-src 'self'`
+ * (`src/platform/entetes/middleware.ts`, non touché ici) reste inchangé :
+ * ces sept fichiers `.woff2` sont émis comme assets sous `/_astro/`,
+ * jamais intégrés en `data:` (ils dépassent tous le seuil d'inlining de
+ * Vite, le plus petit faisant 16,9 Ko).
  */
+@import '@fontsource/fraunces/latin-400.css';
+@import '@fontsource/fraunces/latin-600.css';
+@import '@fontsource/instrument-sans/latin-400.css';
+@import '@fontsource/instrument-sans/latin-500.css';
+@import '@fontsource/instrument-sans/latin-600.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-500.css';
 @import 'tailwindcss';
+
+/*
+ * Un seul thème, le clair, même sur un appareil réglé en sombre (SC-02a,
+ * ADR-0015 § Décision 2). Les composants copiés par la CLI shadcn-svelte
+ * portent des utilitaires `dark:` que Tailwind v4 compile, par défaut, en
+ * `@media (prefers-color-scheme: dark)` : on rattache la variante à une
+ * classe `.dark` qu'aucun écran ne pose jamais — ces utilitaires restent
+ * inertes, sans retoucher les composants.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   color-scheme: light;
-  font-family: system-ui, sans-serif;
 
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /*
+   * Tokens Colibri (noms de canvas) — un seul thème, le clair ; le bloc
+   * `[data-theme="dark"]` du canvas n'est pas repris (ADR-0015 § Décision 2).
+   * Valeurs reprises telles quelles de
+   * `.claude/skills/colibri-cms-design/tokens/colors.css` (bloc clair).
+   */
+  --surface: #f7f6f1;
+  --surface-raised: #ffffff;
+  --surface-sunken: #efede6;
+  --line: #e1dfd6;
+  --line-strong: #838983;
+  --ink: #17201c;
+  --ink-muted: #5b645f;
+  --plumage: #0e6b55;
+  --plumage-soft: #ddf1e8;
+  --on-plumage: #ffffff;
+  --gorge: #b4235a;
+  --gorge-soft: #fbe3ec;
+  --ambre: #8a5a00;
+  --ambre-soft: #fcefd2;
+  --danger: #b42318;
+  --danger-soft: #fde7e5;
+  --on-danger: #ffffff;
+  --info: #1d4f91;
+  --info-soft: #e3ecf9;
+  --overlay: rgba(23, 32, 28, 0.45);
+  --focus-ring: var(--plumage);
+
+  /* Logo (tokens/base.css + guidelines/brand-logo.html) : tracé unique, une
+     seule couleur, en aplat — jamais de valeur littérale hors ce fichier. */
+  --logo: #39362f;
+
+  /* Rayons — coins tenus (tokens/shape.css) : 4/6/10 px, jamais le calcul
+     shadcn depuis un seul `--radius`. La grille de 4 px est déjà celle de
+     Tailwind v4 (`--spacing`) : on ne la redéfinit pas. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* Ombre (tokens/shape.css, bloc clair). */
+  --shadow-raised:
+    0 1px 2px rgba(23, 32, 28, 0.06),
+    0 4px 12px rgba(23, 32, 28, 0.06);
+
+  /* Focus — contour commun, jamais masqué (guidelines/shape-focus.html) :
+     2 px de `--focus-ring`, décalé de 2 px, seulement au clavier. */
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /*
+   * Familles (ADR-0016) : les trois familles du canvas, servies en même
+   * origine ci-dessus — piles de repli (Georgia, system-ui, Menlo)
+   * conservées d'ADR-0015 pour le cas où un fichier ne charge pas (SC-02c).
+   */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+  /*
+   * Échelle typographique (tokens/typography.css) — les écrans consomment
+   * ces tailles/graisses ; ce ticket ne pose que la couche de base (le
+   * `h1`, plus bas), l'habillage propre à chaque écran est hors périmètre.
+   */
+  --display-size: 40px;
+  --display-line: 44px;
+  --display-weight: 600;
+  --display-tracking: -0.02em;
+  --title-size: 28px;
+  --title-line: 34px;
+  --title-weight: 600;
+  --title-tracking: -0.01em;
+  --heading-size: 20px;
+  --heading-line: 28px;
+  --heading-weight: 600;
+  --body-size: 15px;
+  --body-line: 22px;
+  --body-weight: 400;
+  --body-strong-weight: 600;
+  --label-size: 13px;
+  --label-line: 18px;
+  --label-weight: 500;
+  --label-tracking: 0.01em;
+  --caption-size: 12px;
+  --caption-line: 16px;
+  --caption-weight: 400;
+  --code-size: 13px;
+  --code-line: 20px;
+  --code-weight: 400;
+  /* Seul écart assumé au canvas : un champ de saisie sur écran tactile
+     étroit ne descend pas sous 16 px (SC-02e). */
+  --field-size-touch: 16px;
+
+  /*
+   * Alias shadcn — chaque variable pointe un token Colibri ci-dessus,
+   * jamais une valeur propre (ADR-0015 § Décision 3). Les composants copiés
+   * par la CLI (`src/admin/composants/ui/`) continuent de lire ces noms
+   * sans être retouchés.
+   */
+  --background: var(--surface);
+  --foreground: var(--ink);
+  --card: var(--surface-raised);
+  --card-foreground: var(--ink);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--ink);
+  --primary: var(--plumage);
+  --primary-foreground: var(--on-plumage);
+  --secondary: var(--surface-sunken);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-sunken);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--surface-sunken);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--line);
+  --input: var(--line-strong);
+  --ring: var(--focus-ring);
 }
 
 /*
  * Correspondance entre les variables ci-dessus et les tokens de thème
  * Tailwind (v4, CSS-first) : c'est ce bloc qui fait exister les utilitaires
- * `bg-primary`, `text-muted-foreground`, `rounded-[var(--radius-md)]`… que
- * les composants shadcn-svelte copiés dans `src/admin/composants/` utilisent.
+ * `bg-primary`, `text-gorge`, `bg-gorge-soft`, `font-display`… que les
+ * composants shadcn-svelte copiés dans `src/admin/composants/` utilisent.
  */
 @theme inline {
   --color-background: var(--background);
@@ -71,13 +189,107 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Tokens Colibri sans équivalent shadcn — n'existent que sous leur nom de
+     canvas (ADR-0015 § Conséquences négatives) ; leur sémantique (`gorge`
+     pour un seul état) tient à la review, pas à un outil. */
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-plumage: var(--plumage);
+  --color-plumage-soft: var(--plumage-soft);
+  --color-on-plumage: var(--on-plumage);
+  --color-gorge: var(--gorge);
+  --color-gorge-soft: var(--gorge-soft);
+  --color-ambre: var(--ambre);
+  --color-ambre-soft: var(--ambre-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-on-danger: var(--on-danger);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  /* Coins tenus : le plus grand rayon du canvas reste 10 px — `rounded-xl`
+     (carte, boîte de dialogue) ne s'étire pas au-delà. */
+  --radius-xl: var(--radius-lg);
+
+  --shadow-raised: var(--shadow-raised);
+
+  /*
+   * `text-sm` porte le corps de texte de l'interface (boutons, badges,
+   * alertes, champs de saisie…) : on l'aligne sur l'échelle Colibri
+   * (15 px / 22 px) plutôt que sur celle de Tailwind (14 px). C'est aussi ce
+   * qui tient l'exigence de champ de saisie « 16 px sous 768 px, 15 px au-
+   * delà » (SC-02e) sans retoucher `input.svelte`/`textarea.svelte` : ils
+   * posent déjà `text-base md:text-sm`, et `text-base` (16 px) est déjà la
+   * valeur par défaut de Tailwind.
+   */
+  --text-sm: var(--body-size);
+  --text-sm--line-height: var(--body-line);
 }
 
+/*
+ * Couche de base — l'administration prend fond, encre et police du canvas ;
+ * `body` perd son `padding: 2rem` (le socle de mise en page vient d'un
+ * ticket suivant). Les `h1` prennent la famille d'affichage ici : les
+ * écrans ne posent aucun attribut de police sur les leurs.
+ */
 body {
   margin: 0;
-  padding: 2rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--body-size);
+  line-height: var(--body-line);
+}
+
+h1 {
+  font-family: var(--font-display);
+  font-weight: var(--title-weight);
+  letter-spacing: var(--title-tracking);
+}
+
+/*
+ * Champs de saisie (SC-02e) : 16 px sous 768 px — en dessous, iOS agrandit
+ * la page au toucher du champ —, 15 px au-delà. Pour TOUS les champs, pas
+ * seulement ceux des composants (`input.svelte`/`textarea.svelte` posent
+ * déjà `text-base md:text-sm`) : les champs nus des écrans héritaient sinon
+ * des 15 px de `body`. En couche `base`, pour qu'un utilitaire posé sur un
+ * champ garde la main.
+ */
+@layer base {
+  input,
+  textarea,
+  select {
+    font-size: var(--body-size);
+  }
+
+  @media (width < 48rem) {
+    input,
+    textarea,
+    select {
+      font-size: var(--field-size-touch);
+    }
+  }
+}
+
+/*
+ * Focus clavier — contour commun, jamais masqué (SC-02d) : un anneau de
+ * `--focus-ring` (au moins 3:1 sur `--surface`/`--surface-raised`), au
+ * clavier seulement (`:focus-visible`, jamais `:focus`).
+ */
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
