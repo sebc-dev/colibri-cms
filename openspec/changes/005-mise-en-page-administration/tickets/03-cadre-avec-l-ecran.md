@@ -47,8 +47,8 @@ directe, avant ce ticket. Ce ticket **n'ajoute** que des tests.
 bord, demandes, création de page, bandeau d'état de publication.
 
 ## Critères
-- [ ] Sur chacun des quatre écrans cadrés, le menu porte les cinq rubriques et marque active la rubrique de l'écran courant (« Mes pages » sur la liste et l'éditeur, « Médias » sur la bibliothèque et la fiche)   (SC-03a)
-- [ ] La réponse du serveur d'un écran cadré porte déjà le logo, le menu des cinq rubriques avec la rubrique courante marquée, et le contenu de l'écran à l'intérieur du cadre, sans attendre l'exécution d'un script   (SC-03b)
-- [ ] Aucune rubrique autre que « Mes pages » et « Médias » ne mène à un écran, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page   (SC-03c)
-- [ ] Aucun terme de développeur ne paraît dans le menu ni dans les libellés du cadre   (SC-03d)
-- [ ] Le cadre est servi sous la politique de sécurité stricte de l'administration, sans script en ligne ni directive `client:*`   (SC-03e)
+- [x] Sur chacun des quatre écrans cadrés, le menu porte les cinq rubriques et marque active la rubrique de l'écran courant (« Mes pages » sur la liste et l'éditeur, « Médias » sur la bibliothèque et la fiche)   (SC-03a)
+- [x] La réponse du serveur d'un écran cadré porte déjà le logo, le menu des cinq rubriques avec la rubrique courante marquée, et le contenu de l'écran à l'intérieur du cadre, sans attendre l'exécution d'un script   (SC-03b)
+- [x] Aucune rubrique autre que « Mes pages » et « Médias » ne mène à un écran, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page   (SC-03c)
+- [x] Aucun terme de développeur ne paraît dans le menu ni dans les libellés du cadre   (SC-03d)
+- [x] Le cadre est servi sous la politique de sécurité stricte de l'administration, sans script en ligne ni directive `client:*`   (SC-03e)
