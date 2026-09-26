@@ -135,8 +135,10 @@ async function lireDernierUsage(db: DBLike, id: string): Promise<number | null> 
   return (resultat.results as { dernier_usage_le: number | null }[]).at(0)?.dernier_usage_le ?? null;
 }
 
-async function accederAAccueil(cookieSession: string | null): Promise<Response> {
-  return exports.default.fetch(new Request('https://example.com/admin/', {
+// Sonde : « Mes pages », un écran gardé qui répond 200 à une session valide.
+// L'accueil `/admin/` n'en est plus un : il renvoie vers « Mes pages » (change 005, ticket 01).
+async function accederAUnEcranGarde(cookieSession: string | null): Promise<Response> {
+  return exports.default.fetch(new Request('https://example.com/admin/mes-pages', {
     redirect: 'manual',
     headers: cookieSession ? { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` } : {},
   }));
@@ -196,7 +198,7 @@ function poserEspionEcheresSessions(dbOriginal: DBLike): {
 
 async function effectuerRafaleDeRequetes(cookieSession: string, nombre: number): Promise<void> {
   for (let i = 0; i < nombre; i += 1) {
-    await accederAAccueil(cookieSession);
+    await accederAUnEcranGarde(cookieSession);
   }
 }
 
@@ -213,7 +215,7 @@ it('une session dont le dernier usage remonte à plus de sept jours redirige ver
     dernierUsageLe: ilYAPlusDeSeptJours,
   });
 
-  const reponse = await accederAAccueil('jeton-c1-sept-jours-inactive');
+  const reponse = await accederAUnEcranGarde('jeton-c1-sept-jours-inactive');
 
   expect(REDIRECT_STATUSES).toContain(reponse.status);
   expect(cheminDeLocation(reponse)).toMatch(PATH_CONNEXION_RE);
@@ -232,7 +234,7 @@ it('une session ouverte il y a plus de trente jours redirige vers la connexion, 
     dernierUsageLe: maintenant - 1_000, // « utilisée » il y a une seconde : simule un usage quotidien jusqu'à aujourd'hui.
   });
 
-  const reponse = await accederAAccueil('jeton-c2-trente-jours-butee');
+  const reponse = await accederAUnEcranGarde('jeton-c2-trente-jours-butee');
 
   expect(REDIRECT_STATUSES).toContain(reponse.status);
   expect(cheminDeLocation(reponse)).toMatch(PATH_CONNEXION_RE);
@@ -240,7 +242,7 @@ it('une session ouverte il y a plus de trente jours redirige vers la connexion, 
 
 // --- c3 — un usage à l'intérieur de la fenêtre repousse l'échéance des sept jours ---
 
-it('accéder à l’accueil à l’intérieur de la fenêtre des sept jours repousse la date de dernier usage en base', async () => {
+it('accéder à un écran gardé à l’intérieur de la fenêtre des sept jours repousse la date de dernier usage en base', async () => {
   const db = await assurerSchema();
   const maintenant = Date.now();
   const justeAvantSeptJours = maintenant - SEPT_JOURS_MS + 60 * 60 * 1000; // à une heure de l'échéance.
@@ -251,7 +253,7 @@ it('accéder à l’accueil à l’intérieur de la fenêtre des sept jours repo
     dernierUsageLe: justeAvantSeptJours,
   });
 
-  const reponse = await accederAAccueil('jeton-c3-usage-repousse');
+  const reponse = await accederAUnEcranGarde('jeton-c3-usage-repousse');
   const dernierUsageApres = await lireDernierUsage(db, 'jeton-c3-usage-repousse');
 
   expect(reponse.status).toBe(200);
@@ -307,9 +309,9 @@ it('une session valide reste accessible avant et après qu’une autre, expirée
     dernierUsageLe: ilYAPlusDeSeptJours,
   });
 
-  const avant = await accederAAccueil('jeton-c5-active');
-  const autreSession = await accederAAccueil('jeton-c5-expiree');
-  const apres = await accederAAccueil('jeton-c5-active');
+  const avant = await accederAUnEcranGarde('jeton-c5-active');
+  const autreSession = await accederAUnEcranGarde('jeton-c5-expiree');
+  const apres = await accederAUnEcranGarde('jeton-c5-active');
 
   expect(avant.status).toBe(200);
   expect(REDIRECT_STATUSES).toContain(autreSession.status);
