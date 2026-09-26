@@ -1,0 +1,91 @@
+---
+/**
+ * Le menu des cinq rubriques de l'administration (ticket 03,
+ * openspec/changes/005-mise-en-page-administration/tickets/
+ * 03-cadre-avec-l-ecran.md, SC-03a/SC-03c/SC-03d).
+ *
+ * Une seule liste, une seule source : `GabaritCadre.astro` le rend une fois
+ * (dans la barre latérale) à ce ticket ; il sera rendu une seconde fois
+ * (dans le tiroir du téléphone) au ticket suivant (04) sans qu'aucune
+ * rubrique ne porte alors `aria-current="page"` deux fois pour la même
+ * instance — chaque rendu porte son propre marquage, dérivé de la même
+ * prop `rubrique`.
+ *
+ * Seules « Mes pages » et « Médias » mènent à un écran servi (`href`) :
+ * elles seules SC-03c. Les trois autres (Réglages, Formulaires, Demandes)
+ * situent la navigation sans lien ni bouton — rien qui « offre » un geste
+ * vers un écran qui n'existe pas encore, et rien qui ressemble à un geste
+ * d'ajout, de retrait, de déplacement ou de renommage de rubrique ou de
+ * page.
+ *
+ * Les icônes `@lucide/svelte` sont des composants Svelte placés ici sans
+ * directive `client:*` : Astro les rend en HTML statique, sans script
+ * (invariant `I4`, ADR-0006) — c'est ce qui rend le menu déjà présent dans
+ * la réponse du serveur (SC-03b), sans attendre l'exécution d'un script.
+ *
+ * Libellés repris tels quels de l'ancien `Cadre.svelte` (ticket 01) —
+ * aucun terme de développeur (SC-03d).
+ */
+import type { LucideIcon } from '@lucide/svelte';
+import Files from '@lucide/svelte/icons/files';
+import ImageIcon from '@lucide/svelte/icons/image';
+import Settings from '@lucide/svelte/icons/settings';
+import ClipboardList from '@lucide/svelte/icons/clipboard-list';
+import Mail from '@lucide/svelte/icons/mail';
+
+export type IdRubriqueServie = 'mes-pages' | 'medias';
+type IdRubrique = IdRubriqueServie | 'reglages' | 'formulaires' | 'demandes';
+
+interface Props {
+  rubrique: IdRubriqueServie;
+}
+
+const { rubrique } = Astro.props;
+
+const ICONES: Readonly<Record<IdRubrique, LucideIcon>> = {
+  'mes-pages': Files,
+  medias: ImageIcon,
+  reglages: Settings,
+  formulaires: ClipboardList,
+  demandes: Mail,
+};
+
+const RUBRIQUES: ReadonlyArray<{ readonly id: IdRubrique; readonly libelle: string; readonly href: string | null }> =
+  [
+    { id: 'mes-pages', libelle: 'Mes pages', href: '/admin/mes-pages' },
+    { id: 'medias', libelle: 'Médias', href: '/admin/medias' },
+    { id: 'reglages', libelle: 'Réglages', href: null },
+    { id: 'formulaires', libelle: 'Formulaires', href: null },
+    { id: 'demandes', libelle: 'Demandes', href: null },
+  ];
+---
+
+<nav>
+  <ul class="flex flex-col gap-1">
+    {
+      RUBRIQUES.map((item) => {
+        const Icone = ICONES[item.id];
+        const actif = item.id === rubrique;
+        const classes = [
+          'flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm',
+          actif ? 'bg-primary text-primary-foreground font-medium' : 'text-muted-foreground',
+        ].join(' ');
+        return (
+          <li>
+            {item.href ? (
+              <a href={item.href} class={classes} aria-current={actif ? 'page' : undefined}>
+                <Icone class="size-4 shrink-0" aria-hidden="true" />
+                <span>{item.libelle}</span>
+              </a>
+            ) : (
+              <span class={classes}>
+                <Icone class="size-4 shrink-0" aria-hidden="true" />
+                <span>{item.libelle}</span>
+              </span>
+            )}
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>

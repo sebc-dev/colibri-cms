@@ -42,7 +42,7 @@
  * couple dont la page n'existe plus (déclaration modifiée depuis
  * l'écriture du brouillon) est ignoré plutôt que de faire échouer la fiche.
  */
-import Gabarit from '../../../admin/Gabarit.astro';
+import GabaritCadre from '../../../admin/GabaritCadre.astro';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirFicheMediaBrouillon } from '../../../platform/medias/magasin.ts';
 import {
@@ -80,7 +80,7 @@ for (const reference of references) {
 }
 ---
 
-<Gabarit titre={`${media.nomAffichage} — Médias — Administration`}>
+<GabaritCadre titre={`${media.nomAffichage} — Médias — Administration`} rubrique="medias">
   <div
     id="ilot-fiche-media"
     data-media={JSON.stringify(media)}
@@ -91,4 +91,4 @@ for (const reference of references) {
 
     monterEcranFicheMedia('ilot-fiche-media');
   </script>
-</Gabarit>
+</GabaritCadre>
