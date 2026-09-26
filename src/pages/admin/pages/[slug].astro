@@ -7,11 +7,11 @@
  * 003-remplir-emplacements/tickets/05-regler-lien-video.md).
  *
  * Route sous `src/pages/admin/`, gardée par `verifierSession` (ADR-0007),
- * même patron que `mes-pages.astro` (ticket 02) : le contenu utile (fil de
- * retour, titre, emplacements) est rendu directement dans le point de
- * montage `#ilot-cadre`, puis `monterCadreAvecContenu` (ticket 02) monte le
- * cadre (ticket 01) autour de lui, côté client (îlot monté par script seul,
- * ADR-0006).
+ * même patron que `mes-pages.astro` (ticket 02). Ticket 03
+ * (openspec/changes/005-mise-en-page-administration/tickets/
+ * 03-cadre-avec-l-ecran.md, SC-03b) : le cadre (logo, menu) n'est plus un
+ * îlot monté après coup mais `GabaritCadre.astro`, qui enveloppe cet écran
+ * — le point de montage `#ilot-cadre` disparaît.
  *
  * Ticket 03 posait la PRÉSENTATION par nature, sans moyen d'édition
  * fonctionnel. Ticket 04 a ajouté le moyen d'édition d'un emplacement de
@@ -74,7 +74,7 @@
  * silencieuse : même principe de garde que `verifierSession` ci-dessous, qui
  * redirige plutôt que d'échouer.
  */
-import Gabarit from '../../../admin/Gabarit.astro';
+import GabaritCadre from '../../../admin/GabaritCadre.astro';
 import { libelleCompteImages } from '../../../admin/ilots-svelte-5/libelle-compte-images.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
@@ -120,110 +120,107 @@ const page = {
 };
 ---
 
-<Gabarit titre={`${page.titre} — Administration`}>
-  <div id="ilot-cadre">
-    <p><a href="/admin/mes-pages">Mes pages</a></p>
-    <h1>
-      {page.titre}
-      <span id="zone-pastille-brouillon">
-        {porteUnBrouillon && <span data-pastille-brouillon> • brouillon</span>}
-      </span>
-    </h1>
-    <ul>
-      {
-        page.emplacements.map((emplacement) => (
-          <li>
-            {emplacement.nature === 'texte-riche' && (
-              <div>
-                <p>Texte riche</p>
-                <div
-                  data-emplacement-texte-riche
-                  data-slug={slug}
-                  data-id-emplacement={emplacement.id}
-                  data-markdown={emplacement.contenu}
-                >
-                  <p>{emplacement.contenu}</p>
-                </div>
+<GabaritCadre titre={`${page.titre} — Administration`} rubrique="mes-pages">
+  <p><a href="/admin/mes-pages">Mes pages</a></p>
+  <h1>
+    {page.titre}
+    <span id="zone-pastille-brouillon">
+      {porteUnBrouillon && <span data-pastille-brouillon> • brouillon</span>}
+    </span>
+  </h1>
+  <ul>
+    {
+      page.emplacements.map((emplacement) => (
+        <li>
+          {emplacement.nature === 'texte-riche' && (
+            <div>
+              <p>Texte riche</p>
+              <div
+                data-emplacement-texte-riche
+                data-slug={slug}
+                data-id-emplacement={emplacement.id}
+                data-markdown={emplacement.contenu}
+              >
+                <p>{emplacement.contenu}</p>
               </div>
-            )}
-            {emplacement.nature === 'lien-video' && (
-              <div>
-                <p>Lien de la vidéo</p>
-                <div
-                  data-emplacement-lien-video
-                  data-slug={slug}
-                  data-id-emplacement={emplacement.id}
-                  data-lien={emplacement.lien}
-                >
-                  <p>{emplacement.lien}</p>
-                </div>
+            </div>
+          )}
+          {emplacement.nature === 'lien-video' && (
+            <div>
+              <p>Lien de la vidéo</p>
+              <div
+                data-emplacement-lien-video
+                data-slug={slug}
+                data-id-emplacement={emplacement.id}
+                data-lien={emplacement.lien}
+              >
+                <p>{emplacement.lien}</p>
               </div>
-            )}
-            {emplacement.nature === 'bouton-action' && (
-              <div>
-                <p>Bouton d’action</p>
-                <div
-                  data-emplacement-bouton-action
-                  data-slug={slug}
-                  data-id-emplacement={emplacement.id}
-                  data-libelle={emplacement.libelle}
-                  data-destination={emplacement.destination}
-                >
-                  <p>Libellé : {emplacement.libelle}</p>
-                  <p>Destination : {emplacement.destination}</p>
-                </div>
+            </div>
+          )}
+          {emplacement.nature === 'bouton-action' && (
+            <div>
+              <p>Bouton d’action</p>
+              <div
+                data-emplacement-bouton-action
+                data-slug={slug}
+                data-id-emplacement={emplacement.id}
+                data-libelle={emplacement.libelle}
+                data-destination={emplacement.destination}
+              >
+                <p>Libellé : {emplacement.libelle}</p>
+                <p>Destination : {emplacement.destination}</p>
               </div>
-            )}
-            {emplacement.nature === 'image' && (
-              <div>
-                <p>Image</p>
-                <div
-                  data-emplacement-image
-                  data-slug={slug}
-                  data-id-emplacement={emplacement.id}
-                  data-media-id={emplacement.mediaId}
-                  data-medias={JSON.stringify(mediasDisponibles)}
-                >
-                  <p>Une image est posée à cet emplacement.</p>
-                </div>
+            </div>
+          )}
+          {emplacement.nature === 'image' && (
+            <div>
+              <p>Image</p>
+              <div
+                data-emplacement-image
+                data-slug={slug}
+                data-id-emplacement={emplacement.id}
+                data-media-id={emplacement.mediaId}
+                data-medias={JSON.stringify(mediasDisponibles)}
+              >
+                <p>Une image est posée à cet emplacement.</p>
               </div>
-            )}
-            {emplacement.nature === 'galerie' && (
-              <div>
-                <p>Galerie</p>
-                <div
-                  data-emplacement-galerie
-                  data-slug={slug}
-                  data-id-emplacement={emplacement.id}
-                  data-media-ids={JSON.stringify(emplacement.mediaIds)}
-                  data-medias={JSON.stringify(mediasDisponibles)}
-                >
-                  <p>{libelleCompteImages(emplacement.mediaIds.length, 'galerie')}</p>
-                </div>
+            </div>
+          )}
+          {emplacement.nature === 'galerie' && (
+            <div>
+              <p>Galerie</p>
+              <div
+                data-emplacement-galerie
+                data-slug={slug}
+                data-id-emplacement={emplacement.id}
+                data-media-ids={JSON.stringify(emplacement.mediaIds)}
+                data-medias={JSON.stringify(mediasDisponibles)}
+              >
+                <p>{libelleCompteImages(emplacement.mediaIds.length, 'galerie')}</p>
               </div>
-            )}
-            {emplacement.nature === 'carrousel' && (
-              <div>
-                <p>Carrousel</p>
-                <div
-                  data-emplacement-carrousel
-                  data-slug={slug}
-                  data-id-emplacement={emplacement.id}
-                  data-media-ids={JSON.stringify(emplacement.mediaIds)}
-                  data-medias={JSON.stringify(mediasDisponibles)}
-                >
-                  <p>{libelleCompteImages(emplacement.mediaIds.length, 'carrousel')}</p>
-                </div>
+            </div>
+          )}
+          {emplacement.nature === 'carrousel' && (
+            <div>
+              <p>Carrousel</p>
+              <div
+                data-emplacement-carrousel
+                data-slug={slug}
+                data-id-emplacement={emplacement.id}
+                data-media-ids={JSON.stringify(emplacement.mediaIds)}
+                data-medias={JSON.stringify(mediasDisponibles)}
+              >
+                <p>{libelleCompteImages(emplacement.mediaIds.length, 'carrousel')}</p>
               </div>
-            )}
-          </li>
-        ))
-      }
-    </ul>
-  </div>
+            </div>
+          )}
+        </li>
+      ))
+    }
+  </ul>
   <script>
     import {
-      monterCadreAvecContenu,
       monterCorrectionsBoutonAction,
       monterReglagesLienVideo,
       monterCorrectionsTexteRiche,
@@ -232,7 +229,6 @@ const page = {
       monterEmplacementsCarrousel,
     } from '../../../admin/ilots-svelte-5/monter.ts';
 
-    monterCadreAvecContenu('ilot-cadre');
     monterCorrectionsBoutonAction();
     monterReglagesLienVideo();
     monterCorrectionsTexteRiche();
@@ -240,4 +236,4 @@ const page = {
     monterEmplacementsGalerie();
     monterEmplacementsCarrousel();
   </script>
-</Gabarit>
+</GabaritCadre>

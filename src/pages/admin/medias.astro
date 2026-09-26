@@ -19,6 +19,12 @@
  * mode `observé` (la grille ne se constate qu'à l'œil, une fois le script
  * exécuté par un navigateur).
  *
+ * Ticket 03 (openspec/changes/005-mise-en-page-administration/tickets/
+ * 03-cadre-avec-l-ecran.md, SC-03b) : le cadre (logo, menu, rubrique
+ * « Médias » marquée) n'est plus rendu par `EcranMedias` lui-même
+ * (`Cadre.svelte`, supprimé) mais par `GabaritCadre.astro`, qui enveloppe
+ * cette route — `EcranMedias` ne rend plus que la réserve.
+ *
  * Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
  * 10-signaler-images-orphelines.md, SC-10a/b) : c'est ICI, et non dans un
  * magasin `platform/`, que se compose le signalement des images orphelines
@@ -28,7 +34,7 @@
  * références brouillon dont elle a besoin pour dériver `effacable` par
  * image.
  */
-import Gabarit from '../../admin/Gabarit.astro';
+import GabaritCadre from '../../admin/GabaritCadre.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { listerMediasBrouillon } from '../../platform/medias/magasin.ts';
 import { listerReferencesMediasBrouillon } from '../../platform/brouillons/magasin.ts';
@@ -43,11 +49,11 @@ const referencesBrouillon = await listerReferencesMediasBrouillon(env.DB);
 const medias = await listerMediasBrouillon(env.DB, referencesBrouillon);
 ---
 
-<Gabarit titre="Médias — Administration">
+<GabaritCadre titre="Médias — Administration" rubrique="medias">
   <div id="ilot-medias" data-medias={JSON.stringify(medias)}></div>
   <script>
     import { monterEcranMedias } from '../../admin/ilots-svelte-5/monter.ts';
 
     monterEcranMedias('ilot-medias');
   </script>
-</Gabarit>
+</GabaritCadre>
