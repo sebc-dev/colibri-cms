@@ -55,8 +55,9 @@ Suivi de la décision humaine déjà prise pour 005 : SC-07b à SC-07f ne bloque
 part navigateur part à la recette globale de fin de mise en page (cahier de recette § 20, CT-20.1 à
 CT-20.8). J'ai rejoué la review à la main (8 dimensions, triage) : 13 findings, tous écartés au
 triage, aucun bloquant. `analyse` relevait une interpolation non typée dans le test neuf, corrigée.
-J'ai coché SC-07a, laissé SC-07b à SC-07f ouverts. Reste à l'humain : confirmer la règle d'adresse
-(`accueil` → `/`, sinon `/<identifiant>`), que le change ne fixe nulle part.
+J'ai coché SC-07a, laissé SC-07b à SC-07f ouverts. Arbitrage humain sur la PR : la règle d'adresse
+(`accueil` → `/`, sinon `/<identifiant>`) est validée et inscrite au design.md (§D5) ; `adresseDeLaPage`
+passe dans `src/core/pages/declaration.ts`, et le module de navigation retrouve sa documentation.
 
 ## Écarté
 - Relancer le run tel quel : le verifier rebloquerait sur les mêmes critères.
