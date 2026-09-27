@@ -18,14 +18,9 @@
   Aucune directive `client:*` (ADR-0006) : monté par un point d'entrée
   externe (`monter.ts`), même patron que `ActionRapide.svelte`.
 
-  Ticket 08 (openspec/changes/005-mise-en-page-administration/tickets/
-  08-editeur-emplacements-texte.md, SC-08a/b/c/e/f) : la carte qui héberge
-  cet îlot vit dans `[slug].astro` (inchangée ici) ; ce fichier n'habille
-  que son propre contenu (champs, bouton `plumage`, refus en `danger`).
-  Cibles de 44 px sur écran étroit, bouton en pleine largeur sous `md`
-  (SC-08a/e). Aucune contrainte de test ne porte sur ce balisage (aucun
-  import `?raw` de ce fichier) : libre de composer les champs autrement,
-  pourvu que le geste (POST, libellé/destination) ne change pas.
+  Habillage : ticket 08 (005-mise-en-page-administration). Aucun test
+  n'importe ce fichier en `?raw` : ses deux champs peuvent être composés
+  autrement, pourvu que le geste (POST, libellé/destination) ne change pas.
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';

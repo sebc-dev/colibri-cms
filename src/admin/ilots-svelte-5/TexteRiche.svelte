@@ -29,16 +29,10 @@
   Aucune directive `client:*` (ADR-0006) : monté par un point d'entrée
   externe (`monter.ts`), même patron que `ReglageLienVideo.svelte`.
 
-  Ticket 08 (openspec/changes/005-mise-en-page-administration/tickets/
-  08-editeur-emplacements-texte.md, SC-08a/b/c/e/f) : la carte qui héberge
-  cet îlot vit dans `[slug].astro` (inchangée ici) ; ce fichier n'habille
-  que son propre contenu — la barre de mise en forme (boutons `Button`,
-  variante `outline`), la zone d'édition TipTap et le bouton « Enregistrer »
-  (`plumage`, libellé inchangé pendant l'enregistrement, SC-08c) ; un refus
-  s'affiche en `danger` (SC-08b). Cibles de 44 px sur écran étroit
-  (`max-md:min-h-11 max-md:min-w-11`), boutons en pleine largeur sous `md`
-  (SC-08a/e). Couleurs et polices : tokens seuls (`I14`) — jamais de valeur
-  littérale hors `admin.css`.
+  Habillage : ticket 08 (005-mise-en-page-administration). La barre de mise
+  en forme est faite de `Button` en variante `outline`, carrés de 44 px sur
+  écran étroit (`max-md:min-h-11 max-md:min-w-11`) ; couleurs et polices en
+  tokens seuls (`I14`), jamais de valeur littérale hors `admin.css`.
 -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';

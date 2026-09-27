@@ -18,13 +18,9 @@
   Aucune directive `client:*` (ADR-0006) : monté par un point d'entrée
   externe (`monter.ts`), même patron que `CorrectionBoutonAction.svelte`.
 
-  Ticket 08 (openspec/changes/005-mise-en-page-administration/tickets/
-  08-editeur-emplacements-texte.md, SC-08a/b/c/e/f) : la carte qui héberge
-  cet îlot vit dans `[slug].astro` (inchangée ici) ; ce fichier n'habille
-  que son propre contenu (champ, bouton `plumage`, refus en `danger`). Le
-  champ d'étiquette reste posé sans attribut (regarder `tests/integration/
-  regler-lien-video.test.ts`, SC-05e, avant d'y toucher) ; cible de 44 px sur
-  écran étroit, bouton en pleine largeur sous `md` (SC-08a/e).
+  Habillage : ticket 08 (005-mise-en-page-administration). L'étiquette du
+  champ reste une balise label nue, sans attribut : SC-05e la repère telle
+  quelle dans la source (`tests/integration/regler-lien-video.test.ts`).
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
