@@ -1,7 +1,7 @@
 # Run bloqué — le cadre avec l'écran
 
 Portée : 005-mise-en-page-administration · ticket 03
-Ouvert le 2026-09-26 · branche `impl/cadre-avec-l-ecran-03` (worktree, aucun commit) · HEAD `48c4d92`
+Ouvert le 2026-09-26 · Clos le 2026-09-27 · branche `impl/cadre-avec-l-ecran-03` (worktree, aucun commit) · HEAD `48c4d92`
 
 ## Objectif
 Envelopper les quatre écrans dans `GabaritCadre.astro` (logo + `MenuRubriques.astro`) et retirer les
@@ -33,6 +33,14 @@ Dans le worktree, réécrire les l. 191-199 et 281 du test sous la forme ci-dess
 d'assertion. Rejouer ensuite `analyse` puis le test du ticket, puis commiter et ouvrir la PR à la main.
 Décider enfin du sort de `knip` : `ignoreDependencies` pour `bits-ui`, ou attendre qu'un ticket 04-11
 rebranche tooltip ou dialog.
+
+## Issue
+J'ai repris le test dans son worktree : `re.exec(x)` au lieu de `x.match(re)`, et une garde
+`if (c === null) throw` après chaque `expect(...).not.toBeNull()`, sans retirer d'assertion.
+J'ai ensuite resserré SC-03b : le contenu se cherche dans `<main>` et le logo dans le cadre. Le rejeu
+adverse a fait rougir les deux sabotages. `knip` : `bits-ui` est en `ignoreDependencies` et les types de
+`lib/utils.ts` sont en `ignoreIssues`, avec la fiche en-attente `2026-09-27-bits-ui-ignore-par-knip.md`.
+Livré par #115.
 
 ## Écarté
 - `eslint-disable` sur le test, ou un assouplissement de `eslint.config.analyse.js` : ce sont des
