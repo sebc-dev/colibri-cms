@@ -1,0 +1,45 @@
+---
+/**
+ * Le cadre commun aux écrans d'administration, rendu par le serveur (ticket
+ * 03, openspec/changes/005-mise-en-page-administration/tickets/
+ * 03-cadre-avec-l-ecran.md).
+ *
+ * Enveloppe `Gabarit.astro` (ticket 01) : le logo, le menu des cinq
+ * rubriques (`MenuRubriques.astro`) et le contenu de l'écran (`<slot/>`)
+ * arrivent tous dans la même réponse HTTP, sans attendre l'exécution d'un
+ * script (SC-03b) — l'ancien îlot `Cadre.svelte`, monté après coup par
+ * `monterCadre`/`monterCadreAvecContenu`, est supprimé par ce ticket.
+ *
+ * À ce ticket, la barre latérale s'affiche à toutes les largeurs et ne
+ * porte pas encore de bouton de repli : le repli et le tiroir du téléphone
+ * arrivent au ticket suivant (04), hors périmètre ici. Aucune directive
+ * `client:*`, aucun style en ligne, aucun `<script>` : la politique de
+ * sécurité stricte de l'administration n'est pas touchée (SC-03e, ADR-0004,
+ * ADR-0008, `I11`, `I12`).
+ */
+import Gabarit from './Gabarit.astro';
+import Logo from './Logo.astro';
+import MenuRubriques, { type IdRubriqueServie } from './MenuRubriques.astro';
+
+interface Props {
+  titre: string;
+  rubrique: IdRubriqueServie;
+}
+
+const { titre, rubrique } = Astro.props;
+---
+
+<Gabarit titre={titre}>
+  <div class="flex min-h-dvh bg-background text-foreground">
+    <aside
+      class="flex w-56 shrink-0 flex-col gap-4 border-r border-border bg-card p-3"
+      aria-label="Menu de l'administration"
+    >
+      <Logo class="h-8 w-8 self-start" />
+      <MenuRubriques rubrique={rubrique} />
+    </aside>
+    <main class="min-w-0 flex-1 p-8">
+      <slot />
+    </main>
+  </div>
+</Gabarit>
