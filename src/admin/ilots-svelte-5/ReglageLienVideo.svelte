@@ -17,6 +17,10 @@
 
   Aucune directive `client:*` (ADR-0006) : monté par un point d'entrée
   externe (`monter.ts`), même patron que `CorrectionBoutonAction.svelte`.
+
+  Habillage : ticket 08 (005-mise-en-page-administration). L'étiquette du
+  champ reste une balise label nue, sans attribut : SC-05e la repère telle
+  quelle dans la source (`tests/integration/regler-lien-video.test.ts`).
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
@@ -82,13 +86,18 @@
   }
 </script>
 
-<form onsubmit={enregistrer}>
+<form onsubmit={enregistrer} class="flex flex-col gap-3">
   <label>
-    Lien de la vidéo
-    <input type="text" bind:value={lien} required />
+    <span class="mb-1 block text-sm font-medium text-ink">Lien de la vidéo</span>
+    <input
+      type="text"
+      bind:value={lien}
+      required
+      class="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-ink-muted focus-visible:border-ring max-md:min-h-11 md:text-sm"
+    />
   </label>
-  <Button type="submit" disabled={enCours}>Enregistrer</Button>
+  <Button type="submit" disabled={enCours} class="w-full max-md:min-h-11 md:w-auto">Enregistrer</Button>
   {#if messageErreur}
-    <p role="alert">{messageErreur}</p>
+    <p role="alert" class="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{messageErreur}</p>
   {/if}
 </form>
