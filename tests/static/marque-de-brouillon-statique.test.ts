@@ -71,8 +71,8 @@ it('SC-05b — pastille-brouillon.ts garde son garde-fou anti-doublon : la marqu
 });
 
 it('SC-05c — aucun fichier admin autre que MarqueBrouillon.astro ne porte la couleur gorge', async () => {
-  // Arrange : toute la source servie sous l'administration (gabarits Astro
-  // et scripts de module) — le composant `MarqueBrouillon.astro` lui-même
+  // Arrange : toute la source servie sous l'administration (gabarits Astro,
+  // scripts de module et îlots Svelte, qui portent boutons et liens) — le composant `MarqueBrouillon.astro` lui-même
   // est l'unique exception attendue (SOURCE UNIQUE du badge, voir son en-tête).
   const fichiersAstro = import.meta.glob('/src/{admin,pages/admin}/**/*.astro', {
     query: '?raw',
@@ -84,7 +84,13 @@ it('SC-05c — aucun fichier admin autre que MarqueBrouillon.astro ne porte la c
     import: 'default',
     eager: true,
   });
-  const fichiers = { ...fichiersAstro, ...fichiersScripts };
+  const fichiersSvelte = import.meta.glob('/src/{admin,pages/admin}/**/*.svelte', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  });
+  expect(Object.keys(fichiersSvelte).length, 'aucun îlot Svelte admin trouvé').toBeGreaterThan(0);
+  const fichiers = { ...fichiersAstro, ...fichiersScripts, ...fichiersSvelte };
 
   expect(Object.keys(fichiers).length, 'aucune source admin trouvée').toBeGreaterThan(0);
 
