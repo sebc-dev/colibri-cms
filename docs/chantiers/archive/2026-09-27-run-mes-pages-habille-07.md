@@ -1,7 +1,7 @@
 # Run bloqué — « Mes pages » habillé
 
 Portée : 005-mise-en-page-administration · ticket 07
-Ouvert le 2026-09-27 · branche `impl/mes-pages-habille-07` (séquentiel) · HEAD `f1b63e0`
+Ouvert le 2026-09-27 · Clos le 2026-09-27 · branche `impl/mes-pages-habille-07` (séquentiel) · HEAD `f1b63e0`
 
 ## Objectif
 Habiller l'écran « Mes pages » : une carte, une ligne par page avec son adresse sur le site en
@@ -49,6 +49,14 @@ Suivre la voie de la recette globale de fin de front (précédents : tickets 06 
 Ajouter SC-07b à SC-07f au cahier et à l'artefact de recette dans un § dédié au ticket 07, cocher
 SC-07a, rejouer `/scd-spec-dev:review` sur la branche (la review n'a pas joué), puis ouvrir la PR
 à la main.
+
+## Issue
+Suivi de la décision humaine déjà prise pour 005 : SC-07b à SC-07f ne bloquent pas le ticket, leur
+part navigateur part à la recette globale de fin de mise en page (cahier de recette § 20, CT-20.1 à
+CT-20.8). J'ai rejoué la review à la main (8 dimensions, triage) : 13 findings, tous écartés au
+triage, aucun bloquant. `analyse` relevait une interpolation non typée dans le test neuf, corrigée.
+J'ai coché SC-07a, laissé SC-07b à SC-07f ouverts. Reste à l'humain : confirmer la règle d'adresse
+(`accueil` → `/`, sinon `/<identifiant>`), que le change ne fixe nulle part.
 
 ## Écarté
 - Relancer le run tel quel : le verifier rebloquerait sur les mêmes critères.
