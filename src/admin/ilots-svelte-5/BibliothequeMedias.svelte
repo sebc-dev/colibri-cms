@@ -29,12 +29,28 @@
   vaut `true` (ticket 10) : une image tout juste téléversée n'est encore
   posée dans aucun emplacement.
 
-  Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
-  10-signaler-images-orphelines.md, SC-10a/b) : chaque vignette porte la
-  marque `TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT` (`../textes.ts`) quand
-  `media.effacable` (posé côté serveur par `listerMediasBrouillon`,
+  Ticket 10 du change 004 (openspec/changes/004-bibliotheque-de-medias/
+  tickets/10-signaler-images-orphelines.md, SC-10a/b) : chaque vignette
+  porte la marque `TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT` (`../textes.ts`)
+  quand `media.effacable` (posé côté serveur par `listerMediasBrouillon`,
   `src/platform/medias/magasin.ts`) — jamais un terme de développeur
   (« orpheline », « référence »).
+
+  Ticket 10 du change 005 (openspec/changes/005-mise-en-page-administration/
+  tickets/10-medias-habille.md) : l'habillage de cet écran, sans changer un
+  seul geste ni un seul texte. Le titre porte la police d'affichage
+  (`h1`, Fraunces — couche de base, `admin.css`), le bouton « Téléverser »
+  est l'action principale (`Button` par défaut = `plumage`), la recherche
+  utilise les composants `Label`/`Input` du registre. Un refus de
+  téléversement (SC-10b) et le signalement d'une image orpheline (SC-10f)
+  passent par `Alert`/un texte `ambre`, jamais par une couleur littérale
+  (`I14`). Sous `md` (768 px, point de rupture unique du change) : l'action
+  de téléversement passe en pleine largeur sous le titre, la grille se
+  resserre à deux vignettes par rangée (SC-10a), et chaque élément
+  actionnable garde une cible d'au moins 44 × 44 px (SC-10e, `max-md:min-h-11`
+  sur le bouton « Téléverser » et le champ de recherche — la largeur d'au
+  moins 44 px vient de `w-full` sous `md` sur ces deux éléments, pas de
+  `min-w-11` — même patron que `src/pages/admin/connexion.astro`, ticket 06).
 
   La recherche (SC-05f) filtre en mémoire sur le nom d'origine, seul champ
   que ce magasin porte à ce ticket (le nom d'affichage et la description
@@ -47,6 +63,10 @@
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
+  import { Input } from '../composants/ui/input/index.ts';
+  import { Label } from '../composants/ui/label/index.ts';
+  import { Alert, AlertDescription } from '../composants/ui/alert/index.ts';
+  import VignetteMedia from './VignetteMedia.svelte';
   import type { MediaListe } from '../../platform/medias/magasin.ts';
   import {
     TEXTE_BIBLIOTHEQUE_VIDE,
@@ -116,8 +136,8 @@
 </script>
 
 <div class="flex flex-col gap-6">
-  <div class="flex items-center justify-between gap-4">
-    <h1 class="text-xl font-semibold">Médias</h1>
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <h1>Médias</h1>
     <input
       bind:this={entreeFichier}
       type="file"
@@ -125,50 +145,49 @@
       class="sr-only"
       onchange={televerser}
     />
-    <Button type="button" onclick={() => entreeFichier?.click()} disabled={enCours}>
+    <Button
+      type="button"
+      onclick={() => entreeFichier?.click()}
+      disabled={enCours}
+      class="w-full max-md:min-h-11 md:w-auto"
+    >
       {TEXTE_BOUTON_TELEVERSER}
     </Button>
   </div>
 
-  <label class="flex flex-col gap-1 text-sm">
-    <span>{TEXTE_LIBELLE_RECHERCHE_MEDIAS}</span>
-    <input
+  {#if messageErreur}
+    <Alert variant="destructive">
+      <AlertDescription>{messageErreur}</AlertDescription>
+    </Alert>
+  {/if}
+
+  <div class="flex flex-col gap-1.5">
+    <Label for="recherche-medias">{TEXTE_LIBELLE_RECHERCHE_MEDIAS}</Label>
+    <Input
+      id="recherche-medias"
       type="search"
       bind:value={recherche}
       placeholder={TEXTE_PLACEHOLDER_RECHERCHE_MEDIAS}
-      class="w-full max-w-sm rounded-lg border border-input px-3 py-2 text-sm"
+      class="w-full max-w-sm max-md:min-h-11"
     />
-  </label>
-
-  {#if messageErreur}
-    <p role="alert">{messageErreur}</p>
-  {/if}
+  </div>
 
   {#if medias.length === 0}
     <p>{TEXTE_BIBLIOTHEQUE_VIDE}</p>
   {:else if mediasFiltres.length === 0}
     <p>{TEXTE_RECHERCHE_MEDIAS_SANS_RESULTAT}</p>
   {:else}
-    <ul class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
+    <ul class="grid grid-cols-2 gap-4 md:grid-cols-[repeat(auto-fill,minmax(9rem,1fr))]">
       {#each mediasFiltres as media (media.id)}
-        <li class="relative overflow-hidden rounded-lg border border-border bg-card">
-          <a href={`/admin/medias/${media.id}`}>
-            <img
-              src={`/admin/medias/${media.id}/octets`}
-              alt={media.nomOrigine}
-              loading="lazy"
-              class="aspect-square w-full object-cover"
-            />
-            {#if media.effacable}
-              <span
-                class="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive/10 text-destructive"
-                title={TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT}
-              >
-                <span aria-hidden="true">⚠</span>
-                <span class="sr-only">{TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT}</span>
-              </span>
-            {/if}
+        <li class="flex flex-col gap-2">
+          <a href={`/admin/medias/${media.id}`} class="block">
+            <VignetteMedia id={media.id} alt={media.nomOrigine} />
           </a>
+          {#if media.effacable}
+            <p class="rounded-md bg-ambre-soft px-2 py-1 text-xs text-ambre">
+              {TEXTE_MARQUE_IMAGE_VOUEE_EFFACEMENT}
+            </p>
+          {/if}
         </li>
       {/each}
     </ul>
