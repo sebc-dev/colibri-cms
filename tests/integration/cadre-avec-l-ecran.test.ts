@@ -153,8 +153,11 @@ interface EcranCadre {
   readonly route: string;
   readonly rubriqueAttendue: "mes-pages" | "medias";
   readonly libelleAttendu: "Mes pages" | "Médias";
-  /** Un fragment qui prouve que le CONTENU propre de l'écran est bien présent. */
-  readonly marqueurContenu: string;
+  /**
+   * Un motif qui prouve que le CONTENU propre de l'écran est bien présent —
+   * cherché dans `<main>` seulement, jamais dans `<title>` ni dans le menu.
+   */
+  readonly marqueurContenu: RegExp;
 }
 
 /**
@@ -171,28 +174,28 @@ async function obtenirEcrans(db: DBLike): Promise<readonly EcranCadre[]> {
       route: "/admin/mes-pages",
       rubriqueAttendue: "mes-pages",
       libelleAttendu: "Mes pages",
-      marqueurContenu: "<h1>Mes pages</h1>",
+      marqueurContenu: /<h1>Mes pages<\/h1>/,
     },
     {
       nom: "Éditeur de page",
       route: "/admin/pages/accueil",
       rubriqueAttendue: "mes-pages",
       libelleAttendu: "Mes pages",
-      marqueurContenu: "Accueil",
+      marqueurContenu: /<h1>\s*Accueil\b/,
     },
     {
       nom: "Médias",
       route: "/admin/medias",
       rubriqueAttendue: "medias",
       libelleAttendu: "Médias",
-      marqueurContenu: 'id="ilot-medias"',
+      marqueurContenu: /id="ilot-medias"/,
     },
     {
       nom: "Fiche d’une image",
       route: `/admin/medias/${idMedia}`,
       rubriqueAttendue: "medias",
       libelleAttendu: "Médias",
-      marqueurContenu: 'id="ilot-fiche-media"',
+      marqueurContenu: /id="ilot-fiche-media"/,
     },
   ];
 }
@@ -228,6 +231,16 @@ function extraireLibelleActif(menu: string): string {
     'un lien du menu devrait porter aria-current="page"',
   ).not.toBeNull();
   if (correspondance === null) throw new Error("aucun lien actif");
+  return correspondance[1];
+}
+
+function extraireContenu(corps: string): string {
+  const correspondance = /<main[^>]*>([\s\S]*?)<\/main>/.exec(corps);
+  expect(
+    correspondance,
+    "le contenu de l'écran (`<main>`) devrait être présent",
+  ).not.toBeNull();
+  if (correspondance === null) throw new Error("contenu absent");
   return correspondance[1];
 }
 
@@ -283,21 +296,28 @@ it("SC-03b — la réponse du serveur porte déjà le logo, le menu marqué et l
     // lui-même, jamais générés par un script exécuté après coup.
     const corpsSansScript = retirerLesScripts(corps);
 
-    expect(
-      corpsSansScript,
-      `${ecran.nom} : le logo devrait être présent`,
-    ).toContain('aria-label="Colibri CMS"');
-
+    // Le logo appartient au cadre : il est dans la barre du menu.
     const menu = extraireMenu(corpsSansScript);
+    expect(
+      menu,
+      `${ecran.nom} : le logo devrait être présent dans le cadre`,
+    ).toContain('aria-label="Colibri CMS"');
     expect(
       (menu.match(/aria-current="page"/g) ?? []).length,
       `${ecran.nom} : le menu devrait rester marqué sans script`,
     ).toBe(1);
 
+    // Le contenu de l'écran est à l'intérieur du cadre, dans `<main>`,
+    // et non ailleurs dans la page (le `<title>` porte aussi le nom).
+    const contenu = extraireContenu(corpsSansScript);
     expect(
-      corpsSansScript,
-      `${ecran.nom} : le contenu propre de l’écran devrait être présent`,
-    ).toContain(ecran.marqueurContenu);
+      contenu,
+      `${ecran.nom} : le contenu propre de l’écran devrait être dans <main>`,
+    ).toMatch(ecran.marqueurContenu);
+    expect(
+      contenu,
+      `${ecran.nom} : le menu ne devrait pas être dans <main>`,
+    ).not.toContain("Menu de l'administration");
   }
 });
 
