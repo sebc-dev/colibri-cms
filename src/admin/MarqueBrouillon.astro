@@ -1,0 +1,36 @@
+---
+/**
+ * La marque de brouillon (ticket 05, openspec/changes/
+ * 005-mise-en-page-administration/tickets/05-marque-de-brouillon.md,
+ * design.md §D6, SC-05a/b/c) — SOURCE UNIQUE du badge « Brouillon » : avant
+ * ce ticket, le texte « • brouillon » était écrit à la main à trois
+ * endroits (`mes-pages.astro`, `pages/[slug].astro`,
+ * `pastille-brouillon.ts`). Ces trois endroits rendent désormais ce même
+ * composant ; `GabaritCadre.astro` le rend une fois de plus dans
+ * `<template id="modele-marque-brouillon">`, que `pastille-brouillon.ts`
+ * clone côté navigateur (`content.cloneNode(true)`, jamais un `<span>`
+ * fabriqué à la main) pour que la marque révélée après un enregistrement
+ * soit rigoureusement identique à celle que rend le serveur (SC-05b).
+ *
+ * Libellé « Brouillon » (mot du métier, FR-117), texte `gorge` sur fond
+ * `gorge-soft`, forme de pastille, point devant le libellé — comme le badge
+ * d'état du canvas (StatusBadge). `text-gorge`/`bg-gorge-soft` ne
+ * paraissent QUE dans ce fichier sous `src/admin/` (contrainte du ticket,
+ * plus stricte que `I14` seul) : le rubis ne sert jamais une action
+ * (SC-05c). `rounded-full` est un utilitaire de forme, pas une couleur — il
+ * ne relève pas d'`I14` et ne nécessite aucun token dans `admin.css`.
+ *
+ * L'attribut `data-pastille-brouillon` est conservé sur la marque : de
+ * nombreux tests existants le cherchent (voir en-tête de
+ * `pastille-brouillon.ts`).
+ */
+const ATTRIBUT_PASTILLE = 'data-pastille-brouillon';
+---
+
+<span
+  {...{ [ATTRIBUT_PASTILLE]: '' }}
+  class="inline-flex items-center gap-1 rounded-full bg-gorge-soft px-2 py-0.5 text-xs font-medium text-gorge"
+>
+  <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full bg-gorge"></span>
+  Brouillon
+</span>

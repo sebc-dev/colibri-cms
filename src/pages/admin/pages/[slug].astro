@@ -69,12 +69,20 @@
  * (`src/admin/pastille-brouillon.ts`) ; ce chargement initial, lui, est
  * observable par une requête HTTP réelle (motif du mode `test` du ticket 04).
  *
+ * Ticket 05 (openspec/changes/005-mise-en-page-administration/tickets/
+ * 05-marque-de-brouillon.md, SC-05a) : cette pastille est désormais le
+ * composant unique `src/admin/MarqueBrouillon.astro` (badge « Brouillon »,
+ * en `gorge`) au lieu du texte « • brouillon » écrit à la main — le
+ * balisage-hôte (`<span id="zone-pastille-brouillon">…</span>` juste avant
+ * `</h1>`) ne change pas.
+ *
  * Un slug qui ne correspond à aucune page déclarée renvoie vers l'`Écran :
  * Liste des pages` — aucune page n'existe à cette adresse, jamais une panne
  * silencieuse : même principe de garde que `verifierSession` ci-dessous, qui
  * redirige plutôt que d'échouer.
  */
 import GabaritCadre from '../../../admin/GabaritCadre.astro';
+import MarqueBrouillon from '../../../admin/MarqueBrouillon.astro';
 import { libelleCompteImages } from '../../../admin/ilots-svelte-5/libelle-compte-images.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
@@ -125,7 +133,7 @@ const page = {
   <h1>
     {page.titre}
     <span id="zone-pastille-brouillon">
-      {porteUnBrouillon && <span data-pastille-brouillon> • brouillon</span>}
+      {porteUnBrouillon && <MarqueBrouillon />}
     </span>
   </h1>
   <ul>
