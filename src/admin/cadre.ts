@@ -107,7 +107,9 @@ function activerTiroir(): void {
   // Choix d'une rubrique : chaque lien du menu porté par le tiroir le
   // referme avant que la navigation qu'il déclenche ne parte.
   tiroir.querySelectorAll('a').forEach((lien) => {
-    lien.addEventListener('click', () => tiroir.close());
+    lien.addEventListener('click', () => {
+      tiroir.close();
+    });
   });
 }
 
