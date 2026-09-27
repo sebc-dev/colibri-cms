@@ -28,6 +28,17 @@
 
   Aucune directive `client:*` (ADR-0006) : monté par un point d'entrée
   externe (`monter.ts`), même patron que `ReglageLienVideo.svelte`.
+
+  Ticket 08 (openspec/changes/005-mise-en-page-administration/tickets/
+  08-editeur-emplacements-texte.md, SC-08a/b/c/e/f) : la carte qui héberge
+  cet îlot vit dans `[slug].astro` (inchangée ici) ; ce fichier n'habille
+  que son propre contenu — la barre de mise en forme (boutons `Button`,
+  variante `outline`), la zone d'édition TipTap et le bouton « Enregistrer »
+  (`plumage`, libellé inchangé pendant l'enregistrement, SC-08c) ; un refus
+  s'affiche en `danger` (SC-08b). Cibles de 44 px sur écran étroit
+  (`max-md:min-h-11 max-md:min-w-11`), boutons en pleine largeur sous `md`
+  (SC-08a/e). Couleurs et polices : tokens seuls (`I14`) — jamais de valeur
+  littérale hors `admin.css`.
 -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
@@ -52,6 +63,10 @@
   let messageErreur = $state<string | null>(null);
   let champLienVisible = $state(false);
   let lienSaisi = $state('');
+
+  // Cible de 44 px sur écran étroit (SC-08e) pour chaque commande de la
+  // barre de mise en forme ; taille du canvas au-delà (`sm` du bouton).
+  const CLASSE_BOUTON_BARRE = 'max-md:min-h-11 max-md:min-w-11';
 
   // SC-06f — aucun terme de développeur : le motif du refus dit ce qui se
   // passe, jamais « JSON », « document » ou « sérialisation ».
@@ -151,30 +166,42 @@
   }
 </script>
 
-<div>
-  <div role="toolbar" aria-label="Mise en forme du texte">
-    <button type="button" onclick={basculerGras}>Gras</button>
-    <button type="button" onclick={basculerItalique}>Italique</button>
-    <button type="button" onclick={ouvrirChampLien}>Lien</button>
-    <button type="button" onclick={basculerListe}>Liste</button>
-    <button type="button" onclick={basculerTitre}>Titre</button>
+<div class="flex flex-col gap-3">
+  <div role="toolbar" aria-label="Mise en forme du texte" class="flex flex-wrap gap-1.5">
+    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={basculerGras}>Gras</Button>
+    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={basculerItalique}
+      >Italique</Button
+    >
+    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={ouvrirChampLien}>Lien</Button>
+    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={basculerListe}
+      >Liste</Button
+    >
+    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={basculerTitre}
+      >Titre</Button
+    >
   </div>
   {#if champLienVisible}
-    <p>
-      <label>
+    <p class="flex flex-col gap-2">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink">
         Adresse du lien
         <input
           type="text"
           bind:value={lienSaisi}
           placeholder="https://, mailto:, tel: ou une adresse du site commençant par /"
+          class="rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-ink-muted focus-visible:border-ring max-md:min-h-11 md:text-sm"
         />
       </label>
-      <Button type="button" onclick={appliquerLien}>Appliquer le lien</Button>
+      <Button type="button" onclick={appliquerLien} class="w-full max-md:min-h-11 md:w-auto">Appliquer le lien</Button>
     </p>
   {/if}
-  <div bind:this={zoneEdition}></div>
-  <Button type="button" onclick={enregistrer} disabled={enCours}>Enregistrer</Button>
+  <div
+    bind:this={zoneEdition}
+    class="min-h-32 rounded-lg border border-input bg-surface-raised px-3 py-2 text-base text-ink focus-within:border-ring md:text-sm"
+  ></div>
+  <Button type="button" onclick={enregistrer} disabled={enCours} class="w-full max-md:min-h-11 md:w-auto"
+    >Enregistrer</Button
+  >
   {#if messageErreur}
-    <p role="alert">{messageErreur}</p>
+    <p role="alert" class="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{messageErreur}</p>
   {/if}
 </div>

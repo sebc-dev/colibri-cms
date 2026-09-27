@@ -80,9 +80,32 @@
  * Liste des pages` — aucune page n'existe à cette adresse, jamais une panne
  * silencieuse : même principe de garde que `verifierSession` ci-dessous, qui
  * redirige plutôt que d'échouer.
+ *
+ * Ticket 08 (openspec/changes/005-mise-en-page-administration/tickets/
+ * 08-editeur-emplacements-texte.md, SC-08a/b/c/d/e/f) habille cet écran :
+ * chaque emplacement se pose désormais dans une carte (`Card`/`CardHeader`/
+ * `CardTitle`/`CardContent`, ADR-0009), portant sa nature au-dessus de son
+ * contenu, empilées sur une seule colonne — les six natures en profitent
+ * (les trois de texte s'habillent ici ; image/galerie/carrousel restent une
+ * présentation seule jusqu'au ticket 09, mais logent déjà dans leur carte).
+ * Le fil de retour et le titre gagnent le thème Colibri (tokens `I14`,
+ * Fraunces pour le titre) ; le balisage lu par les tests existants ne
+ * bouge pas : `<span id="zone-pastille-brouillon">…</span>` reste juste
+ * avant `</h1>`, les attributs `data-emplacement-*`/`data-id-emplacement`/
+ * `data-slug`/`data-markdown`/`data-lien`/`data-libelle`/`data-destination`
+ * gardent leur ordre. L'habillage propre à chaque nature de texte (barre
+ * TipTap, formulaire de bouton d'action, champ de lien de vidéo — cibles de
+ * 44 px sur écran étroit, refus en `danger`) vit dans les trois îlots
+ * Svelte eux-mêmes (`TexteRiche.svelte`, `CorrectionBoutonAction.svelte`,
+ * `ReglageLienVideo.svelte`), jamais ici : ce fichier ne pose que le cadre
+ * de la carte, identique pour les six natures (ADR-0006, aucune directive
+ * `client:*` neuve — les composants `Card`/`CardHeader`/`CardTitle`/
+ * `CardContent` sont rendus par le serveur, sans hydratation, même patron
+ * que `Button` dans `GabaritCadre.astro`).
  */
 import GabaritCadre from '../../../admin/GabaritCadre.astro';
 import MarqueBrouillon from '../../../admin/MarqueBrouillon.astro';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../admin/composants/ui/card/index.ts';
 import { libelleCompteImages } from '../../../admin/ilots-svelte-5/libelle-compte-images.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
@@ -129,104 +152,143 @@ const page = {
 ---
 
 <GabaritCadre titre={`${page.titre} — Administration`} rubrique="mes-pages">
-  <p><a href="/admin/mes-pages">Mes pages</a></p>
-  <h1>
-    {page.titre}
-    <span id="zone-pastille-brouillon">
-      {porteUnBrouillon && <MarqueBrouillon />}
-    </span>
-  </h1>
-  <ul>
-    {
-      page.emplacements.map((emplacement) => (
-        <li>
-          {emplacement.nature === 'texte-riche' && (
-            <div>
-              <p>Texte riche</p>
-              <div
-                data-emplacement-texte-riche
-                data-slug={slug}
-                data-id-emplacement={emplacement.id}
-                data-markdown={emplacement.contenu}
-              >
-                <p>{emplacement.contenu}</p>
-              </div>
-            </div>
-          )}
-          {emplacement.nature === 'lien-video' && (
-            <div>
-              <p>Lien de la vidéo</p>
-              <div
-                data-emplacement-lien-video
-                data-slug={slug}
-                data-id-emplacement={emplacement.id}
-                data-lien={emplacement.lien}
-              >
-                <p>{emplacement.lien}</p>
-              </div>
-            </div>
-          )}
-          {emplacement.nature === 'bouton-action' && (
-            <div>
-              <p>Bouton d’action</p>
-              <div
-                data-emplacement-bouton-action
-                data-slug={slug}
-                data-id-emplacement={emplacement.id}
-                data-libelle={emplacement.libelle}
-                data-destination={emplacement.destination}
-              >
-                <p>Libellé : {emplacement.libelle}</p>
-                <p>Destination : {emplacement.destination}</p>
-              </div>
-            </div>
-          )}
-          {emplacement.nature === 'image' && (
-            <div>
-              <p>Image</p>
-              <div
-                data-emplacement-image
-                data-slug={slug}
-                data-id-emplacement={emplacement.id}
-                data-media-id={emplacement.mediaId}
-                data-medias={JSON.stringify(mediasDisponibles)}
-              >
-                <p>Une image est posée à cet emplacement.</p>
-              </div>
-            </div>
-          )}
-          {emplacement.nature === 'galerie' && (
-            <div>
-              <p>Galerie</p>
-              <div
-                data-emplacement-galerie
-                data-slug={slug}
-                data-id-emplacement={emplacement.id}
-                data-media-ids={JSON.stringify(emplacement.mediaIds)}
-                data-medias={JSON.stringify(mediasDisponibles)}
-              >
-                <p>{libelleCompteImages(emplacement.mediaIds.length, 'galerie')}</p>
-              </div>
-            </div>
-          )}
-          {emplacement.nature === 'carrousel' && (
-            <div>
-              <p>Carrousel</p>
-              <div
-                data-emplacement-carrousel
-                data-slug={slug}
-                data-id-emplacement={emplacement.id}
-                data-media-ids={JSON.stringify(emplacement.mediaIds)}
-                data-medias={JSON.stringify(mediasDisponibles)}
-              >
-                <p>{libelleCompteImages(emplacement.mediaIds.length, 'carrousel')}</p>
-              </div>
-            </div>
-          )}
-        </li>
-      ))
-    }
-  </ul>
+  <div class="mx-auto flex max-w-2xl flex-col gap-6">
+    <div>
+      <a
+        href="/admin/mes-pages"
+        class="-ml-2 inline-flex min-h-11 items-center rounded-md px-2 text-sm text-ink-muted hover:bg-muted hover:text-ink"
+      >
+        ‹ Mes pages
+      </a>
+      <div class="mt-1 break-words">
+        <h1>
+          {page.titre}
+          <span id="zone-pastille-brouillon">
+            {porteUnBrouillon && <MarqueBrouillon />}
+          </span>
+        </h1>
+      </div>
+    </div>
+    <ul class="flex flex-col gap-4">
+      {
+        page.emplacements.map((emplacement) => (
+          <li>
+            {emplacement.nature === 'texte-riche' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Texte riche</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    data-emplacement-texte-riche
+                    data-slug={slug}
+                    data-id-emplacement={emplacement.id}
+                    data-markdown={emplacement.contenu}
+                  >
+                    <p class="text-ink-muted break-words">{emplacement.contenu}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {emplacement.nature === 'lien-video' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lien de la vidéo</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    data-emplacement-lien-video
+                    data-slug={slug}
+                    data-id-emplacement={emplacement.id}
+                    data-lien={emplacement.lien}
+                  >
+                    <p class="text-ink-muted break-words">{emplacement.lien}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {emplacement.nature === 'bouton-action' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Bouton d’action</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    data-emplacement-bouton-action
+                    data-slug={slug}
+                    data-id-emplacement={emplacement.id}
+                    data-libelle={emplacement.libelle}
+                    data-destination={emplacement.destination}
+                  >
+                    <p class="text-ink-muted break-words">Libellé : {emplacement.libelle}</p>
+                    <p class="text-ink-muted break-words">Destination : {emplacement.destination}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {emplacement.nature === 'image' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Image</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    data-emplacement-image
+                    data-slug={slug}
+                    data-id-emplacement={emplacement.id}
+                    data-media-id={emplacement.mediaId}
+                    data-medias={JSON.stringify(mediasDisponibles)}
+                  >
+                    <p class="text-ink-muted break-words">Une image est posée à cet emplacement.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {emplacement.nature === 'galerie' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Galerie</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    data-emplacement-galerie
+                    data-slug={slug}
+                    data-id-emplacement={emplacement.id}
+                    data-media-ids={JSON.stringify(emplacement.mediaIds)}
+                    data-medias={JSON.stringify(mediasDisponibles)}
+                  >
+                    <p class="text-ink-muted break-words">
+                      {libelleCompteImages(emplacement.mediaIds.length, 'galerie')}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {emplacement.nature === 'carrousel' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Carrousel</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    data-emplacement-carrousel
+                    data-slug={slug}
+                    data-id-emplacement={emplacement.id}
+                    data-media-ids={JSON.stringify(emplacement.mediaIds)}
+                    data-medias={JSON.stringify(mediasDisponibles)}
+                  >
+                    <p class="text-ink-muted break-words">
+                      {libelleCompteImages(emplacement.mediaIds.length, 'carrousel')}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
   <script>
     import {
       monterCorrectionsBoutonAction,

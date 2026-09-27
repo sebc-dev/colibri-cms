@@ -17,6 +17,15 @@
 
   Aucune directive `client:*` (ADR-0006) : monté par un point d'entrée
   externe (`monter.ts`), même patron que `ActionRapide.svelte`.
+
+  Ticket 08 (openspec/changes/005-mise-en-page-administration/tickets/
+  08-editeur-emplacements-texte.md, SC-08a/b/c/e/f) : la carte qui héberge
+  cet îlot vit dans `[slug].astro` (inchangée ici) ; ce fichier n'habille
+  que son propre contenu (champs, bouton `plumage`, refus en `danger`).
+  Cibles de 44 px sur écran étroit, bouton en pleine largeur sous `md`
+  (SC-08a/e). Aucune contrainte de test ne porte sur ce balisage (aucun
+  import `?raw` de ce fichier) : libre de composer les champs autrement,
+  pourvu que le geste (POST, libellé/destination) ne change pas.
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
@@ -81,17 +90,27 @@
   }
 </script>
 
-<form onsubmit={enregistrer}>
+<form onsubmit={enregistrer} class="flex flex-col gap-3">
   <label>
-    Libellé
-    <input type="text" bind:value={libelle} required />
+    <span class="mb-1 block text-sm font-medium text-ink">Libellé</span>
+    <input
+      type="text"
+      bind:value={libelle}
+      required
+      class="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-ink-muted focus-visible:border-ring max-md:min-h-11 md:text-sm"
+    />
   </label>
   <label>
-    Va vers
-    <input type="text" bind:value={destination} required />
+    <span class="mb-1 block text-sm font-medium text-ink">Va vers</span>
+    <input
+      type="text"
+      bind:value={destination}
+      required
+      class="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-ink-muted focus-visible:border-ring max-md:min-h-11 md:text-sm"
+    />
   </label>
-  <Button type="submit" disabled={enCours}>Enregistrer</Button>
+  <Button type="submit" disabled={enCours} class="w-full max-md:min-h-11 md:w-auto">Enregistrer</Button>
   {#if messageErreur}
-    <p role="alert">{messageErreur}</p>
+    <p role="alert" class="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{messageErreur}</p>
   {/if}
 </form>
