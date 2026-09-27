@@ -9,5 +9,6 @@
   ],
   "ignore": ["src/**/zone.ts", "src/admin/composants/ui/**", ".claude/skills/**"],
   "ignoreDependencies": ["cloudflare", "@stryker-mutator/command-runner", "bits-ui"],
-  "ignoreExportsUsedInFile": true
+  "ignoreExportsUsedInFile": true,
+  "ignoreIssues": { "src/admin/lib/utils.ts": ["types"] }
 }

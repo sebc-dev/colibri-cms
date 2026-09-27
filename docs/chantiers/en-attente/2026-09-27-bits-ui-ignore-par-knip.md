@@ -1,11 +1,12 @@
-# `bits-ui` ignoré par knip, à réexaminer
+# `bits-ui` et `WithoutChildrenOrChild` ignorés par knip, à réexaminer
 
 Portée : 005-mise-en-page-administration · avant l'archivage du change
 Ouvert le 2026-09-27 · branche `impl/cadre-avec-l-ecran-03` · HEAD `91f4288`
 
 ## Objectif
 Décider, avant d'archiver le change 005, si `bits-ui` reste une dépendance du projet ou s'il sort, et
-retirer alors son entrée de `ignoreDependencies` dans `knip.json`.
+retirer alors ses deux exclusions de `knip.json` : `ignoreDependencies` (`bits-ui`) et `ignoreIssues`
+(`src/admin/lib/utils.ts` : `types`, pour `WithoutChildrenOrChild`).
 
 ## Contexte à charger
 à lire      `knip.json` — `ignoreDependencies` et `ignore` (`src/admin/composants/ui/**`)
@@ -22,10 +23,18 @@ retirer alors son entrée de `ignoreDependencies` dans `knip.json`.
   C'est le cas que cette fiche couvre.
 - Ce qui pourrait la rebrancher : l'infobulle du rail replié (ticket 04), le `dialog` de base
   (tickets 09 et 11).
-- `WithoutChildrenOrChild` (`src/admin/lib/utils.ts:25`) avait la même cause et restait signalé.
+- `WithoutChildrenOrChild` (`src/admin/lib/utils.ts:25`) avait la même cause : il n'est plus utilisé
+  que par `dialog-content.svelte` et `tooltip-content.svelte`, sous le chemin ignoré. Je l'ai masqué
+  par `ignoreIssues`, faute d'exclusion par export dans la config. Deux limites :
+  (1) l'exclusion couvre TOUS les types exportés de `utils.ts` ;
+  (2) `knip` ne dit rien quand elle devient inutile (vérifié : une entrée `ignoreIssues` sur un
+  fichier sans problème ne déclenche aucun indice). Contrairement à `bits-ui`, rien ne préviendra
+  automatiquement.
 
 ## Prochaine étape
-Juste avant `/opsx:archive 005`, lancer `npx knip`.
+Juste avant `/opsx:archive 005`, retirer l'entrée `ignoreIssues`, puis lancer `npx knip`.
+- Si `WithoutChildrenOrChild` n'est plus signalé, laisser l'entrée retirée. S'il l'est encore, il suit
+  le sort de `bits-ui` ci-dessous.
 - Si `Remove from ignoreDependencies` vise `bits-ui`, retirer l'entrée : la dépendance est revenue.
 - Sinon, décider par un change : soit retirer `bits-ui` et les primitives tooltip et dialog (la spec
   `socle-ilots-admin` est touchée), soit les garder et l'écrire dans la spec.
