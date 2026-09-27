@@ -40,8 +40,8 @@ d'image ; tout geste nouveau d'édition ; l'aperçu et la publication.
 
 ## Critères
 - [ ] Sur écran étroit, les emplacements de l'éditeur se suivent sur une seule colonne, chacun avec son libellé au-dessus de son contenu, et corriger, enregistrer et régler un lien de vidéo restent disponibles   (SC-08a)
-- [ ] Un enregistrement refusé d'un emplacement de texte s'affiche en `danger`, dans la carte concernée, avec son texte   (SC-08b)
-- [ ] L'éditeur porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, bouton d'enregistrement en `plumage`   (SC-08c)
-- [ ] Affiché à 360 px de large, l'éditeur ne défile pas horizontalement et aucun contenu n'est coupé, titre de page long compris   (SC-08d)
-- [ ] Sur écran étroit, chaque élément actionnable de l'éditeur et de ses emplacements de texte offre une zone de toucher d'au moins 44 × 44 px   (SC-08e)
-- [ ] Chaque texte de l'éditeur, marque de brouillon et messages compris, atteint un contraste d'au moins 4,5:1 sur son fond   (SC-08f)
+- [x] Un enregistrement refusé d'un emplacement de texte s'affiche en `danger`, dans la carte concernée, avec son texte   (SC-08b)
+- [x] L'éditeur porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, bouton d'enregistrement en `plumage`   (SC-08c)
+- [x] Affiché à 360 px de large, l'éditeur ne défile pas horizontalement et aucun contenu n'est coupé, titre de page long compris   (SC-08d)
+- [x] Sur écran étroit, chaque élément actionnable de l'éditeur et de ses emplacements de texte offre une zone de toucher d'au moins 44 × 44 px   (SC-08e)
+- [x] Chaque texte de l'éditeur, marque de brouillon et messages compris, atteint un contraste d'au moins 4,5:1 sur son fond   (SC-08f)
