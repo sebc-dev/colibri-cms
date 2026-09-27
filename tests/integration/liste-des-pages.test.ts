@@ -117,10 +117,15 @@ it('SC-02c — la liste ne présente aucun geste d’ajout, de retrait, de dépl
   const reponse = await accederAMesPages(cookieSession);
 
   const corps = await reponse.text();
-  expect(corps).not.toMatch(/<form[\s>]/i);
-  expect(corps).not.toMatch(/<button[\s>]/i);
-  expect(corps).not.toMatch(/<input[\s>]/i);
-  const corpsMinuscule = corps.toLowerCase();
+  // La liste vit dans `<main>` : le cadre commun (005, ticket 04) porte ses
+  // propres boutons de mise en page (repli, tiroir), qui ne sont pas des
+  // gestes sur les pages — le menu du cadre reste couvert par SC-03c.
+  const liste = /<main[^>]*>([\s\S]*?)<\/main>/.exec(corps)?.[1];
+  expect(liste, 'le contenu de l’écran (<main>) devrait être présent').toBeDefined();
+  expect(liste).not.toMatch(/<form[\s>]/i);
+  expect(liste).not.toMatch(/<button[\s>]/i);
+  expect(liste).not.toMatch(/<input[\s>]/i);
+  const corpsMinuscule = (liste ?? '').toLowerCase();
   for (const geste of ['ajouter une page', 'créer une page', 'supprimer', 'renommer', 'déplacer']) {
     expect(corpsMinuscule, `la liste ne devrait pas offrir « ${geste} »`).not.toContain(geste);
   }
