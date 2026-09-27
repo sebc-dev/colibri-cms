@@ -66,12 +66,37 @@
  * « Brouillon », en `gorge`) au lieu du texte « • brouillon » écrit à la
  * main — le balisage-hôte (`<li>Titre…`, sans attribut sur le `<li>`) ne
  * change pas.
+ *
+ * Ticket 07 (openspec/changes/005-mise-en-page-administration/tickets/
+ * 07-mes-pages-habille.md, SC-07a/b/c/d/e/f) : la liste devient une carte
+ * (`bg-card`, `rounded-lg`, `border-border`, tokens I14) et chaque ligne
+ * porte, sous le titre, l'adresse de la page sur le site — dérivée de son
+ * identifiant par `adresseDeLaPage` (`src/core/pages/
+ * declaration.ts`, calcul pur, aucune lecture nouvelle),
+ * rendue par interpolation Astro échappée (jamais `set:html`), en
+ * `font-mono` (JetBrains Mono). Le balisage lu par les tests existants ne
+ * change pas : `<li>` reste sans attribut et commence directement par
+ * `{page.titre}` (aucun espace ni balise avant, dans le gabarit comme dans
+ * la réponse rendue) — c'est ce qui garde `<li>Accueil…</li>`
+ * (`tests/integration/liste-des-pages.test.ts`,
+ * `tests/integration/marque-de-brouillon.test.ts`) vrai ; l'adresse et la
+ * marque de brouillon sont ajoutées APRÈS ce nœud de texte, dans un `<span>`
+ * enfant (pas d'attribut porté par le `<li>` lui-même). L'habillage de
+ * chaque ligne (hauteur mini 44 px pour SC-07e, `break-words` pour SC-07d)
+ * passe par une variante Tailwind sur la liste (`[&>li]:…`), jamais par un
+ * attribut posé sur le `<li>`. Le message d'état vide (texte inchangé) est
+ * désormais enveloppé dans une carte, en `ink-muted` : le `<p>` lui-même
+ * reste sans attribut (le style vient de la `<div>` englobante, la couleur
+ * s'hérite) pour que `tests/static/liste-des-pages-statique.test.ts` (qui
+ * lit le gabarit brut à la recherche d'un `<p>…</p>` littéral) reste vrai
+ * sans être retouché.
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
 import MarqueBrouillon from '../../admin/MarqueBrouillon.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { listerPagesDeclarees } from '../../platform/contenu/pages.ts';
 import { listerSlugsAvecBrouillon } from '../../platform/brouillons/magasin.ts';
+import { adresseDeLaPage } from '../../core/pages/declaration.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -87,11 +112,22 @@ const slugsAvecBrouillon = await listerSlugsAvecBrouillon(env.DB);
   <h1>Mes pages</h1>
   {
     pages.length === 0 ? (
-      <p>Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici.</p>
+      <div class="mt-6 rounded-lg border border-border bg-card p-4 text-ink-muted">
+        <p>Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici.</p>
+      </div>
     ) : (
-      <ul id="liste-des-pages" data-pages={JSON.stringify(pages.map((page) => page.slug))}>
+      <ul
+        id="liste-des-pages"
+        data-pages={JSON.stringify(pages.map((page) => page.slug))}
+        class="mt-6 divide-y divide-border rounded-lg border border-border bg-card [&>li]:flex [&>li]:min-h-11 [&>li]:flex-col [&>li]:justify-center [&>li]:gap-1 [&>li]:break-words [&>li]:px-4 [&>li]:py-3"
+      >
         {pages.map((page) => (
-          <li>{page.titre}{slugsAvecBrouillon.has(page.slug) && <MarqueBrouillon />}</li>
+          <li>{page.titre}
+            <span class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span class="break-words font-mono text-sm text-ink-muted">{adresseDeLaPage(page.slug)}</span>
+              {slugsAvecBrouillon.has(page.slug) && <MarqueBrouillon />}
+            </span>
+          </li>
         ))}
       </ul>
     )

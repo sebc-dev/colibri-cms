@@ -144,6 +144,12 @@ ligne de « Mes pages » contienne exactement le titre : l'adresse ajoutée sous
 est remplacé par « « Mes pages » montre l'adresse de chaque page ». Les tests périmés sont retirés par
 une PR directe avant les tickets (voir `test-plan.md`).
 
+L'adresse affichée sous chaque titre de « Mes pages » se dérive de l'identifiant déclaré de la page,
+sans lecture nouvelle (ADR-0012) : la page `accueil` a pour adresse `/`, toute autre page
+`/<identifiant>` (règle arbitrée en review du ticket 07). Elle vit dans `src/core/pages/`
+(`adresseDeLaPage`), pour que la génération du site public, quand elle existera, en tire les mêmes
+chemins. Un champ d'adresse propre au `page.json` reste hors périmètre.
+
 ### D6 — Une seule source pour la marque de brouillon
 
 La marque devient un badge : libellé écrit « Brouillon », texte `gorge` sur fond `gorge-soft`, forme

@@ -151,6 +151,18 @@ export interface PageDeclaree {
   readonly titre: string;
 }
 
+/**
+ * L'adresse d'une page sur le site, affichée sous son titre dans « Mes pages »
+ * (ticket 07, SC-07a, openspec/changes/005-mise-en-page-administration/
+ * tickets/07-mes-pages-habille.md ; règle fixée au design.md du change §D5).
+ * Dérivée de l'identifiant déclaré, sans lecture nouvelle (ADR-0012) : la page
+ * `accueil` a pour adresse `/`, toute autre page `/<identifiant>`. Vit dans
+ * `core` pour que la future route publique en tire les mêmes chemins (I1).
+ */
+export function adresseDeLaPage(slug: string): string {
+  return slug === 'accueil' ? '/' : `/${slug}`;
+}
+
 /** Un fichier `page.json` brut, avant validation de sa forme. */
 export interface FichierDeclarationBrut {
   readonly slug: string;

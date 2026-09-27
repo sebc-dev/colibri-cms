@@ -38,7 +38,7 @@ captures à 1280 px et à 360 px (liste avec brouillon, liste vide, titre de pag
 **Hors périmètre :** création de page, tableau de bord, bandeau de publication.
 
 ## Critères
-- [ ] Chaque ligne de « Mes pages » porte, sous le titre de la page, son adresse sur le site, en JetBrains Mono ; les lignes suivent l'ordre posé   (SC-07a)
+- [x] Chaque ligne de « Mes pages » porte, sous le titre de la page, son adresse sur le site, en JetBrains Mono ; les lignes suivent l'ordre posé   (SC-07a)
 - [ ] Le navigateur rend le titre de l'écran en Fraunces, le texte des lignes en Instrument Sans et l'adresse en JetBrains Mono   (SC-07b)
 - [ ] « Mes pages » porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans   (SC-07c)
 - [ ] Affiché à 360 px de large, « Mes pages » ne défile pas horizontalement et aucun contenu n'est coupé, titre de page long compris   (SC-07d)
