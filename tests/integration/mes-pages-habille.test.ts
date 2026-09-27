@@ -162,7 +162,7 @@ it(
     expect(lignes).toHaveLength(PAGES_DECLAREES_DANS_LORDRE.length);
     PAGES_DECLAREES_DANS_LORDRE.forEach((page, index) => {
       const ligne = lignes[index];
-      expect(ligne, `la ligne ${index} devrait exister`).toBeDefined();
+      expect(ligne, `la ligne ${String(index)} devrait exister`).toBeDefined();
       // Le `<li>` commence directement par le titre (pas d'espace ni de balise avant) —
       // ce qui garde `<li>Accueil…</li>` vrai pour les tests existants.
       expect(ligne.startsWith(`<li>${page.titre}`)).toBe(true);
