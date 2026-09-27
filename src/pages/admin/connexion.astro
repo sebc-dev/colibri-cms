@@ -60,8 +60,24 @@
  * route n'étant listé au ticket, le texte y est centralisé ; cette route ne
  * fait qu'importer et afficher). L'écran de saisie du code annonce en plus,
  * en toute circonstance, la portée par appareil du dernier code (c6).
+ *
+ * Ticket 06 (openspec/changes/005-mise-en-page-administration/tickets/
+ * 06-connexion-habillee.md) — l'habillage : la carte (`Card`), les champs
+ * (`Input`/`Label`) et les messages (`Alert`) viennent de
+ * `src/admin/composants/ui/`, rendus par le serveur sans directive
+ * `client:*` (`I4`, ADR-0006) — aucun `.astro` du dépôt n'en important
+ * encore un en rendu serveur pur, ce fichier en pose le premier exemple.
+ * Aucun texte ni comportement n'y change : mêmes libellés, mêmes messages,
+ * mêmes formulaires `method="post"`, mêmes noms de champs — seul le
+ * balisage autour change.
  */
 import Gabarit from '../../admin/Gabarit.astro';
+import Logo from '../../admin/Logo.astro';
+import { Card, CardContent, CardHeader } from '../../admin/composants/ui/card/index.ts';
+import { Input } from '../../admin/composants/ui/input/index.ts';
+import { Label } from '../../admin/composants/ui/label/index.ts';
+import { Alert, AlertDescription } from '../../admin/composants/ui/alert/index.ts';
+import { Button } from '../../admin/composants/ui/button/index.ts';
 import { verifierSession, enteteCookieSession } from '../../platform/session/index.ts';
 import { env } from 'cloudflare:workers';
 import { DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
@@ -160,32 +176,67 @@ if (estSoumission) {
 ---
 
 <Gabarit titre="Connexion">
-  {
-    plafondAtteint ? (
-      <>
+  <main class="flex min-h-dvh justify-center px-4 py-10">
+    <Card class="h-fit w-full max-w-[400px]">
+      <CardHeader class="flex flex-col items-center gap-3 text-center">
+        <Logo class="h-10 w-10" />
         <h1>Connexion</h1>
-        <p>
-          Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter un
-          moment avant de réessayer.
-        </p>
-      </>
-    ) : (
-      <>
-        <h1>Connexion</h1>
-        <p>Saisissez l’adresse déjà connue pour recevoir un code.</p>
-        <form method="post">
-          <label for="adresse">Adresse</label>
-          <input id="adresse" name="adresse" type="email" required />
-          <button type="submit">Recevoir un code</button>
-        </form>
-        <p>{TEXTE_ANNONCE_PORTEE_CODE}</p>
-        {raisonRefusCode && <p>{texteDuRefus(raisonRefusCode)}</p>}
-        <form method="post">
-          <label for="code">Code</label>
-          <input id="code" name="code" type="text" required />
-          <button type="submit">Se connecter</button>
-        </form>
-      </>
-    )
-  }
+      </CardHeader>
+      <CardContent class="flex flex-col gap-6">
+        {
+          plafondAtteint ? (
+            <Alert class="border-transparent bg-ambre-soft">
+              <AlertDescription class="text-ambre">
+                Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter
+                un moment avant de réessayer.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <>
+              <form method="post" class="flex flex-col gap-3">
+                <p>Saisissez l’adresse déjà connue pour recevoir un code.</p>
+                <div class="flex flex-col gap-1.5">
+                  <Label for="adresse">Adresse</Label>
+                  <Input
+                    id="adresse"
+                    name="adresse"
+                    type="email"
+                    autocomplete="email"
+                    required
+                    class="max-md:min-h-11"
+                  />
+                </div>
+                <Button type="submit" class="max-md:min-h-11 max-md:min-w-11">
+                  Recevoir un code
+                </Button>
+              </form>
+              <form method="post" class="flex flex-col gap-3 border-t border-line pt-6">
+                <p>{TEXTE_ANNONCE_PORTEE_CODE}</p>
+                {raisonRefusCode && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{texteDuRefus(raisonRefusCode)}</AlertDescription>
+                  </Alert>
+                )}
+                <div class="flex flex-col gap-1.5">
+                  <Label for="code">Code</Label>
+                  <Input
+                    id="code"
+                    name="code"
+                    type="text"
+                    inputmode="text"
+                    autocomplete="one-time-code"
+                    required
+                    class="max-md:min-h-11"
+                  />
+                </div>
+                <Button type="submit" class="max-md:min-h-11 max-md:min-w-11">
+                  Se connecter
+                </Button>
+              </form>
+            </>
+          )
+        }
+      </CardContent>
+    </Card>
+  </main>
 </Gabarit>
