@@ -38,11 +38,11 @@ du téléphone se constate sur un vrai téléphone.
 **Hors périmètre :** toute règle nouvelle de connexion ; le moyen de reprise.
 
 ## Critères
-- [ ] L'écran de connexion présente le logo, le titre « Connexion », l'étape d'adresse et l'étape de code, chacune avec son libellé visible et son bouton   (SC-06a)
-- [ ] Quand le plafond de demandes est atteint, le message d'attente s'affiche dans la carte, en ton d'avertissement, sans champ ni bouton   (SC-06b)
-- [ ] Le champ d'adresse appelle un clavier d'adresse e-mail (`type="email"`, `autocomplete="email"`) et le champ de code propose le code reçu en suggestion (`autocomplete="one-time-code"`)   (SC-06c)
-- [ ] Un code refusé s'affiche en `danger`, sous l'étape de code, avec son texte   (SC-06d)
-- [ ] L'écran de connexion porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, action principale en `plumage`   (SC-06e)
+- [x] L'écran de connexion présente le logo, le titre « Connexion », l'étape d'adresse et l'étape de code, chacune avec son libellé visible et son bouton   (SC-06a)
+- [x] Quand le plafond de demandes est atteint, le message d'attente s'affiche dans la carte, en ton d'avertissement, sans champ ni bouton   (SC-06b)
+- [x] Le champ d'adresse appelle un clavier d'adresse e-mail (`type="email"`, `autocomplete="email"`) et le champ de code propose le code reçu en suggestion (`autocomplete="one-time-code"`)   (SC-06c)
+- [x] Un code refusé s'affiche en `danger`, sous l'étape de code, avec son texte   (SC-06d)
+- [x] L'écran de connexion porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, action principale en `plumage`   (SC-06e)
 - [ ] Affiché à 360 px de large, l'écran de connexion ne défile pas horizontalement et aucun contenu n'est coupé   (SC-06f)
 - [ ] Sur écran étroit, chaque élément actionnable de la connexion offre une zone de toucher d'au moins 44 × 44 px   (SC-06g)
 - [ ] Chaque texte de la connexion, messages de refus et d'attente compris, atteint un contraste d'au moins 4,5:1 sur son fond   (SC-06h)
