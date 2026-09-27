@@ -45,6 +45,18 @@ Faire trancher le placeholder (SC-08f) par l'humain, puis corriger les deux éca
 (hauteur des champs, encre du placeholder), rejouer la mesure à 360 px, lancer
 `/scd-spec-dev:review` (la review n'a pas joué) et ouvrir la PR.
 
+## Issue
+J'ai fait corriger les deux écarts mesurés sur la branche après arbitrage humain : champs de saisie à
+44 px sur écran étroit, même taille de texte (16 px sous `md`) pour tous les champs de texte, zone
+d'édition comprise, placeholder en `ink-muted`. Re-mesure à 360 px sur l'artefact rebâti : tout
+actionnable du ticket ≥ 44 × 44, placeholder 6,12:1, `scrollWidth` 360. J'ai rejoué la review à la
+main (8 dimensions, triage) : 15 findings, aucun retenu, un flou de cadrage remonté à l'humain.
+Arbitrage : le « libellé » d'un emplacement est un nom propre déclaré par l'intégrateur (lecture b)
+— fonctionnalité nouvelle, à porter par un change dédié ; SC-08a reste ouvert jusque-là, la carte
+n'affichant que la nature. J'ai coché SC-08b à SC-08f. Deux en-têtes de commentaire recopiés ont été
+raccourcis (`dup:nouveau` : 1 clone restant, voulu). Le blocage de la feuille TipTap par la CSP,
+préexistant, est consigné à part (`en-attente/2026-09-27-feuille-tiptap-bloquee-par-la-csp.md`).
+
 ## Écarté
 - Relancer le run tel quel : l'implementer rendrait le même code, le verifier rebloquerait.
 - Ranger SC-08e dans la recette globale comme pour 05/07 : l'échec est mesuré, pas inobservable.
