@@ -36,9 +36,9 @@ contraste.
 **Hors périmètre :** la grille des médias ; tout geste nouveau sur une image.
 
 ## Critères
-- [ ] Sur écran étroit, la confirmation de suppression et la liste des emplacements concernés tiennent dans la largeur de l'écran, leur contenu défile verticalement si besoin, et leur bouton de fermeture reste visible   (SC-11a)
-- [ ] Quand l'appareil demande de réduire les animations, les sur-couches de la fiche apparaissent sans mouvement   (SC-11b)
-- [ ] La fiche porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, action principale en `plumage`   (SC-11c)
-- [ ] Affichée à 360 px de large, la fiche passe sur une seule colonne, ne défile pas horizontalement et ne coupe aucun contenu, nom d'image long compris   (SC-11d)
-- [ ] Sur écran étroit, chaque élément actionnable de la fiche offre une zone de toucher d'au moins 44 × 44 px   (SC-11e)
-- [ ] Chaque texte de la fiche, messages compris, atteint un contraste d'au moins 4,5:1 sur son fond   (SC-11f)
+- [x] Sur écran étroit, la confirmation de suppression et la liste des emplacements concernés tiennent dans la largeur de l'écran, leur contenu défile verticalement si besoin, et leur bouton de fermeture reste visible   (SC-11a)
+- [x] Quand l'appareil demande de réduire les animations, les sur-couches de la fiche apparaissent sans mouvement   (SC-11b)
+- [x] La fiche porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, action principale en `plumage`   (SC-11c)
+- [x] Affichée à 360 px de large, la fiche passe sur une seule colonne, ne défile pas horizontalement et ne coupe aucun contenu, nom d'image long compris   (SC-11d)
+- [x] Sur écran étroit, chaque élément actionnable de la fiche offre une zone de toucher d'au moins 44 × 44 px   (SC-11e)
+- [x] Chaque texte de la fiche, messages compris, atteint un contraste d'au moins 4,5:1 sur son fond   (SC-11f)
