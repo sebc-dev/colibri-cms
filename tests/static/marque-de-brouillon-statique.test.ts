@@ -61,7 +61,7 @@ it('SC-05b — pastille-brouillon.ts garde son garde-fou anti-doublon : la marqu
   // Assert : la garde interroge la zone AVANT tout clonage, et sort (return)
   // sans jamais atteindre l'ajout si la marque y est déjà — ce qui exclut
   // tout doublon lors d'un second appel sur une zone déjà pourvue.
-  const regexGarde = new RegExp(`if\\s*\\([^)]*querySelector\\([^)]*\\$\\{${nomConstante}\\}[^)]*\\)[^)]*\\)\\s*return;`);
+  const regexGarde = new RegExp(`if\\s*\\([^)]*querySelector\\([^)]*\\$\\{${String(nomConstante)}\\}[^)]*\\)[^)]*\\)\\s*return;`);
   const correspondanceGarde = regexGarde.exec(fonction);
   expect(correspondanceGarde, 'un garde-fou devrait interroger la zone via querySelector avant tout ajout').not.toBeNull();
 
