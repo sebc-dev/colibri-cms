@@ -44,9 +44,9 @@ parcours au clavier et au toucher ; émulation `prefers-reduced-motion`.
 **Hors périmètre :** l'habillage des écrans ; porter la préférence de repli côté serveur (cookie).
 
 ## Critères
-- [ ] Sur écran large, actionner le bouton de repli réduit la barre à un rail d'icônes seules, la rubrique active y reste marquée, et la zone de contenu s'élargit d'autant   (SC-04a)
-- [ ] Redéployer la barre repliée fait reparaître les libellés à côté des icônes   (SC-04b)
-- [ ] Après un rechargement, le dernier état replié ou déployé choisi est conservé, sans requête serveur pour le porter   (SC-04c)
-- [ ] Sur écran étroit, le menu est fermé et le contenu occupe toute la largeur ; un bouton de menu, toujours visible en haut de l'écran, ouvre le tiroir portant les cinq rubriques   (SC-04d)
-- [ ] Le tiroir ouvert se referme quand l'éditrice choisit une rubrique, touche en dehors ou appuie sur Échap ; le focus revient au bouton de menu quand la fermeture ne mène pas à un autre écran   (SC-04e)
-- [ ] Quand l'appareil demande de réduire les animations, l'ouverture du tiroir et le repli de la barre se font sans mouvement   (SC-04f)
+- [x] Sur écran large, actionner le bouton de repli réduit la barre à un rail d'icônes seules, la rubrique active y reste marquée, et la zone de contenu s'élargit d'autant   (SC-04a)
+- [x] Redéployer la barre repliée fait reparaître les libellés à côté des icônes   (SC-04b)
+- [x] Après un rechargement, le dernier état replié ou déployé choisi est conservé, sans requête serveur pour le porter   (SC-04c)
+- [x] Sur écran étroit, le menu est fermé et le contenu occupe toute la largeur ; un bouton de menu, toujours visible en haut de l'écran, ouvre le tiroir portant les cinq rubriques   (SC-04d)
+- [x] Le tiroir ouvert se referme quand l'éditrice choisit une rubrique, touche en dehors ou appuie sur Échap ; le focus revient au bouton de menu quand la fermeture ne mène pas à un autre écran   (SC-04e)
+- [x] Quand l'appareil demande de réduire les animations, l'ouverture du tiroir et le repli de la barre se font sans mouvement   (SC-04f)

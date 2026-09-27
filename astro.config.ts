@@ -114,7 +114,19 @@ export default defineConfig({
   // `src/admin/admin.css` ; aucune page publique n'importe cette feuille
   // (ADR-0009 § Le site public n'est pas concerné, SC-005), donc rien du
   // site statique n'embarque de CSS Tailwind.
+  // `build.assetsInlineLimit` : le même piège que `inlineStylesheets`
+  // ci-dessus, côté script. Astro met en ligne dans le HTML tout `<script>`
+  // de module bundlé sous ce seuil (4 Ko par défaut) — le petit module de
+  // `src/admin/GabaritCadre.astro` (`cadre.ts`) ressortait en
+  // `<script type="module">…</script>`, que `script-src 'self'` (I12)
+  // bloque : repli et tiroir morts sous la vraie politique (mesuré au
+  // navigateur, ticket 04 de 005-mise-en-page-administration). Seuls les
+  // `.js` sont exclus ; tout autre fichier garde le seuil par défaut
+  // (`undefined` = décision laissée à Vite).
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      assetsInlineLimit: (chemin: string) => (chemin.endsWith('.js') ? false : undefined),
+    },
   },
 });
