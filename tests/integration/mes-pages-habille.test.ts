@@ -3,7 +3,7 @@
  * (openspec/changes/005-mise-en-page-administration/tickets/07-mes-pages-habille.md).
  *
  * Mode `test` (test-after) : `src/pages/admin/mes-pages.astro` et
- * `src/admin/navigation-liste-des-pages.ts` (`adresseDeLaPage`) sont déjà
+ * `src/core/pages/declaration.ts` (`adresseDeLaPage`) sont déjà
  * réécrits — ce fichier ne fait qu'observer le comportement rendu, aucun
  * code de production n'est modifié ici. Ce ticket **n'ajoute que des
  * tests** (préalable du ticket) : `tests/integration/liste-des-pages.test.ts`
@@ -18,7 +18,7 @@
  * tels quels (ADR-0012 : la déclaration est un geste d'intégration, jamais
  * un geste de test qui l'imiterait par un double) — leurs adresses attendues
  * sont `/`, `/tarifs` et `/contact` (`adresseDeLaPage`,
- * `src/admin/navigation-liste-des-pages.ts`).
+ * `src/core/pages/declaration.ts`).
  *
  * **Couverture volontairement partielle (cf. brief § gaps, même constat que
  * `connexion-habillee.test.ts`, ticket 06).** SC-07d (aucun défilement

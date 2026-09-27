@@ -71,8 +71,8 @@
  * 07-mes-pages-habille.md, SC-07a/b/c/d/e/f) : la liste devient une carte
  * (`bg-card`, `rounded-lg`, `border-border`, tokens I14) et chaque ligne
  * porte, sous le titre, l'adresse de la page sur le site — dérivée de son
- * identifiant par `adresseDeLaPage` (`src/admin/
- * navigation-liste-des-pages.ts`, calcul pur, aucune lecture nouvelle),
+ * identifiant par `adresseDeLaPage` (`src/core/pages/
+ * declaration.ts`, calcul pur, aucune lecture nouvelle),
  * rendue par interpolation Astro échappée (jamais `set:html`), en
  * `font-mono` (JetBrains Mono). Le balisage lu par les tests existants ne
  * change pas : `<li>` reste sans attribut et commence directement par
@@ -96,7 +96,7 @@ import MarqueBrouillon from '../../admin/MarqueBrouillon.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { listerPagesDeclarees } from '../../platform/contenu/pages.ts';
 import { listerSlugsAvecBrouillon } from '../../platform/brouillons/magasin.ts';
-import { adresseDeLaPage } from '../../admin/navigation-liste-des-pages.ts';
+import { adresseDeLaPage } from '../../core/pages/declaration.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
