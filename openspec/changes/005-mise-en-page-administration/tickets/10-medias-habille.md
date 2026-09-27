@@ -33,9 +33,9 @@ lisible, et la recherche comme le téléversement restent accessibles sans défi
 **Hors périmètre :** la fiche d'une image ; tout geste nouveau sur les médias.
 
 ## Critères
-- [ ] Sur écran étroit, la grille des médias se resserre à la largeur disponible, chaque vignette entière et lisible, et la recherche et le téléversement restent accessibles sans défilement horizontal   (SC-10a)
-- [ ] Une image refusée au téléversement s'affiche en `danger`, près du geste, avec son texte   (SC-10b)
-- [ ] « Médias » porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, bouton « Téléverser » en `plumage`   (SC-10c)
-- [ ] Affiché à 360 px de large, « Médias » ne défile pas horizontalement et aucun contenu n'est coupé, nom d'image long compris   (SC-10d)
-- [ ] Sur écran étroit, chaque vignette et chaque élément actionnable de « Médias » offre une zone de toucher d'au moins 44 × 44 px   (SC-10e)
-- [ ] Chaque texte de « Médias », signalement d'orpheline et messages compris, atteint un contraste d'au moins 4,5:1 sur son fond   (SC-10f)
+- [x] Sur écran étroit, la grille des médias se resserre à la largeur disponible, chaque vignette entière et lisible, et la recherche et le téléversement restent accessibles sans défilement horizontal   (SC-10a)
+- [x] Une image refusée au téléversement s'affiche en `danger`, près du geste, avec son texte   (SC-10b)
+- [x] « Médias » porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, bouton « Téléverser » en `plumage`   (SC-10c)
+- [x] Affiché à 360 px de large, « Médias » ne défile pas horizontalement et aucun contenu n'est coupé, nom d'image long compris   (SC-10d)
+- [x] Sur écran étroit, chaque vignette et chaque élément actionnable de « Médias » offre une zone de toucher d'au moins 44 × 44 px   (SC-10e)
+- [x] Chaque texte de « Médias », signalement d'orpheline et messages compris, atteint un contraste d'au moins 4,5:1 sur son fond   (SC-10f)
