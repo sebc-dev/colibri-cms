@@ -36,6 +36,6 @@ toujours lisible par son libellé, jamais par la seule couleur.
 le bandeau d'état de publication.
 
 ## Critères
-- [ ] Une page qui porte une correction non publiée montre, sur sa ligne de « Mes pages » et dans le titre de son éditeur, la même marque de brouillon, en `gorge`, avec le libellé écrit « Brouillon »   (SC-05a)
+- [x] Une page qui porte une correction non publiée montre, sur sa ligne de « Mes pages » et dans le titre de son éditeur, la même marque de brouillon, en `gorge`, avec le libellé écrit « Brouillon »   (SC-05a)
 - [ ] La marque qui apparaît sans recharger après un enregistrement est identique à celle que rend l'écran rechargé : le modèle servi dans la réponse et la marque rendue par le serveur sont identiques, et la marque clonée n'apparaît qu'une fois   (SC-05b)
-- [ ] Aucun bouton ni lien d'un écran servi n'est présenté en `gorge` : cette couleur ne paraît que dans la marque de brouillon   (SC-05c)
+- [x] Aucun bouton ni lien d'un écran servi n'est présenté en `gorge` : cette couleur ne paraît que dans la marque de brouillon   (SC-05c)

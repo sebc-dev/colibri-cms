@@ -33,9 +33,18 @@
  * devient une infobulle en pur CSS (`MenuRubriques.astro`, variantes
  * `in-data-[replie=true]:` et `group-hover|group-focus-visible/rubrique:`),
  * visible au survol comme au focus clavier, sans script supplémentaire.
+ *
+ * Ticket 05 (openspec/changes/005-mise-en-page-administration/tickets/
+ * 05-marque-de-brouillon.md, SC-05b) : ce gabarit rend, une fois, le modèle
+ * inerte `<template id="modele-marque-brouillon">` — le même composant
+ * `MarqueBrouillon.astro` que les écrans qui portent une marque de
+ * brouillon (`mes-pages.astro`, `pages/[slug].astro`). C'est ce modèle que
+ * `pastille-brouillon.ts` clone côté navigateur après un enregistrement,
+ * sans jamais fabriquer la marque à la main.
  */
 import Gabarit from './Gabarit.astro';
 import Logo from './Logo.astro';
+import MarqueBrouillon from './MarqueBrouillon.astro';
 import MenuRubriques, { type IdRubriqueServie } from './MenuRubriques.astro';
 import { Button } from './composants/ui/button/index.ts';
 import PanelLeft from '@lucide/svelte/icons/panel-left';
@@ -135,6 +144,8 @@ const ID_TIROIR = 'tiroir-menu';
       </div>
     </dialog>
   </div>
+
+  <template id="modele-marque-brouillon"><MarqueBrouillon /></template>
 
   <script>
     import { activerCadre } from './cadre.ts';

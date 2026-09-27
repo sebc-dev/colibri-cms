@@ -59,8 +59,16 @@
  * de la présence de lignes en D1, jamais d'un champ stocké séparément,
  * SC-04b). Rendue à même la réponse HTTP (comme le reste de cet écran), donc
  * observable sans exécuter de JavaScript.
+ *
+ * Ticket 05 (openspec/changes/005-mise-en-page-administration/tickets/
+ * 05-marque-de-brouillon.md, SC-05a) : cette pastille est désormais rendue
+ * par le composant unique `src/admin/MarqueBrouillon.astro` (badge
+ * « Brouillon », en `gorge`) au lieu du texte « • brouillon » écrit à la
+ * main — le balisage-hôte (`<li>Titre…`, sans attribut sur le `<li>`) ne
+ * change pas.
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
+import MarqueBrouillon from '../../admin/MarqueBrouillon.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { listerPagesDeclarees } from '../../platform/contenu/pages.ts';
 import { listerSlugsAvecBrouillon } from '../../platform/brouillons/magasin.ts';
@@ -83,7 +91,7 @@ const slugsAvecBrouillon = await listerSlugsAvecBrouillon(env.DB);
     ) : (
       <ul id="liste-des-pages" data-pages={JSON.stringify(pages.map((page) => page.slug))}>
         {pages.map((page) => (
-          <li>{page.titre}{slugsAvecBrouillon.has(page.slug) && <span data-pastille-brouillon> • brouillon</span>}</li>
+          <li>{page.titre}{slugsAvecBrouillon.has(page.slug) && <MarqueBrouillon />}</li>
         ))}
       </ul>
     )
