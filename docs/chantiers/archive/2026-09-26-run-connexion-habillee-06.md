@@ -1,7 +1,7 @@
 # Run bloqué — la connexion habillée
 
 Portée : 005-mise-en-page-administration · ticket 06
-Ouvert le 2026-09-26 · branche `impl/connexion-habillee-06` (worktree, aucun commit) · HEAD `48c4d92`
+Ouvert le 2026-09-26 · Clos le 2026-09-27 · branche `impl/connexion-habillee-06` (worktree, aucun commit) · HEAD `48c4d92`
 
 ## Objectif
 Habiller `/admin/connexion` en carte Colibri sans changer aucun texte ni comportement. Le ticket a été
@@ -28,6 +28,12 @@ lancé en `run-parallel` avec le ticket 03 (run `wf_53c77c9b-c69`).
 Arbitrer SC-06f, g et h en preuve observée : à 360 px dans Chromium sur l'artefact bâti, mesure des
 cibles et des contrastes, puis confirmation sur un vrai téléphone. Commiter ensuite le travail du
 worktree et ouvrir la PR à la main, en laissant ouvertes les cases qui restent à constater.
+
+## Issue
+Arbitrage humain : SC-06f, g et h ne bloquent pas le ticket, ils partent à la recette globale de fin
+de mise en page (cahier de recette § 18, CT-18.4 à CT-18.10). J'ai commité le travail du worktree,
+reformulé une assertion pour `analyse` (`toHaveLength(2)`), coché SC-06a à SC-06e et laissé les trois
+autres ouverts. Livré par #116.
 
 ## Écarté
 - Des tests qui vérifient seulement la présence de classes (`max-md:min-h-11`, `max-w-[400px]`) pour
