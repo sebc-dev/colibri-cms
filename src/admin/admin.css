@@ -293,3 +293,90 @@ h1 {
   outline: var(--focus-width) solid var(--focus-ring);
   outline-offset: var(--focus-offset);
 }
+
+/*
+ * Zone d'édition du texte riche (TipTap / ProseMirror) — les règles que
+ * `@tiptap/core` injecte d'ordinaire dans un `<style>` qu'il crée lui-même
+ * (`injectCSS`, `createStyleTag`). La CSP de l'administration refuse ce
+ * `<style>` (`style-src 'self'` ; ADR-0010 ne tolère que les attributs,
+ * `style-src-attr`) : `TexteRiche.svelte` passe `injectCSS: false` et ces
+ * règles sont reprises ici, fidèlement, depuis la chaîne `style` de
+ * `@tiptap/core`. Sans elles, ProseMirror perd `white-space: pre-wrap` et
+ * conserve mal les espaces consécutifs à la saisie.
+ *
+ * Seul écart : le trait du curseur d'intervalle (`.ProseMirror-gapcursor`)
+ * était `black`, il prend l'encre du canvas (`--ink`) — aucune couleur
+ * littérale. `transparent` n'est pas une couleur de la palette mais
+ * l'absence de couleur (sélection masquée), gardé tel quel.
+ */
+.ProseMirror {
+  position: relative;
+}
+
+.ProseMirror {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  white-space: break-spaces;
+  -webkit-font-variant-ligatures: none;
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0;
+}
+
+.ProseMirror [contenteditable='false'] {
+  white-space: normal;
+}
+
+.ProseMirror [contenteditable='false'] [contenteditable='true'] {
+  white-space: pre-wrap;
+}
+
+.ProseMirror pre {
+  white-space: pre-wrap;
+}
+
+img.ProseMirror-separator {
+  display: inline !important;
+  border: none !important;
+  margin: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.ProseMirror-gapcursor {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+  margin: 0;
+}
+
+.ProseMirror-gapcursor:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: -2px;
+  width: 20px;
+  border-top: 1px solid var(--ink);
+  animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes ProseMirror-cursor-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.ProseMirror-hideselection *::selection {
+  background: transparent;
+}
+
+.ProseMirror-hideselection *::-moz-selection {
+  background: transparent;
+}
+
+.ProseMirror-hideselection * {
+  caret-color: transparent;
+}
+
+.ProseMirror-focused .ProseMirror-gapcursor {
+  display: block;
+}
