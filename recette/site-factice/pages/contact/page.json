@@ -1,0 +1,25 @@
+{
+  "titre": "Contact",
+  "rang": 2,
+  "emplacements": [
+    { "id": "presentation", "nature": "texte-riche", "rang": 0 },
+    {
+      "id": "video-acces",
+      "nature": "lien-video",
+      "rang": 1,
+      "lien": "https://vimeo.com/76979871"
+    },
+    {
+      "id": "photo-equipe",
+      "nature": "image",
+      "rang": 2,
+      "mediaId": "media-fixture-equipe"
+    },
+    {
+      "id": "carrousel-clients",
+      "nature": "carrousel",
+      "rang": 3,
+      "mediaIds": []
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "description": "Accueil porte deux galeries et deux images : le rang parmi les emplacements de même nature (« 1re galerie », « 2e galerie ») devient visible.",
+  "cas": ["note sous CT-14", "CT-13.5", "CT-14.5"]
+}
+

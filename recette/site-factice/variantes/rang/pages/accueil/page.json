@@ -1,0 +1,44 @@
+{
+  "titre": "Accueil",
+  "rang": 0,
+  "emplacements": [
+    { "id": "presentation", "nature": "texte-riche", "rang": 0 },
+    {
+      "id": "video-presentation",
+      "nature": "lien-video",
+      "rang": 1,
+      "lien": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    },
+    {
+      "id": "bouton-devis",
+      "nature": "bouton-action",
+      "rang": 2,
+      "libelle": "Demander un devis",
+      "destination": "/contact"
+    },
+    {
+      "id": "image-hero",
+      "nature": "image",
+      "rang": 3,
+      "mediaId": "media-fixture-hero"
+    },
+    {
+      "id": "galerie-realisations",
+      "nature": "galerie",
+      "rang": 4,
+      "mediaIds": []
+    },
+    {
+      "id": "image-atelier",
+      "nature": "image",
+      "rang": 5,
+      "mediaId": "media-fixture-atelier"
+    },
+    {
+      "id": "galerie-atelier",
+      "nature": "galerie",
+      "rang": 6,
+      "mediaIds": []
+    }
+  ]
+}
