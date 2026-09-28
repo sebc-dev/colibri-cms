@@ -53,3 +53,5 @@ reports/
 # Copie locale de l'ancien socle, hors dépôt : git en garde l'historique.
 # Ancré à la racine pour ne pas matcher `docs/legacy/chantiers/archive/`.
 /archive/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
