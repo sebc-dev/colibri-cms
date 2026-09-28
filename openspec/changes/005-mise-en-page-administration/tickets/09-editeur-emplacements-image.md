@@ -37,9 +37,9 @@ beaucoup d'images), refus ; `scrollWidth` à 360 px ; boîtes des contrôles ; �
 **Hors périmètre :** les emplacements de texte ; la bibliothèque des médias elle-même.
 
 ## Critères
-- [ ] Sur écran étroit (jusqu'à 360 px, sans défilement horizontal), poser et remplacer une image et composer une galerie ou un carrousel restent disponibles dans l'éditeur   (SC-09a)
-- [ ] Sur écran étroit, la sur-couche de choix d'une image tient dans la largeur de l'écran, son contenu défile verticalement si besoin, et son bouton de fermeture reste visible   (SC-09b)
-- [ ] Quand l'appareil demande de réduire les animations, la sur-couche de choix d'une image apparaît sans mouvement   (SC-09c)
-- [ ] Un enregistrement refusé d'un emplacement d'image, de galerie ou de carrousel s'affiche en `danger`, dans la carte concernée, avec son texte   (SC-09d)
-- [ ] Sur écran étroit, chaque vignette et chaque contrôle des emplacements d'image offre une zone de toucher d'au moins 44 × 44 px   (SC-09e)
-- [ ] Chaque texte des emplacements d'image et de la sur-couche de choix atteint un contraste d'au moins 4,5:1 sur son fond   (SC-09f)
+- [x] Sur écran étroit (jusqu'à 360 px, sans défilement horizontal), poser et remplacer une image et composer une galerie ou un carrousel restent disponibles dans l'éditeur   (SC-09a)
+- [x] Sur écran étroit, la sur-couche de choix d'une image tient dans la largeur de l'écran, son contenu défile verticalement si besoin, et son bouton de fermeture reste visible   (SC-09b)
+- [x] Quand l'appareil demande de réduire les animations, la sur-couche de choix d'une image apparaît sans mouvement   (SC-09c)
+- [x] Un enregistrement refusé d'un emplacement d'image, de galerie ou de carrousel s'affiche en `danger`, dans la carte concernée, avec son texte   (SC-09d)
+- [x] Sur écran étroit, chaque vignette et chaque contrôle des emplacements d'image offre une zone de toucher d'au moins 44 × 44 px   (SC-09e)
+- [x] Chaque texte des emplacements d'image et de la sur-couche de choix atteint un contraste d'au moins 4,5:1 sur son fond   (SC-09f)

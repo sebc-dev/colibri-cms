@@ -42,9 +42,35 @@
 
   Monté sans directive `client:*` (ADR-0006) par `monter.ts`, qui lui passe
   la nature déclarée en plus de l'ensemble initial et de la réserve.
+
+  Habillage : ticket 09 (005-mise-en-page-administration, SC-09a à SC-09f).
+  Aucun geste ne change (même route, même remplacement en bloc, mêmes
+  textes de refus et de compte d'images) — seule la présentation :
+  - Les vignettes déjà composées et les vignettes de la réserve utilisent
+    toutes `VignetteMedia.svelte`, tel qu'habillé par le ticket 10, sans le
+    modifier ici.
+  - « Monter »/« Descendre »/« Retirer » et « Ajouter une image » offrent
+    chacun une cible d'au moins 44 × 44 px sur écran étroit
+    (`max-md:min-h-11 max-md:min-w-11`, SC-09e).
+  - La réserve d'ajout s'ouvre dans une vraie boîte de dialogue (`Dialog`,
+    `bits-ui`, ADR-0009), même patron que `EmplacementImage.svelte` : en-tête
+    non déroulant (titre + bouton de fermeture, toujours visible, SC-09b) et
+    corps déroulant seul (`overflow-y-auto`), largeur pleine moins 16 px de
+    chaque côté sous `sm` (`w-[calc(100%-2rem)]`, SC-09b), deux vignettes par
+    rangée sur écran étroit (`grid-cols-2`). Animations sous `motion-safe:`
+    (SC-09c).
+  - Un refus s'affiche en `danger` (`bg-danger-soft`/`text-danger`, SC-09d) :
+    dans la carte, hors sur-couche, pour monter/descendre/retirer (gestes
+    qui n'ouvrent jamais la sur-couche) ; dans le corps de la sur-couche
+    (même geste, même texte) pour un ajout refusé, le temps qu'elle reste
+    ouverte — ajouter ne ferme la sur-couche que sur un succès (aucun geste
+    ne change).
+  - Tokens seuls (`I14`) ; noms rendus échappés (interpolation Svelte,
+    jamais `{@html}`).
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
+  import SurCoucheChoixImage from './SurCoucheChoixImage.svelte';
   import type { MediaListe } from '../../platform/medias/magasin.ts';
   import { afficherPastilleDeBrouillon } from '../pastille-brouillon.ts';
   import { soumettreCorrection } from './soumettre-correction.ts';
@@ -125,40 +151,49 @@
   }
 </script>
 
-<div>
-  <p>{libelleCompteImages(mediaIds.length, nature)}</p>
+<div class="flex flex-col gap-3">
+  <p class="text-sm text-ink-muted">{libelleCompteImages(mediaIds.length, nature)}</p>
 
-  {#if messageErreur}
-    <p role="alert">{messageErreur}</p>
+  {#if messageErreur && !ouvert}
+    <p role="alert" class="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{messageErreur}</p>
   {/if}
 
   {#if mediaIds.length > 0}
-    <ul class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
+    <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {#each mediaIds as idMedia, index (idMedia + String(index))}
         <li class="flex flex-col gap-2">
           <VignetteMedia id={idMedia} alt={nomOrigineDe(idMedia)} />
-          <div class="flex gap-1">
+          <div class="flex flex-wrap gap-1.5">
             <Button
               type="button"
+              variant="outline"
+              size="sm"
               onclick={() => monter(index)}
               disabled={enCours || index === 0}
               aria-label={`Monter l'image ${nomOrigineDe(idMedia)}`}
+              class="max-md:min-h-11 max-md:min-w-11"
             >
               Monter
             </Button>
             <Button
               type="button"
+              variant="outline"
+              size="sm"
               onclick={() => descendre(index)}
               disabled={enCours || index === mediaIds.length - 1}
               aria-label={`Descendre l'image ${nomOrigineDe(idMedia)}`}
+              class="max-md:min-h-11 max-md:min-w-11"
             >
               Descendre
             </Button>
             <Button
               type="button"
+              variant="outline"
+              size="sm"
               onclick={() => retirer(index)}
               disabled={enCours}
               aria-label={`Retirer l'image ${nomOrigineDe(idMedia)}`}
+              class="max-md:min-h-11 max-md:min-w-11"
             >
               Retirer
             </Button>
@@ -168,28 +203,27 @@
     </ul>
   {/if}
 
-  <Button type="button" onclick={() => (ouvert = !ouvert)} disabled={enCours}>Ajouter une image</Button>
+  <div>
+    <Button
+      type="button"
+      onclick={() => (ouvert = true)}
+      disabled={enCours}
+      class="w-full max-md:min-h-11 md:w-auto"
+    >
+      Ajouter une image
+    </Button>
+  </div>
 
   {#if ouvert}
-    <div>
-      {#if mediasDisponibles.length === 0}
-        <p>La réserve ne contient aucune autre image à ajouter.</p>
-      {:else}
-        <ul class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
-          {#each mediasDisponibles as media (media.id)}
-            <li>
-              <button
-                type="button"
-                onclick={() => ajouter(media.id)}
-                disabled={enCours}
-                aria-label={`Ajouter l'image ${media.nomOrigine}`}
-              >
-                <VignetteMedia id={media.id} alt={media.nomOrigine} />
-              </button>
-            </li>
-          {/each}
-        </ul>
-      {/if}
-    </div>
+    <SurCoucheChoixImage
+      bind:ouvert
+      titre="Ajouter une image"
+      medias={mediasDisponibles}
+      messageVide="La réserve ne contient aucune autre image à ajouter."
+      libelleChoix={(nom) => `Ajouter l'image ${nom}`}
+      onChoisir={ajouter}
+      {enCours}
+      {messageErreur}
+    />
   {/if}
 </div>
