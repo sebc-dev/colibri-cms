@@ -35,6 +35,16 @@ TipTap injectait (au moins `white-space: pre-wrap`, `word-wrap`), puis prouver s
 (`wrangler dev`) : console sans violation CSP, sans avertissement ProseMirror, deux espaces
 consécutifs conservés à la saisie et à l'enregistrement.
 
+## Issue
+Corrigé le 2026-09-28 en `0a9ab6d` (branche `fix/feuille-tiptap-csp`) : `injectCSS: false` sur
+`new Editor`, et les règles que TipTap injectait reportées dans `admin.css`, la seule couleur littérale
+(`black` du curseur d'intervalle) remplacée par `var(--ink)`. Observé sur l'artefact bâti, avant →
+après : 2 erreurs CSP et un `securitypolicyviolation` (`style-src-elem`) → aucun ; l'avertissement
+ProseMirror → aucun ; `white-space` calculé `normal` → `break-spaces`. L'effet redouté n'était pas une
+perte : faute de feuille, ProseMirror compensait deux espaces tapées par une espace insécable
+(`un&nbsp; deux`) ; après, ce sont deux espaces ordinaires. L'enregistrement et le rechargement
+conservaient déjà les deux espaces — rien n'a changé côté sérialisation. `npm test` : 224/224.
+
 ## Écarté
 - Élargir `style-src` (nonce, `unsafe-inline`) : la security-review du change 005 exige que ce qui
   ne passe pas sous la CSP se corrige dans l'habillage, et ADR-0010 ne tolère que les attributs.
