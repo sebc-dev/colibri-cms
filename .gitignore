@@ -55,3 +55,6 @@ reports/
 /archive/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+
+# Page de relecture de /scd-spec-dev:run — artefacts de session
+.claude/review-page/
