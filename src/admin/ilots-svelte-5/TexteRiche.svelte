@@ -79,6 +79,10 @@
     editeur = new Editor({
       element: zoneEdition,
       content: analyserMarkdownRestreint(markdownInitial),
+      // Le `<style>` que TipTap injecterait est refusé par la CSP de
+      // l'administration (`style-src 'self'`, ADR-0010) : ses règles vivent
+      // dans `src/admin/admin.css`.
+      injectCSS: false,
       extensions: [
         StarterKit.configure({
           blockquote: false,
