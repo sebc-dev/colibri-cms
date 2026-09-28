@@ -29,9 +29,38 @@
   Aucune directive `client:*` (ADR-0006) : monté par le point d'entrée
   externe `monter.ts`, même patron que les autres présentations
   d'emplacement.
+
+  Habillage : ticket 09 (005-mise-en-page-administration, SC-09a à SC-09f).
+  Aucun geste ne change (même route, mêmes textes de refus) — seule la
+  présentation :
+  - L'image posée se montre elle-même (aspect large, coins tenus,
+    `VignetteMedia`-like), plutôt que la seule phrase « une image est
+    posée ». « Choisir une image »/« Remplacer l'image » reste l'action
+    principale, en `plumage` (`Button` par défaut), pleine largeur sur
+    écran étroit (`max-md:min-h-11`, cible ≥44 px, SC-09e).
+  - La sur-couche de choix devient une vraie boîte de dialogue (`Dialog`,
+    `bits-ui`, ADR-0009), même patron que la confirmation de suppression de
+    `FicheMedia.svelte` (ticket 11) : en-tête non déroulant (titre + bouton
+    de fermeture, toujours visible, SC-09b) et corps déroulant seul
+    (`overflow-y-auto`), largeur pleine moins 16 px de chaque côté sous
+    `sm` (`w-[calc(100%-2rem)]`, SC-09b), deux vignettes par rangée sur
+    écran étroit (`grid-cols-2`, davantage au-delà). Animations sous
+    `motion-safe:` (SC-09c) : sans mouvement quand l'appareil demande de
+    réduire les animations.
+  - Un refus s'affiche en `danger` (`bg-danger-soft`/`text-danger`,
+    SC-09d) : dans la carte, hors sur-couche, quand elle est fermée ; dans
+    le corps de la sur-couche (même geste, même texte) le temps qu'elle
+    reste ouverte après un refus de pose — la pose ne ferme la sur-couche
+    que sur un succès (aucun geste ne change).
+  - Vignettes de la réserve : `VignetteMedia.svelte`, telle qu'habillée par
+    le ticket 10 (écran Médias), sans modification ici. Chaque vignette et
+    chaque contrôle offre une cible d'au moins 44 × 44 px sur écran étroit
+    (SC-09e). Tokens seuls (`I14`) ; noms et descriptions rendus échappés
+    (interpolation Svelte, jamais `{@html}`).
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
+  import SurCoucheChoixImage from './SurCoucheChoixImage.svelte';
   import type { MediaListe } from '../../platform/medias/magasin.ts';
   import { afficherPastilleDeBrouillon } from '../pastille-brouillon.ts';
   import { messageErreurCorrection, MESSAGE_ECHEC, MESSAGE_RESEAU } from './message-erreur-correction.ts';
@@ -50,12 +79,14 @@
   let enCours = $state(false);
   let messageErreur = $state<string | null>(null);
 
+  const nomImagePosee = $derived(mediasInitiaux.find((media) => media.id === mediaId)?.nomOrigine);
+
   // SC-08c — aucun terme de développeur : le motif du refus dit ce qui
   // manque, jamais « ID », « payload » ou « requête ».
   const TEXTES_REFUS: Readonly<Record<string, string>> = {
     'emplacement-non-declare': "Cet emplacement n'existe plus dans la page : rechargez l'écran.",
     'nature-non-corrigible': "Cet emplacement ne se corrige pas comme une image.",
-    'forme-invalide': "Choisissez une image dans la réserve.",
+    'forme-invalide': 'Choisissez une image dans la réserve.',
   };
 
   interface ReponseCorrection {
@@ -94,46 +125,38 @@
   }
 </script>
 
-<div>
+<div class="flex flex-col gap-3">
   {#if mediaId.length > 0}
-    <p>Une image est posée à cet emplacement.</p>
+    <img
+      src={`/admin/medias/${mediaId}/octets`}
+      alt={nomImagePosee ?? 'Image posée à cet emplacement'}
+      loading="lazy"
+      class="aspect-video w-full rounded-lg border border-border bg-muted object-cover"
+    />
   {:else}
-    <p>Aucune image n'est posée à cet emplacement.</p>
+    <p class="text-sm text-ink-muted">Aucune image n'est posée à cet emplacement.</p>
   {/if}
 
-  <Button type="button" onclick={() => (ouvert = !ouvert)} disabled={enCours}>
-    {mediaId.length > 0 ? "Remplacer l'image" : 'Choisir une image'}
-  </Button>
+  <div>
+    <Button type="button" onclick={() => (ouvert = true)} disabled={enCours} class="w-full max-md:min-h-11 md:w-auto">
+      {mediaId.length > 0 ? "Remplacer l'image" : 'Choisir une image'}
+    </Button>
+  </div>
 
-  {#if messageErreur}
-    <p role="alert">{messageErreur}</p>
+  {#if messageErreur && !ouvert}
+    <p role="alert" class="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{messageErreur}</p>
   {/if}
 
   {#if ouvert}
-    <div>
-      {#if mediasInitiaux.length === 0}
-        <p>La bibliothèque ne contient encore aucune image.</p>
-      {:else}
-        <ul class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
-          {#each mediasInitiaux as media (media.id)}
-            <li>
-              <button
-                type="button"
-                onclick={() => poser(media.id)}
-                disabled={enCours}
-                aria-label={`Poser l'image ${media.nomOrigine}`}
-              >
-                <img
-                  src={`/admin/medias/${media.id}/octets`}
-                  alt={media.nomOrigine}
-                  loading="lazy"
-                  class="aspect-square w-full object-cover"
-                />
-              </button>
-            </li>
-          {/each}
-        </ul>
-      {/if}
-    </div>
+    <SurCoucheChoixImage
+      bind:ouvert
+      titre="Choisir une image"
+      medias={mediasInitiaux}
+      messageVide="La bibliothèque ne contient encore aucune image."
+      libelleChoix={(nom) => `Poser l'image ${nom}`}
+      onChoisir={poser}
+      {enCours}
+      {messageErreur}
+    />
   {/if}
 </div>
