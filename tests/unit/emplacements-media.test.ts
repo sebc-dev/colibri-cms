@@ -73,8 +73,24 @@ describe("SC-11a — la place d'un emplacement se dit par sa nature en français
     const placeB = placeEmplacement(emplacementsDeclares, 'galerie-clients');
 
     // Assert
-    expect(placeA).toBe('galerie 1');
-    expect(placeB).toBe('galerie 2');
+    expect(placeA).toBe('1re galerie');
+    expect(placeB).toBe('2e galerie');
+  });
+
+  it('SC-11a — deux carrousels de la même page se disent par leur rang ordinal accordé au masculin', () => {
+    // Arrange
+    const emplacementsDeclares: readonly Emplacement[] = [
+      { id: 'carrousel-clients', nature: 'carrousel', rang: 0, mediaIds: [] },
+      { id: 'carrousel-atelier', nature: 'carrousel', rang: 1, mediaIds: [] },
+    ];
+
+    // Act
+    const placeA = placeEmplacement(emplacementsDeclares, 'carrousel-clients');
+    const placeB = placeEmplacement(emplacementsDeclares, 'carrousel-atelier');
+
+    // Assert
+    expect(placeA).toBe('1er carrousel');
+    expect(placeB).toBe('2e carrousel');
   });
 
   it("SC-11a — un identifiant d'emplacement absent de la déclaration ne produit aucune place", () => {

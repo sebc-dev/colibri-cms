@@ -16,8 +16,10 @@
  * design.md § Decisions (arbitrage humain du 2026-09-20, déjà tranché) : la
  * place se dit par la nature de l'emplacement en français (« image »,
  * « galerie », « carrousel » — déjà les mots exacts de `NatureEmplacement`),
- * suivie du rang parmi les emplacements de MÊME NATURE de la page quand il y
- * en a plusieurs — jamais l'identifiant technique de l'emplacement. Le rang
+ * précédée de son rang ordinal parmi les emplacements de MÊME NATURE de la
+ * page quand il y en a plusieurs (« 1re galerie », « 2e galerie », spec
+ * vivante `bibliotheque-de-medias`) — jamais l'identifiant technique de
+ * l'emplacement. Le rang
  * se compte sur la déclaration (`Emplacement[]`, déjà triée par rang posé,
  * `core/pages/declaration.ts`), un fait structurel indépendant du brouillon.
  */
@@ -46,5 +48,14 @@ export function placeEmplacement(
 
   const memeNature = emplacementsDeclares.filter((candidat) => candidat.nature === emplacement.nature);
   const rang = memeNature.findIndex((candidat) => candidat.id === idEmplacement) + 1;
-  return memeNature.length > 1 ? `${emplacement.nature} ${rang.toString()}` : emplacement.nature;
+  return memeNature.length > 1 ? `${ordinal(rang, emplacement.nature)} ${emplacement.nature}` : emplacement.nature;
+}
+
+/**
+ * Le rang ordinal abrégé, accordé au genre de la nature : « 1er carrousel »,
+ * « 1re galerie », « 1re image », puis « 2e », « 3e »… quel que soit le genre.
+ */
+function ordinal(rang: number, nature: Emplacement['nature']): string {
+  if (rang > 1) return `${rang.toString()}e`;
+  return nature === 'carrousel' ? '1er' : '1re';
 }
