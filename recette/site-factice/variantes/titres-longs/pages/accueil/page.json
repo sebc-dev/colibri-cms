@@ -1,0 +1,36 @@
+{
+  "titre": "Accueil de la pâtisserie familiale du village, gâteaux de mariage, pièces montées et buffets sucrés pour vos fêtes d’été",
+  "rang": 0,
+  "emplacements": [
+    {
+      "id": "presentation",
+      "nature": "texte-riche",
+      "rang": 0
+    },
+    {
+      "id": "video-presentation",
+      "nature": "lien-video",
+      "rang": 1,
+      "lien": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    },
+    {
+      "id": "bouton-devis",
+      "nature": "bouton-action",
+      "rang": 2,
+      "libelle": "Demander un devis",
+      "destination": "/contact"
+    },
+    {
+      "id": "image-hero",
+      "nature": "image",
+      "rang": 3,
+      "mediaId": "media-fixture-hero"
+    },
+    {
+      "id": "galerie-realisations",
+      "nature": "galerie",
+      "rang": 4,
+      "mediaIds": []
+    }
+  ]
+}

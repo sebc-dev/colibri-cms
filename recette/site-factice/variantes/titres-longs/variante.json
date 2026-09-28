@@ -1,0 +1,7 @@
+{
+  "description": "Titres longs : Tarifs porte 80 signes sans espace, Accueil 120 signes avec espaces — le titre passe à la ligne sans déborder, à 360 px.",
+  "cas": [
+    "CT-20.5",
+    "CT-21.6"
+  ]
+}

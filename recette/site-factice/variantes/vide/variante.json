@@ -1,0 +1,12 @@
+{
+  "description": "Aucune page déclarée : l'écran « Mes pages » montre son message vide, sans bouton de création.",
+  "cas": [
+    "CT-5.4",
+    "CT-20.8"
+  ],
+  "retirer": [
+    "accueil",
+    "contact",
+    "tarifs"
+  ]
+}

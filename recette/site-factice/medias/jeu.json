@@ -1,0 +1,28 @@
+{
+  "$commentaire": "Jeu d'images du site factice. Aucun binaire n'est versionné : le skill site-factice les génère depuis ce fichier (.claude/skills/site-factice/scripts/site.mjs images). « cahier » = le jeu du § 0.4 de docs/cahier-de-test.md, à téléverser à la main ; « bibliotheque » = les images semées d'avance pour les cas qui supposent une bibliothèque garnie (§ 22 : au moins une douzaine).",
+  "cahier": [
+    { "fichier": "photo.jpg", "genere": { "format": "jpeg", "largeur": 1600, "hauteur": 1067, "fond": "#c8794a", "texte": "photo" }, "cas": "CT-10.2 · téléversement admis" },
+    { "fichier": "logo.png", "genere": { "format": "png", "largeur": 512, "hauteur": 512, "fond": "#2f6b5e", "texte": "logo" }, "cas": "CT-10.3, CT-10.11 · admis, recherche" },
+    { "fichier": "banniere.webp", "genere": { "format": "webp", "largeur": 1920, "hauteur": 640, "fond": "#7a4a8c", "texte": "bannière" }, "cas": "CT-10.3 · admis" },
+    { "fichier": "dessin.svg", "texte": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>\n", "cas": "CT-10.4 · refus de format" },
+    { "fichier": "anim.gif", "genere": { "format": "gif", "largeur": 64, "hauteur": 64, "fond": "#d9a441", "texte": "gif" }, "cas": "CT-10.5 · refus de format" },
+    { "fichier": "lourde.jpg", "genere": { "format": "jpeg", "largeur": 2400, "hauteur": 1800, "bruit": true, "qualite": 100 }, "poidsMin": 2097153, "cas": "CT-10.7 · refus de poids (> 2 Mio)" },
+    { "fichier": "menteur.png", "copieDe": "anim.gif", "cas": "CT-10.6 · un GIF sous une extension PNG" },
+    { "fichier": "jpeg-deguise.png", "copieDe": "photo.jpg", "cas": "CT-10.9, CT-12.2 · un vrai JPEG sous une extension PNG" },
+    { "fichier": "tronque.jpg", "copieDe": "photo.jpg", "tronquerA": 100, "cas": "CT-10.8 · fichier tronqué" }
+  ],
+  "bibliotheque": [
+    { "fichier": "fraisier.jpg", "genere": { "format": "jpeg", "largeur": 1200, "hauteur": 800, "fond": "#d65a6f", "texte": "A · fraisier" } },
+    { "fichier": "paris-brest.webp", "genere": { "format": "webp", "largeur": 1200, "hauteur": 800, "fond": "#b58450", "texte": "B · paris-brest" } },
+    { "fichier": "tarte-citron.png", "genere": { "format": "png", "largeur": 800, "hauteur": 800, "fond": "#e3c84b", "texte": "C · tarte citron" } },
+    { "fichier": "piece-montee.jpg", "genere": { "format": "jpeg", "largeur": 800, "hauteur": 1200, "fond": "#8a6d5a", "texte": "D · pièce montée" } },
+    { "fichier": "macarons.webp", "genere": { "format": "webp", "largeur": 1200, "hauteur": 800, "fond": "#9f7fc7", "texte": "E · macarons" } },
+    { "fichier": "vitrine.jpg", "genere": { "format": "jpeg", "largeur": 1600, "hauteur": 900, "fond": "#4f7a9a", "texte": "F · vitrine" } },
+    { "fichier": "atelier.jpg", "genere": { "format": "jpeg", "largeur": 1600, "hauteur": 1067, "fond": "#6b6b4f", "texte": "G · atelier" } },
+    { "fichier": "equipe.png", "genere": { "format": "png", "largeur": 1000, "hauteur": 700, "fond": "#3f7f6b", "texte": "H · équipe" } },
+    { "fichier": "entremets.webp", "genere": { "format": "webp", "largeur": 1000, "hauteur": 1000, "fond": "#a33b4b", "texte": "I · entremets" } },
+    { "fichier": "buffet.jpg", "genere": { "format": "jpeg", "largeur": 1600, "hauteur": 1000, "fond": "#c28a3a", "texte": "J · buffet" } },
+    { "fichier": "chocolats.png", "genere": { "format": "png", "largeur": 900, "hauteur": 900, "fond": "#5a3a2a", "texte": "K · chocolats" } },
+    { "fichier": "facade.webp", "genere": { "format": "webp", "largeur": 1600, "hauteur": 1067, "fond": "#7d8f6a", "texte": "L · façade" } }
+  ]
+}
