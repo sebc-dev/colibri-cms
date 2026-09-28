@@ -40,3 +40,10 @@ Poser `recette/site-factice/standard/pages/` à partir de `content/pages/`, puis
 - Un seul site « complet » cumulant tous les cas — contredirait les attendus du cahier (CT-5.1 : trois pages ; CT-6.1 : cinq emplacements).
 - Écrire les médias directement en D1 — court-circuiterait la reconnaissance des formats par les octets, que le cahier vérifie.
 - Serveur MCP Playwright — remplacé par playwright-cli à la demande de l'utilisateur.
+
+## Issue
+Fait le 2026-09-28 sur `chore/site-factice-recette` : le skill `recette` (serveur Cloudflare,
+aperçu par branche, session de relecture) en `876a408`, le site factice et le skill
+`site-factice` en `64628c5`. Les quatre variantes ont été déployées et contrôlées au navigateur
+(playwright-cli). Reste ouvert, hors de ce chantier : le code de connexion ne part pas en
+conditions réelles (`from` = destinataire) — à porter par un change dédié.
