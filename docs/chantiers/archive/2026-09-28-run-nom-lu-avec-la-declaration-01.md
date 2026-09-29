@@ -34,3 +34,6 @@ J'allais proposer à l'humain de retirer les deux `!` superflus (l. 65 et 130) d
 ## Écarté
 - Laisser un agent corriger le test : le contrat interdit toute édition de test hors `applier`, et `quality.json` n'en déclare pas.
 - Déclasser `analyse` en advisory pour passer : ce serait désarmer un contrôle pour un défaut de deux caractères.
+
+## Issue
+Le 2026-09-29, les deux `!` ont été retirés du test à la main (assertions inchangées), le workflow a été repris et il est allé jusqu’\à la PR #131.
