@@ -102,6 +102,18 @@
  * `client:*` neuve — les composants `Card`/`CardHeader`/`CardTitle`/
  * `CardContent` sont rendus par le serveur, sans hydratation, même patron
  * que `Button` dans `GabaritCadre.astro`).
+ *
+ * Ticket 03 (openspec/changes/006-nom-des-emplacements/tickets/
+ * 03-editeur-presente-nature-et-nom.md, SC-03a/b/c) : le titre de chaque
+ * carte (les six `CardTitle` ci-dessous) suit désormais la nature d'un tiret
+ * cadratin espacé (« — ») puis le nom déclaré par l'intégrateur
+ * (`emplacement.nom`, lu depuis le ticket 01) quand cet emplacement en porte
+ * un ; sans nom, la nature seule, comme avant ce ticket. Le nom s'interpole
+ * par une simple expression Astro (accolades), jamais par une directive qui
+ * injecte du balisage brut (I5, security-review.md) : Astro échappe la
+ * valeur, un nom portant des caractères de balisage s'affiche donc comme du
+ * texte (SC-03c). Aucun champ, bouton ni geste de structure n'accompagne ce
+ * titre (FR-024/025, SC-03d) : le nom se lit, il ne s'édite pas ici.
  */
 import GabaritCadre from '../../../admin/GabaritCadre.astro';
 import MarqueBrouillon from '../../../admin/MarqueBrouillon.astro';
@@ -176,7 +188,7 @@ const page = {
             {emplacement.nature === 'texte-riche' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Texte riche</CardTitle>
+                  <CardTitle>{emplacement.nom ? `Texte riche — ${emplacement.nom}` : 'Texte riche'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div
@@ -193,7 +205,7 @@ const page = {
             {emplacement.nature === 'lien-video' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Lien de la vidéo</CardTitle>
+                  <CardTitle>{emplacement.nom ? `Lien de la vidéo — ${emplacement.nom}` : 'Lien de la vidéo'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div
@@ -210,7 +222,7 @@ const page = {
             {emplacement.nature === 'bouton-action' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Bouton d’action</CardTitle>
+                  <CardTitle>{emplacement.nom ? `Bouton d’action — ${emplacement.nom}` : 'Bouton d’action'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div
@@ -229,7 +241,7 @@ const page = {
             {emplacement.nature === 'image' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Image</CardTitle>
+                  <CardTitle>{emplacement.nom ? `Image — ${emplacement.nom}` : 'Image'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div
@@ -247,7 +259,7 @@ const page = {
             {emplacement.nature === 'galerie' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Galerie</CardTitle>
+                  <CardTitle>{emplacement.nom ? `Galerie — ${emplacement.nom}` : 'Galerie'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div
@@ -267,7 +279,7 @@ const page = {
             {emplacement.nature === 'carrousel' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Carrousel</CardTitle>
+                  <CardTitle>{emplacement.nom ? `Carrousel — ${emplacement.nom}` : 'Carrousel'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div
