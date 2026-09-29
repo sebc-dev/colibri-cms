@@ -26,6 +26,16 @@
  * nature est ignorée, au même titre qu'un `page.json` mal formé
  * (SC-02a/§ ci-dessus) : une faute de forme de l'intégrateur se constate à la
  * lecture, jamais en panne pour l'éditrice.
+ *
+ * Ticket 01 (openspec/changes/006-nom-des-emplacements/tickets/
+ * 01-nom-lu-avec-la-declaration.md, D1/D2, ADR-0012) : chaque `page.json`
+ * peut porter, en plus des champs ci-dessus, un `nom` facultatif par
+ * emplacement — un nom court écrit par l'intégrateur pour l'éditrice,
+ * affiché dans les écrans d'administration des tickets suivants (hors
+ * périmètre ici). Un nom mal formé (pas du texte, ou vide après retrait des
+ * espaces de bord) devient « pas de nom » plutôt que d'écarter l'emplacement
+ * (SC-01c) — seul cas où une forme fautive ne fait pas perdre l'entrée dans
+ * ce module. Aucun nom n'est jamais fabriqué depuis l'identifiant (FR-117).
  */
 
 /**
@@ -56,6 +66,7 @@ export interface EmplacementJson {
   readonly id: string;
   readonly nature: NatureEmplacement;
   readonly rang: number;
+  readonly nom?: string;
   readonly lien?: string;
   readonly libelle?: string;
   readonly destination?: string;
@@ -76,6 +87,7 @@ export interface EmplacementTexteRiche {
   readonly nature: 'texte-riche';
   readonly rang: number;
   readonly contenu: string;
+  readonly nom?: string;
 }
 
 /** Un emplacement de lien de vidéo, présenté avec son contenu courant (SC-03c). */
@@ -84,6 +96,7 @@ export interface EmplacementLienVideo {
   readonly nature: 'lien-video';
   readonly rang: number;
   readonly lien: string;
+  readonly nom?: string;
 }
 
 /** Un emplacement de bouton d'action, présenté avec son contenu courant (SC-03c). */
@@ -93,6 +106,7 @@ export interface EmplacementBoutonAction {
   readonly rang: number;
   readonly libelle: string;
   readonly destination: string;
+  readonly nom?: string;
 }
 
 /**
@@ -104,6 +118,7 @@ export interface EmplacementImage {
   readonly nature: 'image';
   readonly rang: number;
   readonly mediaId: string;
+  readonly nom?: string;
 }
 
 /**
@@ -116,6 +131,7 @@ export interface EmplacementGalerie {
   readonly nature: 'galerie';
   readonly rang: number;
   readonly mediaIds: readonly string[];
+  readonly nom?: string;
 }
 
 /**
@@ -128,6 +144,7 @@ export interface EmplacementCarrousel {
   readonly nature: 'carrousel';
   readonly rang: number;
   readonly mediaIds: readonly string[];
+  readonly nom?: string;
 }
 
 /** Un emplacement déclaré, présenté selon sa nature (SC-03b). */
@@ -198,13 +215,34 @@ function estNatureValide(valeur: unknown): valeur is NatureEmplacement {
 }
 
 /**
+ * Normalise le nom déclaré d'un emplacement (ticket 01, openspec/changes/
+ * 006-nom-des-emplacements/tickets/01-nom-lu-avec-la-declaration.md, D2,
+ * ADR-0012) — distincte des gardes `estXxx` ci-dessus qui ÉCARTENT une
+ * entrée mal formée : un nom mal formé ne fait jamais perdre l'emplacement,
+ * il devient « pas de nom » (SC-01c). Une valeur qui n'est pas du texte
+ * (nombre, objet, `null`…) rend `undefined` ; une valeur texte est
+ * débarrassée de ses espaces de bord (SC-01a) ; vide après ce retrait, elle
+ * rend aussi `undefined` (SC-01b/c). Aucune longueur maximale. Aucun nom
+ * n'est jamais fabriqué depuis l'identifiant de l'emplacement (FR-117) — ce
+ * module ne lit que le champ `nom`, jamais `id`.
+ */
+function normaliserNomEmplacement(valeur: unknown): string | undefined {
+  if (typeof valeur !== 'string') return undefined;
+  const nom = valeur.trim();
+  return nom.length > 0 ? nom : undefined;
+}
+
+/**
  * Valide et construit un emplacement selon sa nature (ticket 03, SC-03b) —
  * le contenu courant d'un emplacement de texte riche vient du `.md` déjà lu
  * par `platform/` (`contenusTexteRiche`, indexé par identifiant
  * d'emplacement) ; celui d'un lien de vidéo ou d'un bouton d'action vient
  * directement du `page.json` (ADR-0012). Une entrée dont la forme ne
  * correspond pas à sa nature (champ manquant ou de mauvais type) est
- * écartée — même geste que `estPageJsonValide` ci-dessus.
+ * écartée — même geste que `estPageJsonValide` ci-dessus. Le nom déclaré
+ * (ticket 01, SC-01a/b/c) est lu et normalisé pour chaque nature — un nom
+ * mal formé ne fait JAMAIS partie des raisons d'écarter une entrée, à la
+ * différence des autres champs ci-dessous.
  */
 function construireEmplacement(
   brut: unknown,
@@ -216,25 +254,34 @@ function construireEmplacement(
   if (!estNatureValide(candidat.nature)) return null;
 
   const { id, rang } = candidat as { id: string; rang: number };
+  const nom = normaliserNomEmplacement(candidat.nom);
+  const avecNom = nom !== undefined ? { nom } : {};
 
   switch (candidat.nature) {
     case 'texte-riche':
-      return { id, nature: 'texte-riche', rang, contenu: contenusTexteRiche.get(id) ?? '' };
+      return { id, nature: 'texte-riche', rang, contenu: contenusTexteRiche.get(id) ?? '', ...avecNom };
     case 'lien-video':
       if (typeof candidat.lien !== 'string' || candidat.lien.length === 0) return null;
-      return { id, nature: 'lien-video', rang, lien: candidat.lien };
+      return { id, nature: 'lien-video', rang, lien: candidat.lien, ...avecNom };
     case 'bouton-action':
       if (typeof candidat.libelle !== 'string' || typeof candidat.destination !== 'string') return null;
-      return { id, nature: 'bouton-action', rang, libelle: candidat.libelle, destination: candidat.destination };
+      return {
+        id,
+        nature: 'bouton-action',
+        rang,
+        libelle: candidat.libelle,
+        destination: candidat.destination,
+        ...avecNom,
+      };
     case 'image':
       if (typeof candidat.mediaId !== 'string' || candidat.mediaId.length === 0) return null;
-      return { id, nature: 'image', rang, mediaId: candidat.mediaId };
+      return { id, nature: 'image', rang, mediaId: candidat.mediaId, ...avecNom };
     case 'galerie':
       if (!estTableauDeMediaIds(candidat.mediaIds)) return null;
-      return { id, nature: 'galerie', rang, mediaIds: candidat.mediaIds };
+      return { id, nature: 'galerie', rang, mediaIds: candidat.mediaIds, ...avecNom };
     case 'carrousel':
       if (!estTableauDeMediaIds(candidat.mediaIds)) return null;
-      return { id, nature: 'carrousel', rang, mediaIds: candidat.mediaIds };
+      return { id, nature: 'carrousel', rang, mediaIds: candidat.mediaIds, ...avecNom };
     default:
       return null;
   }

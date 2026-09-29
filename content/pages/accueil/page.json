@@ -2,12 +2,13 @@
   "titre": "Accueil",
   "rang": 0,
   "emplacements": [
-    { "id": "presentation", "nature": "texte-riche", "rang": 0 },
+    { "id": "presentation", "nature": "texte-riche", "rang": 0, "nom": "Présentation" },
     {
       "id": "video-presentation",
       "nature": "lien-video",
       "rang": 1,
-      "lien": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      "lien": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "nom": "Vidéo d'accueil"
     },
     {
       "id": "bouton-devis",
