@@ -46,7 +46,7 @@ le pose, à la main, dans le `page.json`.
 jamais), un outil de saisie de la déclaration, les données du brouillon en D1.
 
 ## Critères
-- [ ] En `core/`, la déclaration d'une page porte un emplacement dont le nom est « Présentation » (entouré d'espaces) : l'emplacement lu porte le nom « Présentation », ses espaces de début et de fin retirés   (SC-01a)
-- [ ] En `core/`, la déclaration d'une page porte un emplacement sans nom : l'emplacement est lu comme tous les autres, sans nom, et rien ne lui en fabrique un à partir de son identifiant   (SC-01b)
-- [ ] En `core/`, le nom déclaré d'un emplacement n'est pas du texte (nombre, objet, `null`), ou n'est fait que d'espaces : l'emplacement est lu sans nom, et il n'est pas écarté de la page   (SC-01c)
-- [ ] En `core/`, deux déclarations successives d'une même page changent le nom d'un emplacement sans changer son identifiant : le brouillon de cet emplacement lui reste rattaché, par son identifiant, et la correction s'applique à l'emplacement renommé   (SC-01d)
+- [x] En `core/`, la déclaration d'une page porte un emplacement dont le nom est « Présentation » (entouré d'espaces) : l'emplacement lu porte le nom « Présentation », ses espaces de début et de fin retirés   (SC-01a)
+- [x] En `core/`, la déclaration d'une page porte un emplacement sans nom : l'emplacement est lu comme tous les autres, sans nom, et rien ne lui en fabrique un à partir de son identifiant   (SC-01b)
+- [x] En `core/`, le nom déclaré d'un emplacement n'est pas du texte (nombre, objet, `null`), ou n'est fait que d'espaces : l'emplacement est lu sans nom, et il n'est pas écarté de la page   (SC-01c)
+- [x] En `core/`, deux déclarations successives d'une même page changent le nom d'un emplacement sans changer son identifiant : le brouillon de cet emplacement lui reste rattaché, par son identifiant, et la correction s'applique à l'emplacement renommé   (SC-01d)

@@ -7,7 +7,8 @@
       "id": "video-acces",
       "nature": "lien-video",
       "rang": 1,
-      "lien": "https://vimeo.com/76979871"
+      "lien": "https://vimeo.com/76979871",
+      "nom": "Plan d'accès"
     },
     {
       "id": "photo-equipe",

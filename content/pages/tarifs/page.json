@@ -2,13 +2,20 @@
   "titre": "Tarifs",
   "rang": 1,
   "emplacements": [
-    { "id": "presentation", "nature": "texte-riche", "rang": 0 },
+    { "id": "presentation", "nature": "texte-riche", "rang": 0, "nom": "Présentation des tarifs" },
     {
       "id": "bouton-devis",
       "nature": "bouton-action",
       "rang": 1,
       "libelle": "Demander un devis",
       "destination": "/contact"
+    },
+    {
+      "id": "bandeau-tarifs",
+      "nature": "image",
+      "rang": 2,
+      "mediaId": "media-fixture-hero",
+      "nom": "Bandeau des tarifs"
     }
   ]
 }
