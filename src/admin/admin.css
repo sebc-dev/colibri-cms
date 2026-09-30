@@ -261,6 +261,23 @@ h1 {
 }
 
 /*
+ * La marque « Brouillon » posée dans le titre de l'éditeur (`ux.md` de 005 :
+ * « Nos tartes   ● Brouillon ») s'écarte du titre ; sous un titre long, elle
+ * passe entière à la ligne, alignée sur le titre. Le `<h1>` qui porte la
+ * zone devient une rangée qui se replie — posé ici, et non dans le
+ * balisage : le `<h1>` et sa zone restent nus (sélecteurs des tests).
+ * `anywhere` : un mot sans coupure ne fait jamais déborder l'écran.
+ */
+h1:has(#zone-pastille-brouillon) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 4px;
+  overflow-wrap: anywhere;
+}
+
+/*
  * Champs de saisie (SC-02e) : 16 px sous 768 px — en dessous, iOS agrandit
  * la page au toucher du champ —, 15 px au-delà. Pour TOUS les champs, pas
  * seulement ceux des composants (`input.svelte`/`textarea.svelte` posent
