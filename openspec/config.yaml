@@ -1,0 +1,27 @@
+schema: scd
+
+# ┌─ scd-spec-dev (généré) ─ ce bloc est réécrit à chaque /setup ; éditez HORS de lui ─┐
+context: |
+  Projet   : ColibriCMS, prototype Rust sur Cloudflare Workers (plan gratuit) ; base docs/prototype-rust/decision.md (D1–D14, plan P1–P8)
+  Référence: cycle TypeScript archivé sous archives/ts-2.x/ (référence, pas la réalité courante)
+  Domaine  : glossaire et invariants produit dans CLAUDE.md (éditrice, intégrateur, emplacement, brouillon, aperçu, publication, demande, adresse autorisée)
+  Invariants produit : site public statique ; aucun identifiant Isometria ; aucun terme de développeur visible par l'éditrice ; jamais Workers Paid (D1)
+  Vision   : docs/vision.md · Roadmap : docs/roadmap.md (chaque change ↳ une STORY)
+  Archi    : modèle LikeC4 docs/architecture/*.c4 (structure) · invariants docs/architecture.md · ADR docs/adr/
+  Test     : mode de vérif (tdd / test / observé / aucun) décidé par strategie-verif à la décomposition
+  Sécurité : docs/security.md ; valider toute entrée externe, aucun secret en clair
+  UX/UI    : docs/design-system.md (+ canvas maître)
+  CI       : docs/ci.md fait autorité sur ce qui bloque une PR (ne pas doubler)
+rules:
+  proposal:
+    - Backréférencer l'EPIC / la STORY (docs/roadmap.md) et les FR servis (docs/vision.md).
+  design:
+    - Vérifier la conformité aux invariants des ADR (docs/adr/).
+    - Décision structurante nouvelle → proposer un ADR (docs/adr/), ne pas la figer dans design.md.
+    - Citer les éléments LikeC4 touchés par leur FQN (ex. shop.api).
+    - Relation nouvelle → éditer le .c4 dans le change, puis `likec4 validate --no-layout --json --project colibri-cms docs/architecture`.
+operations:
+  archive:
+    guidance:
+      - Cocher la STORY correspondante dans docs/roadmap.md.
+# └─ fin scd-spec-dev ─┘

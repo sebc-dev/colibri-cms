@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "likec4": {
+      "command": "likec4",
+      "args": ["mcp", "docs/architecture"]
+    }
+  }
+}

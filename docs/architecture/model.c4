@@ -1,0 +1,27 @@
+// Modèle LikeC4 — posé par /scd-spec-dev:setup, possédé par le projet.
+// Amorcer avec /scd-spec-dev:archi. Valider :
+//   likec4 validate --no-layout --json --project colibri-cms docs/architecture
+
+specification {
+  element actor     { style { shape person } }
+  element system
+  element container
+  element component
+  element store     { style { shape storage } }
+
+  relationship sync  { title 'appelle' }
+  relationship async { title 'publie vers' }
+}
+
+model {
+  colibri-cms = system 'colibri-cms' {
+    description 'À compléter : les conteneurs du projet, chacun avec son metadata sourceDir.'
+  }
+}
+
+views {
+  view index {
+    title "Vue d'ensemble"
+    include *
+  }
+}
