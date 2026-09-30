@@ -43,3 +43,9 @@ Refermer ensuite cette fiche.
 ## Écarté
 - Retirer `bits-ui` dès le ticket 03 : la spec vivante et les ADR-0009 et 0010 s'appuient dessus, et
   les tickets 04, 09 et 11 peuvent encore s'en servir.
+
+## Issue
+Fermé le 2026-09-30 par la PR #134. Les tickets 09 et 11 ont rebranché le dialog de base :
+`FicheMedia.svelte` et `SurCoucheChoixImage.svelte` importent `Dialog` depuis `bits-ui`, qui reste
+donc une dépendance — aucun change nécessaire. `knip` suggérait « Remove from ignoreDependencies » ;
+les deux exclusions ont été retirées de `knip.json`, et `npx knip` ne signale plus rien.
