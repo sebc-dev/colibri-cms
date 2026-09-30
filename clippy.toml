@@ -1,0 +1,5 @@
+# Configuration clippy du workspace. Une crate qui porte son propre clippy.toml (crates/core)
+# REMPLACE ce fichier au lieu de le compléter : y recopier ces clés.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true

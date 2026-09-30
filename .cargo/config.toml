@@ -1,0 +1,5 @@
+# Raccord R2 de decision.md : backend d'aléa de getrandom pour wasm32 (feature `wasm_js`).
+# S'applique aussi au `cargo check --target wasm32-unknown-unknown` de la boucle agent :
+# les hooks ne le redéfinissent pas.
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']

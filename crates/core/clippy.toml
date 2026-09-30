@@ -1,0 +1,13 @@
+# Remplace le clippy.toml racine pour cms-core (aucune fusion) : clés racine recopiées.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+
+# Raccord R2 de decision.md : le domaine ne lit ni l'heure, ni l'environnement, ni l'aléa.
+# Il passe par les ports Clock et Rng, implémentés dans cms-worker et dans les tests.
+disallowed-methods = [
+  { path = "std::time::SystemTime::now", reason = "passer par le port Clock" },
+  { path = "std::time::Instant::now", reason = "passer par le port Clock" },
+  { path = "std::env::var", reason = "le domaine ne lit pas l'environnement" },
+  { path = "std::env::var_os", reason = "le domaine ne lit pas l'environnement" },
+]
