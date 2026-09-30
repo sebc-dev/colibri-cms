@@ -58,3 +58,6 @@ reports/
 
 # Page de relecture de /scd-spec-dev:run — artefacts de session
 .claude/review-page/
+
+# Rust : sorties de compilation
+/target/

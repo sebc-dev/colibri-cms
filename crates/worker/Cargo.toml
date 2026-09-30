@@ -1,0 +1,16 @@
+[package]
+name = "cms-worker"
+description = "Worker Cloudflare : routage, bindings, adaptateurs des ports"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+cms-core.workspace = true
+cms-app.workspace = true
+cms-html.workspace = true
