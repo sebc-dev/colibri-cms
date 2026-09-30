@@ -203,15 +203,15 @@ export async function obtenirMediaBrouillon(db: DB, id: string): Promise<MediaBr
 /**
  * Une image en brouillon relue pour la grille de l'`Écran : Médias`
  * (ticket 05, openspec/changes/004-bibliotheque-de-medias/tickets/
- * 05-ecran-medias.md, SC-05a) : seule l'identité et le nom d'origine, JAMAIS
- * les octets (poids d'une ligne entière, servis à part par la route dédiée
- * `src/pages/admin/medias/[id]/octets.ts`). Le nom d'AFFICHAGE et la
- * description existent désormais dans ce magasin (ticket 07,
- * `MediaFiche`/`obtenirFicheMediaBrouillon` plus bas) mais la grille ni sa
- * recherche n'en tiennent compte ici : étendre la liste et son filtre à la
- * description est hors périmètre du ticket 07 (porté par la grille/recherche
- * du ticket 05, déjà livrées) — ce ticket ne recherche donc encore que sur
- * le nom d'origine, sans changement de forme.
+ * 05-ecran-medias.md, SC-05a) et pour les sélecteurs d'image de l'éditeur :
+ * l'identité, le nom d'AFFICHAGE et la description, JAMAIS les octets (poids
+ * d'une ligne entière, servis à part par la route dédiée
+ * `src/pages/admin/medias/[id]/octets.ts`). `nomAffichage` et `description`
+ * retombent comme dans `MediaFiche` plus bas : sur le nom d'origine tant que
+ * l'image n'a pas été renommée, sur la chaîne vide tant qu'elle n'a pas été
+ * décrite — la grille, sa recherche (par nom et description, spec vivante
+ * `bibliotheque-de-medias` § Recherche d'une image) et les sélecteurs
+ * désignent ainsi l'image comme la fiche la désigne.
  *
  * `effacable` (ticket 10, SC-10a/b) : vraie quand plus aucun emplacement,
  * publié ou brouillon, ne référence l'image (`imageEffacable`, ticket 02) —
@@ -220,13 +220,16 @@ export async function obtenirMediaBrouillon(db: DB, id: string): Promise<MediaBr
  */
 export interface MediaListe {
   readonly id: string;
-  readonly nomOrigine: string;
+  readonly nomAffichage: string;
+  readonly description: string;
   readonly effacable: boolean;
 }
 
 interface LigneMediaListeBrute {
   readonly id: string;
   readonly nom_origine: string;
+  readonly nom_affichage: string | null;
+  readonly description: string | null;
 }
 
 /**
@@ -250,12 +253,13 @@ export async function listerMediasBrouillon(
 ): Promise<MediaListe[]> {
   await assurerTableMedias(db);
   const resultat = await db
-    .prepare(`select id, nom_origine from ${TABLE_MEDIAS} order by creee_le desc`)
+    .prepare(`select id, nom_origine, nom_affichage, description from ${TABLE_MEDIAS} order by creee_le desc`)
     .bind()
     .all();
   return (resultat.results as LigneMediaListeBrute[]).map((ligne) => ({
     id: ligne.id,
-    nomOrigine: ligne.nom_origine,
+    nomAffichage: ligne.nom_affichage ?? ligne.nom_origine,
+    description: ligne.description ?? '',
     effacable: imageEffacable(ligne.id, REFERENCES_PUBLIEES_VIDE, referencesBrouillon),
   }));
 }

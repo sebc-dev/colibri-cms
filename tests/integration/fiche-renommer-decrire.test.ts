@@ -274,3 +274,52 @@ it(
   },
 );
 
+
+// --- Recette CT-10.13, 11.2, 13.1 — la grille et les sélecteurs reçoivent le
+// nom d'affichage et la description, pas le seul nom d'origine ---
+
+function lireDonneesMedias(html: string): unknown {
+  const attribut = /id="ilot-medias" data-medias="([^"]*)"/.exec(html)?.[1];
+  if (attribut === undefined) throw new Error("l'îlot de la bibliothèque est absent de l'écran");
+  return JSON.parse(
+    attribut
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'")
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&amp;', '&'),
+  );
+}
+
+it(
+  "par la couture HTTP, l'écran Médias transmet à la grille le nom d'affichage et la description saisis sur la fiche",
+  async () => {
+    // Arrange : une image renommée et décrite, une autre laissée telle quelle.
+    const db = await assurerSchema();
+    const cookieSession = await semerSessionValide(db);
+    const idRenomme = await semerMediaBrouillon(db, 'IMG_0042.jpg');
+    const idBrut = await semerMediaBrouillon(db, 'photo-brute.png');
+    await poster(ROUTE_RENOMMER(idRenomme), cookieSession, { nom: 'Bandeau de la page Accueil' });
+    await poster(ROUTE_DECRIRE(idRenomme), cookieSession, { description: 'La vitrine vue de la rue' });
+
+    // Act
+    const reponse = await exports.default.fetch(
+      new Request('https://example.com/admin/medias', {
+        headers: { cookie: `${NOM_COOKIE_SESSION}=${cookieSession}` },
+      }),
+    );
+
+    // Assert : l'image renommée arrive sous son nom et sa description…
+    expect(reponse.status).toBe(200);
+    const medias = lireDonneesMedias(await reponse.text()) as Record<string, unknown>[];
+    expect(medias.find((media) => media.id === idRenomme)).toMatchObject({
+      nomAffichage: 'Bandeau de la page Accueil',
+      description: 'La vitrine vue de la rue',
+    });
+    // …l'autre retombe sur son nom d'origine, sans description.
+    expect(medias.find((media) => media.id === idBrut)).toMatchObject({
+      nomAffichage: 'photo-brute.png',
+      description: '',
+    });
+  },
+);

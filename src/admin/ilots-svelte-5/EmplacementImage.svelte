@@ -79,7 +79,7 @@
   let enCours = $state(false);
   let messageErreur = $state<string | null>(null);
 
-  const nomImagePosee = $derived(mediasInitiaux.find((media) => media.id === mediaId)?.nomOrigine);
+  const nomImagePosee = $derived(mediasInitiaux.find((media) => media.id === mediaId)?.nomAffichage);
 
   // SC-08c — aucun terme de développeur : le motif du refus dit ce qui
   // manque, jamais « ID », « payload » ou « requête ».

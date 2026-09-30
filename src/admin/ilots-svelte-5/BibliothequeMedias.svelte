@@ -23,9 +23,9 @@
   Le téléversement poste vers `src/pages/admin/medias/televerser.ts` (ticket
   04, non modifiée ici) — un refus dit le motif (format ou poids, SC-05e) via
   `texteDuRefusTeleversement` (`src/admin/textes.ts`), jamais un terme de
-  développeur. Un ajout accepté rejoint la grille sans recharger l'écran : le
-  nom d'origine vient du `File` posé par l'éditrice (identique à celui que la
-  route persiste), l'identité de la réponse `{ ok: true, id }` — `effacable`
+  développeur. Un ajout accepté rejoint la grille sans recharger l'écran : son
+  nom d'affichage est le nom d'origine, tiré du `File` posé par l'éditrice
+  (identique à celui que la route persiste), sans description ; l'identité de la réponse `{ ok: true, id }` — `effacable`
   vaut `true` (ticket 10) : une image tout juste téléversée n'est encore
   posée dans aucun emplacement.
 
@@ -52,11 +52,10 @@
   moins 44 px vient de `w-full` sous `md` sur ces deux éléments, pas de
   `min-w-11` — même patron que `src/pages/admin/connexion.astro`, ticket 06).
 
-  La recherche (SC-05f) filtre en mémoire sur le nom d'origine, seul champ
-  que ce magasin porte à ce ticket (le nom d'affichage et la description
-  existent désormais, ticket 07, mais étendre la recherche à la description
-  reste hors périmètre de ce ticket-là — voir `magasin.ts`) — sans index
-  dédié, comme le permet design.md.
+  La recherche (SC-05f) filtre en mémoire sur le nom d'affichage et la
+  description (`filtrerMedias`, `recherche-medias.ts`) — sans index dédié,
+  comme le permet design.md. La vignette porte elle aussi le nom
+  d'affichage : la grille désigne l'image comme sa fiche la désigne.
 
   Aucune directive `client:*` (ADR-0006) : monté par le point d'entrée
   externe `monter.ts`, même patron que les autres îlots.
@@ -78,6 +77,7 @@
     texteDuRefusTeleversement,
   } from '../textes.ts';
   import { messageErreurCorrection, MESSAGE_RESEAU } from './message-erreur-correction.ts';
+  import { filtrerMedias } from './recherche-medias.ts';
 
   interface Props {
     mediasInitiaux: readonly MediaListe[];
@@ -91,11 +91,7 @@
   let messageErreur = $state<string | null>(null);
   let entreeFichier: HTMLInputElement | undefined;
 
-  const mediasFiltres = $derived.by(() => {
-    const terme = recherche.trim().toLocaleLowerCase('fr');
-    if (terme.length === 0) return medias;
-    return medias.filter((media) => media.nomOrigine.toLocaleLowerCase('fr').includes(terme));
-  });
+  const mediasFiltres = $derived(filtrerMedias(medias, recherche));
 
   interface ReponseTeleversement {
     readonly ok: boolean;
@@ -125,7 +121,7 @@
         messageErreur = texteDuRefusTeleversement(resultat.raison);
         return;
       }
-      medias = [{ id: resultat.id, nomOrigine: fichier.name, effacable: true }, ...medias];
+      medias = [{ id: resultat.id, nomAffichage: fichier.name, description: '', effacable: true }, ...medias];
     } catch {
       messageErreur = MESSAGE_RESEAU;
     } finally {
@@ -181,7 +177,7 @@
       {#each mediasFiltres as media (media.id)}
         <li class="flex flex-col gap-2">
           <a href={`/admin/medias/${media.id}`} class="block">
-            <VignetteMedia id={media.id} alt={media.nomOrigine} />
+            <VignetteMedia id={media.id} alt={media.nomAffichage} />
           </a>
           {#if media.effacable}
             <p class="rounded-md bg-ambre-soft px-2 py-1 text-xs text-ambre">

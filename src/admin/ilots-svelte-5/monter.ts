@@ -246,7 +246,8 @@ function analyserMediasInitiaux(valeurBrute: string): readonly MediaListe[] | nu
         typeof element === 'object' &&
         element !== null &&
         typeof (element as MediaListe).id === 'string' &&
-        typeof (element as MediaListe).nomOrigine === 'string',
+        typeof (element as MediaListe).nomAffichage === 'string' &&
+        typeof (element as MediaListe).description === 'string',
     )
   ) {
     return null;

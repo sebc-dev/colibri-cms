@@ -104,8 +104,8 @@
 
   const mediasDisponibles = $derived(mediasInitiaux.filter((media) => !mediaIds.includes(media.id)));
 
-  function nomOrigineDe(idMedia: string): string {
-    return mediasInitiaux.find((media) => media.id === idMedia)?.nomOrigine ?? idMedia;
+  function nomDe(idMedia: string): string {
+    return mediasInitiaux.find((media) => media.id === idMedia)?.nomAffichage ?? idMedia;
   }
 
   /**
@@ -162,7 +162,7 @@
     <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {#each mediaIds as idMedia, index (idMedia + String(index))}
         <li class="flex flex-col gap-2">
-          <VignetteMedia id={idMedia} alt={nomOrigineDe(idMedia)} />
+          <VignetteMedia id={idMedia} alt={nomDe(idMedia)} />
           <div class="flex flex-wrap gap-1.5">
             <Button
               type="button"
@@ -170,7 +170,7 @@
               size="sm"
               onclick={() => monter(index)}
               disabled={enCours || index === 0}
-              aria-label={`Monter l'image ${nomOrigineDe(idMedia)}`}
+              aria-label={`Monter l'image ${nomDe(idMedia)}`}
               class="max-md:min-h-11 max-md:min-w-11"
             >
               Monter
@@ -181,7 +181,7 @@
               size="sm"
               onclick={() => descendre(index)}
               disabled={enCours || index === mediaIds.length - 1}
-              aria-label={`Descendre l'image ${nomOrigineDe(idMedia)}`}
+              aria-label={`Descendre l'image ${nomDe(idMedia)}`}
               class="max-md:min-h-11 max-md:min-w-11"
             >
               Descendre
@@ -192,7 +192,7 @@
               size="sm"
               onclick={() => retirer(index)}
               disabled={enCours}
-              aria-label={`Retirer l'image ${nomOrigineDe(idMedia)}`}
+              aria-label={`Retirer l'image ${nomDe(idMedia)}`}
               class="max-md:min-h-11 max-md:min-w-11"
             >
               Retirer
