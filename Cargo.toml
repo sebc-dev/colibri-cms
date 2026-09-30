@@ -13,11 +13,13 @@ publish = false
 cms-core = { path = "crates/core" }
 cms-app = { path = "crates/app" }
 cms-html = { path = "crates/html" }
+serde_json = "1.0.151"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
 missing_debug_implementations = "warn"
-unused_crate_dependencies = "warn"
+# Dépendances inutilisées : tenues par `cargo shear --deny-warnings` (D13), pas par le lint
+# `unused_crate_dependencies`, qui se déclenche à tort sur les cibles de test.
 
 [workspace.lints.clippy]
 all = { level = "deny", priority = -1 }
