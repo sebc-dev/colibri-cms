@@ -46,7 +46,7 @@ siens.
 public, toute écriture en D1 autre que le semis des tests.
 
 ## Critères
-- [ ] L'éditrice consulte la fiche d'une image posée dans l'emplacement nommé « Bandeau des tarifs » de la page Tarifs : la liste « Posée dans » la désigne par le titre de sa page et le nom de l'emplacement (« Tarifs — Bandeau des tarifs »), sans terme de développeur   (SC-02a)
-- [ ] À défaut de nom, la place est la nature de l'emplacement en français (« image », « galerie », « carrousel »), jamais son identifiant, suivie de son rang parmi les emplacements de même nature de la page (« 1re galerie », « 2e galerie ») dès qu'il y en a plusieurs, le rang se comptant parmi tous les emplacements de cette nature, nommés ou non   (SC-02b)
-- [ ] L'éditrice consulte la fiche d'une image posée dans un emplacement nommé d'une page et dans un emplacement sans nom d'une autre page : dans la même liste, le premier est désigné par son nom, le second par sa nature (et son rang s'il y a lieu)   (SC-02c)
-- [ ] L'éditrice demande la suppression d'une image posée dans un emplacement nommé : la liste des emplacements concernés, présentée avant toute application, désigne cet emplacement par sa page et son nom, comme la fiche   (SC-02d)
+- [x] L'éditrice consulte la fiche d'une image posée dans l'emplacement nommé « Bandeau des tarifs » de la page Tarifs : la liste « Posée dans » la désigne par le titre de sa page et le nom de l'emplacement (« Tarifs — Bandeau des tarifs »), sans terme de développeur   (SC-02a)
+- [x] À défaut de nom, la place est la nature de l'emplacement en français (« image », « galerie », « carrousel »), jamais son identifiant, suivie de son rang parmi les emplacements de même nature de la page (« 1re galerie », « 2e galerie ») dès qu'il y en a plusieurs, le rang se comptant parmi tous les emplacements de cette nature, nommés ou non   (SC-02b)
+- [x] L'éditrice consulte la fiche d'une image posée dans un emplacement nommé d'une page et dans un emplacement sans nom d'une autre page : dans la même liste, le premier est désigné par son nom, le second par sa nature (et son rang s'il y a lieu)   (SC-02c)
+- [x] L'éditrice demande la suppression d'une image posée dans un emplacement nommé : la liste des emplacements concernés, présentée avant toute application, désigne cet emplacement par sa page et son nom, comme la fiche   (SC-02d)

@@ -22,8 +22,16 @@
  * l'emplacement. Le rang
  * se compte sur la déclaration (`Emplacement[]`, déjà triée par rang posé,
  * `core/pages/declaration.ts`), un fait structurel indépendant du brouillon.
+ *
+ * Ticket 02 (openspec/changes/006-nom-des-emplacements/tickets/
+ * 02-bibliotheque-designe-par-le-nom.md, ADR-0012, design D3) : la place
+ * s'appuie désormais sur `designerEmplacement` (`core/pages/
+ * designation.ts`, pure) — un emplacement nommé par l'intégrateur (ticket
+ * 01) se désigne par ce nom, jamais par sa nature ni son identifiant ; à
+ * défaut de nom, la règle nature+rang ci-dessus, inchangée.
  */
 import type { Emplacement } from '../../core/pages/declaration.ts';
+import { designerEmplacement } from '../../core/pages/designation.ts';
 
 /** Un emplacement qui pose une image, désigné par sa page et sa place (SC-11a/c) — aucun terme de développeur. */
 export interface EmplacementOuPoseeMedia {
@@ -37,25 +45,14 @@ export interface EmplacementOuPoseeMedia {
  * cet identifiant n'y est pas déclaré (garde défensive : ne devrait jamais se
  * produire pour un couple (page, emplacement) qui vient de
  * `listerEmplacementsReferencantMedia`, mais une déclaration a pu changer
- * depuis l'écriture du brouillon).
+ * depuis l'écriture du brouillon). Délègue à `designerEmplacement`
+ * (`core/pages/designation.ts`, ticket 02) : un emplacement nommé se
+ * désigne par son nom, un emplacement sans nom garde la règle nature+rang
+ * ci-dessus.
  */
 export function placeEmplacement(
   emplacementsDeclares: readonly Emplacement[],
   idEmplacement: string,
 ): string | null {
-  const emplacement = emplacementsDeclares.find((candidat) => candidat.id === idEmplacement);
-  if (!emplacement) return null;
-
-  const memeNature = emplacementsDeclares.filter((candidat) => candidat.nature === emplacement.nature);
-  const rang = memeNature.findIndex((candidat) => candidat.id === idEmplacement) + 1;
-  return memeNature.length > 1 ? `${ordinal(rang, emplacement.nature)} ${emplacement.nature}` : emplacement.nature;
-}
-
-/**
- * Le rang ordinal abrégé, accordé au genre de la nature : « 1er carrousel »,
- * « 1re galerie », « 1re image », puis « 2e », « 3e »… quel que soit le genre.
- */
-function ordinal(rang: number, nature: Emplacement['nature']): string {
-  if (rang > 1) return `${rang.toString()}e`;
-  return nature === 'carrousel' ? '1er' : '1re';
+  return designerEmplacement(emplacementsDeclares, idEmplacement);
 }
