@@ -41,7 +41,7 @@
   import { Button } from '../composants/ui/button/index.ts';
   import { afficherPastilleDeBrouillon } from '../pastille-brouillon.ts';
   import { messageErreurCorrection, MESSAGE_ECHEC, MESSAGE_RESEAU } from './message-erreur-correction.ts';
-  import { analyserMarkdownRestreint } from '../../core/pages/texte-riche.ts';
+  import { analyserMarkdownRestreint, lienDeTexteRicheAutorise } from '../../core/pages/texte-riche.ts';
 
   interface Props {
     slug: string;
@@ -57,10 +57,17 @@
   let messageErreur = $state<string | null>(null);
   let champLienVisible = $state(false);
   let lienSaisi = $state('');
+  let lienRefuse = $state(false);
 
   // Cible de 44 px sur écran étroit (SC-08e) pour chaque commande de la
   // barre de mise en forme ; taille du canvas au-delà (`sm` du bouton).
   const CLASSE_BOUTON_BARRE = 'max-md:min-h-11 max-md:min-w-11';
+
+  // Recette CT-9.5 — TipTap refuse en silence un lien hors de sa liste
+  // (`setLink` rend `false`) : le champ restait fermé comme si le lien était
+  // posé. La règle du serveur (`lienDeTexteRicheAutorise`) est vérifiée ici
+  // d'abord, et le refus se dit dans les mots du champ.
+  const TEXTE_LIEN_REFUSE = "Ce lien n'est pas accepté : il doit commencer par https://, mailto:, tel: ou /.";
 
   // SC-06f — aucun terme de développeur : le motif du refus dit ce qui se
   // passe, jamais « JSON », « document » ou « sérialisation ».
@@ -120,6 +127,7 @@
 
   function ouvrirChampLien(): void {
     lienSaisi = (editeur?.getAttributes('link').href as string | undefined) ?? '';
+    lienRefuse = false;
     champLienVisible = true;
   }
 
@@ -127,9 +135,13 @@
     const lien = lienSaisi.trim();
     if (lien === '') {
       editeur?.chain().focus().extendMarkRange('link').unsetLink().run();
+    } else if (!lienDeTexteRicheAutorise(lien)) {
+      lienRefuse = true;
+      return;
     } else {
       editeur?.chain().focus().extendMarkRange('link').setLink({ href: lien }).run();
     }
+    lienRefuse = false;
     champLienVisible = false;
   }
 
@@ -185,10 +197,15 @@
         <input
           type="text"
           bind:value={lienSaisi}
+          aria-invalid={lienRefuse}
+          aria-describedby={lienRefuse ? `lien-refuse-${idEmplacement}` : undefined}
           placeholder="https://, mailto:, tel: ou une adresse du site commençant par /"
           class="rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-ink-muted focus-visible:border-ring max-md:min-h-11 md:text-sm"
         />
       </label>
+      {#if lienRefuse}
+        <span id={`lien-refuse-${idEmplacement}`} role="alert" class="text-sm text-danger">{TEXTE_LIEN_REFUSE}</span>
+      {/if}
       <Button type="button" onclick={appliquerLien} class="w-full max-md:min-h-11 md:w-auto">Appliquer le lien</Button>
     </p>
   {/if}
