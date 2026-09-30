@@ -1,0 +1,40 @@
+# cargo-deny — portes bloquantes de D13 (decision.md). Lancer : cargo deny check
+# Les couches du workspace (D12) sont tenues ici par les `wrappers` : une crate listée ne peut
+# être une dépendance directe QUE des crates nommées.
+
+[graph]
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+all-features = true
+
+[advisories]
+ignore = []
+
+[licenses]
+allow = ["MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception", "BSD-3-Clause", "ISC", "Unicode-3.0", "Zlib"]
+confidence-threshold = 0.8
+
+[licenses.private]
+# Les crates du workspace sont `publish = false`.
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+deny = [
+  # Couches internes : core ← app ← worker, core ← html ← worker, core ← xtask.
+  { crate = "cms-app", wrappers = ["cms-worker"], reason = "seul le Worker orchestre les cas d'usage" },
+  { crate = "cms-html", wrappers = ["cms-worker"], reason = "seul le Worker sert du HTML" },
+  # Runtime Cloudflare et routage confinés au Worker (D2, D3).
+  { crate = "worker", wrappers = ["cms-worker"], reason = "le runtime Workers ne sort pas de cms-worker" },
+  { crate = "axum", wrappers = ["cms-worker"], reason = "le routage HTTP ne sort pas de cms-worker" },
+  # Raccords R1 et R3 de decision.md.
+  { crate = "askama", wrappers = ["cms-html"], reason = "HTML produit uniquement par cms-html" },
+  { crate = "schemars", wrappers = ["cms-core", "cms-xtask"], reason = "export JSON Schema hors du binaire Worker" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
