@@ -69,6 +69,24 @@
   // d'abord, et le refus se dit dans les mots du champ.
   const TEXTE_LIEN_REFUSE = "Ce lien n'est pas accepté : il doit commencer par https://, mailto:, tel: ou /.";
 
+  // Recette, remarque 9.1 — la barre dit ce qui est posé là où est le
+  // curseur : Gras, Italique, Liste et Titre sont des boutons à bascule
+  // (`aria-pressed`), en plumage comme toute sélection du canvas. « Lien »
+  // ouvre un champ, il ne bascule rien : il n'en porte pas.
+  const CLASSE_BOUTON_BASCULE = `${CLASSE_BOUTON_BARRE} aria-pressed:border-plumage aria-pressed:bg-plumage-soft aria-pressed:text-plumage aria-pressed:hover:bg-plumage-soft aria-pressed:hover:text-plumage`;
+  let grasActif = $state(false);
+  let italiqueActif = $state(false);
+  let listeActive = $state(false);
+  let titreActif = $state(false);
+
+  function suivreLaSelection(): void {
+    if (!editeur) return;
+    grasActif = editeur.isActive('bold');
+    italiqueActif = editeur.isActive('italic');
+    listeActive = editeur.isActive('bulletList');
+    titreActif = editeur.isActive('heading', { level: 2 });
+  }
+
   // SC-06f — aucun terme de développeur : le motif du refus dit ce qui se
   // passe, jamais « JSON », « document » ou « sérialisation ».
   const TEXTES_REFUS: Readonly<Record<string, string>> = {
@@ -102,6 +120,7 @@
           link: { openOnClick: false, autolink: false },
         }),
       ],
+      onTransaction: suivreLaSelection,
     });
   });
 
@@ -178,16 +197,38 @@
 
 <div class="flex flex-col gap-3">
   <div role="toolbar" aria-label="Mise en forme du texte" class="flex flex-wrap gap-1.5">
-    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={basculerGras}>Gras</Button>
-    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={basculerItalique}
-      >Italique</Button
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      class={CLASSE_BOUTON_BASCULE}
+      aria-pressed={grasActif}
+      onclick={basculerGras}>Gras</Button
+    >
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      class={CLASSE_BOUTON_BASCULE}
+      aria-pressed={italiqueActif}
+      onclick={basculerItalique}>Italique</Button
     >
     <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={ouvrirChampLien}>Lien</Button>
-    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={basculerListe}
-      >Liste</Button
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      class={CLASSE_BOUTON_BASCULE}
+      aria-pressed={listeActive}
+      onclick={basculerListe}>Liste</Button
     >
-    <Button type="button" variant="outline" size="sm" class={CLASSE_BOUTON_BARRE} onclick={basculerTitre}
-      >Titre</Button
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      class={CLASSE_BOUTON_BASCULE}
+      aria-pressed={titreActif}
+      onclick={basculerTitre}>Titre</Button
     >
   </div>
   {#if champLienVisible}
