@@ -189,7 +189,7 @@ Session ouverte. Ouvrir `/admin/mes-pages`.
 | CT-4.2 | Cliquer « Médias » | L'écran Médias s'ouvre, « Médias » devient la rubrique active | |
 | CT-4.3 | Cliquer Réglages, Formulaires, Demandes | Aucun écran ne s'ouvre (la rubrique situe, elle ne mène nulle part) ; pas d'erreur | |
 | CT-4.4 | Actionner « Replier le menu » | La barre devient un rail d'icônes seules ; la rubrique active reste marquée ; la zone de contenu s'élargit | |
-| CT-4.5 | Actionner « Déployer le menu » | Les libellés reparaissent à côté des icônes | |
+| CT-4.5 | Actionner « Déplier le menu » | Les libellés reparaissent à côté des icônes | |
 | CT-4.6 | Replier, puis **recharger** la page ; onglet Réseau pendant le repli | L'état replié est conservé ; **aucune** requête serveur n'a été émise par le repli | |
 | CT-4.7 | Parcourir tout le menu | Aucun bouton « + », « ajouter », « renommer », « supprimer », « déplacer » sur les rubriques ou les pages | |
 | CT-4.8 | Console ouverte pendant tout le § 4 | Aucune violation CSP ; aucun style de composant bloqué (menus, boutons, champs s'affichent normalement) | |
