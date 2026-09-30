@@ -16,7 +16,7 @@
     titre: string;
     medias: readonly MediaListe[];
     messageVide: string;
-    libelleChoix: (nomOrigine: string) => string;
+    libelleChoix: (nom: string) => string;
     onChoisir: (id: string) => void;
     enCours: boolean;
     messageErreur: string | null;
@@ -73,10 +73,10 @@
                   type="button"
                   onclick={() => onChoisir(media.id)}
                   disabled={enCours}
-                  aria-label={libelleChoix(media.nomOrigine)}
+                  aria-label={libelleChoix(media.nomAffichage)}
                   class="block min-h-11 w-full rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
-                  <VignetteMedia id={media.id} alt={media.nomOrigine} />
+                  <VignetteMedia id={media.id} alt={media.nomAffichage} />
                 </button>
               </li>
             {/each}
