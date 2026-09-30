@@ -20,6 +20,10 @@
  * (SC-05c). `rounded-full` est un utilitaire de forme, pas une couleur — il
  * ne relève pas d'`I14` et ne nécessite aucun token dans `admin.css`.
  *
+ * `font-sans tracking-normal` : posée dans le `<h1>` de l'éditeur, la marque
+ * héritait sinon de Fraunces et de l'approche du titre (recette CT-19.5) —
+ * elle doit rester identique à celle de « Mes pages » (SC-05a).
+ *
  * L'attribut `data-pastille-brouillon` est conservé sur la marque : de
  * nombreux tests existants le cherchent (voir en-tête de
  * `pastille-brouillon.ts`).
@@ -29,7 +33,7 @@ const ATTRIBUT_PASTILLE = 'data-pastille-brouillon';
 
 <span
   {...{ [ATTRIBUT_PASTILLE]: '' }}
-  class="inline-flex items-center gap-1 rounded-full bg-gorge-soft px-2 py-0.5 text-xs font-medium text-gorge"
+  class="inline-flex items-center gap-1 rounded-full bg-gorge-soft px-2 py-0.5 font-sans text-xs font-medium tracking-normal text-gorge"
 >
   <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full bg-gorge"></span>
   Brouillon
