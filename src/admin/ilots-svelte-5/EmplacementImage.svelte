@@ -79,7 +79,10 @@
   let enCours = $state(false);
   let messageErreur = $state<string | null>(null);
 
-  const nomImagePosee = $derived(mediasInitiaux.find((media) => media.id === mediaId)?.nomAffichage);
+  const imagePosee = $derived(mediasInitiaux.find((media) => media.id === mediaId));
+  // Une identité absente de la bibliothèque (image de démonstration déclarée,
+  // CT-6.3) se présente comme un emplacement vide plutôt qu'une image cassée
+  // (CT-22.1) : le sélecteur ne pose que des images de cette même liste.
 
   // SC-08c — aucun terme de développeur : le motif du refus dit ce qui
   // manque, jamais « ID », « payload » ou « requête ».
@@ -126,10 +129,10 @@
 </script>
 
 <div class="flex flex-col gap-3">
-  {#if mediaId.length > 0}
+  {#if imagePosee}
     <img
       src={`/admin/medias/${mediaId}/octets`}
-      alt={nomImagePosee ?? 'Image posée à cet emplacement'}
+      alt={imagePosee.nomAffichage}
       loading="lazy"
       class="aspect-video w-full rounded-lg border border-border bg-muted object-cover"
     />
@@ -139,7 +142,7 @@
 
   <div>
     <Button type="button" onclick={() => (ouvert = true)} disabled={enCours} class="w-full max-md:min-h-11 md:w-auto">
-      {mediaId.length > 0 ? "Remplacer l'image" : 'Choisir une image'}
+      {imagePosee ? "Remplacer l'image" : 'Choisir une image'}
     </Button>
   </div>
 
