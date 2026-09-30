@@ -30,3 +30,14 @@ créer les cinq crates vides sous `crates/`, puis faire passer `cargo check --wo
 ## Écarté
 - Dessiner le modèle LikeC4 avant le prototype : P2 à P6 peuvent réviser D3, Q1 et Q3.
 - Écrire vision et roadmap avant le prototype : il peut faire tomber la piste Rust elle-même.
+- Le lint `unused_crate_dependencies` : il se déclenchait à tort sur les cibles de test ;
+  `cargo shear --deny-warnings` tient ce rôle.
+- Un `#[allow(clippy::expect_used)]` dans le test de couches : réécrit avec `?` à la place.
+
+## Issue
+Critère de P1 atteint le 2026-09-30 : portes vertes sur le code vide, et chaque règle essayée
+par une violation volontaire (deny : cms-html → cms-app et worker dans cms-core ; clippy :
+SystemTime::now dans core ; test de couches ; shear). Commits `dc34291` (workspace),
+`10938bc` (deny.toml), `bbbe4c0` (clippy.toml, getrandom), `4706ae7` (test de couches),
+`f3a5487` (hooks D14). Restés hors de P1 : `getrandom::fill` dans le clippy.toml de core
+(à poser quand la crate entrera) et la CI GitHub de la porte Rust (§6).

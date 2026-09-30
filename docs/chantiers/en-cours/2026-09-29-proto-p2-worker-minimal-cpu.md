@@ -1,8 +1,8 @@
 # Prototype P2 — Worker minimal et CPU par requête
 
 Portée : hors-cycle
-Ouvert le 2026-09-29 · Actualisé le 2026-09-29 · branche `proto/rust` · HEAD `ffd8a86`
-Bloqué par : P1 (le workspace)
+Ouvert le 2026-09-29 · Actualisé le 2026-09-30 · branche `proto/rust` · HEAD `f3a5487`
+Bloqué par : le compte Cloudflare jetable, sans moyen de paiement (geste humain)
 
 ## Objectif
 Un Worker axum + askama + D1 qui rend une page d'administration listant 20 éléments, et mesurer le
