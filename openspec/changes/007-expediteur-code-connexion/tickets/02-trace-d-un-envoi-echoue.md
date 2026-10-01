@@ -25,7 +25,7 @@ aboutisse ou non.
   message composé, ni l'adresse soumise.
 - Pour que la trace survive à l'instant où elle est écrite, la configuration de déploiement active
   les journaux de la plateforme (`observability`). C'est un réglage de plateforme, pas une valeur
-  d'instance : il a sa place dans `wrangler.astro.jsonc` (ADR-0032) ; `wrangler.jsonc` reste aligné.
+  d'instance : il a sa place dans `wrangler.astro.jsonc` (candidat `invariant-i10-restreint-a-la-configuration-astro`) ; `wrangler.jsonc` reste aligné.
   Aucun identifiant de compte ni domaine n'y entre (SC-012/SC-013).
 - Les tests existants d'indiscernabilité des deux branches (corps, en-têtes, délai plancher,
   expédition après le rendu, instance non semée, temps de réponse) restent verts tels quels.

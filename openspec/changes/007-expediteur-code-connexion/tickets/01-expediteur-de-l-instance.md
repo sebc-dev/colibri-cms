@@ -30,7 +30,7 @@ e-mail, **ne se bâtit plus** : la construction s'arrête avec un message qui no
 - La route de connexion lit cette constante et la transmet au module d'e-mail, comme elle lui
   transmet déjà la liaison `EXPEDITEUR_CODE_CONNEXION`. Le module d'e-mail reste pur : il reçoit
   l'expéditeur en paramètre et le pose en `from` ; il ne connaît toujours pas le domaine.
-- `wrangler.jsonc` et `wrangler.astro.jsonc` ne reçoivent **aucune** valeur d'instance (ADR-0032) :
+- `wrangler.jsonc` et `wrangler.astro.jsonc` ne reçoivent **aucune** valeur d'instance (candidat `invariant-i10-restreint-a-la-configuration-astro`) :
   ni `allowed_sender_addresses`, ni domaine. La `destination_address` neutre ne change pas.
 - Aucun identifiant ni domaine d'Isometria (SC-012/SC-013) : l'adresse est sur le domaine de la
   cliente.
