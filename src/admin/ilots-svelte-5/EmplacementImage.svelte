@@ -89,7 +89,7 @@
   const TEXTES_REFUS: Readonly<Record<string, string>> = {
     'emplacement-non-declare': "Cet emplacement n'existe plus dans la page : rechargez l'écran.",
     'nature-non-corrigible': "Cet emplacement ne se corrige pas comme une image.",
-    'forme-invalide': 'Choisissez une image dans la réserve.',
+    'forme-invalide': 'Choisissez une image dans la bibliothèque.',
   };
 
   interface ReponseCorrection {

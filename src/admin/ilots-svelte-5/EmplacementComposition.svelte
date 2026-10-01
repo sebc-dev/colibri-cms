@@ -99,7 +99,7 @@
       nature === 'galerie'
         ? 'Cet emplacement ne se corrige pas comme une galerie.'
         : 'Cet emplacement ne se corrige pas comme un carrousel.',
-    'forme-invalide': 'Choisissez des images dans la réserve.',
+    'forme-invalide': 'Choisissez des images dans la bibliothèque.',
   };
 
   const mediasDisponibles = $derived(mediasInitiaux.filter((media) => !mediaIds.includes(media.id)));
@@ -218,7 +218,7 @@
     bind:ouvert
     titre="Ajouter une image"
     medias={mediasDisponibles}
-    messageVide="La réserve ne contient aucune autre image à ajouter."
+    messageVide="La bibliothèque ne contient aucune autre image à ajouter."
     libelleChoix={(nom) => `Ajouter l'image ${nom}`}
     onChoisir={ajouter}
     {enCours}
