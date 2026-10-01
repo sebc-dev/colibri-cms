@@ -15,12 +15,12 @@
  * réellement (mesuré contre le binding local, `scripts/verif-connexion.sh`)
  * — les champs en français du brouillon initial (`a`/`objet`/`corps`)
  * n'étaient jamais atteints par la plateforme, qui les rejette avant tout
- * envoi (aucun champ `from` ni `to` reconnu). `from` reprend le destinataire
- * lui-même : la seule adresse que ce module connaît est celle que
- * l'appelant lui transmet (I8 — le domaine de l'instance ne vit que dans
- * `instance.json`, hors de portée de cette zone), et l'e-mail est de toute
- * façon à destination de cette même boîte. `expediteur` est lu par
- * l'appelant depuis la liaison `EXPEDITEUR_CODE_CONNEXION`
+ * envoi (aucun champ `from` ni `to` reconnu). `from` est l'adresse d'expéditeur
+ * de l'instance (`senderAddress`, ticket 01 de 007), transmise par l'appelant :
+ * la plateforme refuse d'expédier depuis un domaine sans acheminement activé,
+ * donc jamais depuis l'adresse autorisée (I8 — le domaine de l'instance ne
+ * vit que dans `instance.json`, hors de portée de cette zone). `expediteur`
+ * (la liaison) est lu par l'appelant depuis la liaison `EXPEDITEUR_CODE_CONNEXION`
  * (`send_email`, wrangler.jsonc) et seulement transmis ici.
  */
 
@@ -48,9 +48,10 @@ export async function demanderExpeditionDuCode(
   expediteur: ExpediteurEmail,
   destinataire: string,
   code: string,
+  adresseExpediteur: string,
 ): Promise<void> {
   await expediteur.send({
-    from: destinataire,
+    from: adresseExpediteur,
     to: destinataire,
     subject: OBJET,
     // Inerte et étiqueté (ADR-0002) : texte seul, jamais de HTML — la seule

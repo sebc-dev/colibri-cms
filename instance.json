@@ -1,4 +1,5 @@
 {
   "domain": "exemple.colibri.test",
-  "turnstilePublicKey": "1x00000000000000000000AA"
+  "turnstilePublicKey": "1x00000000000000000000AA",
+  "senderAddress": "code@envoi.exemple.colibri.test"
 }
