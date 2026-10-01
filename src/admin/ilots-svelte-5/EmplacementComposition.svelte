@@ -214,16 +214,14 @@
     </Button>
   </div>
 
-  {#if ouvert}
-    <SurCoucheChoixImage
-      bind:ouvert
-      titre="Ajouter une image"
-      medias={mediasDisponibles}
-      messageVide="La réserve ne contient aucune autre image à ajouter."
-      libelleChoix={(nom) => `Ajouter l'image ${nom}`}
-      onChoisir={ajouter}
-      {enCours}
-      {messageErreur}
-    />
-  {/if}
+  <SurCoucheChoixImage
+    bind:ouvert
+    titre="Ajouter une image"
+    medias={mediasDisponibles}
+    messageVide="La réserve ne contient aucune autre image à ajouter."
+    libelleChoix={(nom) => `Ajouter l'image ${nom}`}
+    onChoisir={ajouter}
+    {enCours}
+    {messageErreur}
+  />
 </div>
