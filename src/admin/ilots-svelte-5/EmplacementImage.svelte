@@ -150,16 +150,14 @@
     <p role="alert" class="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{messageErreur}</p>
   {/if}
 
-  {#if ouvert}
-    <SurCoucheChoixImage
-      bind:ouvert
-      titre="Choisir une image"
-      medias={mediasInitiaux}
-      messageVide="La bibliothèque ne contient encore aucune image."
-      libelleChoix={(nom) => `Poser l'image ${nom}`}
-      onChoisir={poser}
-      {enCours}
-      {messageErreur}
-    />
-  {/if}
+  <SurCoucheChoixImage
+    bind:ouvert
+    titre="Choisir une image"
+    medias={mediasInitiaux}
+    messageVide="La bibliothèque ne contient encore aucune image."
+    libelleChoix={(nom) => `Poser l'image ${nom}`}
+    onChoisir={poser}
+    {enCours}
+    {messageErreur}
+  />
 </div>

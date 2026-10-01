@@ -32,6 +32,7 @@
 @import '@fontsource/jetbrains-mono/latin-400.css';
 @import '@fontsource/jetbrains-mono/latin-500.css';
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 /*
  * Un seul thème, le clair, même sur un appareil réglé en sombre (SC-02a,
@@ -42,6 +43,20 @@
  * inertes, sans retoucher les composants.
  */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Animations des sur-couches (recette, remarque « sur-couche sans
+ * animation ») : les composants copiés par la CLI shadcn-svelte (boîte de
+ * dialogue, son fond, infobulle, sur-couche de choix d'image) écrivent
+ * `data-open:animate-in`, `fade-in-0`, `zoom-in-95`… Ces utilitaires
+ * viennent de `tw-animate-css` (importé ci-dessus, CSS seul, rien n'est
+ * servi en script) ; `data-open:` désigne, pour Tailwind, un attribut
+ * `data-open` que bits-ui ne pose jamais — il pose `data-state="open"` /
+ * `"closed"`. Les deux variantes sont rattachées à cet attribut, sans
+ * retoucher les composants.
+ */
+@custom-variant data-open (&:where([data-state='open']));
+@custom-variant data-closed (&:where([data-state='closed']));
 
 :root {
   color-scheme: light;
