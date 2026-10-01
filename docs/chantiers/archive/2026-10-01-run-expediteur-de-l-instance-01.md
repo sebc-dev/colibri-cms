@@ -31,3 +31,6 @@ d'assertion touchée), soit il déroge en review. Ensuite, j'allais relancer
 ## Écarté
 - Laisser un agent du run corriger le test : le contrat l'interdit, la ceinture tdd le
   détecterait comme une modification de test.
+
+## Issue
+Le 2026-10-01, avec l'accord de l'humain, la ligne 18 de `message-code.test.ts` a été réécrite avec un corps à accolades. Le transtypage de la phase rouge, devenu inutile, a été retiré et le fichier reformaté. La reprise du run `wf_5ecc225f-dd8` a ensuite mené le ticket jusqu'à la PR #154, avec la review 8 dimensions (0 appliqué, 8 rejetés).
