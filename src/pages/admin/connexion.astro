@@ -142,7 +142,7 @@ if (estSoumission) {
         if (await estAdresseAutorisee(env.DB, adresse)) {
           const code = await ecrireCodeSiPlafondNonAtteint(env.DB, identifiantAppareil, maintenant);
           if (code) {
-            demandeExpedition = () => demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, adresse, code);
+            demandeExpedition = () => demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, adresse, code, __ADRESSE_EXPEDITEUR__);
           } else {
             plafondAtteint = true;
           }

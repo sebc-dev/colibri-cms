@@ -53,5 +53,5 @@ l'écran (anti-énumération) ; l'envoi des demandes de devis ; automatiser l'ac
 l'acheminement d'e-mail.
 
 ## Critères
-- [ ] Un message portant un code part vers l'adresse autorisée avec, pour expéditeur, l'adresse d'expéditeur déclarée par l'instance — et jamais l'adresse autorisée   (SC-01a)
-- [ ] Quand le fichier d'instance ne déclare pas d'adresse d'expéditeur, ou en déclare une qui n'est pas une adresse e-mail, la construction du site échoue en nommant le champ manquant ou invalide   (SC-01b)
+- [x] Un message portant un code part vers l'adresse autorisée avec, pour expéditeur, l'adresse d'expéditeur déclarée par l'instance — et jamais l'adresse autorisée   (SC-01a)
+- [x] Quand le fichier d'instance ne déclare pas d'adresse d'expéditeur, ou en déclare une qui n'est pas une adresse e-mail, la construction du site échoue en nommant le champ manquant ou invalide   (SC-01b)
