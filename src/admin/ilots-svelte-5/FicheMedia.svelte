@@ -255,7 +255,7 @@
     </a>
   </p>
 
-  <h1 class="break-words text-xl font-semibold">{nom}</h1>
+  <h1 class="break-words">{nom}</h1>
 
   {#if effacable}
     <Alert variant="destructive" class="border-transparent">

@@ -242,8 +242,10 @@
 /*
  * Couche de base — l'administration prend fond, encre et police du canvas ;
  * `body` perd son `padding: 2rem` (le socle de mise en page vient d'un
- * ticket suivant). Les `h1` prennent la famille d'affichage ici : les
- * écrans ne posent aucun attribut de police sur les leurs.
+ * ticket suivant). Les `h1` prennent l'échelle `title` du canvas ici
+ * (Fraunces 28/34, `cb-title`) : les écrans ne posent aucun attribut de
+ * police ni de taille sur les leurs — le reset de Tailwind les laissait
+ * sinon à 15 px (recette, remarque « titres d'écran »).
  */
 body {
   margin: 0;
@@ -256,6 +258,8 @@ body {
 
 h1 {
   font-family: var(--font-display);
+  font-size: var(--title-size);
+  line-height: var(--title-line);
   font-weight: var(--title-weight);
   letter-spacing: var(--title-tracking);
 }
