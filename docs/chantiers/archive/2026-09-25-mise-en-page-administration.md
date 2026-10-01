@@ -41,3 +41,9 @@ l'administration. Premier arbitrage : un seul thème clair, ou les deux.
 - Élargir la CSP pour Google Fonts et Lucide en CDN — contredit I12 ; vendoriser à la place.
 - Deux changes séparés, socle puis écrans — un seul suffit : 004 a tenu à 11 tickets.
 - `npm run dev` comme terrain de recette — Vite y injecte le CSS par script, la CSP le bloque.
+
+## Issue
+Plan exécuté tel que prévu. ADR-0015 (tokens Colibri, `80db319`) et ADR-0016 (polices en même
+origine, `ce3c586`) acceptés, puis le change `005-mise-en-page-administration` ouvert avec ses
+11 tickets (`2619074`, PR #108). Les tickets ont été joués et fusionnés dans main ; les critères
+visuels restés non cochés relèvent de la recette (`docs/cahier-de-test.md`), pas de ce chantier.
