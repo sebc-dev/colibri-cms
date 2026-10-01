@@ -40,6 +40,10 @@
   let destination = $state(destinationInitial);
   let enCours = $state(false);
   let messageErreur = $state<string | null>(null);
+  // CT-7.6 — une destination refusée se dit au champ « Va vers » (message
+  // relié, `aria-invalid`), pas sous le bouton : l'éditrice voit quoi corriger.
+  let destinationRefusee = $state(false);
+  const idMessageDestination = `destination-refusee-${idEmplacement}`;
 
   const TEXTES_REFUS: Readonly<Record<string, string>> = {
     'emplacement-non-declare': "Cet emplacement n'existe plus dans la page : rechargez l'écran.",
@@ -58,6 +62,7 @@
     evenement.preventDefault();
     enCours = true;
     messageErreur = null;
+    destinationRefusee = false;
     try {
       const reponse = await fetch(`/admin/pages/${slug}/emplacements/${idEmplacement}`, {
         method: 'POST',
@@ -72,6 +77,10 @@
         return;
       }
       const resultat = (await reponse.json()) as ReponseCorrection;
+      if (resultat.raison === 'destination-invalide') {
+        destinationRefusee = true;
+        return;
+      }
       if (!resultat.ok) {
         messageErreur = TEXTES_REFUS[resultat.raison ?? ''] ?? MESSAGE_ECHEC;
         return;
@@ -101,9 +110,14 @@
       type="text"
       bind:value={destination}
       required
-      class="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-ink-muted focus-visible:border-ring max-md:min-h-11 md:text-sm"
+      aria-invalid={destinationRefusee}
+      aria-describedby={destinationRefusee ? idMessageDestination : undefined}
+      class="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-ink-muted focus-visible:border-ring aria-invalid:border-danger max-md:min-h-11 md:text-sm"
     />
   </label>
+  {#if destinationRefusee}
+    <p id={idMessageDestination} role="alert" class="-mt-2 text-sm text-danger">{TEXTES_REFUS['destination-invalide']}</p>
+  {/if}
   <Button type="submit" disabled={enCours} class="w-full max-md:min-h-11 md:w-auto">Enregistrer</Button>
   {#if messageErreur}
     <p role="alert" class="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{messageErreur}</p>
