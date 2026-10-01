@@ -1,0 +1,33 @@
+---
+/**
+ * Page inconnue de l'administration — recette de fin de front 005, remarque
+ * 1.3 (CT-1.3). Sans elle, un chemin inconnu sous `/admin/` rendait la page
+ * 404 d’Astro : en anglais, et nue, sa feuille de style en ligne étant refusée par
+ * la politique de sécurité de l'administration (`style-src 'self'`,
+ * ADR-0008). Celle-ci prend `admin.css` par `Gabarit.astro`, comme la
+ * connexion.
+ *
+ * Même réponse avec ou sans session (CT-1.3) : aucun garde de session, aucun
+ * menu, rien de l'administration — un refus `404` et le chemin du retour.
+ * `/admin/` renvoie lui-même vers la connexion ou vers « Mes pages ». Le
+ * site public n'est pas concerné : il garde sa propre page d'erreur, hors de
+ * cette politique.
+ */
+import Gabarit from '../../admin/Gabarit.astro';
+
+Astro.response.status = 404;
+---
+
+<Gabarit titre="Page introuvable">
+  <main class="flex min-h-dvh justify-center px-4 py-10">
+    <div class="flex h-fit w-full max-w-[400px] flex-col gap-3 text-center">
+      <h1>Page introuvable</h1>
+      <p class="text-ink-muted">Cette page n’existe pas : l’adresse est peut-être incomplète.</p>
+      <p>
+        <a href="/admin/" class="inline-flex min-h-11 items-center text-plumage underline underline-offset-2"
+          >Retour à l’administration</a
+        >
+      </p>
+    </div>
+  </main>
+</Gabarit>
