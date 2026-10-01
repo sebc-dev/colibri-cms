@@ -313,6 +313,17 @@ h1 {
   position: relative;
 }
 
+/*
+ * Un seul cadre de focus pour la zone d'écriture (recette) : son conteneur
+ * (`TexteRiche.svelte`) prend bord et halo comme tout champ de saisie
+ * (`Input` : `border-ring` + `ring-3`), la zone éditable n'y ajoute pas le
+ * contour commun de `:focus-visible` — le focus reste visible (SC-02d), une
+ * seule fois.
+ */
+.ProseMirror:focus-visible {
+  outline: none;
+}
+
 .ProseMirror {
   word-wrap: break-word;
   white-space: pre-wrap;
