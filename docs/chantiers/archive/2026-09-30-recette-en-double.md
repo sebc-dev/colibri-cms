@@ -50,3 +50,18 @@ J'allais attaquer le KO 2 (texte riche dans l'éditeur), dans une branche partie
 - Fabriquer un code en base pour jouer le § 3 : hors du plan de la fiche, non fait (CT-3.2 à 3.12 restent non jouables).
 - Réparer CT-2.1 dans ce chantier : c'est le change 007 qui porte l'expéditeur du code.
 - Un change OpenSpec pour le KO 1 : la spec vivante demandait déjà nom et description, correctif direct.
+
+## Issue
+Fait du 2026-09-30 au 2026-10-01, une branche partie de `origin/main` et une PR par correctif, chacune
+rejouée au navigateur sur son adresse d'aperçu ; toutes mergées, `main` vert en `2bb80f1`.
+- KO : #137 (nom d'affichage dans la bibliothèque), #138 (titre, liste, lien dans l'éditeur, CT-9.3),
+  #139 (police de la marque « Brouillon », CT-19.5), #140 (image absente = emplacement vide, CT-6.3,
+  22.1) ; cahier CT-4.5 en #136.
+- Remarques : #141 (titres d'écran 28/34), #142 (marque écartée du titre), #143 (lien refusé dit,
+  9.5), #144 (titre de fiche gardé après un nom refusé, 11.3), #145 (destination refusée au champ,
+  7.6), #146 (état actif de la barre, 9.1), #147 (page introuvable en français, 1.3), #148
+  (animations : `tw-animate-css` + `data-state`), #149 (un seul cadre de focus), #150
+  (« bibliothèque », jamais « réserve », 13.7 — arbitré par l'humain).
+- Arbitré par l'humain : une image absente se présente comme sans image ; retrouver une image
+  renommée par son nom d'origine — **pas pour le moment**.
+- Reste ouvert, hors de ce chantier : CT-2.1 (change 007) ; CT-3.2 à 3.12 non jouables en recette.
