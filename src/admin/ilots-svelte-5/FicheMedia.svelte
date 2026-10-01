@@ -121,7 +121,11 @@
   const emplacementsAffiches = $derived(retiree ? [] : emplacements);
   const effacable = $derived(retiree || media.effacable);
 
+  // `nom` est le nom enregistré (titre, texte de remplacement, confirmation) ;
+  // `nomSaisi` est le champ. Liés au même état, un nom vidé puis refusé
+  // vidait aussi le titre (recette, remarque 11.3).
   let nom = $state(media.nomAffichage);
+  let nomSaisi = $state(media.nomAffichage);
   let description = $state(media.description);
 
   let enCoursNom = $state(false);
@@ -176,7 +180,7 @@
 
   async function enregistrerNom(evenement: SubmitEvent): Promise<void> {
     evenement.preventDefault();
-    const valeur = nom.trim();
+    const valeur = nomSaisi.trim();
     if (valeur.length === 0) {
       erreurNom = TEXTE_REFUS_NOM_VIDE;
       return;
@@ -199,6 +203,7 @@
         return;
       }
       nom = valeur;
+      nomSaisi = valeur;
     } catch {
       erreurNom = MESSAGE_RESEAU;
     } finally {
@@ -273,7 +278,7 @@
     <div class="flex min-w-0 flex-col gap-6 md:w-80 md:shrink-0">
       <form class="flex flex-col gap-1.5" onsubmit={enregistrerNom}>
         <Label for="fiche-media-nom">{TEXTE_LIBELLE_NOM_AFFICHAGE}</Label>
-        <Input id="fiche-media-nom" type="text" bind:value={nom} class="max-md:min-h-11" />
+        <Input id="fiche-media-nom" type="text" bind:value={nomSaisi} class="max-md:min-h-11" />
         <div>
           <Button type="submit" disabled={enCoursNom} class="max-md:min-h-11 max-md:min-w-11">
             {TEXTE_BOUTON_ENREGISTRER}
