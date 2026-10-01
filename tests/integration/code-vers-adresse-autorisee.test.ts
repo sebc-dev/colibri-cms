@@ -387,3 +387,31 @@ it('le code écrit porte l’identifiant d’appareil de la soumission qui l’a
   expect(ligne).not.toBeNull();
   expect(Object.values(ligne ?? {})).toContain(identifiantAppareil);
 });
+
+// --- Ticket 01 (007) — l'expéditeur du code est celui de l'instance ---
+
+it('SC-01a — le message part vers l’adresse autorisée avec, pour expéditeur, celui de l’instance et jamais l’adresse autorisée', async () => {
+  // L'expéditeur attendu est lu dans le fichier d'instance lui-même : le test
+  // ne recopie pas la valeur, il vérifie que la route la porte jusqu'au message.
+  const { default: instance } = (await import('../../instance.json')) as {
+    default: { senderAddress: string };
+  };
+  const db = await assurerSchema();
+  await semerAdresseAutorisee(db, ADRESSE_AUTORISEE);
+  const identifiantAppareil = await obtenirIdentifiantAppareil();
+  const { expediteur, appels, demande } = creerExpediteurEspion();
+  const precedent = poserExpediteurEspion(expediteur);
+
+  try {
+    await soumettreAdresse(ADRESSE_AUTORISEE, identifiantAppareil);
+    await demande;
+  } finally {
+    restaurerLiaisonExpedition(precedent);
+  }
+
+  expect(appels).toHaveLength(1);
+  const message = appels[0] as { from: string; to: string };
+  expect(message.to).toBe(ADRESSE_AUTORISEE);
+  expect(message.from).toBe(instance.senderAddress);
+  expect(message.from).not.toBe(ADRESSE_AUTORISEE);
+});
