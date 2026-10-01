@@ -11,7 +11,7 @@ Voir `proposal.md` — Why. État du code au moment du change :
 - `astro.config.ts` est le **seul** lecteur d'`instance.json` (**I10**) ; il n'en consomme
   aujourd'hui que `domain`.
 - La liaison `EXPEDITEUR_CODE_CONNEXION` (`send_email`) porte une `destination_address` neutre dans
-  `wrangler.jsonc` / `wrangler.astro.jsonc` (ADR-0032 : la configuration de déploiement ne porte
+  `wrangler.jsonc` / `wrangler.astro.jsonc` (candidat `invariant-i10-restreint-a-la-configuration-astro` : la configuration de déploiement ne porte
   que des liaisons de plateforme, aucune valeur d'instance).
 - La plateforme **locale** (Miniflare) accepte n'importe quel expéditeur ; elle refuse en revanche
   un destinataire autre que la `destination_address` — l'unique façon de faire échouer un envoi
@@ -47,7 +47,7 @@ reste ») et **I8** le range là. Alternatives écartées, arbitrées avec l'hum
 - *dériver d'un sous-domaine fixe* (`code@envoi.<domain>`) : laisse la messagerie intacte, mais
   impose le même nom de sous-domaine à toutes les clientes et l'écrit dans le code ;
 - *déclarer l'expéditeur dans la liaison* (`allowed_sender_addresses` dans `wrangler.jsonc`) : met
-  une valeur d'instance dans la configuration de déploiement — contraire à ADR-0032 et à **I8**.
+  une valeur d'instance dans la configuration de déploiement — contraire au candidat `invariant-i10-restreint-a-la-configuration-astro` et à **I8**.
 
 **D2 — `astro.config.ts` valide et transmet ; `platform` reçoit une constante.** La configuration
 Astro lit `senderAddress` avec `domain` (**I10**), **refuse de bâtir** si le champ manque ou n'a pas
@@ -63,7 +63,7 @@ le code ni l'adresse soumise. Elle part après la réponse, dans la même promes
 corps, ni les en-têtes, ni le moment de la réponse ne peuvent en dépendre. Pour que la trace
 survive à l'instant où elle est écrite, la configuration de déploiement active les journaux de la
 plateforme (`observability`) — un réglage de plateforme, pas une valeur d'instance, donc dans le
-périmètre qu'ADR-0032 laisse à `wrangler.jsonc`.
+périmètre que le candidat `invariant-i10-restreint-a-la-configuration-astro` laisse à `wrangler.jsonc`.
 
 **D4 — Pas d'ADR nouveau.** Le champ entre dans le lieu qu'ADR-0005 prévoit déjà ; l'acheminement
 reste celui d'ADR-0002, dont une conséquence négative (« le domaine doit être servi par le DNS

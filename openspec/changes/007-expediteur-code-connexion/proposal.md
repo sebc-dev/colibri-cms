@@ -49,7 +49,7 @@ _Aucune._
   la lecture de la nouvelle valeur depuis le fichier d'instance, par le chemin qu'autorise **I10**.
 - **Configuration** : `instance.json` gagne le champ d'expéditeur (**I8**, ADR-0005 : le quatrième
   lieu, « tout le reste »). `wrangler.jsonc` et `wrangler.astro.jsonc` restent sans valeur
-  d'instance (ADR-0032) : la destination vérifiée de `send_email` n'y change pas de rôle.
+  d'instance (candidat `invariant-i10-restreint-a-la-configuration-astro`) : la destination vérifiée de `send_email` n'y change pas de rôle.
 - **Décisions** : ADR-0002 tient (acheminement par la plateforme vers la destination vérifiée,
   gratuit, e-mail inerte et étiqueté) — ce change en répare l'application, il ne le remet pas en
   cause.
