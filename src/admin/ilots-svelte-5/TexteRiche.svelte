@@ -252,7 +252,7 @@
   {/if}
   <div
     bind:this={zoneEdition}
-    class="min-h-32 rounded-lg border border-input bg-surface-raised px-3 py-2 text-base text-ink focus-within:border-ring md:text-sm"
+    class="min-h-32 rounded-lg border border-input bg-surface-raised px-3 py-2 text-base text-ink focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 md:text-sm"
   ></div>
   <Button type="button" onclick={enregistrer} disabled={enCours} class="w-full max-md:min-h-11 md:w-auto"
     >Enregistrer</Button
