@@ -49,6 +49,8 @@ branche s'y appliquent. Une branche qui ajoute une migration → la recette de `
   recette (sinon Cloudflare refuse : « You can only send from your routing domains »).
   Un envoi refusé n'empêche pas l'écran de saisie (même réponse, anti-énumération) mais laisse
   une **ligne d'échec** : la chercher avec `$R journal` (à lancer en arrière-plan avant la demande).
+  `$R journal` ne suit que le serveur principal : sur une **adresse d'aperçu**, il ne reçoit rien,
+  pas même les requêtes (constaté le 2026-10-02) — y vérifier l'arrivée du message plutôt.
 - **Session de relecture** — plus le détour obligé : sert à la relecture visuelle. `$R session` insère une ligne `sessions` (opaque : la ligne suffit) et
   écrit l'état de stockage Playwright. Le cookie est `__Host-` : **propre à un nom d'hôte**, donc
   `--hote <nom-de-l'aperçu>` pour une adresse de branche.
@@ -119,9 +121,11 @@ Optionnel : `RECETTE_EXPEDITEUR=<adresse d'expéditeur>` (défaut `code@<RECETTE
 sans quoi aucun code n'arrive.
 
 Le domaine personnalisé est créé par `deployer --principal` (route `custom_domain`). **Ne jamais
-activer Email Routing sur le domaine principal d'une zone dont le courrier est ailleurs** (ici
-`sebc.dev` → OVH) : il remplacerait ses MX. Si un routage est nécessaire, l'activer sur le seul
-sous-domaine (dashboard → Email Routing → Settings → Subdomains).
+activer Email Routing sur le domaine principal d'une zone dont le courrier est ailleurs** : il
+remplacerait ses MX. Si un routage est nécessaire, l'activer sur le seul sous-domaine (dashboard →
+Email Routing → Settings → Subdomains). Ici, `sebc.dev` n'a plus de courrier ailleurs : depuis le
+2026-10-02, Email Routing y est activé sur la zone entière (MX Cloudflare), ce qui couvre
+`colibri.sebc.dev`. État réel : `npx wrangler email routing list`.
 
 ## Ce qui reste hors d'atteinte
 
