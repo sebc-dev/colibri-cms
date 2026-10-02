@@ -24,7 +24,10 @@ export default defineConfig({
     // sur disque et double le compte de tests et d'erreurs non gérées. Le motif
     // ne matche jamais depuis l'intérieur d'une sandbox (Stryker y lance npm
     // test avec la sandbox pour racine), donc les runs de mutation sont intacts.
-    exclude: [...configDefaults.exclude, '**/.stryker-tmp/**'],
+    // Même raison pour .wrangler/ : le site factice de recette y bâtit un
+    // arbre de travail complet (.wrangler/recette/arbre), tests compris, que
+    // vitest collectait en double. Aucun test n'est lancé depuis cet arbre.
+    exclude: [...configDefaults.exclude, '**/.stryker-tmp/**', '**/.wrangler/**'],
     setupFiles: [
       './tests/setup/ignorer-rejet-wasm-lexer.ts',
       './tests/setup/activer-mutant-stryker.ts',

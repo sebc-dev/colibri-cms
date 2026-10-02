@@ -14,9 +14,10 @@
  *
  *   deployer [--principal] [--alias <nom>] [--racine <dossier>]
  *                           migre la base puis publie le build courant :
- *                           sur `main` (ou --principal) → le serveur principal ;
- *                           sinon → une adresse d'aperçu au nom de la branche
- *                           (ou de --alias). --racine : build fait ailleurs.
+ *                           --principal, ou `main` sans --alias → le serveur
+ *                           principal ; sinon → une adresse d'aperçu au nom de
+ *                           --alias, à défaut de la branche. --racine : build
+ *                           fait ailleurs.
  *   instance [--racine <d>] écrit dans le fichier d'instance du build (`instance.json`)
  *                           le domaine et l'adresse d'expéditeur de la recette
  *                           (`RECETTE_EXPEDITEUR`, sinon `code@<RECETTE_DOMAINE>`).
@@ -163,7 +164,9 @@ function ecrireInstance(reglages) {
 function deployer(reglages, principal, aliasImpose) {
   ecrireConfigRecette(reglages);
   const branche = brancheCourante();
-  const versPrincipal = principal || branche === 'main';
+  // Un alias imposé (les variantes du site factice) vise toujours un aperçu,
+  // même depuis `main` : sans cela, chaque variante écraserait le principal.
+  const versPrincipal = principal || (branche === 'main' && !aliasImpose);
 
   console.log('→ migrations de la base de recette');
   wrangler(reglages, ['d1', 'migrations', 'apply', 'DB', '--remote', '--config', configRecette()]);
