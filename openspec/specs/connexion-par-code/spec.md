@@ -6,9 +6,9 @@ Cette capacité ouvre l'administration à la seule éditrice, sans mot de passe 
 
 ## Requirements
 
-### Requirement: La porte de l'administration
+### Requirement: La porte de l'administration et son accueil
 
-Toute route d'administration demandée sans session valide SHALL être refusée et renvoyée vers l'écran de connexion ; l'écran de connexion, lui, SHALL rester servi avec ou sans session, car il n'est pas une route d'administration (le garde de session est tenu par l'import, ADR-0007). L'accueil, derrière la garde, ne porte aucune fonction.
+Toute route d'administration demandée sans session valide SHALL être refusée et renvoyée vers l'écran de connexion ; l'écran de connexion, lui, SHALL rester servi avec ou sans session, car il n'est pas une route d'administration (le garde de session est tenu par l'import, ADR-0007). L'accueil, derrière la garde, ne présente rien de lui-même : il SHALL mener à « Mes pages », de sorte que l'éditrice n'arrive jamais sur un écran sans suite.
 
 #### Scenario: L'accueil sans session renvoie vers la connexion
 - **WHEN** l'accueil `/admin/` est demandé sans cookie de session valide
@@ -25,9 +25,10 @@ Toute route d'administration demandée sans session valide SHALL être refusée 
 - **THEN** la réponse est un refus
 - **AND** rien de l'administration n'est laissé voir
 
-#### Scenario: L'accueil est vide de fonction
-- **WHEN** l'accueil est rendu derrière la garde
-- **THEN** il ne porte aucune fonction — ni lien vers un autre écran, ni action
+#### Scenario: L'accueil mène à « Mes pages »
+- **WHEN** l'accueil `/admin/` est demandé avec une session valide
+- **THEN** la réponse est un renvoi vers l'écran « Mes pages »
+- **AND** aucun contenu propre à l'accueil n'est rendu
 
 ### Requirement: La politique de sécurité sur toute réponse d'administration
 
@@ -172,7 +173,7 @@ Au plus cinq codes SHALL être écrits par heure glissante, afin de protéger d'
 - **THEN** l'écran annonce le plafond atteint, identiquement pour l'adresse autorisée et pour toute autre
 - **AND** aucun terme de développeur ne paraît dans l'annonce
 
-### Requirement: L'ouverture de session par le code recopié
+### Requirement: L'ouverture de session par le code recopié, jusqu'à « Mes pages »
 
 Un code recopié sur l'appareil qui l'a demandé, une seule fois et dans les quinze minutes, SHALL ouvrir une session opaque en base et renvoyer vers l'accueil. La saisie se normalise, et le cookie ne porte rien qui se lise.
 
@@ -181,10 +182,10 @@ Un code recopié sur l'appareil qui l'a demandé, une seule fois et dans les qui
 - **THEN** une session s'ouvre
 - **AND** la réponse renvoie vers l'accueil
 
-#### Scenario: L'accueil s'affiche sans fonction
-- **WHEN** la session vient de s'ouvrir et l'accueil est atteint
-- **THEN** l'accueil s'affiche
-- **AND** il ne porte toujours aucune fonction
+#### Scenario: L'ouverture de session conduit à « Mes pages »
+- **WHEN** la session vient de s'ouvrir et l'éditrice suit le renvoi vers l'accueil
+- **THEN** elle arrive sur l'écran « Mes pages »
+- **AND** elle ne traverse aucun écran sans suite
 
 #### Scenario: La saisie est normalisée
 - **WHEN** le code est saisi avec des majuscules, des séparateurs ou des confusables
