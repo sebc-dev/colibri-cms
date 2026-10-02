@@ -41,5 +41,5 @@ figurer.
 branches) ; relancer un envoi échoué ; mesurer un taux d'échec ; l'expéditeur du message (ticket 01).
 
 ## Critères
-- [ ] Quand l'expédition demandée échoue, une trace de l'échec est écrite dans les journaux de la plateforme, et cette trace ne porte pas le code   (SC-02a)
-- [ ] Quand l'expédition demandée aboutit, aucune trace d'échec n'est écrite   (SC-02b)
+- [x] Quand l'expédition demandée échoue, une trace de l'échec est écrite dans les journaux de la plateforme, et cette trace ne porte pas le code   (SC-02a)
+- [x] Quand l'expédition demandée aboutit, aucune trace d'échec n'est écrite   (SC-02b)

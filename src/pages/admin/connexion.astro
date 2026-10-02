@@ -168,8 +168,17 @@ if (estSoumission) {
       // `attendre(0)` avant l'appel réel garantit qu'aucun de ses effets (y
       // compris l'appel `send` lui-même) ne s'exécute avant que la réponse ait
       // quitté cette route. Une expédition qui échoue ne change donc jamais ce
-      // qui a déjà été rendu (le `.catch` l'absorbe silencieusement).
-      Astro.locals.cfContext.waitUntil(attendre(0).then(demandeExpedition).catch(() => {}));
+      // qui a déjà été rendu (le `.catch` ne fait qu'écrire une trace dans les journaux).
+      Astro.locals.cfContext.waitUntil(attendre(0)
+          .then(demandeExpedition)
+          .catch((erreur: unknown) => {
+            // Trace pour l'exploitation (ticket 02 de 007) : étiquette fixe +
+            // motif rendu par la plateforme — jamais le code, le message
+            // composé ni l'adresse soumise. Rien n'est rendu à l'éditrice.
+            const motif = erreur instanceof Error ? erreur.name : 'inconnu';
+            console.error(`[connexion] envoi du code échoué (${motif})`);
+          }),
+      );
     }
   }
 }

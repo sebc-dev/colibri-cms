@@ -10,6 +10,9 @@
   // propre graphe de pages — mesuré, pas supposé.
   "name": "colibri-cms",
   "compatibility_date": "2026-08-01",
+  // Journaux de la plateforme lisibles depuis le compte de la cliente (trace
+  // d'un envoi de code échoué, ticket 02 de 007) ; aucun identifiant de compte.
+  "observability": { "enabled": true },
   "d1_databases": [
     {
       "binding": "DB",
