@@ -51,7 +51,7 @@ Les trois formes de réponse de l'administration — l'écran servi, le renvoi v
 
 ### Requirement: L'envoi d'un code à l'adresse autorisée
 
-La soumission de l'adresse autorisée SHALL engendrer un code court, n'en conserver en base qu'une empreinte salée, et demander son expédition à la plateforme ; toute autre adresse soumise n'écrit rien et ne demande rien. Un identifiant d'appareil est posé à l'affichage du formulaire, seulement s'il manque.
+La soumission de l'adresse autorisée SHALL engendrer un code court, n'en conserver en base qu'une empreinte salée, et demander son expédition à la plateforme, depuis l'adresse d'expéditeur déclarée par l'instance et jamais depuis l'adresse autorisée ; toute autre adresse soumise n'écrit rien et ne demande rien. Un identifiant d'appareil est posé à l'affichage du formulaire, seulement s'il manque.
 
 #### Scenario: L'adresse autorisée fait écrire un code et demander son expédition
 - **WHEN** l'adresse autorisée est soumise
@@ -86,9 +86,22 @@ La soumission de l'adresse autorisée SHALL engendrer un code court, n'en conser
 - **THEN** il part en texte seul, sans HTML
 - **AND** il porte un objet fixe posé par le produit
 
+#### Scenario: Le message part depuis l'adresse d'expéditeur de l'instance
+- **WHEN** un message portant un code part vers l'adresse autorisée
+- **THEN** son expéditeur est l'adresse d'expéditeur déclarée par l'instance
+- **AND** son expéditeur n'est jamais l'adresse autorisée
+
+#### Scenario: Le message arrive dans la boîte de l'adresse autorisée
+- **WHEN** l'adresse autorisée est soumise sur une instance livrée, dont l'acheminement d'e-mail est activé sur le domaine de l'adresse d'expéditeur
+- **THEN** un message portant le code arrive dans la boîte de l'adresse autorisée
+
+#### Scenario: Une instance sans adresse d'expéditeur valide ne se bâtit pas
+- **WHEN** le fichier d'instance ne déclare pas d'adresse d'expéditeur, ou en déclare une qui n'est pas une adresse e-mail
+- **THEN** la construction du site échoue en nommant le champ manquant ou invalide
+
 ### Requirement: L'indiscernabilité des deux branches de soumission
 
-Sur une soumission donnée, l'écran de connexion SHALL rendre la même réponse — même corps, mêmes champs d'en-tête, même moment — que l'adresse soumise soit l'adresse autorisée ou n'importe quelle autre. La réponse n'est rendue qu'au terme d'un délai plancher gelé en source, et l'expédition est remise à la plateforme après que la réponse est partie.
+Sur une soumission donnée, l'écran de connexion SHALL rendre la même réponse — même corps, mêmes champs d'en-tête, même moment — que l'adresse soumise soit l'adresse autorisée ou n'importe quelle autre. La réponse n'est rendue qu'au terme d'un délai plancher gelé en source, et l'expédition est remise à la plateforme après que la réponse est partie. Une expédition qui échoue est consignée dans les journaux de la plateforme, réservés à l'exploitation, sans que la réponse en soit changée.
 
 #### Scenario: Le corps de réponse est identique pour les deux branches
 - **WHEN** une même soumission est jouée pour l'adresse autorisée puis pour toute autre adresse
@@ -110,6 +123,15 @@ Sur une soumission donnée, l'écran de connexion SHALL rendre la même réponse
 #### Scenario: Une expédition qui échoue ne change rien
 - **WHEN** l'expédition demandée échoue
 - **THEN** ni le corps, ni les champs d'en-tête, ni le moment de la réponse ne changent
+
+#### Scenario: Une expédition qui échoue est consignée pour l'exploitation
+- **WHEN** l'expédition demandée échoue
+- **THEN** une trace de l'échec est écrite dans les journaux de la plateforme
+- **AND** cette trace ne porte pas le code
+
+#### Scenario: Une expédition qui aboutit ne laisse aucune trace d'échec
+- **WHEN** l'expédition demandée aboutit
+- **THEN** aucune trace d'échec n'est écrite
 
 #### Scenario: Une instance non semée se comporte de même
 - **WHEN** aucune adresse autorisée n'est enregistrée et une adresse est soumise
