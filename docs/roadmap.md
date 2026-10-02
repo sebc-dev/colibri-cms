@@ -29,6 +29,8 @@ aucune fausse manœuvre ne casse la mise en page ni ne laisse un trou dans une p
 - [x] **003 — Remplir et corriger les emplacements d'une page** · *livrée* (FR-015→026 · SC-003,
       SC-015)
 - [x] **004 — Bibliothèque de médias** · *livrée* (FR-027→040 · SC-010, SC-018)
+- [x] **005 — Mise en page de l'administration** · *livrée* (aucun FR propre — substrat des
+      features d'édition, sous FR-117 · SC-003, SC-015, UX-1, UX-2)
 - [x] **006 — Nom des emplacements** · *livrée* (FR-015→026, FR-032, FR-035, FR-117 · SC-003,
       SC-015)
 - [ ] Réglages transverses (FR-041→044 · SC-017)
