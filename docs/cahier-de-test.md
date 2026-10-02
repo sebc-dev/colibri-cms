@@ -52,6 +52,16 @@ L'adresse autorisée est `editrice@example.com` : c'est celle que déclare `wran
 
 ### 0.3 Lire le code de connexion
 
+**Sur le serveur de recette** (`https://colibri.sebc.dev`), le message arrive dans la boîte de l'adresse
+autorisée, expédié depuis l'adresse d'expéditeur déclarée par l'instance (`senderAddress`) : le lire dans
+cette boîte (objet `Votre code de connexion`, corps `Code : XXXXXXXX`). Prérequis, geste humain unique :
+déclarer `senderAddress` dans `instance.json`, puis activer l'acheminement d'e-mail sur le domaine de cette
+adresse dans le compte Cloudflare (Email Routing ; **sous-domaine** via Settings > Subdomains si le domaine
+principal reçoit son courrier ailleurs, jamais sur le domaine principal dans ce cas : cela remplacerait ses
+enregistrements MX). Un envoi refusé laisse une ligne d'échec dans les journaux du serveur.
+
+**En local**, ce qui suit.
+
 Aucun e-mail ne part réellement en local. Le message est déposé par la plateforme locale dans
 `.wrangler/tmp/email/<id>/email-text/<id>.txt` ; le code y figure sous la forme `Code : XXXXXXXX`. Le terminal
 de `wrangler dev` affiche aussi une ligne `send_email binding called`.
@@ -140,7 +150,9 @@ Noter ce que l'éditeur affiche dans ce cas (CT-6.3) — il ne doit ni casser ni
 
 ## 2. Demander un code — `connexion-par-code`
 
-Vider `.wrangler/tmp/email/` avant de commencer (`rm -rf .wrangler/tmp/email/*`).
+Vider `.wrangler/tmp/email/` avant de commencer (`rm -rf .wrangler/tmp/email/*`). Sur le serveur de
+recette, « un fichier `.txt` apparaît » se lit « un message arrive dans la boîte de l'adresse autorisée »
+(§ 0.3).
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
