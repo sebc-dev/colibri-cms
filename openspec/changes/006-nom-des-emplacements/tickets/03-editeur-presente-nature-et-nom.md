@@ -39,8 +39,8 @@ changer.
 site public, tout moyen de modifier un nom.
 
 ## Critères
-- [ ] L'éditeur d'une page est affiché et un de ses emplacements porte le nom « Présentation » déclaré par l'intégrateur : cet emplacement se présente par sa nature suivie de son nom (« Texte riche — Présentation »), au-dessus de son contenu   (SC-03a)
-- [ ] L'éditeur d'une page est affiché et un de ses emplacements ne porte pas de nom : cet emplacement se présente par sa nature seule, et son identifiant n'apparaît nulle part à l'écran   (SC-03b)
-- [ ] L'intégrateur a donné à un emplacement un nom contenant des caractères de balisage (`<`, `>`, `&`, guillemets) : l'éditeur affiche ces caractères comme du texte, sans qu'aucune balise ne soit interprétée   (SC-03c)
-- [ ] L'éditrice parcourt l'éditeur d'une page dont des emplacements sont nommés : aucun geste n'ajoute, ne retire, ne déplace ni ne renomme un emplacement, ni ne change son nom, et rien ne l'offre à l'écran   (SC-03d)
-- [ ] L'éditrice lit l'éditeur d'une page dont des emplacements sont nommés : aucun terme de développeur n'y paraît   (SC-03e)
+- [x] L'éditeur d'une page est affiché et un de ses emplacements porte le nom « Présentation » déclaré par l'intégrateur : cet emplacement se présente par sa nature suivie de son nom (« Texte riche — Présentation »), au-dessus de son contenu   (SC-03a)
+- [x] L'éditeur d'une page est affiché et un de ses emplacements ne porte pas de nom : cet emplacement se présente par sa nature seule, et son identifiant n'apparaît nulle part à l'écran   (SC-03b)
+- [x] L'intégrateur a donné à un emplacement un nom contenant des caractères de balisage (`<`, `>`, `&`, guillemets) : l'éditeur affiche ces caractères comme du texte, sans qu'aucune balise ne soit interprétée   (SC-03c)
+- [x] L'éditrice parcourt l'éditeur d'une page dont des emplacements sont nommés : aucun geste n'ajoute, ne retire, ne déplace ni ne renomme un emplacement, ni ne change son nom, et rien ne l'offre à l'écran   (SC-03d)
+- [x] L'éditrice lit l'éditeur d'une page dont des emplacements sont nommés : aucun terme de développeur n'y paraît   (SC-03e)
