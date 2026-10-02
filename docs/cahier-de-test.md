@@ -509,6 +509,21 @@ fois.
 | CT-22.11 | Sélecteur de couleur (onglet Styles) ou Lighthouse → Accessibilité, sur : le texte « Aucune image… », le compte d'images, le texte des boutons **actifs**, le titre de la sur-couche, son message vide (« La bibliothèque ne contient encore aucune image. », cf. CT-13.7), un message de refus (CT-22.8) | Chaque texte atteint **≥ 4,5:1** sur son fond (≈ 5,5:1 au plus faible, attendu). Les boutons **désactivés**, grisés à ≈ 3,2:1, sont exemptés (SC-09f) | |
 | CT-22.12 | Console ouverte pendant tout le § 22 | **Aucune** violation CSP, ni à l'ouverture de la sur-couche ni pendant son défilement | |
 
+## 23. Le code arrive en recette — change 007 · ticket 03
+
+Se joue **sur le serveur de recette seulement** : en local, aucun e-mail ne part (§ 0.3). Instance bâtie
+après `recette.mjs instance` (`senderAddress` = `code@colibri.sebc.dev`). Le critère SC-03a a été coché par
+la PR **#157** sans constat ; il est constaté ici. Joué le 2026-10-02 sur l'adresse d'aperçu de la branche
+`impl/code-arrive-en-recette-03` (`bcdc5bf`), adresse autorisée = l'adresse Gmail de l'opérateur.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-23.1 | Compte Cloudflare de recette : `npx wrangler email routing list` | L'acheminement d'e-mail est activé sur le domaine de `senderAddress` | OK — zone `sebc.dev` activée (`ready`), MX Cloudflare sur `sebc.dev` et `colibri.sebc.dev` |
+| CT-23.2 | Soumettre l'adresse autorisée sur `/admin/connexion` | Un message arrive dans la boîte de l'adresse autorisée (SC-03a) | OK — reçu dans la boîte de réception (pas en indésirables) |
+| CT-23.3 | Lire l'en-tête et le corps du message | Expéditeur = `senderAddress` ; objet `Votre code de connexion` ; texte seul ; corps `Code : XXXXXXXX` | OK — expéditeur `code@colibri.sebc.dev`, aucune partie HTML, code de huit signes |
+| CT-23.4 | Recopier le code reçu | La session s'ouvre (cf. CT-3.2) | OK — constaté par l'opérateur |
+| CT-23.5 | `recette.mjs journal` lancé avant la demande | Aucune ligne `[connexion] envoi du code échoué` | NA — sur une adresse d'aperçu, le journal ne reçoit rien (pas même les requêtes) ; l'arrivée du message (CT-23.2) exclut l'échec |
+
 ---
 
 ## Bilan
@@ -537,6 +552,7 @@ fois.
 | 20 Mes pages habillé | 8 | | | |
 | 21 Éditeur habillé | 9 | | | |
 | 22 Emplacements d'image habillés | 12 | | | |
-| **Total** | **171** | | | |
+| 23 Code en recette | 5 | 4 | 0 | 1 |
+| **Total** | **176** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
