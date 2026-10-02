@@ -17,6 +17,10 @@
  *                           sur `main` (ou --principal) → le serveur principal ;
  *                           sinon → une adresse d'aperçu au nom de la branche
  *                           (ou de --alias). --racine : build fait ailleurs.
+ *   instance [--racine <d>] écrit dans le fichier d'instance du build (`instance.json`)
+ *                           le domaine et l'adresse d'expéditeur de la recette
+ *                           (`RECETTE_EXPEDITEUR`, sinon `code@<RECETTE_DOMAINE>`).
+ *                           À jouer AVANT `npm run build` : le fichier est lu au build.
  *   semer                   inscrit l'adresse autorisée (idempotent).
  *   raz                     vide codes, sessions, brouillons et médias, puis resème.
  *   session [--hote <h>]    ouvre une session sans passer par l'e-mail ; écrit
@@ -138,6 +142,24 @@ function semer(reglages) {
   console.log(`✔ adresse autorisée : ${reglages.RECETTE_ADRESSE}`);
 }
 
+/**
+ * Le fichier d'instance est lu au build (I10) : l'expéditeur du serveur de
+ * recette y est posé avant de bâtir, jamais dans wrangler.jsonc ni
+ * wrangler.astro.jsonc. L'acheminement d'e-mail doit être activé sur le
+ * domaine de cette adresse, dans le compte de recette (geste humain).
+ */
+function ecrireInstance(reglages) {
+  const chemin = `${RACINE}/instance.json`;
+  const instance = JSON.parse(readFileSync(chemin, 'utf-8'));
+  instance.domain = reglages.RECETTE_DOMAINE;
+  instance.senderAddress = reglages.RECETTE_EXPEDITEUR || `code@${reglages.RECETTE_DOMAINE}`;
+  writeFileSync(chemin, `${JSON.stringify(instance, null, 2)}\n`);
+  console.log(`✔ ${chemin} : domain ${instance.domain}, senderAddress ${instance.senderAddress}`);
+  if (RACINE === '.') {
+    console.log('⚠ instance.json du dépôt modifié : le restaurer par « git checkout instance.json » avant tout commit, même si une étape échoue.');
+  }
+}
+
 function deployer(reglages, principal, aliasImpose) {
   ecrireConfigRecette(reglages);
   const branche = brancheCourante();
@@ -227,6 +249,9 @@ switch (commande) {
   case 'deployer':
     deployer(reglages, args.includes('--principal'), option('--alias'));
     break;
+  case 'instance':
+    ecrireInstance(reglages);
+    break;
   case 'semer':
     ecrireConfigRecette(reglages);
     semer(reglages);
@@ -249,5 +274,5 @@ switch (commande) {
     adresses(reglages);
     break;
   default:
-    echouer('commande attendue : deployer | semer | raz | session | sql | journal | adresses');
+    echouer('commande attendue : deployer | instance | semer | raz | session | sql | journal | adresses');
 }

@@ -170,6 +170,7 @@ function batir(nom) {
   avertirSiCodeNonCommite();
   preparerArbre();
   composer(nom);
+  lancer('node', [RECETTE, 'instance', '--racine', ARBRE]);
   lancer('npm', ['run', 'build'], { cwd: ARBRE });
 }
 

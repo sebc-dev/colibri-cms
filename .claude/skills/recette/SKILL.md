@@ -12,6 +12,7 @@ Un Worker `colibri-recette`, séparé du produit, sert **l'artefact bâti** avec
 R="node .claude/skills/recette/scripts/recette.mjs"
 $R deployer [--principal]   # migre la base, sème l'adresse, publie
                             # --alias <nom> : nom d'aperçu imposé ; --racine <dossier> : build fait ailleurs
+$R instance [--racine <d>]  # pose domaine + expéditeur de la recette dans instance.json, AVANT le build
 $R session [--hote <h>]     # ouvre une session sans e-mail → .wrangler/recette/etat-<h>.json
 $R sql "<requête>"          # lit/écrit la base de recette (remplace le `--local` du cahier)
 $R raz                      # remet à zéro (équivalent § 0.6), resème l'adresse
@@ -26,8 +27,8 @@ Réglages du compte : `.env.recette` (hors dépôt, `.env.*`). Configuration de 
 
 | Usage | Branche | Commande | Adresse |
 |---|---|---|---|
-| Cahier de test | `main` à jour | `npm run typecheck && npm run build && $R deployer --principal` | `https://colibri.sebc.dev/admin/` |
-| Relecture d'un ticket | `impl/…` | `npm run typecheck && npm run build && $R deployer` | l'**adresse d'aperçu** imprimée (`https://<branche>-colibri-recette.chauveau-sebastien.workers.dev/admin/`) |
+| Cahier de test | `main` à jour | `$R instance && npm run typecheck && npm run build && $R deployer --principal; git checkout instance.json` | `https://colibri.sebc.dev/admin/` |
+| Relecture d'un ticket | `impl/…` | `$R instance && npm run typecheck && npm run build && $R deployer; git checkout instance.json` | l'**adresse d'aperçu** imprimée (`https://<branche>-colibri-recette.chauveau-sebastien.workers.dev/admin/`) |
 
 Pour le cahier de test, le contenu servi est le **site factice** (`recette/site-factice/`) et non
 `content/pages/` : c'est le skill `site-factice` qui bâtit et appelle `deployer` pour vous.
@@ -38,14 +39,17 @@ branche s'y appliquent. Une branche qui ajoute une migration → la recette de `
 
 ## Se connecter
 
-- **Parcours réel (l'e-mail)** — ne marche pas encore : `src/platform/email/index.ts` envoie le code
-  *depuis* l'adresse destinataire (Gmail), or Cloudflare n'envoie que depuis un domaine routé
-  (« You can only send from your routing domains »). Le code est écrit en base, l'e-mail ne part
-  pas, et l'échec est avalé (`connexion.astro`, `.catch(() => {})`) : `journal` ne montre rien.
-  Tant que ce n'est pas corrigé : CT-2.1/2.2 et CT-3.x sont **KO** ou non jouables en recette, et
-  se jouent en local (§ 0.3 du cahier). Une fois corrigé : le code arrive dans la boîte de
-  `RECETTE_ADRESSE` — le lire par le MCP Gmail (`subject:"code de connexion" newer_than:1h`).
-- **Session de relecture** — `$R session` insère une ligne `sessions` (opaque : la ligne suffit) et
+- **Parcours réel (l'e-mail)** — le code arrive dans la boîte de `RECETTE_ADRESSE`, expédié depuis
+  `senderAddress`, l'adresse que déclare le fichier d'instance du build (`code@<RECETTE_DOMAINE>`
+  par défaut, ou `RECETTE_EXPEDITEUR`). Ce fichier est posé par `$R instance` **avant** le build
+  (le skill `site-factice` le fait pour vous) ; aucune valeur de recette n'entre dans `wrangler.jsonc`
+  ni `wrangler.astro.jsonc`. Lire le code par le MCP Gmail (`subject:"Votre code de connexion"
+  newer_than:1h`) : objet fixe, texte seul, `From` = `senderAddress`. Prérequis, **geste humain** :
+  l'acheminement d'e-mail activé sur le domaine de `senderAddress` dans le compte Cloudflare de
+  recette (sinon Cloudflare refuse : « You can only send from your routing domains »).
+  Un envoi refusé n'empêche pas l'écran de saisie (même réponse, anti-énumération) mais laisse
+  une **ligne d'échec** : la chercher avec `$R journal` (à lancer en arrière-plan avant la demande).
+- **Session de relecture** — plus le détour obligé : sert à la relecture visuelle. `$R session` insère une ligne `sessions` (opaque : la ligne suffit) et
   écrit l'état de stockage Playwright. Le cookie est `__Host-` : **propre à un nom d'hôte**, donc
   `--hote <nom-de-l'aperçu>` pour une adresse de branche.
 
@@ -74,7 +78,7 @@ est réellement appliquée. Une 404 de `favicon.ico` n'est pas un défaut du pro
 | `http://127.0.0.1:8787` | `https://colibri.sebc.dev` (ou l'adresse d'aperçu) |
 | `wrangler d1 execute DB --local --command "…"` (§ 0.5, CT-3.12, 3.13…) | `$R sql "…"` |
 | § 0.6 Remettre à zéro | `$R raz` |
-| § 0.3 fichier `.wrangler/tmp/email/…` | Gmail (quand l'envoi sera corrigé) |
+| § 0.3 fichier `.wrangler/tmp/email/…` | Gmail : message dans la boîte de `RECETTE_ADRESSE` |
 | Terminal de `wrangler dev` | `$R journal` (à lancer en arrière-plan) |
 | Modifier `content/pages/`, rebâtir, relancer (CT-5.4, 20.5, 20.8, 21.6) | Ouvrir l'adresse de la **variante** du site factice (`site-vide-…`, `site-titres-longs-…`, `site-rang-…`) — skill `site-factice` |
 | § 0.4 Le jeu d'images | `site.mjs images` (skill `site-factice`) |
@@ -109,6 +113,10 @@ RECETTE_BASE=colibri-recette       RECETTE_BASE_ID=<database_id>
 RECETTE_DOMAINE=<sous-domaine d'une zone du compte>
 RECETTE_ADRESSE=<adresse vérifiée, devient l'adresse autorisée>
 ```
+
+Optionnel : `RECETTE_EXPEDITEUR=<adresse d'expéditeur>` (défaut `code@<RECETTE_DOMAINE>`).
+**Activer l'acheminement d'e-mail sur le domaine de cette adresse** (dashboard → Email Routing),
+sans quoi aucun code n'arrive.
 
 Le domaine personnalisé est créé par `deployer --principal` (route `custom_domain`). **Ne jamais
 activer Email Routing sur le domaine principal d'une zone dont le courrier est ailleurs** (ici

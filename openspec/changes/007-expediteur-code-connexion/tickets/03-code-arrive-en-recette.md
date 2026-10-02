@@ -41,4 +41,4 @@ code reçu ouvre la session. L'activation de l'acheminement d'e-mail sur le doma
 de cliente existants (geste de livraison, hors de ce dépôt).
 
 ## Critères
-- [ ] Quand l'adresse autorisée est soumise sur une instance livrée, dont l'acheminement d'e-mail est activé sur le domaine de l'adresse d'expéditeur, un message portant le code arrive dans la boîte de l'adresse autorisée   (SC-03a)
+- [x] Quand l'adresse autorisée est soumise sur une instance livrée, dont l'acheminement d'e-mail est activé sur le domaine de l'adresse d'expéditeur, un message portant le code arrive dans la boîte de l'adresse autorisée   (SC-03a)
