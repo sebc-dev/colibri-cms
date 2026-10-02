@@ -33,3 +33,6 @@ le run (`resumeFromRunId: wf_e25bb486-98b`) pour la review et la PR, comme pour 
 ## Écarté
 - Laisser un agent du run corriger le test : le contrat l'interdit.
 - `eslint-disable` / `@ts-expect-error` : escape-hatches.
+
+## Issue
+Le 2026-10-02, avec l'accord de l'humain, les trois lignes du test ont été corrigées à la main (`Uint8Array<ArrayBuffer>`, `() => undefined`). Une reprise nue a resservi l'échec depuis le cache du workflow (0 token, 37 ms) : défaut du plugin, corrigé en 0.17.0 par le jeton `rerun`. Le ticket a été terminé sur la copie 0.16.0, dont l'humain a modifié le prompt de la quality gate pour forcer son rejeu. Le run est allé jusqu'à la PR #156 (review : 0 appliqué, 9 rejetés) ; le test, oublié hors commit par le recorder, a été commité à part.
