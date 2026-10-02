@@ -39,7 +39,7 @@ contrôles à 360 px.
 d'image ; tout geste nouveau d'édition ; l'aperçu et la publication.
 
 ## Critères
-- [ ] Sur écran étroit, les emplacements de l'éditeur se suivent sur une seule colonne, chacun avec son libellé au-dessus de son contenu, et corriger, enregistrer et régler un lien de vidéo restent disponibles   (SC-08a)
+- [x] Sur écran étroit, les emplacements de l'éditeur se suivent sur une seule colonne, chacun avec son libellé au-dessus de son contenu, et corriger, enregistrer et régler un lien de vidéo restent disponibles   (SC-08a)
 - [x] Un enregistrement refusé d'un emplacement de texte s'affiche en `danger`, dans la carte concernée, avec son texte   (SC-08b)
 - [x] L'éditeur porte le thème Colibri : fond neutre chaud, titre en Fraunces, texte en Instrument Sans, bouton d'enregistrement en `plumage`   (SC-08c)
 - [x] Affiché à 360 px de large, l'éditeur ne défile pas horizontalement et aucun contenu n'est coupé, titre de page long compris   (SC-08d)
