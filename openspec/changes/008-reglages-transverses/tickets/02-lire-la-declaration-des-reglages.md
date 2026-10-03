@@ -35,7 +35,7 @@ aucun nom n'est jamais fabriqué à partir d'un identifiant (FR-117).
 (ticket 05 et suivants), l'affichage sur le site public.
 
 ## Critères
-- [ ] En `core/`, une déclaration portant trois coordonnées valides les rend toutes les trois dans l'ordre de la déclaration, chacune avec son identifiant, sa nature, son nom et sa valeur de départ   (SC-02a)
-- [ ] En `core/`, une déclaration portant une coordonnée de nature inconnue, une sans identifiant et une dont l'identifiant répète celui d'une précédente, à côté d'une coordonnée valide, ne rend que la coordonnée valide, et la lecture n'échoue pas   (SC-02b)
-- [ ] En `core/`, une coordonnée déclarée sans nom, ou avec un nom fait seulement d'espaces, est lue sans nom, et rien ne lui en fabrique un à partir de son identifiant   (SC-02c)
-- [ ] En `core/`, un répertoire des réglages portant des coordonnées, une liste de liens et une mention de départ rend, pour chacun des trois réglages, son contenu de départ   (SC-02d)
+- [x] En `core/`, une déclaration portant trois coordonnées valides les rend toutes les trois dans l'ordre de la déclaration, chacune avec son identifiant, sa nature, son nom et sa valeur de départ   (SC-02a)
+- [x] En `core/`, une déclaration portant une coordonnée de nature inconnue, une sans identifiant et une dont l'identifiant répète celui d'une précédente, à côté d'une coordonnée valide, ne rend que la coordonnée valide, et la lecture n'échoue pas   (SC-02b)
+- [x] En `core/`, une coordonnée déclarée sans nom, ou avec un nom fait seulement d'espaces, est lue sans nom, et rien ne lui en fabrique un à partir de son identifiant   (SC-02c)
+- [x] En `core/`, un répertoire des réglages portant des coordonnées, une liste de liens et une mention de départ rend, pour chacun des trois réglages, son contenu de départ   (SC-02d)
