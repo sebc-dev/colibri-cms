@@ -50,10 +50,10 @@ reprise à la main.
 des brouillons (ticket 06) ; l'affichage des réglages sur le site public.
 
 ## Critères
-- [ ] En session, choisir « Réglages » dans le menu du cadre ouvre l'`Écran : Réglages` dans le cadre, « Réglages » marquée active, présentant les cartes Coordonnées, Réseaux sociaux et Mention d'information dans cet ordre   (SC-04a)
-- [ ] L'`Écran : Réglages` demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer des réglages   (SC-04b)
-- [ ] Quand une valeur de coordonnée, un nom de lien ou un nom de coordonnée déclaré contient `<`, `>`, `&` ou des guillemets, ces caractères paraissent comme du texte sur l'écran et aucun balisage n'est interprété   (SC-04c)
-- [ ] Aucun terme de développeur ne paraît sur l'écran des réglages, ses cartes, ses champs et leurs libellés (FR-117)   (SC-04d)
-- [ ] Pour une déclaration portant « Téléphone de l'atelier » (téléphone) puis une adresse e-mail sans nom, la carte Coordonnées montre deux champs dans cet ordre, intitulés « Téléphone de l'atelier » et « Adresse e-mail », et aucun identifiant n'apparaît à l'écran   (SC-04e)
-- [ ] Sur chaque écran cadré, la barre latérale montre les cinq rubriques, la rubrique de l'écran courant marquée active — « Réglages » sur l'écran des réglages   (SC-04f)
-- [ ] Aucune rubrique autre que « Mes pages », « Médias » et « Réglages » ne mène à un écran servi, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page   (SC-04g)
+- [x] En session, choisir « Réglages » dans le menu du cadre ouvre l'`Écran : Réglages` dans le cadre, « Réglages » marquée active, présentant les cartes Coordonnées, Réseaux sociaux et Mention d'information dans cet ordre   (SC-04a)
+- [x] L'`Écran : Réglages` demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer des réglages   (SC-04b)
+- [x] Quand une valeur de coordonnée, un nom de lien ou un nom de coordonnée déclaré contient `<`, `>`, `&` ou des guillemets, ces caractères paraissent comme du texte sur l'écran et aucun balisage n'est interprété   (SC-04c)
+- [x] Aucun terme de développeur ne paraît sur l'écran des réglages, ses cartes, ses champs et leurs libellés (FR-117)   (SC-04d)
+- [x] Pour une déclaration portant « Téléphone de l'atelier » (téléphone) puis une adresse e-mail sans nom, la carte Coordonnées montre deux champs dans cet ordre, intitulés « Téléphone de l'atelier » et « Adresse e-mail », et aucun identifiant n'apparaît à l'écran   (SC-04e)
+- [x] Sur chaque écran cadré, la barre latérale montre les cinq rubriques, la rubrique de l'écran courant marquée active — « Réglages » sur l'écran des réglages   (SC-04f)
+- [x] Aucune rubrique autre que « Mes pages », « Médias » et « Réglages » ne mène à un écran servi, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page   (SC-04g)
