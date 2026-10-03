@@ -28,13 +28,12 @@ interface ReponseCorrection {
 type IssueCorrection = { readonly ok: true } | { readonly ok: false; readonly message: string };
 
 export async function soumettreCorrection(
-  slug: string,
-  idEmplacement: string,
+  adresse: string,
   corps: unknown,
   textesRefus: Readonly<Record<string, string>>,
 ): Promise<IssueCorrection> {
   try {
-    const reponse = await fetch(`/admin/pages/${slug}/emplacements/${idEmplacement}`, {
+    const reponse = await fetch(adresse, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(corps),

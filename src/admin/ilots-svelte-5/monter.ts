@@ -17,6 +17,7 @@ import { mount } from 'svelte';
 import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 import ReglageLienVideo from './ReglageLienVideo.svelte';
 import TexteRiche from './TexteRiche.svelte';
+import { afficherPastilleDeBrouillon } from '../pastille-brouillon.ts';
 import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
@@ -112,9 +113,9 @@ export function monterCorrectionsTexteRiche(): void {
     mount(TexteRiche, {
       target: cible,
       props: {
-        slug,
-        idEmplacement,
+        adresse: `/admin/pages/${slug}/emplacements/${idEmplacement}`,
         markdownInitial: markdown,
+        apresEnregistrement: afficherPastilleDeBrouillon,
       },
     });
   });
