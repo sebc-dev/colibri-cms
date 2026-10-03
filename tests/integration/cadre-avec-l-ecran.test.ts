@@ -207,7 +207,7 @@ const RUBRIQUES_DU_MENU = [
   "Formulaires",
   "Demandes",
 ];
-const RUBRIQUES_SANS_ECRAN = ["Réglages", "Formulaires", "Demandes"];
+const RUBRIQUES_SANS_ECRAN = ["Formulaires", "Demandes"];
 
 const REGEX_ASIDE =
   /<aside[^>]*aria-label="Menu de l'administration"[^>]*>([\s\S]*?)<\/aside>/;
@@ -321,18 +321,14 @@ it("SC-03b — la réponse du serveur porte déjà le logo, le menu marqué et l
   }
 });
 
-// --- SC-03c — seules « Mes pages » et « Médias » mènent à un écran, sans geste de structure ---
+// --- SC-03c — seules « Mes pages », « Médias » et « Réglages » mènent à un écran, sans geste de structure ---
 
-it("SC-03c — aucune rubrique autre que « Mes pages » et « Médias » ne mène à un écran, et le menu n’offre aucun geste de structure", async () => {
+it("SC-03c — aucune rubrique autre que « Mes pages », « Médias » et « Réglages » ne mène à un écran, et le menu n’offre aucun geste de structure", async () => {
   const db = await assurerSchema();
   const cookieSession = await semerSessionValide(db);
 
-  // Les trois autres rubriques ne mènent à aucun écran.
-  for (const route of [
-    "/admin/reglages",
-    "/admin/formulaires",
-    "/admin/demandes",
-  ]) {
+  // Les deux autres rubriques ne mènent à aucun écran.
+  for (const route of ["/admin/formulaires", "/admin/demandes"]) {
     const reponse = await accederA(route, cookieSession);
     expect(reponse.status, `${route} ne devrait mener à aucun écran`).not.toBe(
       200,
@@ -344,7 +340,7 @@ it("SC-03c — aucune rubrique autre que « Mes pages » et « Médias » ne mè
     const corps = await reponse.text();
     const menu = extraireMenu(corps);
 
-    // Les trois rubriques sans écran ne portent aucun lien.
+    // Les deux rubriques sans écran ne portent aucun lien.
     for (const libelle of RUBRIQUES_SANS_ECRAN) {
       const correspondance = new RegExp(
         `<a[^>]*>\\s*(?:<[^>]+>\\s*)*${libelle}`,
@@ -471,5 +467,39 @@ it("SC-03e — le cadre est servi sous la politique de sécurité stricte de l�
       corps,
       `${ecran.nom} : aucune directive client:* ne devrait fuiter dans la réponse`,
     ).not.toMatch(/client:(load|idle|visible|only|media)/);
+  }
+});
+
+// --- SC-04f (008, ticket 04) — l'écran des réglages est cadré comme les autres ---
+
+it("SC-04f — sur chaque écran cadré, y compris les réglages, la barre latérale montre les cinq rubriques et marque active celle de l’écran courant", async () => {
+  const db = await assurerSchema();
+  const cookieSession = await semerSessionValide(db);
+  const ecrans = [
+    ...(await obtenirEcrans(db)).map((e) => ({
+      route: e.route,
+      libelle: e.libelleAttendu,
+    })),
+    { route: "/admin/reglages", libelle: "Réglages" },
+  ];
+
+  for (const ecran of ecrans) {
+    const reponse = await accederA(ecran.route, cookieSession);
+    expect(reponse.status, `${ecran.route} devrait répondre 200`).toBe(200);
+    const menu = extraireMenu(await reponse.text());
+
+    for (const libelle of RUBRIQUES_DU_MENU) {
+      expect(menu, `${ecran.route} : « ${libelle} » attendu`).toContain(
+        libelle,
+      );
+    }
+    expect(
+      (menu.match(/aria-current="page"/g) ?? []).length,
+      `${ecran.route} : une seule rubrique active`,
+    ).toBe(1);
+    expect(
+      extraireLibelleActif(menu),
+      `${ecran.route} : la rubrique active devrait être « ${ecran.libelle} »`,
+    ).toContain(ecran.libelle);
   }
 });
