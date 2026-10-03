@@ -36,4 +36,4 @@ d'une page continue de se comporter **à l'identique**.
 (`EmplacementImage`, `ReglageLienVideo`, `CorrectionBoutonAction`) ; tout ce qui concerne les réglages.
 
 ## Critères
-- [ ] L'édition d'un emplacement de page (texte riche, composition d'images) s'enregistre, refuse et fait paraître la marque de brouillon exactement comme avant : les tests existants des pages passent sans aucune retouche   (SC-01a)
+- [x] L'édition d'un emplacement de page (texte riche, composition d'images) s'enregistre, refuse et fait paraître la marque de brouillon exactement comme avant : les tests existants des pages passent sans aucune retouche   (SC-01a)

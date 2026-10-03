@@ -116,7 +116,7 @@
   async function enregistrer(nouveauxMediaIds: readonly string[]): Promise<boolean> {
     enCours = true;
     messageErreur = null;
-    const issue = await soumettreCorrection(slug, idEmplacement, { mediaIds: nouveauxMediaIds }, TEXTES_REFUS);
+    const issue = await soumettreCorrection(`/admin/pages/${slug}/emplacements/${idEmplacement}`, { mediaIds: nouveauxMediaIds }, TEXTES_REFUS);
     enCours = false;
     if (!issue.ok) {
       messageErreur = issue.message;

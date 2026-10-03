@@ -39,17 +39,19 @@
   import { Editor } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import { Button } from '../composants/ui/button/index.ts';
-  import { afficherPastilleDeBrouillon } from '../pastille-brouillon.ts';
   import { messageErreurCorrection, MESSAGE_ECHEC, MESSAGE_RESEAU } from './message-erreur-correction.ts';
   import { analyserMarkdownRestreint, lienDeTexteRicheAutorise } from '../../core/pages/texte-riche.ts';
 
   interface Props {
-    slug: string;
-    idEmplacement: string;
+    /** Adresse d'enregistrement (POST JSON), composée par l'appelant. */
+    adresse: string;
     markdownInitial: string;
+    /** Appelée après un enregistrement accepté. */
+    apresEnregistrement: () => void;
   }
 
-  const { slug, idEmplacement, markdownInitial }: Props = $props();
+  const { adresse, markdownInitial, apresEnregistrement }: Props = $props();
+  const idUnique = $props.id();
 
   let zoneEdition: HTMLDivElement | undefined = $state();
   let editeur: Editor | undefined;
@@ -98,6 +100,7 @@
   interface ReponseCorrection {
     readonly ok: boolean;
     readonly raison?: string;
+    readonly refus?: readonly { readonly champ?: string; readonly raison?: string }[];
   }
 
   onMount(() => {
@@ -169,7 +172,7 @@
     enCours = true;
     messageErreur = null;
     try {
-      const reponse = await fetch(`/admin/pages/${slug}/emplacements/${idEmplacement}`, {
+      const reponse = await fetch(adresse, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ document: editeur.getJSON() }),
@@ -183,10 +186,10 @@
       }
       const resultat = (await reponse.json()) as ReponseCorrection;
       if (!resultat.ok) {
-        messageErreur = TEXTES_REFUS[resultat.raison ?? ''] ?? MESSAGE_ECHEC;
+        messageErreur = TEXTES_REFUS[resultat.raison ?? resultat.refus?.[0]?.raison ?? ''] ?? MESSAGE_ECHEC;
         return;
       }
-      afficherPastilleDeBrouillon();
+      apresEnregistrement();
     } catch {
       messageErreur = MESSAGE_RESEAU;
     } finally {
@@ -239,13 +242,13 @@
           type="text"
           bind:value={lienSaisi}
           aria-invalid={lienRefuse}
-          aria-describedby={lienRefuse ? `lien-refuse-${idEmplacement}` : undefined}
+          aria-describedby={lienRefuse ? `lien-refuse-${idUnique}` : undefined}
           placeholder="https://, mailto:, tel: ou une adresse du site commençant par /"
           class="rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-ink-muted focus-visible:border-ring max-md:min-h-11 md:text-sm"
         />
       </label>
       {#if lienRefuse}
-        <span id={`lien-refuse-${idEmplacement}`} role="alert" class="text-sm text-danger">{TEXTE_LIEN_REFUSE}</span>
+        <span id={`lien-refuse-${idUnique}`} role="alert" class="text-sm text-danger">{TEXTE_LIEN_REFUSE}</span>
       {/if}
       <Button type="button" onclick={appliquerLien} class="w-full max-md:min-h-11 md:w-auto">Appliquer le lien</Button>
     </p>
