@@ -40,6 +40,7 @@ numéros 2.x.
 | [0014](./0014-oracle-workerd-integration-vitest-plugin.md) | — | Tests — l'oracle reste `workerd` ; l'intégration se nomme `@cloudflare/vitest-plugin` (remplace [0003](./0003-tests-vitest-dans-workerd.md)) |
 | [0015](./0015-tokens-colibri-theme-de-l-administration.md) | — | Les tokens Colibri deviennent le thème de l'administration — clair seul, polices à part |
 | [0016](./0016-polices-de-l-administration-servies-en-meme-origine.md) | — | Polices de l'administration servies en même origine, par les paquets `@fontsource` |
+| [0017](./0017-declaration-des-reglages-transverses.md) | — | Déclaration des réglages transverses — `content/reglages/`, lue par `core/` |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -53,6 +54,8 @@ rendu fausse l'identification portée par `ADR-0003`.
 l'administration — le canvas Colibri, entré dans le dépôt, attendait qu'on tranche son adoption.
 `ADR-0016` non plus : décision neuve, née le même jour — le chargement des polices, qu'ADR-0015
 avait laissé de côté parce qu'il touche la politique de sécurité.
+`ADR-0017` non plus : décision neuve, née le 2026-10-03 du change `008-reglages-transverses` —
+le réglage, deuxième objet publiable, attendait un lieu de déclaration ; il étend ADR-0012.
 
 ## Comment se lit un remplacement
 
