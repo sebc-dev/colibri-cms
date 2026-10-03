@@ -1,0 +1,12 @@
+{
+  "coordonnees": [
+    { "id": "telephone", "nature": "telephone", "nom": "Téléphone de l'atelier", "valeur": "01 23 45 67 89" },
+    { "id": "courriel", "nature": "email", "valeur": "atelier@example.org" },
+    { "id": "adresse", "nature": "adresse", "nom": "Adresse", "valeur": "12 rue des Tilleuls, 75000 Paris" }
+  ],
+  "reseaux": [
+    { "nom": "Instagram", "lien": "https://www.instagram.com/atelier-exemple" },
+    { "nom": "Facebook", "lien": "https://www.facebook.com/atelier-exemple" },
+    { "nom": "Pinterest", "lien": "https://www.pinterest.com/atelier-exemple" }
+  ]
+}
