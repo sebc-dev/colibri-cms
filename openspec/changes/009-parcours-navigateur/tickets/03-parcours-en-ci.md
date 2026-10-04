@@ -27,5 +27,5 @@ job **annote, il ne bloque pas** : un rouge se voit sur la PR, il n'empêche pas
 promotion du job en check requis ; toute modification du produit.
 
 ## Critères
-- [ ] Quand une PR est ouverte, un job `parcours` joue les parcours et publie leur verdict ; un rouge de ce job n'empêche pas la fusion (aucun status check requis par le ruleset, `docs/ci.md` à jour)   (SC-03a)
-- [ ] Quand on compare la branche du ticket à `main`, aucun fichier sous `src/`, `migrations/`, `content/` ni `public/` n'est modifié   (SC-03b)
+- [x] Quand une PR est ouverte, un job `parcours` joue les parcours et publie leur verdict ; un rouge de ce job n'empêche pas la fusion (aucun status check requis par le ruleset, `docs/ci.md` à jour)   (SC-03a)
+- [x] Quand on compare la branche du ticket à `main`, aucun fichier sous `src/`, `migrations/`, `content/` ni `public/` n'est modifié   (SC-03b)

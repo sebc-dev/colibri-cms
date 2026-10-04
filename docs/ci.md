@@ -152,17 +152,22 @@ trois choses, toutes structurelles :
 - **anti-force-push** sur `main` ;
 - **anti-suppression** de `main`.
 
-Aucun job de CI n'est un check requis. `build`, `test` et le filet `escape-hatch-guard` **tournent**
+Aucun job de CI n'est un check requis. `build`, `test`, `analyse`, `parcours` et le filet `escape-hatch-guard` **tournent**
 sur chaque PR et **annotent** — un rouge se voit, il ne bloque pas la fusion.
 
 ## Ce que la CI exécute (sans bloquer)
 
-- **`.github/workflows/ci.yml`** — deux jobs, indépendants, en parallèle :
+- **`.github/workflows/ci.yml`** — quatre jobs (`build`, `test`, `analyse`, `parcours`), indépendants, en parallèle :
   - `build` : `npm ci` → `npm run typecheck` → `npm run build`, puis un garde-fou du socle `C5` qui
     compte les fichiers produits dans `dist/` (alerte à 15 000, échec à 20 000 — le plafond de la
-    plateforme). Les deux jobs portent une garde de scaffold : sans `package.json`, l'étape est
+    plateforme). Chaque job porte une garde de scaffold : sans `package.json`, l'étape est
     « hors portée » et ne vérifie rien.
   - `test` : `npm ci` → `npm test`.
+  - `parcours` : `npm ci` → navigateurs Playwright (cache de `~/.cache/ms-playwright`,
+    `npx playwright install --with-deps chromium`) → `npm run parcours`, la même commande qu'en
+    local, qui bâtit lui-même le site puis le sert à un navigateur réel qui joue les parcours
+    (ADR-0014). Annotation comme les
+    autres : jamais un check requis, un rouge se voit sans bloquer la fusion.
 - **`.github/workflows/scd-escape-hatch-guard.yml`** — le seul garde-fou automatique du plugin : un
   `git grep` des escape-hatches (`@ts-ignore`, `as any`, `eslint-disable`, `.skip(`, `# noqa`,
   `--no-verify`) sur le code suivi, hors `docs/`, `openspec/` et `.github/`. Il annote, il ne bloque
