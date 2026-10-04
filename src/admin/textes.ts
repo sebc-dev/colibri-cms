@@ -143,3 +143,23 @@ export const TEXTE_BOUTON_CONFIRMER_SUPPRESSION = 'Supprimer';
 
 /** Un échec inattendu en supprimant l'image (SC-11d/e). */
 export const TEXTE_ECHEC_SUPPRESSION = "La suppression a échoué. Réessayez dans un instant.";
+
+/**
+ * Les libellés de l'`Écran : Réglages` (ticket 04,
+ * openspec/changes/008-reglages-transverses/tickets/04-ecran-des-reglages.md).
+ * Aucun terme de développeur (SC-04d, FR-117).
+ */
+export const TEXTE_TITRE_REGLAGES = 'Réglages';
+export const TEXTE_CARTE_COORDONNEES = 'Coordonnées';
+export const TEXTE_CARTE_RESEAUX = 'Réseaux sociaux';
+export const TEXTE_CARTE_MENTION = "Mention d'information";
+export const TEXTE_COORDONNEES_VIDES = "Aucune coordonnée n'est prévue pour votre site.";
+export const TEXTE_RESEAUX_VIDES = "Aucun réseau social n'est prévu pour votre site.";
+
+/** L'intitulé d'un champ sans nom déclaré : le libellé de sa nature, jamais l'identifiant. */
+export const LIBELLES_NATURE_COORDONNEE: Readonly<Record<'texte' | 'telephone' | 'email' | 'adresse', string>> = {
+  texte: 'Texte',
+  telephone: 'Numéro de téléphone',
+  email: 'Adresse e-mail',
+  adresse: 'Adresse postale',
+};

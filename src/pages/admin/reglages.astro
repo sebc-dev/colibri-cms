@@ -1,0 +1,114 @@
+---
+/**
+ * L'`Écran : Réglages` (ticket 04,
+ * openspec/changes/008-reglages-transverses/tickets/04-ecran-des-reglages.md).
+ *
+ * Derrière la garde de session (ADR-0007, I6). Trois cartes rendues serveur,
+ * dans l'ordre : Coordonnées, Réseaux sociaux, Mention d'information, avec le
+ * contenu de départ lu par `lireReglagesDeLaDeclaration` (ticket 02). Tout est
+ * interpolé par Astro (échappé) : ni `set:html`, ni script, ni directive
+ * `client:*` (I4, I5, ADR-0006). Aucun identifiant n'est affiché : l'intitulé
+ * d'un champ est son nom déclaré, sinon le libellé de sa nature.
+ */
+import GabaritCadre from '../../admin/GabaritCadre.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+import { lireReglagesDeLaDeclaration } from '../../platform/contenu/reglages.ts';
+import {
+  LIBELLES_NATURE_COORDONNEE,
+  TEXTE_BOUTON_ENREGISTRER,
+  TEXTE_CARTE_COORDONNEES,
+  TEXTE_CARTE_MENTION,
+  TEXTE_CARTE_RESEAUX,
+  TEXTE_COORDONNEES_VIDES,
+  TEXTE_RESEAUX_VIDES,
+  TEXTE_TITRE_REGLAGES,
+} from '../../admin/textes.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const { coordonnees, reseaux, mention } = lireReglagesDeLaDeclaration();
+
+const CLASSE_CARTE = 'flex flex-col gap-4 rounded-lg border border-border bg-card p-4';
+const CLASSE_TITRE = 'text-lg font-medium';
+const CLASSE_CHAMP =
+  'w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground';
+const CLASSE_BOUTON =
+  'self-start rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground max-md:min-h-11';
+const INPUT_PAR_NATURE = {
+  telephone: { type: 'tel', inputmode: 'tel' },
+  email: { type: 'email', inputmode: 'email' },
+  texte: { type: 'text', inputmode: undefined },
+} as const;
+---
+
+<GabaritCadre titre="Réglages — Administration" rubrique="reglages">
+  <h1>{TEXTE_TITRE_REGLAGES}</h1>
+  <div class="mt-6 flex flex-col gap-6">
+    <section class={CLASSE_CARTE} aria-labelledby="carte-coordonnees">
+      <h2 id="carte-coordonnees" class={CLASSE_TITRE}>{TEXTE_CARTE_COORDONNEES}</h2>
+      <div data-zone-marque-brouillon></div>
+      {
+        coordonnees.length === 0 ? (
+          <p class="text-ink-muted">{TEXTE_COORDONNEES_VIDES}</p>
+        ) : (
+          coordonnees.map((c, i) => {
+            const intitule = c.nom ?? LIBELLES_NATURE_COORDONNEE[c.nature];
+            const idChamp = `champ-coordonnee-${i}`;
+            return (
+              <div class="flex flex-col gap-1">
+                <label for={idChamp} class="text-sm font-medium">
+                  {intitule}
+                </label>
+                {c.nature === 'adresse' ? (
+                  <textarea id={idChamp} rows="3" class={CLASSE_CHAMP}>
+                    {c.valeur}
+                  </textarea>
+                ) : (
+                  <input
+                    id={idChamp}
+                    type={INPUT_PAR_NATURE[c.nature].type}
+                    inputmode={INPUT_PAR_NATURE[c.nature].inputmode}
+                    value={c.valeur}
+                    class={CLASSE_CHAMP}
+                  />
+                )}
+              </div>
+            );
+          })
+        )
+      }
+      <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
+    </section>
+
+    <section class={CLASSE_CARTE} aria-labelledby="carte-reseaux">
+      <h2 id="carte-reseaux" class={CLASSE_TITRE}>{TEXTE_CARTE_RESEAUX}</h2>
+      <div data-zone-marque-brouillon></div>
+      {
+        reseaux.length === 0 ? (
+          <p class="text-ink-muted">{TEXTE_RESEAUX_VIDES}</p>
+        ) : (
+          <ul class="flex flex-col gap-2">
+            {reseaux.map((r) => (
+              <li class="break-words">
+                <span class="font-medium">{r.nom}</span>
+                <span class="block break-all font-mono text-sm text-ink-muted">{r.lien}</span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
+    </section>
+
+    <section class={CLASSE_CARTE} aria-labelledby="carte-mention">
+      <h2 id="carte-mention" class={CLASSE_TITRE}>{TEXTE_CARTE_MENTION}</h2>
+      <div data-zone-marque-brouillon></div>
+      <p class="whitespace-pre-line break-words">{mention}</p>
+      <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
+    </section>
+  </div>
+</GabaritCadre>
