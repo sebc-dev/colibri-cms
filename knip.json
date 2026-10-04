@@ -5,7 +5,8 @@
     "scripts/rapports-analyse.mjs",
     "src/pages/**/*.astro",
     "src/admin/ilots-svelte-5/monter.ts",
-    "src/platform/d1/sonde-dev.ts"
+    "src/platform/d1/sonde-dev.ts",
+    "tests/parcours/preparer-passe.ts"
   ],
   "ignore": ["src/**/zone.ts", "src/admin/composants/ui/**", ".claude/skills/**"],
   "ignoreDependencies": ["cloudflare", "@stryker-mutator/command-runner"],

@@ -74,6 +74,18 @@ export default defineConfig(
     },
   },
   {
+    // L'étage « Parcours » (Playwright, ADR-0014) pilote l'outillage local en
+    // sous-processus : `wrangler` pour préparer la base de la passe, `npx` et
+    // `git` pour constater la frontière entre étages et l'intégrité du produit.
+    // Les résoudre par le PATH est le contrat d'un harnais portable (poste et
+    // CI) ; aucun argument n'y vient d'une entrée extérieure. `src/` garde la
+    // règle.
+    files: ['tests/parcours/**/*.ts'],
+    rules: {
+      'sonarjs/no-os-command-from-path': 'off',
+    },
+  },
+  {
     // Le test du rejet non-https porte sa donnée d'épreuve en clair : un lien
     // `http://` sur un hôte de la liste blanche, que `lienVideoAutorise` doit
     // refuser. Ce n'est jamais une connexion — la remplacer par `https` rendrait
