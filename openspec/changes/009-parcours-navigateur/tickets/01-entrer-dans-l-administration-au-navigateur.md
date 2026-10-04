@@ -2,7 +2,7 @@
 
 **Bloqué par :** —
 **Vérif :** test
-**Fichiers :** `package.json`, `package-lock.json`, `playwright.config.ts`, `tests/parcours/preparer-passe.ts`, `tests/parcours/entree.parcours.ts`, `vitest.config.ts`, `.gitignore`
+**Fichiers :** `package.json`, `package-lock.json`, `playwright.config.ts`, `tests/parcours/preparer-passe.ts`, `tests/parcours/entree.parcours.ts`, `vitest.config.ts`, `.gitignore`, `eslint.config.analyse.js`, `knip.json`
 
 ## Ce que ça livre
 
@@ -56,6 +56,11 @@ rien de ce que voit un navigateur en production — puis que, sans session, la p
 - **Désignation des éléments.** Par rôle et nom accessibles, jamais par classe ou structure de DOM.
 - **Attentes sur l'état de l'écran**, jamais de délais fixes.
 - **Aucun double** : ni `fetch` simulé, ni liaison remplacée. La seule préparation est la session semée.
+- **Dérogation d'outillage.** (1) L'étage parcours exempte `tests/parcours/**/*.ts` de la règle
+  `sonarjs/no-os-command-from-path` dans `eslint.config.analyse.js` : le harnais lance npm, npx, wrangler
+  et git par le PATH, sans aucune entrée extérieure dans les arguments ; portée limitée à
+  `tests/parcours/`, `src/` garde la règle. (2) `tests/parcours/preparer-passe.ts` est déclaré comme
+  point d'entrée knip (`knip.json`), parce que `playwright.config.ts` le lance par son `webServer`.
 
 **Hors périmètre :** le parcours de correction du bouton d'action, la garde contre les violations de la
 politique de sécurité et la mise à jour de `docs/test.md` (ticket 02) ; le job de CI (ticket 03) ; la
@@ -63,8 +68,8 @@ connexion par code de bout en bout, les autres navigateurs que Chromium, les tes
 montés seuls, toute simulation de navigateur dans Node (jsdom, happy-dom), la mesure de couverture.
 
 ## Critères
-- [ ] Quand la passe de parcours démarre et que le navigateur charge `/admin/pages/accueil`, la réponse porte `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy` et `X-Frame-Options`, et la politique contient `script-src 'self'` et une directive `connect-src` ; sinon la passe échoue avec un message qui met en cause le dispositif, pas le produit   (SC-01a)
-- [ ] Quand la passe démarre, le navigateur atteint `/admin/pages/accueil` sans être renvoyé vers l'écran de connexion, grâce à la seule session semée dans la base locale de la passe — sans e-mail ni code   (SC-01b)
-- [ ] Quand un contexte de navigateur sans cookie de session charge `/admin/pages/accueil` sur le même serveur, il est renvoyé vers l'écran de connexion (la porte reste close : l'entrée tient à la session semée, pas à un affaiblissement du garde)   (SC-01c)
-- [ ] Quand on lance `npm test`, aucun fichier de `tests/parcours/` n'est collecté et la suite garde son compte de tests ; quand on lance `npm run parcours`, seuls les parcours se jouent   (SC-01d)
-- [ ] Quand on compare la branche du ticket à `main`, aucun fichier sous `src/`, `migrations/`, `content/` ni `public/` n'est modifié   (SC-01e)
+- [x] Quand la passe de parcours démarre et que le navigateur charge `/admin/pages/accueil`, la réponse porte `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy` et `X-Frame-Options`, et la politique contient `script-src 'self'` et une directive `connect-src` ; sinon la passe échoue avec un message qui met en cause le dispositif, pas le produit   (SC-01a)
+- [x] Quand la passe démarre, le navigateur atteint `/admin/pages/accueil` sans être renvoyé vers l'écran de connexion, grâce à la seule session semée dans la base locale de la passe — sans e-mail ni code   (SC-01b)
+- [x] Quand un contexte de navigateur sans cookie de session charge `/admin/pages/accueil` sur le même serveur, il est renvoyé vers l'écran de connexion (la porte reste close : l'entrée tient à la session semée, pas à un affaiblissement du garde)   (SC-01c)
+- [x] Quand on lance `npm test`, aucun fichier de `tests/parcours/` n'est collecté et la suite garde son compte de tests ; quand on lance `npm run parcours`, seuls les parcours se jouent   (SC-01d)
+- [x] Quand on compare la branche du ticket à `main`, aucun fichier sous `src/`, `migrations/`, `content/` ni `public/` n'est modifié   (SC-01e)
