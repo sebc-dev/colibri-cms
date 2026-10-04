@@ -18,8 +18,10 @@ est celui du produit.
   sont les implémentations réelles,
   servies **localement** par Miniflare (« réel » n'est pas « distant » : rien ne part vers un compte
   Cloudflare).
-- **Playwright** pour les parcours de bout en bout — **à venir** : aucune dépendance ni script à ce
-  jour.
+- **Playwright** pour les parcours de bout en bout — **présent** : `npm run parcours` joue
+  `tests/parcours/*.parcours.ts` contre le site bâti, servi par `wrangler dev` sur une base locale
+  neuve. Une garde (`tests/parcours/garde-politique.ts`) fait échouer tout parcours qui provoque
+  une violation de la politique de sécurité, en nommant la directive et la ressource bloquées.
 - **Épreuve de réversibilité scriptée** — SC-011 réclame une **pièce datée** : un script rejouable,
   pas un constat manuel. **À venir** également : `scripts/` n'en porte aucun.
 
@@ -31,7 +33,7 @@ est celui du produit.
 | Statique | `tests/static/**` | ce qui se vérifie sans requête — invariants, calculs `core/`, formes de sortie |
 | Unitaire | `tests/unit/**` | une fonction pure de `core/` exercée en mémoire, sans `cloudflare:test` ni liaison |
 | Amorçage | `tests/setup/**` | pas un étage : ce que Vitest exécute avant chaque fichier de test (`setupFiles`) |
-| Parcours | Playwright — **à venir** | les gestes de l'éditrice et de la visiteuse, écran par écran |
+| Parcours | Playwright — **présent** (`tests/parcours/**`, `npm run parcours`) | les gestes de l'éditrice et de la visiteuse, écran par écran |
 | Réversibilité | script dédié — **à venir** | la reconstruction du site depuis les seuls fichiers déposés (SC-011) |
 
 La testabilité **sans plateforme** est un invariant de structure (`C5` / `I2` — voir
