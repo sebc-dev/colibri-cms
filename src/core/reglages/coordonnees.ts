@@ -108,3 +108,63 @@ export function coordonneesCourantes(
     return typeof valeur === 'string' ? { ...c, valeur } : c;
   });
 }
+
+/** Un champ refusé : l'identifiant de la coordonnée et le code de la raison. */
+export interface ChampRefuse {
+  readonly champ: string;
+  readonly raison: RaisonRefus | 'non-declaree';
+}
+
+export type ResultatEnregistrementCoordonnees =
+  | { readonly accepte: true; readonly valeurs: Readonly<Record<string, string>> }
+  | { readonly accepte: false; readonly raison: 'forme-invalide' }
+  | { readonly accepte: false; readonly raison: 'valeur-refusee'; readonly refus: readonly ChampRefuse[] };
+
+/** La liste `coordonnees` d'un corps de forme attendue, ou null. */
+function lireListeCoordonnees(corpsBrut: unknown): unknown[] | null {
+  if (typeof corpsBrut !== 'object' || corpsBrut === null || Array.isArray(corpsBrut)) return null;
+  const liste = (corpsBrut as Record<string, unknown>).coordonnees;
+  return Array.isArray(liste) ? (liste as unknown[]) : null;
+}
+
+/** Une entrée `{ id, valeur, nature? }` de forme attendue, ou null. La nature lue n'est jamais retournée : seule la nature déclarée compte. */
+function lireEntreeCoordonnee(entree: unknown): { readonly id: string; readonly valeur: string } | null {
+  if (typeof entree !== 'object' || entree === null || Array.isArray(entree)) return null;
+  const { id, valeur, nature } = entree as Record<string, unknown>;
+  if (typeof id !== 'string' || typeof valeur !== 'string') return null;
+  if (nature !== undefined && typeof nature !== 'string') return null;
+  return { id, valeur };
+}
+
+/**
+ * Applique une soumission entière des coordonnées (ticket 05). Forme attendue :
+ * `{ coordonnees: [{ id, valeur, nature? }] }`. La nature annoncée par le corps
+ * est ignorée : la valeur est vérifiée selon la nature DÉCLARÉE. Une seule
+ * valeur refusée (ou un identifiant non déclaré) refuse toute la soumission.
+ */
+export function appliquerCorrectionCoordonnees(
+  declarees: readonly CoordonneeDeclaree[],
+  corpsBrut: unknown,
+): ResultatEnregistrementCoordonnees {
+  const liste = lireListeCoordonnees(corpsBrut);
+  if (liste === null) return { accepte: false, raison: 'forme-invalide' };
+
+  const valeurs: Record<string, string> = {};
+  const refus: ChampRefuse[] = [];
+  for (const brute of liste) {
+    const entree = lireEntreeCoordonnee(brute);
+    if (entree === null || Object.hasOwn(valeurs, entree.id)) {
+      return { accepte: false, raison: 'forme-invalide' };
+    }
+    const declaree = declarees.find((c) => c.id === entree.id);
+    if (!declaree) {
+      refus.push({ champ: entree.id, raison: 'non-declaree' });
+      continue;
+    }
+    const verdict = verifierCoordonnee(declaree.nature, entree.valeur);
+    if (verdict.ok) valeurs[entree.id] = verdict.valeur;
+    else refus.push({ champ: entree.id, raison: verdict.raison });
+  }
+  if (refus.length > 0) return { accepte: false, raison: 'valeur-refusee', refus };
+  return { accepte: true, valeurs };
+}
