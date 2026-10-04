@@ -32,10 +32,21 @@ export default defineConfig({
       './tests/setup/ignorer-rejet-wasm-lexer.ts',
       './tests/setup/activer-mutant-stryker.ts',
     ],
+    // La mesure ne porte que sur les sources que les tests importent
+    // directement (ADR-0013, docs/test.md). Le worker bâti
+    // (.wrangler/test-worker/) en est exclu par construction : instrumenté,
+    // il figeait la suite (workerd et Node en attente l'un de l'autre, aucun
+    // délai de test ne se déclenchait), et sans cartes de sources sa mesure
+    // ne se ramenait de toute façon pas à src/. `include` exclut aussi les
+    // JSON de contenu, et fait paraître à 0 % un .ts qu'aucun test n'importe.
     coverage: {
       provider: 'istanbul',
-      reporter: ['lcov'],
+      include: ['src/**/*.ts'],
+      reporter: ['lcov', 'text-summary'],
       reportsDirectory: 'coverage',
+      // Un rapport même quand un test échoue : sans lui, un seul rouge
+      // effaçait toute la mesure.
+      reportOnFailure: true,
     },
   },
 });
