@@ -164,7 +164,8 @@ sur chaque PR et **annotent** — un rouge se voit, il ne bloque pas la fusion.
     « hors portée » et ne vérifie rien.
   - `test` : `npm ci` → `npm test`.
   - `parcours` : `npm ci` → navigateurs Playwright (cache de `~/.cache/ms-playwright`,
-    `npx playwright install --with-deps chromium`) → `npm run parcours`, la même commande qu'en
+    `npx playwright install --with-deps chromium`) → référence `main` posée si le checkout ne
+    l'apporte pas (les parcours comparent l'arbre à `main`) → `npm run parcours`, la même commande qu'en
     local, qui bâtit lui-même le site puis le sert à un navigateur réel qui joue les parcours
     (ADR-0014). Annotation comme les
     autres : jamais un check requis, un rouge se voit sans bloquer la fusion.

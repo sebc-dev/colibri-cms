@@ -177,5 +177,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - if: steps.scaffold.outputs.ok == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
+      # Les parcours SC-01e et SC-02e comparent l'arbre à `main` : le checkout n'apporte que la
+      # branche de la PR, on pose la référence `main` (sauf sur un push vers main, déjà là).
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: git rev-parse --verify --quiet refs/heads/main || git fetch --no-tags --depth=1 origin main:main
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm run parcours
