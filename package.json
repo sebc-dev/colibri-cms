@@ -25,7 +25,8 @@
     "check:agent": "node scripts/rapports-analyse.mjs",
     "mutation": "stryker run",
     "dev": "astro dev",
-    "db:migrate": "wrangler d1 migrations apply DB --local"
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "parcours": "playwright test"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.1.4",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@stryker-mutator/core": "^9.6.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",

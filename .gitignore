@@ -61,3 +61,7 @@ reports/
 
 # Sortie de compilation Rust
 /target/
+
+# Parcours Playwright (rapports et résultats)
+test-results/
+playwright-report/

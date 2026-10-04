@@ -27,7 +27,7 @@ export default defineConfig({
     // Même raison pour .wrangler/ : le site factice de recette y bâtit un
     // arbre de travail complet (.wrangler/recette/arbre), tests compris, que
     // vitest collectait en double. Aucun test n'est lancé depuis cet arbre.
-    exclude: [...configDefaults.exclude, '**/.stryker-tmp/**', '**/.wrangler/**'],
+    exclude: [...configDefaults.exclude, '**/.stryker-tmp/**', '**/.wrangler/**', 'tests/parcours/**'],
     setupFiles: [
       './tests/setup/ignorer-rejet-wasm-lexer.ts',
       './tests/setup/activer-mutant-stryker.ts',
