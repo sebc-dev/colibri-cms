@@ -47,8 +47,8 @@ Enfin, il fait passer l'étage « Parcours » de `docs/test.md` de « à venir �
 mesure de couverture du code navigateur ; toute modification du produit.
 
 ## Critères
-- [ ] Quand l'éditrice remplace, sur l'éditeur de la page Accueil, le libellé du bouton d'action par un autre libellé et enregistre, l'écran annonce l'enregistrement, la marque de brouillon de la page apparaît sans rechargement, et après rechargement le champ porte toujours le nouveau libellé   (SC-02a)
-- [ ] Quand le parcours pilote se joue en entier, aucun évènement `securitypolicyviolation` et aucun message de console « Refused to … » ne s'est produit ; dans le cas contraire, le parcours échoue en nommant la directive et la ressource bloquées   (SC-02b)
-- [ ] Quand on prive à dessein la politique servie de `connect-src` (passe d'épreuve locale, jamais commitée), le parcours pilote échoue sur la garde en nommant `connect-src` — la reproduction du défaut de la PR #72   (SC-02c)
-- [ ] Quand deux passes de parcours s'enchaînent, la seconde voit le libellé d'origine du bouton d'action (« Demander un devis »), et non la correction enregistrée par la première   (SC-02d)
-- [ ] Quand on compare la branche du ticket à `main`, aucun fichier sous `src/`, `migrations/`, `content/` ni `public/` n'est modifié   (SC-02e)
+- [x] Quand l'éditrice remplace, sur l'éditeur de la page Accueil, le libellé du bouton d'action par un autre libellé et enregistre, l'écran annonce l'enregistrement, la marque de brouillon de la page apparaît sans rechargement, et après rechargement le champ porte toujours le nouveau libellé   (SC-02a)
+- [x] Quand le parcours pilote se joue en entier, aucun évènement `securitypolicyviolation` et aucun message de console « Refused to … » ne s'est produit ; dans le cas contraire, le parcours échoue en nommant la directive et la ressource bloquées   (SC-02b)
+- [x] Quand on prive à dessein la politique servie de `connect-src` (passe d'épreuve locale, jamais commitée), le parcours pilote échoue sur la garde en nommant `connect-src` — la reproduction du défaut de la PR #72   (SC-02c)
+- [x] Quand deux passes de parcours s'enchaînent, la seconde voit le libellé d'origine du bouton d'action (« Demander un devis »), et non la correction enregistrée par la première   (SC-02d)
+- [x] Quand on compare la branche du ticket à `main`, aucun fichier sous `src/`, `migrations/`, `content/` ni `public/` n'est modifié   (SC-02e)
