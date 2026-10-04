@@ -38,3 +38,10 @@ Après un `/clear` : commiter la correction, puis relancer `/scd-spec-dev:run 01
 
 ## Écarté
 - Laisser l'agent de quality corriger : il n'a pas le droit de toucher un test ni la configuration.
+
+## Issue
+Fermée le 2026-10-04. J'ai appliqué l'arbitrage de l'humain : `no-os-command-from-path` est coupée
+sur `tests/parcours/**`, `preparer-passe.ts` est déclaré point d'entrée knip, et les 4 gabarits et
+la regex sont corrigés. La reprise (`rerun: "2"`) est allée jusqu'à la PR #174. Les deux fichiers
+de configuration, omis par le progress-recorder, ont été commités à part, avec un verrou régénéré
+par npm 11 (npm 10 en local retirait 88 champs `libc`).
