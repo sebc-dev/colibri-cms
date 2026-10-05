@@ -46,12 +46,12 @@ ticket 06.
 mention (tickets 07, 08) ; l'abandon d'un brouillon ; la publication.
 
 ## Critères
-- [ ] La table D1 des brouillons de réglages est créée par une migration versionnée additive, sans toucher aucune table existante   (SC-05a)
-- [ ] Par la couture HTTP, enregistrer un téléphone « +33 1 23 45 67 89 », une adresse e-mail « atelier@exemple.fr » et une adresse postale de trois lignes écrit ces trois valeurs au brouillon des coordonnées, espaces de début et de fin retirés, et le réglage Coordonnées porte un brouillon   (SC-05b)
-- [ ] Par la couture HTTP, enregistrer une valeur vide pour une coordonnée écrit cette valeur vide au brouillon   (SC-05c)
-- [ ] Par la couture HTTP, enregistrer un téléphone valide et une adresse e-mail mal formée n'écrit aucun brouillon, et la réponse désigne le champ de l'adresse e-mail comme refusé   (SC-05d)
-- [ ] Par la couture HTTP, une soumission qui annonce « texte d'une ligne » pour une coordonnée déclarée téléphone et lui donne la valeur « bonjour » voit la valeur vérifiée comme un téléphone, refusée, et rien n'est enregistré   (SC-05e)
-- [ ] Par la couture HTTP, une soumission portant une valeur pour un identifiant qu'aucune coordonnée déclarée ne porte est refusée et rien n'est enregistré   (SC-05f)
-- [ ] Par la couture HTTP, une correction d'un réglage soumise sans session ouverte est refusée et aucun brouillon n'est écrit   (SC-05g)
-- [ ] Par la couture HTTP, en session, une correction soumise avec un corps qui n'est pas du JSON, dont la forme n'est pas celle attendue, ou de plus de 64 Kio est refusée sans erreur du serveur, et aucun brouillon n'est écrit   (SC-05h)
-- [ ] Une écriture d'un réglage forgée depuis une autre origine n'aboutit pas, la session `SameSite=Strict` n'étant pas attachée à une requête cross-site (ADR-0011)   (SC-05i)
+- [x] La table D1 des brouillons de réglages est créée par une migration versionnée additive, sans toucher aucune table existante   (SC-05a)
+- [x] Par la couture HTTP, enregistrer un téléphone « +33 1 23 45 67 89 », une adresse e-mail « atelier@exemple.fr » et une adresse postale de trois lignes écrit ces trois valeurs au brouillon des coordonnées, espaces de début et de fin retirés, et le réglage Coordonnées porte un brouillon   (SC-05b)
+- [x] Par la couture HTTP, enregistrer une valeur vide pour une coordonnée écrit cette valeur vide au brouillon   (SC-05c)
+- [x] Par la couture HTTP, enregistrer un téléphone valide et une adresse e-mail mal formée n'écrit aucun brouillon, et la réponse désigne le champ de l'adresse e-mail comme refusé   (SC-05d)
+- [x] Par la couture HTTP, une soumission qui annonce « texte d'une ligne » pour une coordonnée déclarée téléphone et lui donne la valeur « bonjour » voit la valeur vérifiée comme un téléphone, refusée, et rien n'est enregistré   (SC-05e)
+- [x] Par la couture HTTP, une soumission portant une valeur pour un identifiant qu'aucune coordonnée déclarée ne porte est refusée et rien n'est enregistré   (SC-05f)
+- [x] Par la couture HTTP, une correction d'un réglage soumise sans session ouverte est refusée et aucun brouillon n'est écrit   (SC-05g)
+- [x] Par la couture HTTP, en session, une correction soumise avec un corps qui n'est pas du JSON, dont la forme n'est pas celle attendue, ou de plus de 64 Kio est refusée sans erreur du serveur, et aucun brouillon n'est écrit   (SC-05h)
+- [x] Une écriture d'un réglage forgée depuis une autre origine n'aboutit pas, la session `SameSite=Strict` n'étant pas attachée à une requête cross-site (ADR-0011)   (SC-05i)
