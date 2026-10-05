@@ -197,6 +197,40 @@ describe("SC-05b — enregistrer les trois coordonnées au brouillon", () => {
       adresse: "12 rue des Tilleuls\n75000 Paris\nFrance",
     });
   });
+
+  it("SC-05b — un second enregistrement remplace le brouillon des coordonnées, toujours une seule ligne", async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookie = await semerSessionValide(db);
+    const premiere = await enregistrer(
+      cookie,
+      JSON.stringify({
+        coordonnees: [{ id: "telephone", valeur: "+33 1 23 45 67 89" }],
+      }),
+    );
+    expect(premiere.status).toBe(200);
+
+    // Act
+    const reponse = await enregistrer(
+      cookie,
+      JSON.stringify({
+        coordonnees: [
+          { id: "telephone", valeur: "01 99 99 99 99" },
+          { id: "courriel", valeur: "autre@exemple.fr" },
+        ],
+      }),
+    );
+
+    // Assert
+    expect(reponse.status).toBe(200);
+    const lignes = await lireBrouillons(db);
+    expect(lignes).toHaveLength(1);
+    expect(lignes[0].reglage).toBe("coordonnees");
+    expect(JSON.parse(lignes[0].contenu)).toEqual({
+      telephone: "01 99 99 99 99",
+      courriel: "autre@exemple.fr",
+    });
+  });
 });
 
 describe("SC-05c — valeur vide admise", () => {
@@ -253,6 +287,42 @@ describe("SC-05d — une valeur refusée refuse toute la soumission", () => {
     expect(corps.ok).toBe(false);
     expect(corps.refus).toEqual([{ champ: "courriel", raison: "email-forme" }]);
     expect(await lireBrouillons(db)).toHaveLength(0);
+  });
+
+  it("SC-05d — une soumission refusée laisse intact le brouillon existant", async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookie = await semerSessionValide(db);
+    const premiere = await enregistrer(
+      cookie,
+      JSON.stringify({
+        coordonnees: [
+          { id: "telephone", valeur: "+33 1 23 45 67 89" },
+          { id: "courriel", valeur: "atelier@exemple.fr" },
+        ],
+      }),
+    );
+    expect(premiere.status).toBe(200);
+
+    // Act
+    const reponse = await enregistrer(
+      cookie,
+      JSON.stringify({
+        coordonnees: [
+          { id: "telephone", valeur: "01 99 99 99 99" },
+          { id: "courriel", valeur: "pas-un-courriel" },
+        ],
+      }),
+    );
+
+    // Assert
+    expect(reponse.status).toBe(400);
+    const lignes = await lireBrouillons(db);
+    expect(lignes).toHaveLength(1);
+    expect(JSON.parse(lignes[0].contenu)).toEqual({
+      telephone: "+33 1 23 45 67 89",
+      courriel: "atelier@exemple.fr",
+    });
   });
 });
 
