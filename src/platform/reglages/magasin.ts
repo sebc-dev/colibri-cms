@@ -26,7 +26,10 @@ export interface DB {
 
 let schemaAssure: Promise<void> | null = null;
 
-/** Recrée `brouillons_reglages` si absente — même définition que la migration 0007. */
+/**
+ * Recrée `brouillons_reglages` si absente — même définition que la migration 0007.
+ * Un échec n'est pas mis en cache : l'appel suivant retente.
+ */
 async function assurerTableBrouillonsReglages(db: DB): Promise<void> {
   schemaAssure ??= db
     .prepare(
@@ -38,7 +41,13 @@ async function assurerTableBrouillonsReglages(db: DB): Promise<void> {
     )
     .bind()
     .run()
-    .then(() => undefined);
+    .then(
+      () => undefined,
+      (erreur: unknown) => {
+        schemaAssure = null;
+        throw erreur;
+      },
+    );
   await schemaAssure;
 }
 
