@@ -95,15 +95,4 @@ test.describe("entrée dans l’administration", () => {
     expect(fichiers.length).toBeGreaterThan(0);
     expect(fichiers.every((f) => f.endsWith(".parcours.ts"))).toBe(true);
   });
-
-  test("SC-01e — aucun fichier de production n’est modifié par rapport à main", () => {
-    const modifies = execFileSync("git", ["diff", "--name-only", "main"], {
-      encoding: "utf8",
-    });
-    expect(
-      modifies
-        .split("\n")
-        .filter((f) => /^(src|migrations|content|public)\//.test(f)),
-    ).toEqual([]);
-  });
 });

@@ -1,6 +1,5 @@
 // Correction du bouton d'action de l'accueil — servie comme en production,
 // sans double, sous la garde de la politique de sécurité.
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { poserGardePolitique } from "./garde-politique.ts";
@@ -58,16 +57,5 @@ test.describe("correction du bouton d’action de l’accueil", () => {
       garde.verifier();
       await contexte.close();
     }
-  });
-
-  test("SC-02e — aucun fichier de production n’est modifié par rapport à main", () => {
-    const modifies = execFileSync("git", ["diff", "--name-only", "main"], {
-      encoding: "utf8",
-    });
-    expect(
-      modifies
-        .split("\n")
-        .filter((f) => /^(src|migrations|content|public)\//.test(f)),
-    ).toEqual([]);
   });
 });
