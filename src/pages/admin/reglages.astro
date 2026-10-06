@@ -12,7 +12,11 @@
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
 import { verifierSession } from '../../platform/session/index.ts';
+import MarqueBrouillon from '../../admin/MarqueBrouillon.astro';
+import MontageCarteCoordonnees from '../../admin/MontageCarteCoordonnees.astro';
 import { lireReglagesDeLaDeclaration } from '../../platform/contenu/reglages.ts';
+import { obtenirBrouillonsReglages } from '../../platform/reglages/magasin.ts';
+import { coordonneesCourantes } from '../../core/reglages/coordonnees.ts';
 import {
   LIBELLES_NATURE_COORDONNEE,
   TEXTE_BOUTON_ENREGISTRER,
@@ -30,7 +34,33 @@ if (!session) {
   return Astro.redirect('/admin/connexion');
 }
 
-const { coordonnees, reseaux, mention } = lireReglagesDeLaDeclaration();
+const declares = lireReglagesDeLaDeclaration();
+const brouillons = await obtenirBrouillonsReglages(env.DB);
+
+/** Le brouillon des coordonnées (identifiant -> valeur), ou rien s'il est absent ou de forme inattendue. */
+function valeursBrouillon(brut: unknown): Record<string, string> {
+  if (typeof brut !== 'object' || brut === null || Array.isArray(brut)) return {};
+  return Object.fromEntries(Object.entries(brut).filter((e): e is [string, string] => typeof e[1] === 'string'));
+}
+
+const coordonnees = coordonneesCourantes(declares.coordonnees, valeursBrouillon(brouillons.coordonnees));
+const reseauxBrouillon = brouillons.reseaux;
+const reseaux =
+  Array.isArray(reseauxBrouillon) &&
+  reseauxBrouillon.every(
+    (r): r is { nom: string; lien: string } =>
+      typeof r === 'object' && r !== null && typeof (r as { nom?: unknown }).nom === 'string' && typeof (r as { lien?: unknown }).lien === 'string',
+  )
+    ? reseauxBrouillon
+    : declares.reseaux;
+const mention = typeof brouillons.mention === 'string' ? brouillons.mention : declares.mention;
+
+const cartesCoordonnees = coordonnees.map((c) => ({
+  id: c.id,
+  nature: c.nature,
+  intitule: c.nom ?? LIBELLES_NATURE_COORDONNEE[c.nature],
+  valeur: c.valeur,
+}));
 
 const CLASSE_CARTE = 'flex flex-col gap-4 rounded-lg border border-border bg-card p-4';
 const CLASSE_TITRE = 'text-lg font-medium';
@@ -42,7 +72,8 @@ const INPUT_PAR_NATURE = {
   telephone: { type: 'tel', inputmode: 'tel' },
   email: { type: 'email', inputmode: 'email' },
   texte: { type: 'text', inputmode: undefined },
-} as const;
+} as const;// Apostrophes en \u0027 : JSON valide, et aucune apostrophe brute dans l'attribut.
+const donneesCarte = JSON.stringify(cartesCoordonnees).replaceAll("'", '\\u0027');
 ---
 
 <GabaritCadre titre="Réglages — Administration" rubrique="reglages">
@@ -50,7 +81,8 @@ const INPUT_PAR_NATURE = {
   <div class="mt-6 flex flex-col gap-6">
     <section class={CLASSE_CARTE} aria-labelledby="carte-coordonnees">
       <h2 id="carte-coordonnees" class={CLASSE_TITRE}>{TEXTE_CARTE_COORDONNEES}</h2>
-      <div data-zone-marque-brouillon></div>
+      <div data-zone-marque-brouillon>{brouillons.coordonnees !== undefined && <MarqueBrouillon />}</div>
+      <div data-carte-coordonnees data-coordonnees={donneesCarte} class="flex flex-col gap-4">
       {
         coordonnees.length === 0 ? (
           <p class="text-ink-muted">{TEXTE_COORDONNEES_VIDES}</p>
@@ -82,11 +114,12 @@ const INPUT_PAR_NATURE = {
         )
       }
       <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
+      </div>
     </section>
 
     <section class={CLASSE_CARTE} aria-labelledby="carte-reseaux">
       <h2 id="carte-reseaux" class={CLASSE_TITRE}>{TEXTE_CARTE_RESEAUX}</h2>
-      <div data-zone-marque-brouillon></div>
+      <div data-zone-marque-brouillon>{brouillons.reseaux !== undefined && <MarqueBrouillon />}</div>
       {
         reseaux.length === 0 ? (
           <p class="text-ink-muted">{TEXTE_RESEAUX_VIDES}</p>
@@ -106,9 +139,10 @@ const INPUT_PAR_NATURE = {
 
     <section class={CLASSE_CARTE} aria-labelledby="carte-mention">
       <h2 id="carte-mention" class={CLASSE_TITRE}>{TEXTE_CARTE_MENTION}</h2>
-      <div data-zone-marque-brouillon></div>
+      <div data-zone-marque-brouillon>{brouillons.mention !== undefined && <MarqueBrouillon />}</div>
       <p class="whitespace-pre-line break-words">{mention}</p>
       <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
     </section>
   </div>
+  <MontageCarteCoordonnees slot="scripts" />
 </GabaritCadre>

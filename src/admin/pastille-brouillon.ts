@@ -34,3 +34,20 @@ export function afficherPastilleDeBrouillon(): void {
 
   zone.appendChild(modele.content.cloneNode(true));
 }
+
+/**
+ * Ticket 06 (008-reglages-transverses, SC-06c) : même geste, dans la zone
+ * propre à une carte de l'`Écran : Réglages` — `afficherPastilleDeBrouillon`
+ * ci-dessus (zone unique de l'éditeur de page) reste le cas par défaut,
+ * inchangé. Clone le même `<template id="modele-marque-brouillon">` ; ne
+ * fait rien si la zone est absente ou porte déjà la marque.
+ */
+export function afficherPastilleDansLaZone(zone: Element | null): void {
+  if (!zone) return;
+  if (zone.querySelector(`[${ATTRIBUT_PASTILLE}]`)) return;
+
+  const modele = document.getElementById(ID_MODELE_MARQUE_BROUILLON);
+  if (!(modele instanceof HTMLTemplateElement)) return;
+
+  zone.appendChild(modele.content.cloneNode(true));
+}

@@ -17,11 +17,13 @@ import { mount } from 'svelte';
 import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 import ReglageLienVideo from './ReglageLienVideo.svelte';
 import TexteRiche from './TexteRiche.svelte';
-import { afficherPastilleDeBrouillon } from '../pastille-brouillon.ts';
+import { afficherPastilleDeBrouillon, afficherPastilleDansLaZone } from '../pastille-brouillon.ts';
 import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
+import CarteCoordonnees from './CarteCoordonnees.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
+import type { CoordonneeCarte } from './coordonnees-carte.ts';
 import type { MediaListe, MediaFiche } from '../../platform/medias/magasin.ts';
 import type { EmplacementOuPoseeMedia } from './emplacements-media.ts';
 
@@ -366,4 +368,59 @@ export function monterEcranFicheMedia(idCible: string): void {
 
   cible.innerHTML = '';
   mount(EcranFicheMedia, { target: cible, props: { media, emplacements } });
+}
+
+/**
+ * Monte l'îlot `CarteCoordonnees` (ticket 06,
+ * openspec/changes/008-reglages-transverses/tickets/06-carte-coordonnees.md)
+ * sur la carte Coordonnées de l'`Écran : Réglages` — repérée par
+ * `data-carte-coordonnees`, les coordonnées courantes en JSON dans
+ * `data-coordonnees`. La zone de marque de la carte est celle de sa
+ * section. Même garde d'absence ou de forme inattendue que ci-dessus.
+ */
+export function monterCarteCoordonnees(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-carte-coordonnees]');
+
+  cibles.forEach((cible) => {
+    const brut = cible.dataset.coordonnees;
+    if (brut === undefined) return;
+    const coordonnees = analyserCoordonnees(brut);
+    if (coordonnees === null) return;
+    const zoneMarque = cible.closest('section')?.querySelector('[data-zone-marque-brouillon]') ?? null;
+
+    cible.innerHTML = '';
+    mount(CarteCoordonnees, {
+      target: cible,
+      props: {
+        coordonnees,
+        apresEnregistrement: () => {
+          afficherPastilleDansLaZone(zoneMarque);
+        },
+      },
+    });
+  });
+}
+
+function analyserCoordonnees(valeurBrute: string): readonly CoordonneeCarte[] | null {
+  let valeur: unknown;
+  try {
+    valeur = JSON.parse(valeurBrute);
+  } catch {
+    return null;
+  }
+  if (
+    !Array.isArray(valeur) ||
+    !valeur.every(
+      (element): element is CoordonneeCarte =>
+        typeof element === 'object' &&
+        element !== null &&
+        typeof (element as CoordonneeCarte).id === 'string' &&
+        typeof (element as CoordonneeCarte).intitule === 'string' &&
+        typeof (element as CoordonneeCarte).valeur === 'string' &&
+        ['texte', 'telephone', 'email', 'adresse'].includes((element as CoordonneeCarte).nature),
+    )
+  ) {
+    return null;
+  }
+  return valeur;
 }

@@ -2,7 +2,7 @@
 
 **Bloqué par :** 05
 **Vérif :** test
-**Fichiers :** `src/admin/ilots-svelte-5/CarteCoordonnees.svelte`, `src/admin/ilots-svelte-5/monter.ts`, `src/admin/pastille-brouillon.ts`, `src/pages/admin/reglages.astro`, `src/admin/textes.ts`, `tests/integration/carte-coordonnees.test.ts`, `tests/static/carte-coordonnees-statique.test.ts`, `docs/cahier-de-test.md`
+**Fichiers :** `src/admin/ilots-svelte-5/CarteCoordonnees.svelte`, `src/admin/ilots-svelte-5/monter.ts`, `src/admin/pastille-brouillon.ts`, `src/pages/admin/reglages.astro`, `src/admin/GabaritCadre.astro`, `src/admin/MontageCarteCoordonnees.astro`, `src/admin/ilots-svelte-5/coordonnees-carte.ts`, `src/admin/textes.ts`, `tests/integration/carte-coordonnees.test.ts`, `tests/static/carte-coordonnees-statique.test.ts`, `docs/cahier-de-test.md`
 
 ## Ce que ça livre
 
@@ -17,6 +17,7 @@ la marque de brouillon des réglages qui en portent un ; sur une instance où ri
 aucune carte ne la porte.
 
 **Décisions à respecter :**
+- les scripts de montage d'un écran du cadre sont posés dans `<slot name="scripts"/>` de GabaritCadre.astro, hors de `<main>`, par un composant Astro dédié dont le `<script>` reste bundlé, sans script en ligne (CSP).
 - `reglages.astro` lit les trois brouillons par le magasin du ticket 05 et reconstitue les coordonnées
   courantes par la fonction de rattachement du ticket 03 ; la liste des liens et la mention courantes
   viennent de leur brouillon s'il existe. La marque de brouillon de chaque carte est rendue par le
@@ -42,8 +43,8 @@ aucune carte ne la porte.
 brouillon ; la publication.
 
 ## Critères
-- [ ] En parcourant la carte Coordonnées, aucun geste d'ajout, de retrait, de renommage ni de déplacement d'une coordonnée n'est offert   (SC-06a)
+- [x] En parcourant la carte Coordonnées, aucun geste d'ajout, de retrait, de renommage ni de déplacement d'une coordonnée n'est offert   (SC-06a)
 - [ ] À l'`Écran : Réglages`, enregistrer un téléphone mal formé marque le champ du téléphone en erreur avec un message qui dit ce qui est attendu, sans terme de développeur, et la carte ne porte pas de nouvelle marque de brouillon   (SC-06b)
 - [ ] À l'`Écran : Réglages`, enregistrer une carte avec succès lui fait porter aussitôt la marque de brouillon, sans changement d'écran, et les autres cartes gardent leur état   (SC-06c)
-- [ ] L'`Écran : Réglages` affiché sur une instance où aucun réglage n'a été enregistré ne montre la marque de brouillon sur aucune des trois cartes   (SC-06d)
-- [ ] L'`Écran : Réglages` affiché alors que seul le réglage Réseaux sociaux porte un brouillon montre la liste du brouillon dans la carte Réseaux sociaux, et le contenu de départ dans les cartes Coordonnées et Mention d'information   (SC-06e)
+- [x] L'`Écran : Réglages` affiché sur une instance où aucun réglage n'a été enregistré ne montre la marque de brouillon sur aucune des trois cartes   (SC-06d)
+- [x] L'`Écran : Réglages` affiché alors que seul le réglage Réseaux sociaux porte un brouillon montre la liste du brouillon dans la carte Réseaux sociaux, et le contenu de départ dans les cartes Coordonnées et Mention d'information   (SC-06e)

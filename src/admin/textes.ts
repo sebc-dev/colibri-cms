@@ -163,3 +163,27 @@ export const LIBELLES_NATURE_COORDONNEE: Readonly<Record<'texte' | 'telephone' |
   email: 'Adresse e-mail',
   adresse: 'Adresse postale',
 };
+
+/**
+ * Les textes de la carte Coordonnées (ticket 06,
+ * openspec/changes/008-reglages-transverses/tickets/06-carte-coordonnees.md).
+ * Chaque code de raison d'un refus est traduit ici, jamais affiché brut ;
+ * aucun terme de développeur (FR-117).
+ */
+export const TEXTE_ENREGISTREMENT_EN_COURS = 'Enregistrement…';
+
+export const TEXTES_REFUS_COORDONNEES: Readonly<Record<string, string>> = {
+  'texte-trop-long': 'Un texte de 120 signes au plus.',
+  'texte-plusieurs-lignes': 'Un texte sur une seule ligne.',
+  'telephone-caracteres': 'Un numéro de téléphone, de 6 à 15 chiffres.',
+  'telephone-chiffres': 'Un numéro de téléphone, de 6 à 15 chiffres.',
+  'email-forme': 'Une adresse e-mail, par exemple nom@exemple.fr.',
+  'email-trop-long': 'Une adresse e-mail de 254 signes au plus.',
+  'adresse-trop-de-lignes': 'Une adresse de 5 lignes au plus.',
+  'adresse-trop-longue': 'Une adresse de 300 signes au plus.',
+  'non-declaree': "Ce champ n'existe plus : rechargez l'écran.",
+  'forme-invalide': "L'enregistrement a échoué. Réessayez dans un instant.",
+};
+
+/** Un refus dont le code est inconnu : jamais le code brut. */
+export const TEXTE_REFUS_COORDONNEE_INCONNU = "Cette valeur n'est pas acceptée.";
