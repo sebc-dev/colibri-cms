@@ -22,20 +22,34 @@ import { it, expect } from 'vitest';
 const CLASSE_UTILITAIRE_GORGE = /\b(?:text|bg|border|ring|fill|stroke|from|via|to|outline|decoration|caret|accent|shadow)-gorge(?:-soft)?\b/;
 
 /**
- * Isole le CODE de la fonction exportée, sans le commentaire de tête du
- * fichier (qui parle en prose de « createElement », de « textContent » et
- * de « data-pastille-brouillon » pour raconter la migration — un match sur
- * le fichier entier prendrait cette prose pour du code).
+ * Isole le CODE de la fonction exportée qui pose la marque, sans le
+ * commentaire de tête du fichier (qui parle en prose de « createElement »,
+ * de « textContent » et de « data-pastille-brouillon » pour raconter la
+ * migration — un match sur le fichier entier prendrait cette prose pour du
+ * code). Depuis le ticket 06 de 008, le geste vit dans
+ * `afficherPastilleDansLaZone(zone)` ; `afficherPastilleDeBrouillon()` n'en
+ * est plus que la délégation sur la zone de l'éditeur de page.
  */
 function extraireFonction(source: string): string {
-  return /export function afficherPastilleDeBrouillon\(\)[\s\S]*?\n}/.exec(source)?.[0] ?? '';
+  return /export function afficherPastilleDansLaZone\([^)]*\)[\s\S]*?\n}/.exec(source)?.[0] ?? '';
 }
+
+it('SC-05b — afficherPastilleDeBrouillon délègue à afficherPastilleDansLaZone sur la zone de l’éditeur de page', async () => {
+  // Arrange
+  const source = (await import('../../src/admin/pastille-brouillon.ts?raw')).default;
+  const delegation = /export function afficherPastilleDeBrouillon\(\)[\s\S]*?\n}/.exec(source)?.[0] ?? '';
+  expect(delegation, 'la fonction afficherPastilleDeBrouillon devrait être présente').not.toBe('');
+
+  // Assert
+  expect(delegation).toMatch(/afficherPastilleDansLaZone\(\s*document\.getElementById\(\s*ID_ZONE_PASTILLE\s*\)\s*\)/);
+  expect(source).toMatch(/const ID_ZONE_PASTILLE = 'zone-pastille-brouillon'/);
+});
 
 it('SC-05b — pastille-brouillon.ts clone le modèle du gabarit, jamais un balisage fabriqué à la main', async () => {
   // Arrange
   const source = (await import('../../src/admin/pastille-brouillon.ts?raw')).default;
   const fonction = extraireFonction(source);
-  expect(fonction, 'la fonction afficherPastilleDeBrouillon devrait être présente').not.toBe('');
+  expect(fonction, 'la fonction afficherPastilleDansLaZone devrait être présente').not.toBe('');
 
   // Act / Assert — le clonage du `<template>`…
   expect(fonction).toMatch(/\.content\.cloneNode\(true\)/);
@@ -48,7 +62,7 @@ it('SC-05b — pastille-brouillon.ts garde son garde-fou anti-doublon : la marqu
   // Arrange
   const source = (await import('../../src/admin/pastille-brouillon.ts?raw')).default;
   const fonction = extraireFonction(source);
-  expect(fonction, 'la fonction afficherPastilleDeBrouillon devrait être présente').not.toBe('');
+  expect(fonction, 'la fonction afficherPastilleDansLaZone devrait être présente').not.toBe('');
 
   // Le nom de la constante importe peu (convention UPPER_SNAKE du projet) :
   // ce qui compte est qu'une même valeur littérale — l'attribut partagé qui
