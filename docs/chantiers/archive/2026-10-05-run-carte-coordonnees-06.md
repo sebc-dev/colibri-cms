@@ -47,3 +47,9 @@ ou il faut finir la PR à la main.
 - Envelopper le script dans `<Fragment slot="scripts">` : SC-04c interdit `Fragment` dans la source.
 - `<script slot="scripts">` : les tests passent, mais Astro ne traite plus le script et le laisse en ligne,
   avec un `import` de `.ts` brut, bloqué par la CSP dans le navigateur.
+
+## Issue
+Fermée le 2026-10-06. Le plugin est passé en 0.17.3 (la barre de sortie du Verify est recalculée par le
+script ; un humanCheck ne bloque plus) ; reprise `rerun: "3"` puis `"4"` après avoir commité à part la
+correction A, que le Record ignorait (`blocked-record-incomplete`). Run `done`, PR #180 ; SC-06b et
+SC-06c restent à constater au navigateur.
