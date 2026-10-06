@@ -272,5 +272,10 @@ describe("carte Coordonnées", () => {
     const coordonnees = carteCoordonnees(page);
     expect(coordonnees).toContain("01 23 45 67 89");
     expect(coordonnees).toContain("atelier@example.org");
+    const mention =
+      /<section[^>]*aria-labelledby="carte-mention"[^>]*>([\s\S]*?)<\/section>/.exec(
+        page,
+      )?.[1] ?? "";
+    expect(mention).toContain("servent uniquement à répondre à votre demande");
   });
 });
