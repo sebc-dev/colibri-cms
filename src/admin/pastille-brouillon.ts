@@ -25,7 +25,17 @@ const ID_MODELE_MARQUE_BROUILLON = 'modele-marque-brouillon';
 const ATTRIBUT_PASTILLE = 'data-pastille-brouillon';
 
 export function afficherPastilleDeBrouillon(): void {
-  const zone = document.getElementById(ID_ZONE_PASTILLE);
+  afficherPastilleDansLaZone(document.getElementById(ID_ZONE_PASTILLE));
+}
+
+/**
+ * Ticket 06 (008-reglages-transverses, SC-06c) : le geste commun, dans une
+ * zone donnée — la zone propre à une carte de l'`Écran : Réglages`, ou la
+ * zone unique de l'éditeur de page via `afficherPastilleDeBrouillon`. Clone
+ * le `<template id="modele-marque-brouillon">` ; ne fait rien si la zone est
+ * absente ou porte déjà la marque.
+ */
+export function afficherPastilleDansLaZone(zone: Element | null): void {
   if (!zone) return;
   if (zone.querySelector(`[${ATTRIBUT_PASTILLE}]`)) return; // déjà affichée.
 

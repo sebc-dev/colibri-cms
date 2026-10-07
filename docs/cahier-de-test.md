@@ -534,6 +534,21 @@ la PR **#157** sans constat ; il est constaté ici. Joué le 2026-10-02 sur l'ad
 | CT-23.4 | Recopier le code reçu | La session s'ouvre (cf. CT-3.2) | OK — constaté par l'opérateur |
 | CT-23.5 | `recette.mjs journal` lancé avant la demande | Aucune ligne `[connexion] envoi du code échoué` | NA — sur une adresse d'aperçu, le journal ne reçoit rien (pas même les requêtes) ; l'arrivée du message (CT-23.2) exclut l'échec |
 
+## 24. La carte Coordonnées — change 008 · ticket 06
+
+Cas visuels, jamais observables en `workerd` (aucun navigateur) : à jouer sur l'instance locale ou de
+recette, connectée (§ 0.3), à 1280 px puis à 360 px.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-24.1 | Ouvrir `Réglages` sur une instance où rien n'a été enregistré | Aucune des trois cartes ne porte la marque « Brouillon » (SC-06d) | |
+| CT-24.2 | Carte Coordonnées : parcourir les champs | Aucun geste d'ajout, de retrait, de renommage ni de déplacement (SC-06a) | |
+| CT-24.3 | Saisir `abc` dans le téléphone, « Enregistrer » | Le champ du téléphone est marqué en erreur (texte danger), message « Un numéro de téléphone, de 6 à 15 chiffres. » ; la saisie reste ; aucune marque « Brouillon » nouvelle (SC-06b) | |
+| CT-24.4 | Corriger le téléphone, « Enregistrer » | Pendant l'envoi, le bouton est inactif et dit « Enregistrement… » ; au succès la marque « Brouillon » paraît aussitôt dans la carte Coordonnées, sans changement d'écran ; les cartes Réseaux sociaux et Mention gardent leur état (SC-06c) | |
+| CT-24.5 | Recharger l'écran | La carte Coordonnées garde la marque et les valeurs saisies (SC-06c) | |
+| CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | |
+| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | |
+
 ---
 
 ## Bilan

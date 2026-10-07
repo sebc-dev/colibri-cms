@@ -1,0 +1,16 @@
+---
+/**
+ * Monte l'îlot de la carte Coordonnées de l'`Écran : Réglages` (ticket 06).
+ *
+ * Un composant à part pour que le `<script>` de module reste traité par Astro
+ * (bundlé, chargé par `src`, conforme à la CSP) tout en étant posé dans
+ * `<slot name="scripts"/>` de `GabaritCadre.astro`, hors de `<main>` : un
+ * attribut `slot` sur la balise `<script>` elle-même la ferait passer en ligne.
+ */
+---
+
+<script>
+  import { monterCarteCoordonnees } from './ilots-svelte-5/monter.ts';
+
+  monterCarteCoordonnees();
+</script>

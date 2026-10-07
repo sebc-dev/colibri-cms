@@ -8,6 +8,7 @@
  *
  * Enveloppe `Gabarit.astro` (ticket 01) : le logo, le menu des cinq
  * rubriques (`MenuRubriques.astro`) et le contenu de l'écran (`<slot/>`)
+ * — ses scripts de montage dans `<slot name="scripts"/>`, hors de `<main>` —
  * arrivent tous dans la même réponse HTTP, sans attendre l'exécution d'un
  * script (SC-03b).
  *
@@ -131,6 +132,7 @@ const ID_TIROIR = 'tiroir-menu';
       <main class="min-w-0 flex-1 p-8">
         <slot />
       </main>
+      <slot name="scripts" />
     </div>
 
     <dialog
