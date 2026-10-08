@@ -18,6 +18,7 @@ import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 import ReglageLienVideo from './ReglageLienVideo.svelte';
 import TexteRiche from './TexteRiche.svelte';
 import { afficherPastilleDeBrouillon, afficherPastilleDansLaZone } from '../pastille-brouillon.ts';
+import { TEXTE_CARTE_MENTION } from '../textes.ts';
 import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
@@ -501,6 +502,9 @@ export function monterCarteMention(): void {
         apresEnregistrement: () => {
           afficherPastilleDansLaZone(zoneMarque);
         },
+        libelle: TEXTE_CARTE_MENTION,
+        // Même bouton que les cartes Coordonnées et Réseaux sociaux.
+        classeEnregistrer: 'h-auto self-start rounded-md border-0 px-3 py-2 max-md:min-h-11',
       },
     });
   });
