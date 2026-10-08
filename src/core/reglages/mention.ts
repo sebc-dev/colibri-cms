@@ -16,18 +16,17 @@ export type ResultatMention =
   | { readonly accepte: false; readonly raison: 'forme-invalide' }
   | { readonly accepte: false; readonly raison: 'valeur-refusee'; readonly refus: readonly { readonly champ: string; readonly raison: RaisonRefusMention }[] };
 
+function estMarque(brut: unknown): boolean {
+  return typeof brut === 'object' && brut !== null && typeof (brut as Record<string, unknown>).type === 'string';
+}
+
 function estNoeud(brut: unknown): boolean {
   if (typeof brut !== 'object' || brut === null || Array.isArray(brut)) return false;
   const n = brut as Record<string, unknown>;
   if (typeof n.type !== 'string') return false;
   if (n.content !== undefined && (!Array.isArray(n.content) || !n.content.every(estNoeud))) return false;
   if (n.text !== undefined && typeof n.text !== 'string') return false;
-  if (n.marks !== undefined) {
-    if (!Array.isArray(n.marks)) return false;
-    for (const m of n.marks) {
-      if (typeof m !== 'object' || m === null || typeof (m as Record<string, unknown>).type !== 'string') return false;
-    }
-  }
+  if (n.marks !== undefined && (!Array.isArray(n.marks) || !n.marks.every(estMarque))) return false;
   if (n.attrs !== undefined && (typeof n.attrs !== 'object' || n.attrs === null)) return false;
   return true;
 }
