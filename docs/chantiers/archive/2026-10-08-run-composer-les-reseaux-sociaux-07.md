@@ -54,3 +54,9 @@ Hors de cette session, la reprise n'existe plus : commiter le travail et relance
 - Empiler sur `impl/carte-coordonnees-06` : ses deux commits restants sont arrivés dans `main` à
   l'identique par la PR #181 (`git cherry` → `-`).
 - Remplacer les `http://` des tests par `https://` : le refus testé ne serait plus éprouvé.
+
+## Issue
+Corrections faites le 2026-10-08 (`String(i)` ; extinction bornée, `c51e44f`), reprise avec
+`rerun: "2"` : le run a abouti à la PR #182. J'ai ensuite ajouté le test du remplacement complet de
+la liste, que la review avait retenu sans pouvoir l'écrire, et vérifié qu'il rougit quand l'upsert
+devient `do nothing`.
