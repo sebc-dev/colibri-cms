@@ -567,11 +567,11 @@ de recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 
 | N° | Geste | Résultat attendu | OK / KO |
 |---|---|---|---|
-| CT-26.1 | Sur la carte, sélectionner un mot puis actionner « Gras », « Italique », puis « Lien », « Liste », « Titre » | Chaque mise en forme se pose sans écrire de balise (SC-08d) | |
-| CT-26.2 | Poser du gras et un lien https, « Enregistrer » | La carte porte la marque « Brouillon » (SC-08a) | |
-| CT-26.3 | Vider le texte, « Enregistrer » | « La mention ne peut pas rester vide. » ; rien n'est enregistré (SC-08c) | |
-| CT-26.4 | Saisir un lien `http://…` dans « Adresse du lien » | Le lien est refusé avec son message (SC-08b) | |
-| CT-26.5 | À 360 px | Boutons d'au moins 44 px ; aucune violation CSP en console | |
+| CT-26.1 | Sur la carte, sélectionner un mot puis actionner « Gras », « Italique », puis « Lien », « Liste », « Titre » | Chaque mise en forme se pose sans écrire de balise (SC-08d) | OK — 2026-10-08, recette (aperçu), 1280 px : Gras → `<strong>`, Italique → `<em>`, Lien → `<a href=https…>`, Liste → `<ul><li>`, Titre → `<h2>` (Liste et Titre défaits par un second appui) ; aucune balise écrite dans le texte |
+| CT-26.2 | Poser du gras et un lien https, « Enregistrer » | La carte porte la marque « Brouillon » (SC-08a) | OK — 2026-10-08 : marque « Brouillon » aussitôt dans la carte ; base : `Les **informations** … _uniquement_ … [tiers](https://exemple.fr/donnees).` |
+| CT-26.3 | Vider le texte, « Enregistrer » | « La mention ne peut pas rester vide. » ; rien n'est enregistré (SC-08c) | OK — 2026-10-08 : « La mention ne peut pas rester vide. » (alerte), réponse 400 ; base inchangée |
+| CT-26.4 | Saisir un lien `http://…` dans « Adresse du lien » | Le lien est refusé avec son message (SC-08b) | OK — 2026-10-08 : champ marqué invalide, « Ce lien n'est pas accepté : il doit commencer par https://, mailto:, tel: ou /. », lien non posé |
+| CT-26.5 | À 360 px | Boutons d'au moins 44 px ; aucune violation CSP en console | OK — 2026-10-08 : boutons 50/66/47/51/50 × 44 px, « Enregistrer » 262 × 44 px, pas de défilement horizontal (360), mise en forme jouée à 360 px, console sans violation CSP |
 
 ---
 
