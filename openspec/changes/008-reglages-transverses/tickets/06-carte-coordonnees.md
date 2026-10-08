@@ -44,7 +44,7 @@ brouillon ; la publication.
 
 ## Critères
 - [x] En parcourant la carte Coordonnées, aucun geste d'ajout, de retrait, de renommage ni de déplacement d'une coordonnée n'est offert   (SC-06a)
-- [ ] À l'`Écran : Réglages`, enregistrer un téléphone mal formé marque le champ du téléphone en erreur avec un message qui dit ce qui est attendu, sans terme de développeur, et la carte ne porte pas de nouvelle marque de brouillon   (SC-06b)
-- [ ] À l'`Écran : Réglages`, enregistrer une carte avec succès lui fait porter aussitôt la marque de brouillon, sans changement d'écran, et les autres cartes gardent leur état   (SC-06c)
+- [x] À l'`Écran : Réglages`, enregistrer un téléphone mal formé marque le champ du téléphone en erreur avec un message qui dit ce qui est attendu, sans terme de développeur, et la carte ne porte pas de nouvelle marque de brouillon   (SC-06b)
+- [x] À l'`Écran : Réglages`, enregistrer une carte avec succès lui fait porter aussitôt la marque de brouillon, sans changement d'écran, et les autres cartes gardent leur état   (SC-06c)
 - [x] L'`Écran : Réglages` affiché sur une instance où aucun réglage n'a été enregistré ne montre la marque de brouillon sur aucune des trois cartes   (SC-06d)
 - [x] L'`Écran : Réglages` affiché alors que seul le réglage Réseaux sociaux porte un brouillon montre la liste du brouillon dans la carte Réseaux sociaux, et le contenu de départ dans les cartes Coordonnées et Mention d'information   (SC-06e)
