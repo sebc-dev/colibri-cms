@@ -85,4 +85,47 @@ describe("SC-08c — mention vide", () => {
       raison: "forme-invalide",
     });
   });
+
+  it.each([
+    ["un titre sans texte", [{ type: "heading", attrs: { level: 2 } }]],
+    [
+      "une liste dont le paragraphe est vide",
+      [
+        {
+          type: "bulletList",
+          content: [{ type: "listItem", content: [{ type: "paragraph" }] }],
+        },
+      ],
+    ],
+    [
+      "un espace en gras",
+      [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: " ", marks: [{ type: "bold" }] }],
+        },
+      ],
+    ],
+  ])("SC-08c — refus mention-vide : %s", (_cas, content) => {
+    const verdict = appliquerMention({ document: { type: "doc", content } });
+
+    expect(verdict).toEqual({
+      accepte: false,
+      raison: "valeur-refusee",
+      refus: [{ champ: "mention", raison: "mention-vide" }],
+    });
+  });
+
+  it.each([
+    ["un nœud null dans le contenu", [null]],
+    [
+      "un texte qui n'est pas une chaîne",
+      [{ type: "paragraph", content: [{ type: "text", text: 42 }] }],
+    ],
+  ])("SC-08c — forme invalide, sans exception : %s", (_cas, content) => {
+    expect(appliquerMention({ document: { type: "doc", content } })).toEqual({
+      accepte: false,
+      raison: "forme-invalide",
+    });
+  });
 });
