@@ -12,6 +12,7 @@
 -->
 <script lang="ts">
   import { Button } from '../composants/ui/button/index.ts';
+  import { RESEAUX_LIENS_MAX } from '../../core/reglages/reseaux.ts';
   import {
     TEXTE_BOUTON_ENREGISTRER,
     TEXTE_ENREGISTREMENT_EN_COURS,
@@ -36,7 +37,7 @@
 
   const { reseaux, apresEnregistrement }: Props = $props();
 
-  const LIENS_MAX = 12;
+  const LIENS_MAX = RESEAUX_LIENS_MAX;
 
   interface Ligne {
     cle: number;

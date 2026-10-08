@@ -70,7 +70,14 @@ it("SC-07f — à 12 liens, l'ajout disparaît au profit du message « La liste 
   const textes = await import("../../src/admin/textes.ts");
 
   // Act / Assert
-  expect(source).toContain("const LIENS_MAX = 12;");
+  // La borne de la carte est celle du noyau, qui refuse le 13e lien.
+  expect(source).toContain("const LIENS_MAX = RESEAUX_LIENS_MAX;");
+  expect(source).toMatch(
+    /import \{ RESEAUX_LIENS_MAX \} from '\.\.\/\.\.\/core\/reglages\/reseaux\.ts';/,
+  );
+  const { RESEAUX_LIENS_MAX } =
+    await import("../../src/core/reglages/reseaux.ts");
+  expect(RESEAUX_LIENS_MAX).toBe(12);
   expect(source).toMatch(
     /\{#if lignes\.length >= LIENS_MAX\}\s*<p[^>]*>\{TEXTE_RESEAUX_LISTE_COMPLETE\}<\/p>\s*\{:else\}\s*<Button[^>]*onclick=\{ajouter\}/,
   );
