@@ -94,6 +94,7 @@
   const TEXTES_REFUS: Readonly<Record<string, string>> = {
     'emplacement-non-declare': "Cet emplacement n'existe plus dans la page : rechargez l'écran.",
     'nature-non-corrigible': 'Cet emplacement ne se corrige pas comme un texte riche.',
+    'mention-vide': 'La mention ne peut pas rester vide.',
     'forme-invalide': "Le contenu n'a pas pu être enregistré : rechargez l'écran, puis réessayez.",
   };
 

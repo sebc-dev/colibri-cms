@@ -11,6 +11,7 @@ import {
   type ResultatEnregistrementCoordonnees,
 } from '../../core/reglages/coordonnees.ts';
 import { appliquerListeReseaux, type ResultatReseaux } from '../../core/reglages/reseaux.ts';
+import { appliquerMention, type ResultatMention } from '../../core/reglages/mention.ts';
 import type { CoordonneeDeclaree } from '../../core/reglages/declaration.ts';
 
 export type NomReglage = 'coordonnees' | 'reseaux' | 'mention';
@@ -108,6 +109,22 @@ export async function enregistrerReseaux(db: DB, corpsBrut: unknown, maintenant:
        on conflict(reglage) do update set contenu = excluded.contenu, maj_le = excluded.maj_le`,
       )
       .bind('reseaux', JSON.stringify(resultat.reseaux), maintenant)
+      .run();
+  }
+  return resultat;
+}
+
+/** Applique et persiste la mention (Markdown restreint, remplace sa ligne entière) ; rien n'est écrit si refusée. */
+export async function enregistrerMention(db: DB, corpsBrut: unknown, maintenant: number): Promise<ResultatMention> {
+  await assurerTableBrouillonsReglages(db);
+  const resultat = appliquerMention(corpsBrut);
+  if (resultat.accepte) {
+    await db
+      .prepare(
+        `insert into brouillons_reglages (reglage, contenu, maj_le) values (?1, ?2, ?3)
+       on conflict(reglage) do update set contenu = excluded.contenu, maj_le = excluded.maj_le`,
+      )
+      .bind('mention', JSON.stringify(resultat.markdown), maintenant)
       .run();
   }
   return resultat;

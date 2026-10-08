@@ -563,6 +563,16 @@ de recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 | CT-25.5 | Atteindre 12 liens | « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît (SC-07f) | |
 | CT-25.6 | À 360 px | Champs et boutons d'au moins 44 px de haut ; aucune violation CSP en console | |
 
+## 26. La carte Mention d'information — change 008 · ticket 08
+
+| N° | Geste | Résultat attendu | OK / KO |
+|---|---|---|---|
+| CT-26.1 | Sur la carte, sélectionner un mot puis actionner « Gras », « Italique », puis « Lien », « Liste », « Titre » | Chaque mise en forme se pose sans écrire de balise (SC-08d) | |
+| CT-26.2 | Poser du gras et un lien https, « Enregistrer » | La carte porte la marque « Brouillon » (SC-08a) | |
+| CT-26.3 | Vider le texte, « Enregistrer » | « La mention ne peut pas rester vide. » ; rien n'est enregistré (SC-08c) | |
+| CT-26.4 | Saisir un lien `http://…` dans « Adresse du lien » | Le lien est refusé avec son message (SC-08b) | |
+| CT-26.5 | À 360 px | Boutons d'au moins 44 px ; aucune violation CSP en console | |
+
 ---
 
 ## Bilan

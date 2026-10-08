@@ -35,8 +35,8 @@ seulement d'espaces, est refusée — chaque formulaire la présente au visiteur
 la publication ; le réglage des formulaires de devis.
 
 ## Critères
-- [ ] Par la couture HTTP, enregistrer une mention portant du gras et un lien `https` écrit ce texte en Markdown restreint au brouillon de la mention, et la mention porte un brouillon   (SC-08a)
-- [ ] En `core/`, une mention portant un lien `javascript:` ou `http:` voit ce lien rejeté selon les mêmes règles que le texte riche des pages   (SC-08b)
-- [ ] Par la couture HTTP, enregistrer une mention vide ou faite seulement d'espaces n'enregistre rien, et le champ dit que la mention ne peut pas rester vide   (SC-08c)
+- [x] Par la couture HTTP, enregistrer une mention portant du gras et un lien `https` écrit ce texte en Markdown restreint au brouillon de la mention, et la mention porte un brouillon   (SC-08a)
+- [x] En `core/`, une mention portant un lien `javascript:` ou `http:` voit ce lien rejeté selon les mêmes règles que le texte riche des pages   (SC-08b)
+- [x] Par la couture HTTP, enregistrer une mention vide ou faite seulement d'espaces n'enregistre rien, et le champ dit que la mention ne peut pas rester vide   (SC-08c)
 - [ ] À l'`Écran : Réglages`, actionner la barre de mise en forme de la mention pose gras, italique, lien, liste et titre sans que l'éditrice écrive de balise   (SC-08d)
-- [ ] Par la couture HTTP, enregistrer une correction de la mention lui fait porter un brouillon, les réglages Coordonnées et Réseaux sociaux n'en portent pas, et le répertoire de contenu des réglages est inchangé   (SC-08e)
+- [x] Par la couture HTTP, enregistrer une correction de la mention lui fait porter un brouillon, les réglages Coordonnées et Réseaux sociaux n'en portent pas, et le répertoire de contenu des réglages est inchangé   (SC-08e)

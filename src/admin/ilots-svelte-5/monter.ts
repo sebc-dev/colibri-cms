@@ -477,3 +477,31 @@ function analyserReseaux(valeurBrute: string): readonly ReseauCarte[] | null {
   }
   return valeur;
 }
+
+/**
+ * Monte l'îlot `TexteRiche` sur la carte Mention d'information (ticket 08,
+ * openspec/changes/008-reglages-transverses/tickets/08-corriger-la-mention.md)
+ * — repérée par `data-carte-mention`, le Markdown courant en `data-markdown`
+ * (donnée, jamais HTML injecté, I5). Même éditeur que les emplacements.
+ */
+export function monterCarteMention(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-carte-mention]');
+
+  cibles.forEach((cible) => {
+    const markdown = cible.dataset.markdown;
+    if (markdown === undefined) return;
+    const zoneMarque = cible.closest('section')?.querySelector('[data-zone-marque-brouillon]') ?? null;
+
+    cible.innerHTML = '';
+    mount(TexteRiche, {
+      target: cible,
+      props: {
+        adresse: '/admin/reglages/mention',
+        markdownInitial: markdown,
+        apresEnregistrement: () => {
+          afficherPastilleDansLaZone(zoneMarque);
+        },
+      },
+    });
+  });
+}
