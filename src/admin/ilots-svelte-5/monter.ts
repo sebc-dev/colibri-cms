@@ -22,8 +22,10 @@ import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
 import CarteCoordonnees from './CarteCoordonnees.svelte';
+import CarteReseaux from './CarteReseaux.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
 import type { CoordonneeCarte } from './coordonnees-carte.ts';
+import type { ReseauCarte } from './reseaux-carte.ts';
 import type { MediaListe, MediaFiche } from '../../platform/medias/magasin.ts';
 import type { EmplacementOuPoseeMedia } from './emplacements-media.ts';
 
@@ -418,6 +420,57 @@ function analyserCoordonnees(valeurBrute: string): readonly CoordonneeCarte[] | 
         typeof (element as CoordonneeCarte).intitule === 'string' &&
         typeof (element as CoordonneeCarte).valeur === 'string' &&
         ['texte', 'telephone', 'email', 'adresse'].includes((element as CoordonneeCarte).nature),
+    )
+  ) {
+    return null;
+  }
+  return valeur;
+}
+
+/**
+ * Monte l'îlot `CarteReseaux` (ticket 07,
+ * openspec/changes/008-reglages-transverses/tickets/07-composer-les-reseaux-sociaux.md)
+ * sur la carte Réseaux sociaux — repérée par `data-carte-reseaux`, la liste
+ * courante en JSON dans `data-reseaux`. Même garde que ci-dessus.
+ */
+export function monterCarteReseaux(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-carte-reseaux]');
+
+  cibles.forEach((cible) => {
+    const brut = cible.dataset.reseaux;
+    if (brut === undefined) return;
+    const reseaux = analyserReseaux(brut);
+    if (reseaux === null) return;
+    const zoneMarque = cible.closest('section')?.querySelector('[data-zone-marque-brouillon]') ?? null;
+
+    cible.innerHTML = '';
+    mount(CarteReseaux, {
+      target: cible,
+      props: {
+        reseaux,
+        apresEnregistrement: () => {
+          afficherPastilleDansLaZone(zoneMarque);
+        },
+      },
+    });
+  });
+}
+
+function analyserReseaux(valeurBrute: string): readonly ReseauCarte[] | null {
+  let valeur: unknown;
+  try {
+    valeur = JSON.parse(valeurBrute);
+  } catch {
+    return null;
+  }
+  if (
+    !Array.isArray(valeur) ||
+    !valeur.every(
+      (element): element is ReseauCarte =>
+        typeof element === 'object' &&
+        element !== null &&
+        typeof (element as ReseauCarte).nom === 'string' &&
+        typeof (element as ReseauCarte).lien === 'string',
     )
   ) {
     return null;

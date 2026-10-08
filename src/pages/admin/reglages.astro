@@ -74,6 +74,7 @@ const INPUT_PAR_NATURE = {
   texte: { type: 'text', inputmode: undefined },
 } as const;// Apostrophes en \u0027 : JSON valide, et aucune apostrophe brute dans l'attribut.
 const donneesCarte = JSON.stringify(cartesCoordonnees).replaceAll("'", '\\u0027');
+const donneesReseaux = JSON.stringify(reseaux.map((r) => ({ nom: r.nom, lien: r.lien }))).replaceAll("'", '\\u0027');
 ---
 
 <GabaritCadre titre="Réglages — Administration" rubrique="reglages">
@@ -120,6 +121,7 @@ const donneesCarte = JSON.stringify(cartesCoordonnees).replaceAll("'", '\\u0027'
     <section class={CLASSE_CARTE} aria-labelledby="carte-reseaux">
       <h2 id="carte-reseaux" class={CLASSE_TITRE}>{TEXTE_CARTE_RESEAUX}</h2>
       <div data-zone-marque-brouillon>{brouillons.reseaux !== undefined && <MarqueBrouillon />}</div>
+      <div data-carte-reseaux data-reseaux={donneesReseaux} class="flex flex-col gap-4">
       {
         reseaux.length === 0 ? (
           <p class="text-ink-muted">{TEXTE_RESEAUX_VIDES}</p>
@@ -135,6 +137,7 @@ const donneesCarte = JSON.stringify(cartesCoordonnees).replaceAll("'", '\\u0027'
         )
       }
       <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
+      </div>
     </section>
 
     <section class={CLASSE_CARTE} aria-labelledby="carte-mention">

@@ -549,6 +549,20 @@ recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 | CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | OK — 2026-10-08 (fetch rejeté, simule hors ligne) : message affiché, saisie gardée, base inchangée |
 | CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | OK — 2026-10-08 : champs 44/44/90 px, bouton 44 px, pas de défilement horizontal (360), console sans violation CSP |
 
+## 25. La carte Réseaux sociaux — change 008 · ticket 07
+
+Gestes de composition au navigateur, jamais observables en `workerd` : à jouer sur l'instance locale ou
+de recette, connectée (§ 0.3), à 1280 px puis à 360 px.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-25.1 | Carte Réseaux sociaux : « Ajouter un lien », corriger le nom d'un autre, « Retirer » un troisième, « Monter » le dernier, puis « Enregistrer » | La carte montre la liste résultante dans le nouvel ordre et porte la marque « Brouillon » (SC-07a) | |
+| CT-25.2 | Liste vide | « Aucun lien pour l'instant. » et « Ajouter un lien » (SC-07a) | |
+| CT-25.3 | Premier lien / dernier lien | « Monter » inactif sur le premier, « Descendre » inactif sur le dernier ; libellés accessibles « Monter Instagram » (SC-07a) | |
+| CT-25.4 | Saisir `http://exemple.fr` comme adresse, « Enregistrer » | Le champ de l'adresse dit « Une adresse qui commence par https:// » ; la saisie reste ; rien n'est enregistré (SC-07e) | |
+| CT-25.5 | Atteindre 12 liens | « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît (SC-07f) | |
+| CT-25.6 | À 360 px | Champs et boutons d'au moins 44 px de haut ; aucune violation CSP en console | |
+
 ---
 
 ## Bilan
