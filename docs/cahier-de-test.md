@@ -541,13 +541,13 @@ recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-24.1 | Ouvrir `Réglages` sur une instance où rien n'a été enregistré | Aucune des trois cartes ne porte la marque « Brouillon » (SC-06d) | |
-| CT-24.2 | Carte Coordonnées : parcourir les champs | Aucun geste d'ajout, de retrait, de renommage ni de déplacement (SC-06a) | |
-| CT-24.3 | Saisir `abc` dans le téléphone, « Enregistrer » | Le champ du téléphone est marqué en erreur (texte danger), message « Un numéro de téléphone, de 6 à 15 chiffres. » ; la saisie reste ; aucune marque « Brouillon » nouvelle (SC-06b) | |
-| CT-24.4 | Corriger le téléphone, « Enregistrer » | Pendant l'envoi, le bouton est inactif et dit « Enregistrement… » ; au succès la marque « Brouillon » paraît aussitôt dans la carte Coordonnées, sans changement d'écran ; les cartes Réseaux sociaux et Mention gardent leur état (SC-06c) | |
-| CT-24.5 | Recharger l'écran | La carte Coordonnées garde la marque et les valeurs saisies (SC-06c) | |
-| CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | |
-| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | |
+| CT-24.1 | Ouvrir `Réglages` sur une instance où rien n'a été enregistré | Aucune des trois cartes ne porte la marque « Brouillon » (SC-06d) | OK — 2026-10-08, recette (aperçu), 1280 px |
+| CT-24.2 | Carte Coordonnées : parcourir les champs | Aucun geste d'ajout, de retrait, de renommage ni de déplacement (SC-06a) | OK — 2026-10-08 : trois champs et « Enregistrer », aucun autre geste |
+| CT-24.3 | Saisir `abc` dans le téléphone, « Enregistrer » | Le champ du téléphone est marqué en erreur (texte danger), message « Un numéro de téléphone, de 6 à 15 chiffres. » ; la saisie reste ; aucune marque « Brouillon » nouvelle (SC-06b) | OK — 2026-10-08 : message en text-danger sous le champ, aria-invalid=true, « abc » gardé, aucune marque, base inchangée |
+| CT-24.4 | Corriger le téléphone, « Enregistrer » | Pendant l'envoi, le bouton est inactif et dit « Enregistrement… » ; au succès la marque « Brouillon » paraît aussitôt dans la carte Coordonnées, sans changement d'écran ; les cartes Réseaux sociaux et Mention gardent leur état (SC-06c) | OK — 2026-10-08 (envoi retardé de 3 s) : « Enregistrement… » + bouton inactif ; marque aussitôt, même page ; Réseaux et Mention sans marque |
+| CT-24.5 | Recharger l'écran | La carte Coordonnées garde la marque et les valeurs saisies (SC-06c) | OK — 2026-10-08 : marque et « 04 11 22 33 44 » après rechargement |
+| CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | OK — 2026-10-08 (fetch rejeté, simule hors ligne) : message affiché, saisie gardée, base inchangée |
+| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | OK — 2026-10-08 : champs 44/44/90 px, bouton 44 px, pas de défilement horizontal (360), console sans violation CSP |
 
 ---
 
