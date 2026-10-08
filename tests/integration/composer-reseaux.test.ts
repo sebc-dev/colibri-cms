@@ -132,6 +132,32 @@ describe("SC-07b — enregistrer trois liens", () => {
     expect(lignes[0].reglage).toBe("reseaux");
     expect(JSON.parse(lignes[0].contenu)).toEqual(reseaux);
   });
+
+  it("SC-07b — une seconde liste remplace entièrement le brouillon des réseaux", async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookie = await semerSessionValide(db);
+    await enregistrer(cookie, {
+      reseaux: [
+        { nom: "Instagram", lien: "https://instagram.com/atelier" },
+        { nom: "Facebook", lien: "https://facebook.com/atelier" },
+        { nom: "Mon blog", lien: "https://blog.exemple.fr" },
+      ],
+    });
+    const seconde = [
+      { nom: "Pinterest", lien: "https://pinterest.com/atelier" },
+    ];
+
+    // Act
+    const reponse = await enregistrer(cookie, { reseaux: seconde });
+
+    // Assert
+    expect(reponse.status).toBe(200);
+    const lignes = await lireBrouillons(db);
+    expect(lignes).toHaveLength(1);
+    expect(lignes[0].reglage).toBe("reseaux");
+    expect(JSON.parse(lignes[0].contenu)).toEqual(seconde);
+  });
 });
 
 describe("SC-07c — liste vide", () => {
