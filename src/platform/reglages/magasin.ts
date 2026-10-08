@@ -10,6 +10,7 @@ import {
   appliquerCorrectionCoordonnees,
   type ResultatEnregistrementCoordonnees,
 } from '../../core/reglages/coordonnees.ts';
+import { appliquerListeReseaux, type ResultatReseaux } from '../../core/reglages/reseaux.ts';
 import type { CoordonneeDeclaree } from '../../core/reglages/declaration.ts';
 
 export type NomReglage = 'coordonnees' | 'reseaux' | 'mention';
@@ -91,6 +92,22 @@ export async function enregistrerCoordonnees(
        on conflict(reglage) do update set contenu = excluded.contenu, maj_le = excluded.maj_le`,
       )
       .bind('coordonnees', JSON.stringify(resultat.valeurs), maintenant)
+      .run();
+  }
+  return resultat;
+}
+
+/** Applique et persiste la liste des réseaux (remplace sa ligne entière) ; rien n'est écrit si refusée. */
+export async function enregistrerReseaux(db: DB, corpsBrut: unknown, maintenant: number): Promise<ResultatReseaux> {
+  await assurerTableBrouillonsReglages(db);
+  const resultat = appliquerListeReseaux(corpsBrut);
+  if (resultat.accepte) {
+    await db
+      .prepare(
+        `insert into brouillons_reglages (reglage, contenu, maj_le) values (?1, ?2, ?3)
+       on conflict(reglage) do update set contenu = excluded.contenu, maj_le = excluded.maj_le`,
+      )
+      .bind('reseaux', JSON.stringify(resultat.reseaux), maintenant)
       .run();
   }
   return resultat;

@@ -187,3 +187,30 @@ export const TEXTES_REFUS_COORDONNEES: Readonly<Record<string, string>> = {
 
 /** Un refus dont le code est inconnu : jamais le code brut. */
 export const TEXTE_REFUS_COORDONNEE_INCONNU = "Cette valeur n'est pas acceptée.";
+
+/**
+ * Les textes de la carte Réseaux sociaux (ticket 07,
+ * openspec/changes/008-reglages-transverses/tickets/07-composer-les-reseaux-sociaux.md).
+ * Chaque code de raison est traduit ici, jamais affiché brut (FR-117).
+ */
+export const TEXTE_RESEAUX_AUCUN_LIEN = "Aucun lien pour l'instant.";
+export const TEXTE_RESEAUX_AJOUTER = 'Ajouter un lien';
+export const TEXTE_RESEAUX_LISTE_COMPLETE = 'La liste est complète (12 liens au plus).';
+export const TEXTE_RESEAUX_NOM = 'Nom affiché';
+export const TEXTE_RESEAUX_ADRESSE = 'Adresse de la page';
+export const TEXTE_RESEAUX_RETIRER = 'Retirer';
+export const TEXTE_RESEAUX_MONTER = 'Monter';
+export const TEXTE_RESEAUX_DESCENDRE = 'Descendre';
+
+export const TEXTES_REFUS_RESEAUX: Readonly<Record<string, string>> = {
+  'nom-vide': 'Un nom, de 40 caractères au plus.',
+  'nom-trop-long': 'Un nom de 40 caractères au plus.',
+  'nom-plusieurs-lignes': 'Un nom sur une seule ligne.',
+  'adresse-forme': 'Une adresse qui commence par https://',
+  'adresse-pas-https': 'Une adresse qui commence par https://',
+  'adresse-trop-longue': 'Une adresse de 2048 caractères au plus.',
+  'trop-de-liens': 'La liste est complète (12 liens au plus).',
+  'forme-invalide': "L'enregistrement a échoué. Réessayez dans un instant.",
+};
+
+export const TEXTE_REFUS_RESEAU_INCONNU = "Cette valeur n'est pas acceptée.";

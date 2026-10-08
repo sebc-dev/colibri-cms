@@ -95,4 +95,14 @@ export default defineConfig(
     files: ['tests/integration/regler-lien-video.test.ts'],
     rules: { 'sonarjs/no-clear-text-protocols': 'off' },
   },
+  {
+    // Même motif pour les liens de réseaux sociaux : le refus d'une adresse
+    // `http://` (`adresse-pas-https`) s'éprouve avec une donnée en clair, jamais
+    // une connexion. Extinction bornée à ces deux fichiers.
+    files: [
+      'tests/unit/reglages/reseaux.test.ts',
+      'tests/integration/composer-reseaux.test.ts',
+    ],
+    rules: { 'sonarjs/no-clear-text-protocols': 'off' },
+  },
 );
