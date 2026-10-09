@@ -92,7 +92,7 @@ artifacts:
 
   - id: design
     generates: design.md
-    description: Approche technique du change, JETABLE ; cite les ADR contraignants ; n'est jamais un ADR.
+    description: Approche technique du change, JETABLE ; cite les ADR contraignants et les éléments LikeC4 touchés (FQN) ; n'est jamais un ADR.
     template: design.md
     instruction: |
       Écris le design qui explique COMMENT implémenter le change. Il est JETABLE (fusionné puis figé à
@@ -110,6 +110,12 @@ artifacts:
       - **Decisions** : choix techniques clés avec justification (pourquoi X plutôt que Y ?) et
         alternatives considérées. VÉRIFIE la conformité aux invariants des ADR (docs/adr/, docs/architecture.md) ;
         cite les ADR contraignants.
+      - **Architecture** (seulement si docs/architecture/ porte un modèle LikeC4) : les éléments TOUCHÉS
+        par le change, cités par FQN tel qu'il figure dans le .c4 (`shop.api`, `shop.orders`) — la review
+        vérifie qu'ils existent dans le modèle. Une relation NOUVELLE entre deux éléments (un import qui
+        franchit une frontière) s'écrit dans le .c4 DANS CE CHANGE, jamais après coup, et se valide par
+        `likec4 validate --no-layout --json --project <name> docs/architecture` : le modèle et le code
+        arrivent dans la même PR, ou le modèle ment. Aucun élément touché → le dire. Pas de modèle → omets.
       - **Risks / Trade-offs** : limites connues. Format : [Risque] → Mitigation.
       - **Migration Plan** : étapes de déploiement, rollback (si applicable).
       - **Open Questions** : inconnues réellement reportables sans changer les specs, l'approche ni le

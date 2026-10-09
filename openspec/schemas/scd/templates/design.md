@@ -22,6 +22,19 @@
      VÉRIFIE la conformité aux invariants des ADR (docs/adr/, docs/architecture.md) et cite les ADR
      contraignants. Décision structurante nouvelle → propose un ADR, ne la fige pas ici. -->
 
+## Architecture
+
+<!-- Si docs/architecture/ porte un modèle LikeC4 : les éléments TOUCHÉS, par FQN tel qu'il est dans
+     le .c4 (ex. `shop.api`, `shop.orders`) — le change-reviewer vérifie qu'ils existent dans le modèle.
+     Une relation NOUVELLE entre deux éléments (un import qui franchit une frontière) s'écrit dans le
+     .c4 DANS CE CHANGE — jamais après coup — et se valide : `likec4 validate --no-layout --json
+     --project <name> docs/architecture`. Ne touche pas au modèle → « Aucun élément touché ».
+     Pas de modèle dans le projet → omets la section. -->
+
+**Éléments touchés (FQN) :**
+
+**Relations ajoutées / retirées :** <!-- `A -[sync]-> B` … et le .c4 édité, ou « aucune ». -->
+
 ## Risks / Trade-offs
 
 <!-- Limites connues. Format : [Risque] → Mitigation. -->
