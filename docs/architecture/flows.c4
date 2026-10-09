@@ -1,0 +1,52 @@
+// Flux clés — une vue dynamique par parcours. Posé par /scd-spec-dev:archi-dossier (relevé).
+// Chaque pas porte la ligne de code qui le fait.
+
+views {
+  dynamic view flow-connexion {
+    title 'Connexion par code'
+    description "L'éditrice demande un code par e-mail, le saisit, et reçoit une session."
+    editrice -> colibri-cms.worker.routes 'POST /admin/connexion — son adresse'                 // trace : src/pages/admin/connexion.astro:98,116
+    colibri-cms.worker.routes -> colibri-cms.worker.platform "l'adresse est-elle autorisée ?"  // trace : src/pages/admin/connexion.astro:142
+    colibri-cms.worker.platform -> colibri-cms.d1 'lit l’adresse autorisée, écrit le code sous plafond' // trace : src/pages/admin/connexion.astro:143 ; src/platform/auth/magasin.ts
+    colibri-cms.worker.routes -> colibri-cms.worker.core 'délai plancher, plafond par heure'   // trace : src/pages/admin/connexion.astro:84
+    colibri-cms.worker.platform -> email-routing 'expédie le code'                              // trace : src/pages/admin/connexion.astro:145 ; src/platform/email/index.ts:53
+    email-routing -> editrice 'remet le code'
+    editrice -> colibri-cms.worker.routes 'POST /admin/connexion — le code'                     // trace : src/pages/admin/connexion.astro:116
+    colibri-cms.worker.platform -> colibri-cms.d1 'vérifie le code, ouvre la session'          // trace : src/pages/admin/connexion.astro:121
+    editrice <- colibri-cms.worker.routes 'cookie de session SameSite=Strict, vers /admin/'     // trace : src/pages/admin/connexion.astro:123-124
+  }
+
+  dynamic view flow-correction {
+    title "Correction d'un emplacement vers son brouillon"
+    description "L'éditrice enregistre un emplacement ; seule la table des brouillons change, jamais le contenu déclaré."
+    editrice -> colibri-cms.worker.admin 'corrige un emplacement, « Enregistrer »'
+    colibri-cms.worker.admin -> colibri-cms.worker.routes 'POST /admin/pages/<page>/emplacements/<id>' // trace : src/admin/ilots-svelte-5/soumettre-correction.ts:36
+    colibri-cms.worker.routes -> colibri-cms.worker.platform 'garde de session'                // trace : src/pages/admin/pages/[slug]/emplacements/[id].ts:54
+    colibri-cms.worker.platform -> colibri-cms.contenu 'nature déclarée de l’emplacement'      // trace : src/pages/admin/pages/[slug]/emplacements/[id].ts:64
+    colibri-cms.worker.platform -> colibri-cms.worker.core 'applique la correction'            // trace : src/platform/brouillons/magasin.ts:9
+    colibri-cms.worker.platform -> colibri-cms.d1 'écrit le brouillon si acceptée'             // trace : src/pages/admin/pages/[slug]/emplacements/[id].ts:87-91
+    colibri-cms.worker.admin <- colibri-cms.worker.routes 'accepté, ou refus par champ'
+  }
+
+  dynamic view flow-televersement {
+    title "Téléversement d'une image"
+    description "L'image est reconnue sur ses octets, jamais sur son nom ni son type annoncé, puis gardée en brouillon."
+    editrice -> colibri-cms.worker.admin 'dépose une image dans la bibliothèque'
+    colibri-cms.worker.admin -> colibri-cms.worker.routes 'POST /admin/medias/televerser'      // trace : src/pages/admin/medias/televerser.ts:36
+    colibri-cms.worker.routes -> colibri-cms.worker.platform 'garde de session'                // trace : src/pages/admin/medias/televerser.ts:37
+    colibri-cms.worker.routes -> colibri-cms.worker.core 'reconnaît JPEG, PNG ou WebP sur les octets' // trace : src/pages/admin/medias/televerser.ts:59
+    colibri-cms.worker.routes -> colibri-cms.worker.platform "persiste l'image en brouillon"   // trace : src/pages/admin/medias/televerser.ts:65
+    colibri-cms.worker.platform -> colibri-cms.d1 'insère les octets et leurs dimensions'      // trace : src/platform/medias/magasin.ts:164
+  }
+
+  dynamic view flow-requete-admin {
+    title "Requête d'administration"
+    description 'Toute requête /admin/* reçoit les en-têtes de sécurité, puis la route garde la session avant de rendre son écran.'
+    editrice -> colibri-cms.worker.routes 'GET /admin/mes-pages'
+    colibri-cms.worker.routes -> colibri-cms.worker.platform 'middleware : CSP et trois en-têtes'  // trace : astro.config.ts:43 ; src/platform/entetes/middleware.ts:78,84
+    colibri-cms.worker.routes -> colibri-cms.worker.platform 'garde de session'                 // trace : src/pages/admin/mes-pages.astro:102
+    colibri-cms.worker.platform -> colibri-cms.d1 'lit la session'
+    colibri-cms.worker.routes -> colibri-cms.worker.admin "rend l'écran dans le cadre"         // trace : src/pages/admin/mes-pages.astro:94
+    editrice <- colibri-cms.worker.routes 'page, ou renvoi vers /admin/connexion sans session'  // trace : src/pages/admin/mes-pages.astro:104
+  }
+}

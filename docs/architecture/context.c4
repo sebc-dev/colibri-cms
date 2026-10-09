@@ -1,0 +1,37 @@
+// Contexte du produit — acteurs et systèmes externes. Posé par /scd-spec-dev:archi-dossier (relevé).
+
+specification {
+  tag external
+  tag planned
+}
+
+model {
+  editrice = actor 'Éditrice' {
+    description "La cliente, seule utilisatrice de l'administration, sans notion technique."
+    // trace : src/platform/auth/magasin.ts:69 — l'adresse soumise est-elle l'adresse autorisée ; seul rôle distingué par les routes
+  }
+
+  integrateur = actor 'Intégrateur' {
+    description 'Isometria : pose les gabarits, les emplacements et les réglages de départ, hors administration.'
+    // trace : content/pages/*/page.json, content/reglages/reglages.json — déclarations écrites à la main (ADR-0012, ADR-0017)
+  }
+
+  email-routing = system 'Cloudflare Email Routing' {
+    #external
+    description "Achemine l'e-mail portant le code de connexion vers l'adresse autorisée."
+    // trace : wrangler.astro.jsonc:12-17 — send_email EXPEDITEUR_CODE_CONNEXION ; src/platform/email/index.ts:53 — expediteur.send(...)
+  }
+
+  editrice -> colibri-cms.worker.routes "ouvre l'administration et y corrige son contenu"
+  integrateur -> colibri-cms.contenu 'déclare pages, emplacements et réglages'
+  // trace : src/pages/admin/connexion.astro:145 — demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, …)
+  colibri-cms.worker.platform -[async]-> email-routing 'expédie le code de connexion'
+  email-routing -[async]-> editrice 'remet le code'
+}
+
+views {
+  view context of colibri-cms {
+    title 'Le produit et son contexte'
+    include *, -> colibri-cms ->
+  }
+}

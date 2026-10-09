@@ -1,8 +1,10 @@
 # ColibriCMS — Architecture
 
 Le cap durable de la **structure** du code : les cinq zones, le sens des dépendances, et les
-invariants `I1`–`I13` que le code s'interdit de franchir. C'est une synthèse de ce qu'un contrôle
-pourrait prendre en défaut, pas un design — aucun schéma de table, aucune signature.
+invariants `I1`–`I15` que le code s'interdit de franchir. C'est une synthèse de ce qu'un contrôle
+pourrait prendre en défaut, pas un design — aucun schéma de table, aucune signature. La structure
+elle-même — conteneurs, composants, relations — est le modèle LikeC4 de
+[`architecture/`](./architecture/README.md).
 
 > **Le *pourquoi* n'est pas ici.** Chaque invariant existe pour une raison figée dans un **ADR**
 > (`docs/adr/`, cité par son numéro 2.x quand la décision est promue ; sinon en attente de
@@ -64,27 +66,54 @@ src/platform/ → src/core/
 src/core/     → aucune
 ```
 
-| # | Invariant | Trace observable | Fondé par |
-|---|---|---|---|
-| **I1** | Le sens des dépendances entre zones suit la matrice ci-dessus ; toute autre arête est interdite | une ligne d'import dont la source et la cible violent la matrice | candidat `sens-descendant-des-dependances-entre-zones` |
-| **I2** | Aucun fichier de `src/core/` n'importe `astro`, `svelte`, `@astrojs/*` ni `cloudflare:*` | une ligne d'import dans un fichier de `src/core/` | candidat `core-sans-framework-ni-plateforme` |
-| **I3** | `src/render/index.ts` est le seul chemin de `src/render/` importé depuis l'extérieur ; le gabarit `src/site/page.astro` en est l'unique importateur, et il est importé par la route publiée `src/pages/[...slug].astro` **comme** par la route d'aperçu `src/pages/admin/apercu/[...slug].astro` | chemin importé hors de `src/render/` ; absence de l'import du gabarit dans l'une des deux routes — *(porteur non encore posé : à honorer dès que la zone existe)* | candidat `rendu-partage-par-le-publie-et-l-apercu` |
-| **I4** | Aucun fichier `.astro` sous `src/admin/` ne porte de directive `client:*` | la directive, dans un gabarit sous `src/admin/` | ADR-0006 |
-| **I5** | `{@html}` et `set:html` n'apparaissent que sous `src/render/markdown/` | l'occurrence, hors du chemin autorisé | candidat `html-brut-confine-au-rendu-markdown` |
-| **I6** | Toute route sous `src/pages/api/` ou `src/pages/admin/`, hors `src/pages/api/public/`, importe le garde de session `src/platform/session/index.ts` ; aucun fichier de `src/pages/api/public/` ne lit un corps `multipart` | absence de cet import ; appel de `request.formData()` sous `src/pages/api/public/` | ADR-0007 |
-| **I7** | L'identifiant de l'objet porteur du compteur de fréquence dérive d'une constante littérale ; aucun `idFromName` de `src/platform/frequence/` ne reçoit une valeur issue d'une requête | l'argument de `idFromName`, dans `src/platform/frequence/` — *(porteur non encore posé : à honorer dès que la zone existe)* | candidat `objet-de-frequence-nomme-par-une-constante` |
-| **I8** | Les valeurs d'instance qui vivent dans les fichiers (domaine, clé **publique** Turnstile…) ne figurent que dans `instance.json`, à la racine ; aucun autre fichier versionné hors contenu ne les porte | l'occurrence du domaine ou de la clé publique, hors d'`instance.json` | candidat `valeurs-d-instance-dans-le-fichier-d-instance` |
-| **I9** | Les préfixes que la publication peut écrire sont déclarés dans la constante `PREFIXES_AUTORISES` de `src/core/publication/prefixes.ts`, seul porteur, et `.github/` n'y figure pas | la valeur de `PREFIXES_AUTORISES` — *(porteur non encore posé : à honorer dès que la zone existe)* | candidat `prefixes-de-publication-en-constante-unique` |
-| **I10** | La configuration Astro lit `instance.json` pour les valeurs qu'`I8` y loge ; aucune n'y est écrite en dur. La configuration du déploiement est **hors périmètre** : elle ne porte que des liaisons de plateforme | la lecture d'`instance.json`, dans `astro.config.*` | candidats `configurations-lisent-le-fichier-d-instance` + `invariant-i10-restreint-a-la-configuration-astro` |
-| **I11** | Les quatre en-têtes de sécurité de l'administration — `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` — sont posés par le seul `src/platform/entetes/middleware.ts`, inscrit par le hook `addMiddleware` dans `astro.config.ts` ; aucun gabarit ni aucune route sous `src/pages/admin/` ou `src/admin/` n'en pose lui-même | l'appel à `addMiddleware`, dans `astro.config.ts` ; un `headers.set` portant l'un de ces quatre noms, hors de `src/platform/entetes/middleware.ts` | ADR-0008 |
-| **I12** | La directive `script-src` de la politique d'administration vaut `'self'` seul — jamais `'unsafe-inline'`, jamais `'unsafe-eval'`, jamais un hôte tiers ; la seule tolérance d'*inline* de toute la politique est `style-src-attr 'unsafe-inline'` | la valeur de `POLITIQUE_DE_SECURITE`, dans `src/platform/entetes/middleware.ts` | ADR-0010, ADR-0004 |
-| **I13** | L'en-tête `Set-Cookie` de la session n'est composé qu'en un lieu — `enteteCookieSession` de `src/platform/session/index.ts` — avec le préfixe `__Host-`, `Path=/`, `HttpOnly`, `Secure`, `SameSite=Strict` ; aucune route ne compose le sien | les cinq attributs, en chaînes littérales, dans `src/platform/session/index.ts` ; un `Set-Cookie` de session dont la valeur ne vient pas de `enteteCookieSession` | ADR-0011, ADR-0001 |
-| **I14** | Aucune valeur de couleur littérale (`#…`, `rgb(…)`, `oklch(…)`) dans un fichier de `src/admin/` hors `src/admin/admin.css`, seul porteur des tokens de l'administration ; cette feuille n'importe aucune URL d'une autre origine | l'occurrence de la valeur, hors de `src/admin/admin.css` ; un `@import` d'une URL absolue dans `src/admin/admin.css` | ADR-0015 |
-| **I15** | La directive `font-src` de la politique d'administration vaut `'self'` seul — jamais un hôte tiers, jamais `data:` | la valeur de `POLITIQUE_DE_SECURITE`, dans `src/platform/entetes/middleware.ts` | ADR-0016 |
+| Id | Règle | Éléments (FQN) | Classe | ADR |
+|---|---|---|---|---|
+| I1 | Le sens des dépendances entre zones suit la matrice ci-dessus ; toute autre arête est interdite | colibri-cms.worker.routes, colibri-cms.worker.site, colibri-cms.worker.admin, colibri-cms.worker.render, colibri-cms.worker.platform, colibri-cms.worker.core | 1 sens des dépendances | — |
+| I2 | Aucun fichier de `src/core/` n'importe `astro`, `svelte`, `@astrojs/*` ni `cloudflare:*` | colibri-cms.worker.core | 8 isolation du framework | — |
+| I3 | `src/render/index.ts` est le seul chemin de `src/render/` importé depuis l'extérieur ; le gabarit `src/site/page.astro` en est l'unique importateur, et il est importé par la route publiée `src/pages/[...slug].astro` **comme** par la route d'aperçu `src/pages/admin/apercu/[...slug].astro` | colibri-cms.worker.render, colibri-cms.worker.site, colibri-cms.worker.routes | 7 visibilité / surface d’API | — |
+| I4 | Aucun fichier `.astro` sous `src/admin/` ne porte de directive `client:*` | colibri-cms.worker.admin | 9 usages prohibés | 0006 |
+| I5 | `{@html}` et `set:html` n'apparaissent que sous `src/render/markdown/` | colibri-cms.worker.render, colibri-cms.worker.site, colibri-cms.worker.admin | 5 placement | — |
+| I6 | Toute route sous `src/pages/api/` ou `src/pages/admin/`, hors `src/pages/api/public/`, importe le garde de session `src/platform/session/index.ts` ; aucun fichier de `src/pages/api/public/` ne lit un corps `multipart` | colibri-cms.worker.routes, colibri-cms.worker.platform | 3 règles de couches | 0007 |
+| I7 | L'identifiant de l'objet porteur du compteur de fréquence dérive d'une constante littérale ; aucun `idFromName` de `src/platform/frequence/` ne reçoit une valeur issue d'une requête | colibri-cms.worker.platform | 11 connascence statique | — |
+| I8 | Les valeurs d'instance qui vivent dans les fichiers (domaine, clé **publique** Turnstile…) ne figurent que dans `instance.json`, à la racine ; aucun autre fichier versionné hors contenu ne les porte | colibri-cms | 5 placement | — |
+| I9 | Les préfixes que la publication peut écrire sont déclarés dans la constante `PREFIXES_AUTORISES` de `src/core/publication/prefixes.ts`, seul porteur, et `.github/` n'y figure pas | colibri-cms.worker.core | 5 placement | — |
+| I10 | La configuration Astro lit `instance.json` pour les valeurs qu'`I8` y loge ; aucune n'y est écrite en dur. La configuration du déploiement est **hors périmètre** : elle ne porte que des liaisons de plateforme | colibri-cms | 11 connascence statique | — |
+| I11 | Les quatre en-têtes de sécurité de l'administration — `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` — sont posés par le seul `src/platform/entetes/middleware.ts`, inscrit par le hook `addMiddleware` dans `astro.config.ts` ; aucun gabarit ni aucune route sous `src/pages/admin/` ou `src/admin/` n'en pose lui-même | colibri-cms.worker.platform, colibri-cms.worker.routes, colibri-cms.worker.admin | 5 placement | 0008 |
+| I12 | La directive `script-src` de la politique d'administration vaut `'self'` seul — jamais `'unsafe-inline'`, jamais `'unsafe-eval'`, jamais un hôte tiers ; la seule tolérance d'*inline* de toute la politique est `style-src-attr 'unsafe-inline'` | colibri-cms.worker.platform | 9 usages prohibés | 0010, 0004 |
+| I13 | L'en-tête `Set-Cookie` de la session n'est composé qu'en un lieu — `enteteCookieSession` de `src/platform/session/index.ts` — avec le préfixe `__Host-`, `Path=/`, `HttpOnly`, `Secure`, `SameSite=Strict` ; aucune route ne compose le sien | colibri-cms.worker.platform, colibri-cms.worker.routes | 5 placement | 0011, 0001 |
+| I14 | Aucune valeur de couleur littérale (`#…`, `rgb(…)`, `oklch(…)`) dans un fichier de `src/admin/` hors `src/admin/admin.css`, seul porteur des tokens de l'administration ; cette feuille n'importe aucune URL d'une autre origine | colibri-cms.worker.admin | 5 placement | 0015 |
+| I15 | La directive `font-src` de la politique d'administration vaut `'self'` seul — jamais un hôte tiers, jamais `data:` | colibri-cms.worker.platform | 9 usages prohibés | 0016 |
+
+La colonne **ADR** suit la grille du plugin `scd-spec-dev` : un numéro rend l'invariant **opposable**
+(une violation dans un diff est bloquante en review, sauf dérogation déclarée au ticket) ; `—` en fait un
+**candidat**, cité en suggestion seulement. Les éléments sont ceux du modèle LikeC4
+([`architecture/`](./architecture/README.md)) ; `colibri-cms` seul désigne les fichiers de la racine
+(`instance.json`, `astro.config.ts`), qu'aucun `sourceDir` ne couvre.
+
+### Traces et fondements
+
+| Id | Trace observable | Fondé par |
+|---|---|---|
+| I1 | une ligne d'import dont la source et la cible violent la matrice | candidat `sens-descendant-des-dependances-entre-zones` |
+| I2 | une ligne d'import dans un fichier de `src/core/` | candidat `core-sans-framework-ni-plateforme` |
+| I3 | chemin importé hors de `src/render/` ; absence de l'import du gabarit dans l'une des deux routes — *(porteur non encore posé : à honorer dès que la zone existe)* | candidat `rendu-partage-par-le-publie-et-l-apercu` |
+| I4 | la directive, dans un gabarit sous `src/admin/` | ADR-0006 |
+| I5 | l'occurrence, hors du chemin autorisé | candidat `html-brut-confine-au-rendu-markdown` |
+| I6 | absence de cet import ; appel de `request.formData()` sous `src/pages/api/public/` | ADR-0007 |
+| I7 | l'argument de `idFromName`, dans `src/platform/frequence/` — *(porteur non encore posé : à honorer dès que la zone existe)* | candidat `objet-de-frequence-nomme-par-une-constante` |
+| I8 | l'occurrence du domaine ou de la clé publique, hors d'`instance.json` | candidat `valeurs-d-instance-dans-le-fichier-d-instance` |
+| I9 | la valeur de `PREFIXES_AUTORISES` — *(porteur non encore posé : à honorer dès que la zone existe)* | candidat `prefixes-de-publication-en-constante-unique` |
+| I10 | la lecture d'`instance.json`, dans `astro.config.*` | candidats `configurations-lisent-le-fichier-d-instance` + `invariant-i10-restreint-a-la-configuration-astro` |
+| I11 | l'appel à `addMiddleware`, dans `astro.config.ts` ; un `headers.set` portant l'un de ces quatre noms, hors de `src/platform/entetes/middleware.ts` | ADR-0008 |
+| I12 | la valeur de `POLITIQUE_DE_SECURITE`, dans `src/platform/entetes/middleware.ts` | ADR-0010, ADR-0004 |
+| I13 | les cinq attributs, en chaînes littérales, dans `src/platform/session/index.ts` ; un `Set-Cookie` de session dont la valeur ne vient pas de `enteteCookieSession` | ADR-0011, ADR-0001 |
+| I14 | l'occurrence de la valeur, hors de `src/admin/admin.css` ; un `@import` d'une URL absolue dans `src/admin/admin.css` | ADR-0015 |
+| I15 | la valeur de `POLITIQUE_DE_SECURITE`, dans `src/platform/entetes/middleware.ts` | ADR-0016 |
 
 Huit invariants (`I1`, `I2`, `I3`, `I5`, `I7`, `I8`, `I9`, `I10`) reposent sur des décisions encore
-candidates (`docs/adr/_candidates/`) : tant qu'elles ne sont pas promues, c'est ce document qui les
-tient. Un candidat n'est pas figé ; l'invariant, lui, l'est.
+candidates (`docs/adr/_candidates/`) : ils restent tenus par la CI (`boundaries`, `analyse`), mais la
+review ne les oppose qu'en suggestion tant que `/scd-spec-dev:adr` ne les a pas promus — leur promotion,
+un par un, rend la colonne ADR et le caractère bloquant.
 
 ## Ce qui n'est pas un invariant de structure
 

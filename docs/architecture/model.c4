@@ -15,13 +15,98 @@ specification {
 
 model {
   colibri-cms = system 'colibri-cms' {
-    description 'À compléter : les conteneurs du projet, chacun avec son metadata sourceDir.'
+    description "CMS auto-hébergé chez le client : un site vitrine statique et son administration, servis par un seul Worker."
+
+    // trace : astro.config.ts:68,98 — output 'server', adapter cloudflare ; wrangler.astro.jsonc:3 — name "colibri-cms"
+    worker = container 'Worker' {
+      technology 'Astro 7 (sortie serveur) sur Cloudflare Workers'
+      description "L'unique unité déployée : sert l'administration, et servira le site public sur la même origine."
+      metadata { sourceDir 'src' }
+      // trace : src/ a six sous-dossiers (pages, admin, core, platform, render, site) → composants
+
+      // trace : docs/architecture.md:36 — « pas une zone : la surface de routage imposée par Astro »
+      routes = component 'Routes' {
+        technology 'Astro (pages et points d’entrée HTTP)'
+        description 'Un fichier = une URL ; chaque route est mince, garde la session et délègue à sa zone.'
+        metadata { sourceDir 'src/pages' }
+      }
+      // trace : src/admin/zone.ts — zone déclarée ; 77 fichiers suivis
+      admin = component 'Administration' {
+        technology 'Astro + îlots Svelte 5, shadcn-svelte'
+        description "Écrans, gabarits et îlots de l'administration de l'éditrice."
+        metadata { sourceDir 'src/admin' }
+      }
+      // trace : src/core/zone.ts — zone déclarée ; sous-dossiers auth, medias, pages, reglages
+      core = component 'Noyau métier' {
+        technology 'TypeScript pur'
+        description 'La logique métier, sans framework ni plateforme (I2).'
+        metadata { sourceDir 'src/core' }
+      }
+      // trace : src/platform/zone.ts — zone déclarée ; sous-dossiers auth, brouillons, contenu, d1, email, entetes, instance, medias, reglages, session
+      platform = component 'Adaptateurs' {
+        technology 'TypeScript + liaisons Cloudflare'
+        description "Session, magasins D1, envoi d'e-mail, lecture du contenu déclaré, en-têtes de sécurité."
+        metadata { sourceDir 'src/platform' }
+      }
+      // trace : src/render/zone.ts — zone déclarée, vide (zone.ts seul)
+      render = component 'Rendu des emplacements' {
+        technology 'Astro'
+        description "Le rendu des emplacements, partagé par le site publié et l'aperçu — zone posée, encore vide."
+        metadata { sourceDir 'src/render' }
+      }
+      // trace : src/site/zone.ts — zone déclarée, vide (zone.ts seul)
+      site = component 'Site public' {
+        technology 'Astro'
+        description 'Gabarits du site publié — zone posée, encore vide.'
+        metadata { sourceDir 'src/site' }
+      }
+    }
+
+    // trace : wrangler.astro.jsonc:6-11 — d1_databases DB "colibri", migrations_dir "migrations"
+    d1 = store 'Base D1' {
+      technology 'Cloudflare D1 (SQLite)'
+      description 'Adresse autorisée, codes de connexion, sessions, brouillons des pages, des médias et des réglages.'
+      metadata { sourceDir 'migrations' }
+    }
+
+    // trace : src/platform/contenu/pages.ts:9 — import.meta.glob({ eager: true }) empaquette content/ au build
+    contenu = store 'Contenu déclaré' {
+      technology 'Fichiers JSON et Markdown versionnés'
+      description "Pages, emplacements et réglages de départ posés par l'intégrateur ; lus, jamais écrits par le produit."
+      metadata { sourceDir 'content' }
+    }
   }
+
+  // trace : 26 imports src/pages → src/admin, ex. src/pages/admin/connexion.astro:74
+  colibri-cms.worker.routes -[sync]-> colibri-cms.worker.admin 'rend les écrans par les gabarits'
+  // trace : 45 imports src/pages → src/platform, ex. src/pages/admin/medias/televerser.ts:32
+  colibri-cms.worker.routes -[sync]-> colibri-cms.worker.platform 'garde la session, lit et écrit les brouillons'
+  // trace : 9 imports src/pages → src/core, ex. src/pages/admin/medias/televerser.ts:33
+  colibri-cms.worker.routes -[sync]-> colibri-cms.worker.core 'vérifie une saisie'
+  // trace : 6 imports src/admin → src/core, ex. src/admin/ilots-svelte-5/CarteReseaux.svelte:15
+  colibri-cms.worker.admin -[sync]-> colibri-cms.worker.core 'partage les règles de saisie'
+  // trace : 10 imports src/admin → src/platform, types seuls, ex. src/admin/ilots-svelte-5/EcranMedias.svelte:14
+  colibri-cms.worker.admin -[sync]-> colibri-cms.worker.platform 'reprend les types des magasins'
+  // trace : 15 imports src/platform → src/core, ex. src/platform/reglages/magasin.ts:9
+  colibri-cms.worker.platform -[sync]-> colibri-cms.worker.core 'applique une correction avant écriture'
+  // trace : src/render/zone.ts:10 — import type Zone
+  colibri-cms.worker.render -[sync]-> colibri-cms.worker.core 'lit le contenu à rendre'
+  // trace : src/site/zone.ts:10 — import type Zone
+  colibri-cms.worker.site -[sync]-> colibri-cms.worker.core 'lit le contenu à publier'
+  // trace : env.DB, 47 usages ; requêtes préparées, ex. src/platform/reglages/magasin.ts:92
+  colibri-cms.worker.platform -[sync]-> colibri-cms.d1 'requêtes préparées'
+  // trace : src/platform/contenu/reglages.ts:13 — import.meta.glob('/content/reglages/reglages.json')
+  colibri-cms.worker.platform -[sync]-> colibri-cms.contenu 'lit la déclaration au build'
 }
 
 views {
   view index {
     title "Vue d'ensemble"
+    include *
+  }
+
+  view worker of colibri-cms.worker {
+    title 'Worker'
     include *
   }
 }
