@@ -556,12 +556,12 @@ de recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-25.1 | Carte Réseaux sociaux : « Ajouter un lien », corriger le nom d'un autre, « Retirer » un troisième, « Monter » le dernier, puis « Enregistrer » | La carte montre la liste résultante dans le nouvel ordre et porte la marque « Brouillon » (SC-07a) | |
-| CT-25.2 | Liste vide | « Aucun lien pour l'instant. » et « Ajouter un lien » (SC-07a) | |
-| CT-25.3 | Premier lien / dernier lien | « Monter » inactif sur le premier, « Descendre » inactif sur le dernier ; libellés accessibles « Monter Instagram » (SC-07a) | |
-| CT-25.4 | Saisir `http://exemple.fr` comme adresse, « Enregistrer » | Le champ de l'adresse dit « Une adresse qui commence par https:// » ; la saisie reste ; rien n'est enregistré (SC-07e) | |
-| CT-25.5 | Atteindre 12 liens | « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît (SC-07f) | |
-| CT-25.6 | À 360 px | Champs et boutons d'au moins 44 px de haut ; aucune violation CSP en console | |
+| CT-25.1 | Carte Réseaux sociaux : « Ajouter un lien », corriger le nom d'un autre, « Retirer » un troisième, « Monter » le dernier, puis « Enregistrer » | La carte montre la liste résultante dans le nouvel ordre et porte la marque « Brouillon » (SC-07a) |  OK — 2026-10-09, recette (aperçu), 1280 px : LinkedIn ajouté, Facebook renommé « Facebook de l'atelier », Pinterest retiré, LinkedIn monté ; la carte montre Instagram, LinkedIn, Facebook de l'atelier avec la marque « Brouillon » ; la base porte la même liste dans cet ordre, gardée au rechargement |
+| CT-25.2 | Liste vide | « Aucun lien pour l'instant. » et « Ajouter un lien » (SC-07a) |  OK — 2026-10-09 : les trois liens retirés → « Aucun lien pour l'instant. » et « Ajouter un lien » |
+| CT-25.3 | Premier lien / dernier lien | « Monter » inactif sur le premier, « Descendre » inactif sur le dernier ; libellés accessibles « Monter Instagram » (SC-07a) |  OK — 2026-10-09 : « Monter Instagram » inactif (premier), « Descendre Pinterest » inactif (dernier) ; libellés « Monter Instagram », « Retirer Facebook »… |
+| CT-25.4 | Saisir `http://exemple.fr` comme adresse, « Enregistrer » | Le champ de l'adresse dit « Une adresse qui commence par https:// » ; la saisie reste ; rien n'est enregistré (SC-07e) |  OK — 2026-10-09 : champ marqué invalide, « Une adresse qui commence par https:// », saisie gardée, base inchangée |
+| CT-25.5 | Atteindre 12 liens | « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît (SC-07f) |  OK — 2026-10-09 : au 12e lien « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît |
+| CT-25.6 | À 360 px | Champs et boutons d'au moins 44 px de haut ; aucune violation CSP en console |  OK — 2026-10-09 : 17 champs et boutons, le plus petit à 44 px, pas de défilement horizontal (360), console sans violation CSP |
 
 ## 26. La carte Mention d'information — change 008 · ticket 08
 
