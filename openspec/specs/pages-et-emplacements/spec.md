@@ -12,9 +12,9 @@ page ni au site public — dans le cadre de navigation de l'administration. Couv
 
 L'administration SHALL présenter, autour de chaque écran servi derrière la garde, un cadre portant le
 logo du produit et le menu des rubriques (« Mes pages », Médias, Réglages, Formulaires, Demandes),
-« Mes pages » et « Médias » étant les rubriques actives et servies (« Médias » menant à
-l'`Écran : Médias`) ; Réglages, Formulaires et Demandes situent la navigation sans mener à aucun
-écran. Le cadre DOIT être présent dès l'affichage de l'écran, sans attendre qu'un script s'exécute.
+« Mes pages », « Médias » et « Réglages » étant les rubriques actives et servies (« Médias » menant à
+l'`Écran : Médias`, « Réglages » à l'`Écran : Réglages`) ; Formulaires et Demandes situent la
+navigation sans mener à aucun écran. Le cadre DOIT être présent dès l'affichage de l'écran, sans attendre qu'un script s'exécute.
 Sur un écran large, le menu est une barre latérale qui DOIT pouvoir se replier en un rail d'icônes et
 se redéployer, l'état replié/déployé étant une préférence retenue sur l'appareil sans effet serveur ;
 sur un écran étroit, le menu DOIT devenir un tiroir, fermé par défaut, qu'un bouton ouvre. Aucun terme
@@ -22,7 +22,7 @@ de développeur ne DOIT paraître, et le menu n'offre aucun geste de structure (
 
 #### Scenario: La barre latérale porte les cinq rubriques
 - **WHEN** l'`Écran : Cadre de l'administration` est affiché
-- **THEN** la barre latérale montre les cinq rubriques, la rubrique de l'écran courant marquée active (« Mes pages » sur la liste des pages et sur l'éditeur d'une page, « Médias » sur la bibliothèque et sur la fiche d'une image)
+- **THEN** la barre latérale montre les cinq rubriques, la rubrique de l'écran courant marquée active (« Mes pages » sur la liste des pages et sur l'éditeur d'une page, « Médias » sur la bibliothèque et sur la fiche d'une image, « Réglages » sur l'écran des réglages)
 
 #### Scenario: Le cadre est présent dès l'affichage
 - **WHEN** un écran servi derrière la garde est demandé
@@ -53,7 +53,7 @@ de développeur ne DOIT paraître, et le menu n'offre aucun geste de structure (
 
 #### Scenario: Aucune autre rubrique n'est servie et aucun geste de structure n'est offert
 - **WHEN** l'éditrice parcourt le menu du cadre, en barre ou en tiroir
-- **THEN** aucune rubrique autre que « Mes pages » et « Médias » ne mène à un écran servi, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page
+- **THEN** aucune rubrique autre que « Mes pages », « Médias » et « Réglages » ne mène à un écran servi, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page
 
 #### Scenario: Aucun terme de développeur dans le cadre
 - **WHEN** l'éditrice lit le menu et les libellés du cadre
