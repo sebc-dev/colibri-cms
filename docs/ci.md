@@ -28,6 +28,8 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Duplication neuve | `npm run dup:nouveau` | `jscpd src --baseline-from-ref origin/main --fail-on-new-clones` — n'échoue que sur un clone **absent de `origin/main`**. C'est la forme jouée par la quality gate |
 | Boucle complète | `npm run check` | `lint` → `lint:boundaries` → `analyse` → `dup` → `knip`, en console, à l'arrêt sur le premier rouge |
 | Boucle complète, en JSON | `npm run check:agent` | `node scripts/rapports-analyse.mjs` — joue les trois outils **jusqu'au bout** (une chaîne de `&&` s'arrêterait au premier), écrit `reports/analyse/{eslint.json,jscpd/jscpd-report.json,knip.json}` et imprime un digest. Rend toujours 0 : il constate, il ne juge pas |
+| Modèle d'architecture | `likec4 validate --no-layout --json --project colibri-cms docs/architecture` | le modèle LikeC4 de `docs/architecture/` est cohérent (syntaxe, références) ; code 1 sinon. `likec4` est un binaire global (`npm i -g likec4`), pas une dépendance du projet |
+| Conformité code ↔ modèle | `node .claude/scripts/scd-arch-conformance.mjs --model docs/architecture --project colibri-cms --base origin/main` | chaque import du diff qui franchit une frontière d'élément (rattachement par `sourceDir`) a sa relation dans le modèle ; sortie JSON, code 1 si écart. Script copié par `/scd-spec-dev:setup`, possédé par le plugin |
 | Migrations locales | `npm run db:migrate` | `wrangler d1 migrations apply DB --local` — applique `migrations/` à la base D1 locale |
 | Run local | `npm run dev` | `astro dev`, liaisons D1 branchées via `wrangler.astro.jsonc` — Astro ne lit jamais `wrangler.jsonc` (racine), réservé aux tests |
 
@@ -152,7 +154,7 @@ trois choses, toutes structurelles :
 - **anti-force-push** sur `main` ;
 - **anti-suppression** de `main`.
 
-Aucun job de CI n'est un check requis. `build`, `test`, `analyse`, `parcours` et le filet `escape-hatch-guard` **tournent**
+Aucun job de CI n'est un check requis. `build`, `test`, `analyse`, `parcours`, le filet `escape-hatch-guard` et `likec4-validate` **tournent**
 sur chaque PR et **annotent** — un rouge se voit, il ne bloque pas la fusion.
 
 ## Ce que la CI exécute (sans bloquer)
@@ -173,7 +175,9 @@ sur chaque PR et **annotent** — un rouge se voit, il ne bloque pas la fusion.
   `git grep` des escape-hatches (`@ts-ignore`, `as any`, `eslint-disable`, `.skip(`, `# noqa`,
   `--no-verify`) sur le code suivi, hors `docs/`, `openspec/` et `.github/`. Il annote, il ne bloque
   pas. Un escape-hatch légitime se **déroge explicitement en review**, il ne se neutralise pas en
-  silence.
+  silence. Le même fichier porte, depuis le 2026-10-09, le job **`likec4-validate`** : `npx --yes
+  likec4@1.59.3 validate` sur `docs/architecture/` (version épinglée dans la commande), passant sans
+  rien faire si le modèle disparaît. Il annote, comme les autres.
 
 Les actions restent épinglées au **SHA complet** et les images au **digest** : un tag est mobile.
 
@@ -195,9 +199,19 @@ réécritures touchent la sémantique (`||` et `??` ne coïncident pas sur `0` e
 clone, c'est réécrire de la logique — aucun des deux n'est un geste mécanique. Si ce fichier disparaît, la gate est un no-op — le **0-gate** est vrai par défaut : un
 check n'est bloquant que si le projet le déclare.
 
+Portée à **dix** le 2026-10-09 avec la dimension architecture (modèle LikeC4, `docs/architecture/`) :
+`likec4` **bloquant** — un modèle invalide est objectivement faux, et il casserait la relecture
+d'architecture des tickets suivants — et `architecture` (conformité code ↔ modèle) en **avis** : ses
+constats disent un modèle en retard sur le code, pas un code fautif, et `boundaries` bloque déjà les
+vraies violations de la matrice `I1`. Aucun des deux ne porte d'autofix : `likec4 format` ne fait que
+réécrire les guillemets (et jamais ne répare un modèle invalide), et une frontière franchie sans
+relation se corrige dans le code ou dans le `.c4`, jamais mécaniquement. `--base origin/main`, comme
+`dup:nouveau` : un `main` local en retard fausserait le diff.
+
 Chaque check a son **diagnostiqueur** dédié, `.claude/agents/quality-<id>.md`
 (`/scd-spec-dev:quality-agents`), lui aussi possédé par le projet : en échec non résorbé par
-l'autofix, le run route vers lui plutôt que vers le générique `quality-advisor`. Les huit sont en
+l'autofix, le run route vers lui plutôt que vers le générique `quality-advisor` — sauf `likec4` et
+`architecture`, sans diagnostiqueur dédié pour l'instant, que le générique traite. Les huit sont en
 **lecture seule** — ils remontent et proposent, ils n'éditent rien. Aucun **applier** de projet
 n'est déclaré : les corrections passent par le `fix-applier` générique, qui exige un diff de test
 **vide**. Un applier — le seul agent autorisé à renforcer un test — ne se justifiera que le jour où
