@@ -18,6 +18,7 @@ import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 import ReglageLienVideo from './ReglageLienVideo.svelte';
 import TexteRiche from './TexteRiche.svelte';
 import { afficherPastilleDeBrouillon, afficherPastilleDansLaZone } from '../pastille-brouillon.ts';
+import { TEXTE_CARTE_MENTION } from '../textes.ts';
 import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
@@ -476,4 +477,35 @@ function analyserReseaux(valeurBrute: string): readonly ReseauCarte[] | null {
     return null;
   }
   return valeur;
+}
+
+/**
+ * Monte l'îlot `TexteRiche` sur la carte Mention d'information (ticket 08,
+ * openspec/changes/008-reglages-transverses/tickets/08-corriger-la-mention.md)
+ * — repérée par `data-carte-mention`, le Markdown courant en `data-markdown`
+ * (donnée, jamais HTML injecté, I5). Même éditeur que les emplacements.
+ */
+export function monterCarteMention(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-carte-mention]');
+
+  cibles.forEach((cible) => {
+    const markdown = cible.dataset.markdown;
+    if (markdown === undefined) return;
+    const zoneMarque = cible.closest('section')?.querySelector('[data-zone-marque-brouillon]') ?? null;
+
+    cible.innerHTML = '';
+    mount(TexteRiche, {
+      target: cible,
+      props: {
+        adresse: '/admin/reglages/mention',
+        markdownInitial: markdown,
+        apresEnregistrement: () => {
+          afficherPastilleDansLaZone(zoneMarque);
+        },
+        libelle: TEXTE_CARTE_MENTION,
+        // Même bouton que les cartes Coordonnées et Réseaux sociaux.
+        classeEnregistrer: 'h-auto self-start rounded-md border-0 px-3 py-2 max-md:min-h-11',
+      },
+    });
+  });
 }

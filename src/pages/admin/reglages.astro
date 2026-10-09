@@ -21,6 +21,7 @@ import {
   LIBELLES_NATURE_COORDONNEE,
   TEXTE_BOUTON_ENREGISTRER,
   TEXTE_CARTE_COORDONNEES,
+  TEXTE_AIDE_MENTION,
   TEXTE_CARTE_MENTION,
   TEXTE_CARTE_RESEAUX,
   TEXTE_COORDONNEES_VIDES,
@@ -143,8 +144,10 @@ const donneesReseaux = JSON.stringify(reseaux.map((r) => ({ nom: r.nom, lien: r.
     <section class={CLASSE_CARTE} aria-labelledby="carte-mention">
       <h2 id="carte-mention" class={CLASSE_TITRE}>{TEXTE_CARTE_MENTION}</h2>
       <div data-zone-marque-brouillon>{brouillons.mention !== undefined && <MarqueBrouillon />}</div>
-      <p class="whitespace-pre-line break-words">{mention}</p>
-      <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
+      <p class="text-sm text-ink-muted">{TEXTE_AIDE_MENTION}</p>
+      <div data-carte-mention data-markdown={mention} class="flex flex-col gap-4">
+        <p class="whitespace-pre-line break-words">{mention}</p>
+      </div>
     </section>
   </div>
   <MontageCarteCoordonnees slot="scripts" />

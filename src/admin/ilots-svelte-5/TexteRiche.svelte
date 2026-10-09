@@ -48,9 +48,22 @@
     markdownInitial: string;
     /** Appelée après un enregistrement accepté. */
     apresEnregistrement: () => void;
+    /** Nom de la zone de saisie pour les lecteurs d'écran. */
+    libelle?: string;
+    /**
+     * Classes du bouton « Enregistrer » : sur l'`Écran : Réglages`, le bouton
+     * prend la taille de ceux des autres cartes (recette CT-26).
+     */
+    classeEnregistrer?: string;
   }
 
-  const { adresse, markdownInitial, apresEnregistrement }: Props = $props();
+  const {
+    adresse,
+    markdownInitial,
+    apresEnregistrement,
+    libelle,
+    classeEnregistrer = 'w-full max-md:min-h-11 md:w-auto',
+  }: Props = $props();
   const idUnique = $props.id();
 
   let zoneEdition: HTMLDivElement | undefined = $state();
@@ -94,6 +107,7 @@
   const TEXTES_REFUS: Readonly<Record<string, string>> = {
     'emplacement-non-declare': "Cet emplacement n'existe plus dans la page : rechargez l'écran.",
     'nature-non-corrigible': 'Cet emplacement ne se corrige pas comme un texte riche.',
+    'mention-vide': 'La mention ne peut pas rester vide.',
     'forme-invalide': "Le contenu n'a pas pu être enregistré : rechargez l'écran, puis réessayez.",
   };
 
@@ -111,6 +125,7 @@
       // l'administration (`style-src 'self'`, ADR-0010) : ses règles vivent
       // dans `src/admin/admin.css`.
       injectCSS: false,
+      editorProps: { attributes: libelle === undefined ? {} : { 'aria-label': libelle } },
       extensions: [
         StarterKit.configure({
           blockquote: false,
@@ -257,7 +272,7 @@
     bind:this={zoneEdition}
     class="min-h-32 rounded-lg border border-input bg-surface-raised px-3 py-2 text-base text-ink focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 md:text-sm"
   ></div>
-  <Button type="button" onclick={enregistrer} disabled={enCours} class="w-full max-md:min-h-11 md:w-auto"
+  <Button type="button" onclick={enregistrer} disabled={enCours} class={classeEnregistrer}
     >Enregistrer</Button
   >
   {#if messageErreur}

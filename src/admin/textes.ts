@@ -153,6 +153,7 @@ export const TEXTE_TITRE_REGLAGES = 'Réglages';
 export const TEXTE_CARTE_COORDONNEES = 'Coordonnées';
 export const TEXTE_CARTE_RESEAUX = 'Réseaux sociaux';
 export const TEXTE_CARTE_MENTION = "Mention d'information";
+export const TEXTE_AIDE_MENTION = 'Ce texte accompagne chaque formulaire de votre site.';
 export const TEXTE_COORDONNEES_VIDES = "Aucune coordonnée n'est prévue pour votre site.";
 export const TEXTE_RESEAUX_VIDES = "Aucun réseau social n'est prévu pour votre site.";
 
