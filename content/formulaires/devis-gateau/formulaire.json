@@ -1,0 +1,42 @@
+{
+  "nom": "Devis gâteau",
+  "champs": [
+    {
+      "id": "parfum",
+      "nature": "choix-unique",
+      "libelle": "Parfum",
+      "obligatoire": true,
+      "avecPrix": true,
+      "options": [
+        { "id": "vanille", "libelle": "Vanille", "prix": 800 },
+        { "id": "chocolat", "libelle": "Chocolat", "prix": 900 },
+        { "id": "fraise", "libelle": "Fraise", "prix": 1000 }
+      ]
+    },
+    {
+      "id": "nombre-de-parts",
+      "nature": "choix-unique",
+      "libelle": "Nombre de parts",
+      "avecPrix": true,
+      "options": [
+        { "id": "six-parts", "libelle": "6 parts", "prix": 1800 },
+        { "id": "dix-parts", "libelle": "10 parts", "prix": 3000 },
+        { "id": "vingt-parts", "libelle": "20 parts", "prix": 5500 }
+      ]
+    },
+    {
+      "id": "occasion",
+      "nature": "choix-multiple",
+      "libelle": "Occasion",
+      "options": [
+        { "id": "anniversaire", "libelle": "Anniversaire" },
+        { "id": "mariage", "libelle": "Mariage" },
+        { "id": "bapteme", "libelle": "Baptême & communion" }
+      ]
+    },
+    { "id": "nom", "nature": "texte", "libelle": "Votre nom" },
+    { "id": "courriel", "nature": "email", "libelle": "Votre adresse e-mail", "obligatoire": true },
+    { "id": "telephone", "nature": "telephone", "libelle": "Votre numéro de téléphone" },
+    { "id": "message", "nature": "texte-long", "libelle": "Votre message" }
+  ]
+}

@@ -12,8 +12,8 @@ model {
   }
 
   integrateur = actor 'Intégrateur' {
-    description 'Isometria : pose les gabarits, les emplacements et les réglages de départ, hors administration.'
-    // trace : content/pages/*/page.json, content/reglages/reglages.json — déclarations écrites à la main (ADR-0012, ADR-0017)
+    description 'Isometria : pose les gabarits, les emplacements, les réglages et les formulaires de départ, hors administration.'
+    // trace : content/pages/*/page.json, content/reglages/reglages.json, content/formulaires/*/formulaire.json — déclarations écrites à la main (ADR-0012, ADR-0017, ADR-0018)
   }
 
   email-routing = system 'Cloudflare Email Routing' {
@@ -23,7 +23,7 @@ model {
   }
 
   editrice -> colibri-cms.worker.routes "ouvre l'administration et y corrige son contenu"
-  integrateur -> colibri-cms.contenu 'déclare pages, emplacements et réglages'
+  integrateur -> colibri-cms.contenu 'déclare pages, emplacements, réglages et formulaires'
   // trace : src/pages/admin/connexion.astro:145 — demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, …)
   colibri-cms.worker.platform -[async]-> email-routing 'expédie le code de connexion'
   email-routing -[async]-> editrice 'remet le code'
