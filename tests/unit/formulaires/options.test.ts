@@ -300,4 +300,159 @@ describe("SC-03h — identifiants jamais réattribués", () => {
     expect(new Set(ids).size).toBe(3);
     expect(ids.slice(0, 2)).toEqual(["o1", "o2"]);
   });
+
+  it("SC-03h — un identifiant d'option inconnu est refusé", () => {
+    // Ni la déclaration ni le brouillon ne connaissent o9 pour « decor ».
+    const r = appliquerOptions(
+      DECLARATION,
+      BROUILLON_VIDE,
+      decorAvec([{ id: "o9", libelle: "Fleurs" }]),
+    );
+    expect(r).toEqual({ ok: false, erreur: "forme-invalide" });
+  });
+
+  it("SC-03h — un identifiant d'option répété est refusé", () => {
+    const r = appliquerOptions(
+      DECLARATION,
+      BROUILLON_VIDE,
+      decorAvec([
+        { id: "o1", libelle: "Fleurs" },
+        { id: "o1", libelle: "Roses" },
+      ]),
+    );
+    expect(r).toEqual({ ok: false, erreur: "forme-invalide" });
+  });
+
+  it("SC-03h — le dernier numéro ne vient jamais de la soumission", () => {
+    const brouillon = {
+      champs: {
+        parfum: [
+          { id: "o1", libelle: "Vanille", prix: 1200 },
+          { id: "o2", libelle: "Chocolat", prix: 1500 },
+        ],
+        decor: [{ id: "o1", libelle: "Fleurs" }],
+      },
+      derniersNumeros: { parfum: 9, decor: 1 },
+    };
+    // La soumission annonce un dernier numéro forgé : il est ignoré.
+    const r = appliquerOptions(DECLARATION, brouillon, {
+      champs: [
+        {
+          id: "parfum",
+          options: [
+            { id: "o1", libelle: "Vanille", prix: "12" },
+            { id: "o2", libelle: "Chocolat", prix: "15" },
+            { libelle: "Fraise", prix: "13" },
+          ],
+        },
+        DECOR_VALIDE,
+      ],
+      derniersNumeros: { parfum: 50 },
+    });
+    if (!r.ok) throw new Error("correction refusée");
+    expect(r.contenu.champs.parfum.at(2)?.id).toBe("o10");
+    expect(r.contenu.derniersNumeros.parfum).toBe(10);
+  });
+
+  it("SC-03h — une option ajoutée garde son identifiant quand elle est corrigée", () => {
+    const o1 = { id: "o1", libelle: "Vanille", prix: "12" };
+    const o2 = { id: "o2", libelle: "Chocolat", prix: "15" };
+
+    const r1 = appliquerOptions(
+      DECLARATION,
+      BROUILLON_VIDE,
+      corps(
+        { id: "parfum", options: [o1, o2, { libelle: "Fraise", prix: "13" }] },
+        DECOR_VALIDE,
+      ),
+    );
+    if (!r1.ok) throw new Error("première correction refusée");
+    const idFraise = r1.contenu.champs.parfum.at(2)?.id;
+    expect(idFraise).toBeDefined();
+
+    const r2 = appliquerOptions(
+      DECLARATION,
+      r1.contenu,
+      corps(
+        {
+          id: "parfum",
+          options: [
+            o1,
+            o2,
+            { id: idFraise, libelle: "Fraise des bois", prix: "14" },
+          ],
+        },
+        DECOR_VALIDE,
+      ),
+    );
+    if (!r2.ok) throw new Error("deuxième correction refusée");
+    expect(r2.contenu.champs.parfum.at(2)).toEqual({
+      id: idFraise,
+      libelle: "Fraise des bois",
+      prix: 1400,
+    });
+    // Aucun nouveau numéro n'est consommé.
+    expect(r2.contenu.derniersNumeros.parfum).toBe(
+      r1.contenu.derniersNumeros.parfum,
+    );
+  });
+});
+
+describe("identifiants de champ hérités d'Object", () => {
+  // Un champ dont l'identifiant est aussi un nom de propriété d'Object
+  // (`constructor`, `__proto__`) se lit et s'écrit comme un autre : jamais par
+  // le prototype.
+  const HERITES: FormulaireDeclare = {
+    id: "herites",
+    nom: "Champs aux noms hérités",
+    champs: [
+      {
+        id: "constructor",
+        nature: "choix-multiple",
+        libelle: "Premier",
+        obligatoire: false,
+        avecPrix: false,
+        options: [{ id: "o1", libelle: "A" }],
+      },
+      {
+        id: "__proto__",
+        nature: "choix-multiple",
+        libelle: "Second",
+        obligatoire: false,
+        avecPrix: false,
+        options: [{ id: "o1", libelle: "A" }],
+      },
+    ],
+  };
+  const soumission = (idB?: string) => ({
+    champs: [
+      {
+        id: "constructor",
+        options: [
+          { id: "o1", libelle: "A" },
+          idB === undefined ? { libelle: "B" } : { id: idB, libelle: "B" },
+        ],
+      },
+      { id: "__proto__", options: [{ id: "o1", libelle: "A" }] },
+    ],
+  });
+
+  it("SC-03g — des champs nommés constructor et __proto__ sont lus et écrits comme propriétés propres", () => {
+    const lire = () =>
+      appliquerOptions(HERITES, BROUILLON_VIDE, soumission());
+    expect(lire).not.toThrow();
+    const r = lire();
+    if (!r.ok) throw new Error("correction refusée");
+
+    expect(Object.hasOwn(r.contenu.champs, "constructor")).toBe(true);
+    expect(Object.hasOwn(r.contenu.champs, "__proto__")).toBe(true);
+    const champs = new Map(Object.entries(r.contenu.champs));
+    expect(champs.get("constructor")?.at(1)?.id).toBe("o2");
+    const numeros = new Map(Object.entries(r.contenu.derniersNumeros));
+    expect(numeros.get("constructor")).toBe(2);
+
+    // Le contenu rendu sert à son tour de brouillon courant.
+    const suivante = appliquerOptions(HERITES, r.contenu, soumission("o2"));
+    expect(suivante.ok).toBe(true);
+  });
 });
