@@ -21,6 +21,7 @@ medias/jeu.json                 le jeu d'images, décrit — le skill les génè
 | `rang` | deux galeries et deux images sur Accueil (note sous CT-14, CT-13.5, CT-14.5) | `site-rang-…` |
 | `titres-longs` | Tarifs à 80 signes sans espace, Accueil à 120 avec espaces (CT-20.5, CT-21.6) | `site-titres-longs-…` |
 | `vide` | aucune page (CT-5.4, CT-20.8) | `site-vide-…` |
+| `sans-formulaire` | aucun formulaire déclaré (§ 27, écran « Formulaires » vide) | `site-sans-formulaire-…` |
 
 Les cas du cahier qui demandent de **modifier `content/pages/` puis rebâtir** se jouent en ouvrant
 l'adresse de la variante correspondante — plus besoin de toucher au dépôt ni de `git restore`.
@@ -31,8 +32,8 @@ sur une variante se retrouvent sur les autres.
 ## Le modifier
 
 - **Un nouveau cas qui demande un contenu particulier** → une nouvelle variante : un dossier sous
-  `variantes/`, un `variante.json` (`description`, `cas`, et `retirer` si des pages doivent
-  disparaître), puis les seuls fichiers qui changent. Elle est aussitôt listée par
+  `variantes/`, un `variante.json` (`description`, `cas`, `retirer` si des pages doivent
+  disparaître, `retirerFormulaires` si des formulaires doivent disparaître, par identifiant), puis les seuls fichiers qui changent. Elle est aussitôt listée par
   `site.mjs variantes` et déployable par `site.mjs deployer <nom>`.
 - **Le schéma d'une page change** (par exemple le change `006-nom-des-emplacements`, qui donne un
   nom à chaque emplacement) → mettre à jour `pages/` **et** chaque `variantes/*/pages/…/page.json`

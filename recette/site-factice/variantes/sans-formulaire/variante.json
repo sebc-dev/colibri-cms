@@ -1,0 +1,5 @@
+{
+  "description": "Aucun formulaire déclaré : l'écran « Formulaires » dit qu'aucun formulaire n'est prévu, sans geste de création.",
+  "cas": ["CT-27.4"],
+  "retirerFormulaires": ["devis-atelier", "devis-gateau"]
+}
