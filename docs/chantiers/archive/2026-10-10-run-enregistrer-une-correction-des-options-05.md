@@ -52,3 +52,9 @@ Hors de cette session : commiter le travail dans le worktree, puis relancer
 ## Écarté
 - Éteindre la règle par `eslint-disable` : le `?.` est inutile au regard du type, pas un faux positif.
 - Garder les trois `?.` et activer `noUncheckedIndexedAccess` : décision de configuration hors ticket.
+
+## Issue
+Correction faite le 2026-10-10 : `retour[3]` → `retour.at(3)` dans le test neuf, aucune assertion
+touchée, puis reprise avec `rerun: "2"` : le run a abouti à la PR #196. La review a retenu trois tests
+(identifiant neuf stable puis jamais redonné, prix refusé en 400, brouillon sans `derniersNumeros`) que
+le correcteur n'a pas le droit d'écrire : ils restent à ajouter.
