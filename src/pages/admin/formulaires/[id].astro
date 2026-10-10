@@ -1,0 +1,117 @@
+---
+/**
+ * L'`Écran : Formulaire` (change 010, ticket 04) : les champs à choix d'un
+ * formulaire déclaré (ADR-0018) et leurs options. Rendu serveur, garde de
+ * session importée d'abord (ADR-0007), même pour un identifiant inconnu.
+ * Aucun îlot, aucun script, aucune injection de balisage : interpolation
+ * échappée seule. Aucun geste sur un champ (FR-050). L'identifiant demandé
+ * ne sert qu'à chercher dans la déclaration chargée.
+ */
+import Gabarit from '../../../admin/Gabarit.astro';
+import GabaritCadre from '../../../admin/GabaritCadre.astro';
+import { verifierSession } from '../../../platform/session/index.ts';
+import { lireFormulaireDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
+import { formaterPrix } from '../../../core/formulaires/prix.ts';
+import {
+  TEXTE_RETOUR_FORMULAIRES,
+  TEXTE_AIDE_FORMULAIRE,
+  TEXTE_TITRE_INTROUVABLE,
+  TEXTE_FORMULAIRE_INTROUVABLE,
+  TEXTE_UN_SEUL_CHOIX,
+  TEXTE_PLUSIEURS_CHOIX,
+  TEXTE_INTITULE_CHOIX,
+  TEXTE_INTITULE_PRIX,
+  TEXTE_SUFFIXE_EUROS,
+  TEXTE_BOUTON_ENREGISTRER,
+} from '../../../admin/textes.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const formulaire = lireFormulaireDeLaDeclaration(Astro.params.id ?? '');
+if (formulaire === undefined) {
+  Astro.response.status = 404;
+}
+
+const champsAChoix = (formulaire?.champs ?? []).filter(
+  (champ) => champ.options !== undefined && champ.options.length > 0,
+);
+const CLASSE_CARTE = 'flex flex-col gap-4 rounded-lg border border-border bg-card p-4';
+const CLASSE_CHAMP =
+  'w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground';
+const CLASSE_BOUTON =
+  'self-start rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground max-md:min-h-11';
+---
+
+{
+  formulaire === undefined ? (
+    <Gabarit titre={TEXTE_TITRE_INTROUVABLE}>
+      <main class="flex min-h-dvh justify-center px-4 py-10">
+        <div class="flex h-fit w-full max-w-[400px] flex-col gap-3 text-center">
+          <h1>{TEXTE_TITRE_INTROUVABLE}</h1>
+          <p class="text-ink-muted">{TEXTE_FORMULAIRE_INTROUVABLE}</p>
+          <p>
+            <a href="/admin/formulaires" class="inline-flex min-h-11 items-center text-plumage underline underline-offset-2">{TEXTE_RETOUR_FORMULAIRES}</a>
+          </p>
+        </div>
+      </main>
+    </Gabarit>
+  ) : (
+    <GabaritCadre titre={`${formulaire.nom} — Administration`} rubrique="formulaires">
+      <p>
+        <a href="/admin/formulaires" class="inline-flex min-h-11 items-center text-plumage underline underline-offset-2">{TEXTE_RETOUR_FORMULAIRES}</a>
+      </p>
+      <div class="flex items-center gap-3">
+        <h1>{formulaire.nom}</h1>
+        <span></span>
+      </div>
+      <p class="mt-2 text-ink-muted">{TEXTE_AIDE_FORMULAIRE}</p>
+      <div class="mt-6 flex flex-col gap-4">
+        {champsAChoix.map((champ, i) => (
+          <section class={CLASSE_CARTE} aria-labelledby={`carte-champ-${String(i)}`}>
+            <h2 id={`carte-champ-${String(i)}`} class="text-lg font-medium">{champ.libelle}</h2>
+            <p class="text-sm text-ink-muted">
+              {champ.nature === 'choix-multiple' ? TEXTE_PLUSIEURS_CHOIX : TEXTE_UN_SEUL_CHOIX}
+            </p>
+            <ul class="flex flex-col gap-3">
+              {(champ.options ?? []).map((option, j) => (
+                <li class="flex flex-col gap-2 md:flex-row md:items-end">
+                  <div class="flex flex-1 flex-col gap-1">
+                    <label for={`option-${String(i)}-${String(j)}`} class="text-sm font-medium">{TEXTE_INTITULE_CHOIX}</label>
+                    <input
+                      id={`option-${String(i)}-${String(j)}`}
+                      type="text"
+                      value={option.libelle}
+                      class={CLASSE_CHAMP}
+                    />
+                  </div>
+                  {champ.avecPrix && option.prix !== undefined && (
+                    <div class="flex flex-col gap-1 md:w-40">
+                      <label for={`prix-${String(i)}-${String(j)}`} class="text-sm font-medium">{TEXTE_INTITULE_PRIX}</label>
+                      <div class="flex items-center gap-2">
+                        <input
+                          id={`prix-${String(i)}-${String(j)}`}
+                          type="text"
+                          inputmode="decimal"
+                          value={formaterPrix(option.prix)}
+                          class={CLASSE_CHAMP}
+                        />
+                        <span>{TEXTE_SUFFIXE_EUROS}</span>
+                      </div>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+      <div class="mt-6">
+        <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
+      </div>
+    </GabaritCadre>
+  )
+}
