@@ -24,6 +24,9 @@ import {
   TEXTE_SUFFIXE_EUROS,
   TEXTE_BOUTON_ENREGISTRER,
 } from '../../../admin/textes.ts';
+import MarqueBrouillon from '../../../admin/MarqueBrouillon.astro';
+import { obtenirBrouillonFormulaire } from '../../../platform/formulaires/magasin.ts';
+import { optionsCourantes } from '../../../core/formulaires/brouillon.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -36,6 +39,10 @@ if (formulaire === undefined) {
   Astro.response.status = 404;
 }
 
+const brouillon =
+  formulaire === undefined ? undefined : await obtenirBrouillonFormulaire(env.DB, formulaire.id);
+const courantes =
+  formulaire === undefined ? new Map() : optionsCourantes(formulaire, brouillon);
 const champsAChoix = (formulaire?.champs ?? []).filter(
   (champ) => champ.options !== undefined && champ.options.length > 0,
 );
@@ -66,7 +73,7 @@ const CLASSE_BOUTON =
       </p>
       <div class="flex items-center gap-3">
         <h1>{formulaire.nom}</h1>
-        <span></span>
+        <span>{brouillon !== undefined && <MarqueBrouillon />}</span>
       </div>
       <p class="mt-2 text-ink-muted">{TEXTE_AIDE_FORMULAIRE}</p>
       <div class="mt-6 flex flex-col gap-4">
@@ -77,7 +84,7 @@ const CLASSE_BOUTON =
               {champ.nature === 'choix-multiple' ? TEXTE_PLUSIEURS_CHOIX : TEXTE_UN_SEUL_CHOIX}
             </p>
             <ul class="flex flex-col gap-3">
-              {(champ.options ?? []).map((option, j) => (
+              {(courantes.get(champ.id) ?? champ.options ?? []).map((option, j) => (
                 <li class="flex flex-col gap-2 md:flex-row md:items-end">
                   <div class="flex flex-1 flex-col gap-1">
                     <label for={`option-${String(i)}-${String(j)}`} class="text-sm font-medium">{TEXTE_INTITULE_CHOIX}</label>
