@@ -1,0 +1,43 @@
+---
+/**
+ * L'`Écran : Formulaires` (change 010, ticket 02) : la liste des formulaires
+ * déclarés par l'intégrateur (ADR-0018), lue jamais écrite. Rendu serveur,
+ * garde de session importée (ADR-0007), aucun îlot, aucun script, aucun
+ * geste d'ajout, de retrait, de renommage ni de déplacement. Le nom est
+ * interpolé échappé ; l'identifiant n'apparaît que dans l'adresse du lien.
+ */
+import GabaritCadre from '../../admin/GabaritCadre.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+import { lireFormulairesDeLaDeclaration } from '../../platform/contenu/formulaires.ts';
+import { TEXTE_TITRE_FORMULAIRES, TEXTE_AUCUN_FORMULAIRE } from '../../admin/textes.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const formulaires = lireFormulairesDeLaDeclaration();
+---
+
+<GabaritCadre titre="Formulaires — Administration" rubrique="formulaires">
+  <h1>{TEXTE_TITRE_FORMULAIRES}</h1>
+  {
+    formulaires.length === 0 ? (
+      <div class="mt-6 rounded-lg border border-border bg-card p-4 text-ink-muted">
+        <p>{TEXTE_AUCUN_FORMULAIRE}</p>
+      </div>
+    ) : (
+      <ul class="mt-6 divide-y divide-border rounded-lg border border-border bg-card">
+        {formulaires.map((formulaire) => (
+          <li>
+            <a
+              href={`/admin/formulaires/${formulaire.id}`}
+              class="flex min-h-11 items-center break-words px-4 py-3"
+            >{formulaire.nom}</a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</GabaritCadre>

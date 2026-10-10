@@ -52,10 +52,10 @@ connexion. Aucun terme de développeur ni aucun identifiant n'y paraît.
 rubrique « Demandes ».
 
 ## Critères
-- [ ] En session, choisir « Formulaires » dans le menu du cadre ouvre l'`Écran : Formulaires` dans le cadre, « Formulaires » marquée active, présentant « Devis atelier » puis « Devis gâteau », chacun menant à l'écran de ce formulaire   (SC-02a)
+- [x] En session, choisir « Formulaires » dans le menu du cadre ouvre l'`Écran : Formulaires` dans le cadre, « Formulaires » marquée active, présentant « Devis atelier » puis « Devis gâteau », chacun menant à l'écran de ce formulaire   (SC-02a)
 - [ ] Sur un site qui ne déclare aucun formulaire, l'`Écran : Formulaires` dit qu'aucun formulaire n'est prévu pour le site, et n'offre aucun geste de création   (SC-02b)
-- [ ] L'`Écran : Formulaires` demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer des formulaires   (SC-02c)
-- [ ] Sur l'`Écran : Formulaires`, la barre latérale montre les cinq rubriques, « Formulaires » seule marquée active   (SC-02d)
-- [ ] Aucune rubrique autre que « Mes pages », « Médias », « Réglages » et « Formulaires » ne mène à un écran servi, et ni le menu ni l'`Écran : Formulaires` n'offrent de geste d'ajout, de retrait, de renommage ni de déplacement de rubrique, de page ou de formulaire   (SC-02e)
-- [ ] Les noms des formulaires sont affichés tels quels, jamais interprétés : la liste ne porte aucune balise issue des données, et la source de l'écran n'injecte aucune donnée comme balisage (ni `set:html`, ni `innerHTML`, ni directive `client:*`)   (SC-02f)
-- [ ] Aucun terme de développeur ni aucun identifiant ne paraît sur l'`Écran : Formulaires` (FR-117)   (SC-02g)
+- [x] L'`Écran : Formulaires` demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer des formulaires   (SC-02c)
+- [x] Sur l'`Écran : Formulaires`, la barre latérale montre les cinq rubriques, « Formulaires » seule marquée active   (SC-02d)
+- [x] Aucune rubrique autre que « Mes pages », « Médias », « Réglages » et « Formulaires » ne mène à un écran servi, et ni le menu ni l'`Écran : Formulaires` n'offrent de geste d'ajout, de retrait, de renommage ni de déplacement de rubrique, de page ou de formulaire   (SC-02e)
+- [x] Les noms des formulaires sont affichés tels quels, jamais interprétés : la liste ne porte aucune balise issue des données, et la source de l'écran n'injecte aucune donnée comme balisage (ni `set:html`, ni `innerHTML`, ni directive `client:*`)   (SC-02f)
+- [x] Aucun terme de développeur ni aucun identifiant ne paraît sur l'`Écran : Formulaires` (FR-117)   (SC-02g)
