@@ -44,10 +44,10 @@ donne une réponse « introuvable » ; sans session, l'écran renvoie à la conn
 l'enregistrement depuis l'écran (ticket 07) ; tout geste sur un champ (FR-050).
 
 ## Critères
-- [ ] En session, ouvrir « Devis gâteau » montre l'`Écran : Formulaire` titré « Devis gâteau », avec « Parfum » et ses trois options dans l'ordre — Vanille 8 €, Chocolat 9 €, Fraise 10 € —, puis « Occasion » avec ses options sans prix, et rien pour « Votre adresse e-mail »   (SC-04a)
-- [ ] En parcourant l'écran d'un formulaire, aucun moyen n'est offert d'ajouter, de retirer, de renommer ou de réordonner un champ   (SC-04b)
-- [ ] En session, l'écran d'un formulaire demandé pour un identifiant qu'aucun formulaire déclaré ne porte répond « introuvable », sans rien montrer d'autre   (SC-04c)
-- [ ] L'écran d'un formulaire déclaré demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer du formulaire   (SC-04d)
-- [ ] Le nom du formulaire, les libellés de champ et les libellés d'option déclarés qui contiennent une esperluette, une apostrophe ou des guillemets paraissent comme du texte, et aucun balisage issu des données n'est interprété   (SC-04e)
-- [ ] Aucun terme de développeur ni aucun identifiant ne paraît sur l'écran d'un formulaire, ses cartes et leurs libellés, et aucun prix n'y paraît en centimes (FR-117)   (SC-04f)
-- [ ] Sur l'écran d'un formulaire, la barre latérale montre les cinq rubriques, « Formulaires » seule marquée active   (SC-04g)
+- [x] En session, ouvrir « Devis gâteau » montre l'`Écran : Formulaire` titré « Devis gâteau », avec « Parfum » et ses trois options dans l'ordre — Vanille 8 €, Chocolat 9 €, Fraise 10 € —, puis « Occasion » avec ses options sans prix, et rien pour « Votre adresse e-mail »   (SC-04a)
+- [x] En parcourant l'écran d'un formulaire, aucun moyen n'est offert d'ajouter, de retirer, de renommer ou de réordonner un champ   (SC-04b)
+- [x] En session, l'écran d'un formulaire demandé pour un identifiant qu'aucun formulaire déclaré ne porte répond « introuvable », sans rien montrer d'autre   (SC-04c)
+- [x] L'écran d'un formulaire déclaré demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer du formulaire   (SC-04d)
+- [x] Le nom du formulaire, les libellés de champ et les libellés d'option déclarés qui contiennent une esperluette, une apostrophe ou des guillemets paraissent comme du texte, et aucun balisage issu des données n'est interprété   (SC-04e)
+- [x] Aucun terme de développeur ni aucun identifiant ne paraît sur l'écran d'un formulaire, ses cartes et leurs libellés, et aucun prix n'y paraît en centimes (FR-117)   (SC-04f)
+- [x] Sur l'écran d'un formulaire, la barre latérale montre les cinq rubriques, « Formulaires » seule marquée active   (SC-04g)
