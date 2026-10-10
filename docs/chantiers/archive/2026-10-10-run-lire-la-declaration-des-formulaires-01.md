@@ -57,3 +57,8 @@ du début, écriture des tests comprise).
 - Reprendre sans corriger : le cache resservirait le même échec.
 - Corriger la config sur la seule branche du ticket : hors périmètre du ticket, et le défaut
   bloquerait encore tous les tickets suivants.
+
+## Issue
+Correctif fait le 2026-10-10 : `eslint.config.js` ignore `.claude/scripts/**` (PR #190, `d4fa292`),
+reporté sur la branche du ticket (`64b2011`), puis reprise avec `rerun: "2"` : le run a abouti à la
+PR #191. Le check `knip` signale encore le script du plugin ; j'ai laissé `knip.json` en l'état.
