@@ -1,0 +1,16 @@
+---
+/**
+ * Monte l'îlot de l'`Écran : Formulaire` (change 010, ticket 07).
+ *
+ * Même patron que `MontageCarteCoordonnees.astro` : un composant à part pour
+ * que le `<script>` de module reste traité par Astro (bundlé, chargé par
+ * `src`, conforme à la CSP) tout en étant posé dans `<slot name="scripts"/>`
+ * de `GabaritCadre.astro`.
+ */
+---
+
+<script>
+  import { monterEcranFormulaire } from './ilots-svelte-5/monter.ts';
+
+  monterEcranFormulaire();
+</script>

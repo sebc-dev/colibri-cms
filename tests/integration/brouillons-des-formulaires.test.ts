@@ -200,10 +200,15 @@ it("SC-06e — un libellé avec balisage s'affiche comme du texte", async () => 
   // Assert
   // Dans une valeur d'attribut entre guillemets, « < » reste du texte ;
   // « & » et « " » sont échappés, donc la valeur ne peut pas s'en échapper.
+  // Le libellé paraît dans la zone de saisie et, depuis le ticket 07, dans le
+  // JSON de `data-champs` que l'îlot lit : l'échappement est vérifié aux deux.
   expect(main).toContain(
     'value="<img src=x onerror=alert(1)> &amp; &quot;ok&quot;"',
   );
-  const horsValeurs = main.replace(/value="[^"]*"/g, "");
+  expect(main).toContain(
+    "&quot;libelle&quot;:&quot;<img src=x onerror=alert(1)> &amp; \\&quot;ok\\&quot;&quot;",
+  );
+  const horsValeurs = main.replace(/="[^"]*"/g, '=""');
   expect(horsValeurs).not.toContain("<img");
   expect(horsValeurs).not.toContain("onerror");
 });

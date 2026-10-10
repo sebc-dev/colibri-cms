@@ -587,6 +587,21 @@ Session ouverte. Ouvrir `/admin/formulaires`.
 | CT-27.4 | Ouvrir l'adresse de la variante `sans-formulaire` | « Aucun formulaire n'est prévu pour votre site. », sans bouton de création | |
 | CT-27.5 | Ouvrir `/admin/formulaires` sans session | Renvoi vers la connexion, aucun formulaire montré | |
 
+## 28. L'écran d'un formulaire, corriger les options — change 010 · ticket 07
+
+Session ouverte. Ouvrir « Devis gâteau » depuis `/admin/formulaires`.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-28.1 | Monter « Fraise » de deux rangs, puis « Enregistrer » | « Fraise », « Vanille », « Chocolat » dans cet ordre ; la marque « Brouillon » apparaît à côté du titre sans changement d'écran ; la saisie reste affichée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » | |
+| CT-28.2 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | Message en haut ; la ligne fautive porte « Un montant en euros, par exemple 12 ou 12,50. » ; toute la saisie reste ; la marque n'apparaît pas si elle n'y était pas | |
+| CT-28.3 | Cliquer « Ajouter un choix » | Le curseur est dans la ligne vide | |
+| CT-28.4 | Garder une seule option dans un champ | « Retirer » inactif, « Gardez au moins un choix. » | |
+| CT-28.5 | Pendant l'envoi | Le bouton est inactif et affiche « Enregistrement… » | |
+| CT-28.6 | Sur téléphone, monter, descendre, retirer au doigt et au clavier | Les boutons sont assez grands et atteignables ; aucun terme technique ni identifiant visible | |
+| CT-28.7 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | L'écran se place sur ce prix et le curseur y est ; le message en haut reste affiché | |
+| CT-28.8 | Ouvrir « Devis gâteau » | Un seul bouton « Enregistrer » à l'écran, et il enregistre | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
