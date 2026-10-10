@@ -3,8 +3,8 @@
  * L'`Écran : Formulaire` (change 010, ticket 04) : les champs à choix d'un
  * formulaire déclaré (ADR-0018) et leurs options. Rendu serveur, garde de
  * session importée d'abord (ADR-0007), même pour un identifiant inconnu.
- * Aucun îlot, aucun script, aucune injection de balisage : interpolation
- * échappée seule. Aucun geste sur un champ (FR-050). L'identifiant demandé
+ * L'îlot `EcranFormulaire` (ticket 07) remplace la présentation serveur au
+ * montage ; JSON échappé par Astro, aucune injection de balisage. Aucun geste sur un champ (FR-050). L'identifiant demandé
  * ne sert qu'à chercher dans la déclaration chargée.
  */
 import Gabarit from '../../../admin/Gabarit.astro';
@@ -24,6 +24,7 @@ import {
   TEXTE_SUFFIXE_EUROS,
   TEXTE_BOUTON_ENREGISTRER,
 } from '../../../admin/textes.ts';
+import MontageEcranFormulaire from '../../../admin/MontageEcranFormulaire.astro';
 import MarqueBrouillon from '../../../admin/MarqueBrouillon.astro';
 import { obtenirBrouillonFormulaire } from '../../../platform/formulaires/magasin.ts';
 import { optionsCourantes } from '../../../core/formulaires/brouillon.ts';
@@ -46,11 +47,19 @@ const courantes =
 const champsAChoix = (formulaire?.champs ?? []).filter(
   (champ) => champ.options !== undefined && champ.options.length > 0,
 );
-const CLASSE_CARTE = 'flex flex-col gap-4 rounded-lg border border-border bg-card p-4';
+const donneesChamps = champsAChoix.map((champ) => ({
+  id: champ.id,
+  libelle: champ.libelle,
+  nature: champ.nature,
+  avecPrix: champ.avecPrix,
+  // Seuls les identifiants : libellés et prix sont relus des champs de saisie rendus.
+  ids: (courantes.get(champ.id) ?? champ.options ?? []).map((option) => option.id),
+}));
 const CLASSE_CHAMP =
   'w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground';
 const CLASSE_BOUTON =
   'self-start rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground max-md:min-h-11';
+const CLASSE_CARTE = 'flex flex-col gap-4 rounded-lg border border-border bg-card p-4';
 ---
 
 {
@@ -73,10 +82,15 @@ const CLASSE_BOUTON =
       </p>
       <div class="flex items-center gap-3">
         <h1>{formulaire.nom}</h1>
-        <span>{brouillon !== undefined && <MarqueBrouillon />}</span>
+        <span data-zone-marque-brouillon>{brouillon !== undefined && <MarqueBrouillon />}</span>
       </div>
       <p class="mt-2 text-ink-muted">{TEXTE_AIDE_FORMULAIRE}</p>
-      <div class="mt-6 flex flex-col gap-4">
+      <div
+        class="mt-6 flex flex-col gap-4"
+        data-ecran-formulaire
+        data-id-formulaire={formulaire.id}
+        data-champs={JSON.stringify(donneesChamps)}
+      >
         {champsAChoix.map((champ, i) => (
           <section class={CLASSE_CARTE} aria-labelledby={`carte-champ-${String(i)}`}>
             <h2 id={`carte-champ-${String(i)}`} class="text-lg font-medium">{champ.libelle}</h2>
@@ -115,10 +129,11 @@ const CLASSE_BOUTON =
             </ul>
           </section>
         ))}
+        <div class="mt-6">
+          <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
+        </div>
       </div>
-      <div class="mt-6">
-        <button type="button" class={CLASSE_BOUTON}>{TEXTE_BOUTON_ENREGISTRER}</button>
-      </div>
+      <MontageEcranFormulaire slot="scripts" />
     </GabaritCadre>
   )
 }

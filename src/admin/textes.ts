@@ -231,3 +231,27 @@ export const TEXTE_PLUSIEURS_CHOIX = 'Plusieurs choix possibles';
 export const TEXTE_INTITULE_CHOIX = 'Choix';
 export const TEXTE_INTITULE_PRIX = 'Prix';
 export const TEXTE_SUFFIXE_EUROS = '€';
+
+/** L'écran d'un formulaire : gestes sur les choix, bornes, confirmation et refus (FR-117). */
+export const TEXTE_FORMULAIRE_AJOUTER = 'Ajouter un choix';
+export const TEXTE_FORMULAIRE_LISTE_COMPLETE = 'La liste est complète (30 choix au plus).';
+export const TEXTE_FORMULAIRE_GARDER_UN = 'Gardez au moins un choix.';
+export const TEXTE_FORMULAIRE_RETIRER = 'Retirer';
+export const TEXTE_FORMULAIRE_MONTER = 'Monter';
+export const TEXTE_FORMULAIRE_DESCENDRE = 'Descendre';
+export const TEXTE_FORMULAIRE_ENREGISTRE =
+  'Modifications enregistrées. Elles seront visibles sur le site après publication.';
+export const TEXTE_FORMULAIRE_A_CORRIGER = 'Rien n’est enregistré : corrigez les choix signalés.';
+
+export const TEXTES_REFUS_FORMULAIRE: Readonly<Record<string, string>> = {
+  'prix-invalide': 'Un montant en euros, par exemple 12 ou 12,50.',
+  'prix-hors-borne': 'Un montant en euros, par exemple 12 ou 12,50.',
+  'prix-manquant': 'Un montant en euros, par exemple 12 ou 12,50.',
+  'prix-interdit': 'Ce choix ne porte pas de prix.',
+  'libelle-trop-long': 'Un choix de 80 caractères au plus.',
+  'libelle-en-double': 'Ce choix existe déjà.',
+  'libelle-vide': 'Donnez un nom à ce choix.',
+  'libelle-saut-de-ligne': 'Un choix sur une seule ligne.',
+  'nombre-options': 'Gardez au moins un choix.',
+};
+export const TEXTE_REFUS_FORMULAIRE_INCONNU = 'Cette valeur n’est pas acceptée.';

@@ -63,7 +63,7 @@ formulaire** d'un seul bouton « Enregistrer ».
 (FR-050) ; l'aperçu et la publication.
 
 ## Critères
-- [ ] À l'écran de « Devis gâteau », monter « Fraise » de deux rangs puis enregistrer fait porter au brouillon « Fraise », « Vanille », « Chocolat » dans cet ordre   (SC-07a)
+- [x] À l'écran de « Devis gâteau », monter « Fraise » de deux rangs puis enregistrer fait porter au brouillon « Fraise », « Vanille », « Chocolat » dans cet ordre   (SC-07a)
 - [ ] À l'écran d'un formulaire, enregistrer avec le prix d'une option écrit « douze » désigne l'option fautive avec ce qui est attendu (un montant en euros), garde toute la saisie affichée, et ne donne pas au formulaire la marque de brouillon s'il ne la portait pas   (SC-07b)
 - [ ] À l'écran d'un formulaire, un enregistrement réussi fait porter aussitôt la marque de brouillon à l'écran, sans changement d'écran, et la saisie reste affichée   (SC-07c)
-- [ ] Les messages de l'écran d'un formulaire — refus, confirmation, bornes d'une carte, libellés des boutons — ne portent aucun terme de développeur ni aucun identifiant (FR-117)   (SC-07d)
+- [x] Les messages de l'écran d'un formulaire — refus, confirmation, bornes d'une carte, libellés des boutons — ne portent aucun terme de développeur ni aucun identifiant (FR-117)   (SC-07d)
