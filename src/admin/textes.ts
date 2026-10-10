@@ -11,6 +11,7 @@
  * technique (CLAUDE.md, FR-117).
  */
 import type { RaisonRefus } from '../core/auth/verdict.ts';
+import type { RaisonRefusOption } from '../core/formulaires/options.ts';
 
 /**
  * L'annonce de portée affichée à l'écran de saisie du code (c6) : seul le
@@ -243,6 +244,11 @@ export const TEXTE_FORMULAIRE_ENREGISTRE =
   'Modifications enregistrées. Elles seront visibles sur le site après publication.';
 export const TEXTE_FORMULAIRE_A_CORRIGER = 'Rien n’est enregistré : corrigez les choix signalés.';
 
+/**
+ * Une traduction par raison de refus du noyau (`RaisonRefusOption`), exigée au
+ * typage par `satisfies` ; la table reste lisible par n'importe quelle chaîne,
+ * puisque l'îlot la consulte avec la raison reçue de la route.
+ */
 export const TEXTES_REFUS_FORMULAIRE: Readonly<Record<string, string>> = {
   'prix-invalide': 'Un montant en euros, par exemple 12 ou 12,50.',
   'prix-hors-borne': 'Un montant en euros, par exemple 12 ou 12,50.',
@@ -253,5 +259,5 @@ export const TEXTES_REFUS_FORMULAIRE: Readonly<Record<string, string>> = {
   'libelle-vide': 'Donnez un nom à ce choix.',
   'libelle-saut-de-ligne': 'Un choix sur une seule ligne.',
   'nombre-options': 'Gardez au moins un choix.',
-};
+} satisfies Record<RaisonRefusOption, string>;
 export const TEXTE_REFUS_FORMULAIRE_INCONNU = 'Cette valeur n’est pas acceptée.';

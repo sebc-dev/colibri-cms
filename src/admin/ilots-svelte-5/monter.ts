@@ -27,7 +27,6 @@ import CarteReseaux from './CarteReseaux.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
 import EcranFormulaire from './EcranFormulaire.svelte';
 import type { ChampCarte } from './formulaire-carte.ts';
-import { lirePrixSaisi } from '../../core/formulaires/prix.ts';
 import type { OptionBrouillon } from '../../core/formulaires/options.ts';
 import type { CoordonneeCarte } from './coordonnees-carte.ts';
 import type { ReseauCarte } from './reseaux-carte.ts';
@@ -514,13 +513,13 @@ export function monterCarteMention(): void {
   });
 }
 
-/** Un élément de `data-champs` : la structure d'un champ à choix, identifiants seuls. */
+/** Un élément de `data-champs` : un champ à choix et ses options courantes, encore à vérifier. */
 interface ChampBrut {
   readonly id: string;
   readonly libelle: string;
   readonly avecPrix: boolean;
   readonly nature: ChampCarte['nature'];
-  readonly ids: unknown[];
+  readonly options: unknown[];
 }
 
 function estChampBrut(element: unknown): element is ChampBrut {
@@ -531,34 +530,36 @@ function estChampBrut(element: unknown): element is ChampBrut {
     typeof (element as { libelle?: unknown }).libelle === 'string' &&
     typeof (element as { avecPrix?: unknown }).avecPrix === 'boolean' &&
     ['choix-unique', 'choix-multiple'].includes((element as { nature?: string }).nature ?? '') &&
-    Array.isArray((element as { ids?: unknown }).ids)
+    Array.isArray((element as { options?: unknown }).options)
   );
 }
 
-function lireOptionsChamp(ids: readonly unknown[], c: number, racine: ParentNode): OptionBrouillon[] | null {
+/** Une option courante : identifiant et libellé textes, prix absent ou entier positif (centimes) ; sinon `null`. */
+function lireOptionBrute(element: unknown): OptionBrouillon | null {
+  if (typeof element !== 'object' || element === null) return null;
+  const { id, libelle, prix } = element as { id?: unknown; libelle?: unknown; prix?: unknown };
+  if (typeof id !== 'string' || typeof libelle !== 'string') return null;
+  if (prix === undefined) return { id, libelle };
+  if (typeof prix !== 'number' || !Number.isInteger(prix) || prix < 0) return null;
+  return { id, libelle, prix };
+}
+
+function lireOptionsChamp(brutes: readonly unknown[]): OptionBrouillon[] | null {
   const options: OptionBrouillon[] = [];
-  for (const [j, id] of ids.entries()) {
-    if (typeof id !== 'string') return null;
-    const saisieLibelle = racine.querySelector<HTMLInputElement>(`#option-${String(c)}-${String(j)}`);
-    if (saisieLibelle === null) return null;
-    const saisiePrix = racine.querySelector<HTMLInputElement>(`#prix-${String(c)}-${String(j)}`);
-    const prix = saisiePrix === null ? null : lirePrixSaisi(saisiePrix.value);
-    options.push(
-      prix?.ok === true
-        ? { id, libelle: saisieLibelle.value, prix: prix.centimes }
-        : { id, libelle: saisieLibelle.value },
-    );
+  for (const brute of brutes) {
+    const option = lireOptionBrute(brute);
+    if (option === null) return null;
+    options.push(option);
   }
   return options;
 }
 
 /**
- * Les champs à choix de l'écran : la structure vient de `data-champs` (JSON,
- * identifiants seuls), libellés et prix sont relus des zones de saisie déjà
- * rendues par le serveur (`option-<champ>-<rang>`, `prix-<champ>-<rang>`) —
- * `null` si la structure est absente ou d'une autre forme.
+ * Les champs à choix de l'écran et leurs options courantes, tels que
+ * sérialisés en JSON par le serveur dans `data-champs` — `null` si la valeur
+ * est mal formée ou d'une autre forme (même garde qu'`analyserCoordonnees`).
  */
-function lireChampsFormulaire(valeurBrute: string, racine: ParentNode): readonly ChampCarte[] | null {
+function lireChampsFormulaire(valeurBrute: string): readonly ChampCarte[] | null {
   let valeur: unknown;
   try {
     valeur = JSON.parse(valeurBrute);
@@ -567,9 +568,9 @@ function lireChampsFormulaire(valeurBrute: string, racine: ParentNode): readonly
   }
   if (!Array.isArray(valeur)) return null;
   const champs: ChampCarte[] = [];
-  for (const [c, element] of valeur.entries()) {
+  for (const element of valeur) {
     if (!estChampBrut(element)) return null;
-    const options = lireOptionsChamp(element.ids, c, racine);
+    const options = lireOptionsChamp(element.options);
     if (options === null) return null;
     champs.push({ id: element.id, libelle: element.libelle, nature: element.nature, avecPrix: element.avecPrix, options });
   }
@@ -580,8 +581,9 @@ function lireChampsFormulaire(valeurBrute: string, racine: ParentNode): readonly
  * Monte l'îlot `EcranFormulaire` (change 010, ticket 07) sur l'écran d'un
  * formulaire — repéré par `data-ecran-formulaire`, l'identifiant du
  * formulaire en `data-id-formulaire`, les champs à choix et leurs options
- * courantes (identifiants) en JSON dans `data-champs`. La marque de brouillon se révèle dans
- * la zone `data-zone-marque-brouillon` de l'écran. Même garde que ci-dessus.
+ * courantes (identifiant, libellé, prix en centimes) en JSON dans
+ * `data-champs`. La marque de brouillon se révèle dans la zone
+ * `data-zone-marque-brouillon` de l'écran. Même garde que ci-dessus.
  */
 export function monterEcranFormulaire(): void {
   const cibles = document.querySelectorAll<HTMLElement>('[data-ecran-formulaire]');
@@ -589,7 +591,7 @@ export function monterEcranFormulaire(): void {
   cibles.forEach((cible) => {
     const { idFormulaire, champs: brut } = cible.dataset;
     if (idFormulaire === undefined || brut === undefined) return;
-    const champs = lireChampsFormulaire(brut, cible);
+    const champs = lireChampsFormulaire(brut);
     if (champs === null) return;
     const zoneMarque = document.querySelector('[data-zone-marque-brouillon]');
 

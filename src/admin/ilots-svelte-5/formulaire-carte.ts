@@ -4,12 +4,9 @@
  * descendre un choix, plafond. Fonctions pures, testables sans le DOM ; les
  * bornes viennent du noyau, jamais recopiées.
  */
-import { OPTIONS_PAR_CHAMP_MAX } from '../../core/formulaires/declaration.ts';
+import { OPTIONS_PAR_CHAMP_MAX, OPTIONS_PAR_CHAMP_MIN } from '../../core/formulaires/declaration.ts';
 import { formaterPrix } from '../../core/formulaires/prix.ts';
 import type { OptionBrouillon } from '../../core/formulaires/options.ts';
-
-/** Le nombre minimal de choix d'un champ : au moins un. */
-export const OPTIONS_PAR_CHAMP_MIN = 1;
 
 /** Un champ à choix tel que l'écran le reçoit du serveur. */
 export interface ChampCarte {
@@ -20,12 +17,16 @@ export interface ChampCarte {
   readonly options: readonly OptionBrouillon[];
 }
 
-/** Une ligne de choix éditable : `cle` identifie la ligne à l'écran, `id` l'option enregistrée. */
+/**
+ * Une ligne de choix éditable : `cle` identifie la ligne à l'écran, `id`
+ * l'option enregistrée. L'îlot modifie `libelle` et `prix` à la saisie, et
+ * `id` quand la route rend les identifiants après un enregistrement.
+ */
 export interface LigneChoix {
   readonly cle: number;
-  readonly id: string | undefined;
-  readonly libelle: string;
-  readonly prix: string;
+  id: string | undefined;
+  libelle: string;
+  prix: string;
 }
 
 export function lignesDepuis(options: readonly OptionBrouillon[], cleDepart: number): LigneChoix[] {

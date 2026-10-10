@@ -52,8 +52,11 @@ const donneesChamps = champsAChoix.map((champ) => ({
   libelle: champ.libelle,
   nature: champ.nature,
   avecPrix: champ.avecPrix,
-  // Seuls les identifiants : libellés et prix sont relus des champs de saisie rendus.
-  ids: (courantes.get(champ.id) ?? champ.options ?? []).map((option) => option.id),
+  options: (courantes.get(champ.id) ?? champ.options ?? []).map((option) =>
+    option.prix === undefined
+      ? { id: option.id, libelle: option.libelle }
+      : { id: option.id, libelle: option.libelle, prix: option.prix },
+  ),
 }));
 const CLASSE_CHAMP =
   'w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground';

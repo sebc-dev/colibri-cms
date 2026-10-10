@@ -6,6 +6,7 @@
 import {
   LIBELLE_OPTION_LONGUEUR_MAX,
   OPTIONS_PAR_CHAMP_MAX,
+  OPTIONS_PAR_CHAMP_MIN,
   type ChampDeclare,
   type FormulaireDeclare,
 } from "./declaration.ts";
@@ -22,9 +23,28 @@ export interface ContenuOptions {
   readonly derniersNumeros: Readonly<Record<string, number>>;
 }
 
+/**
+ * Chaque raison de refuser une option, dans l'ordre où elle est vérifiée : le
+ * nombre d'options, puis le libellé, puis le prix. `src/admin/textes.ts`
+ * traduit chacune ; le typage refuse une raison sans traduction.
+ */
+export const RAISONS_REFUS_OPTION = [
+  "nombre-options",
+  "libelle-vide",
+  "libelle-saut-de-ligne",
+  "libelle-trop-long",
+  "libelle-en-double",
+  "prix-interdit",
+  "prix-manquant",
+  "prix-invalide",
+  "prix-hors-borne",
+] as const;
+
+export type RaisonRefusOption = (typeof RAISONS_REFUS_OPTION)[number];
+
 export interface Refus {
   readonly champ: string;
-  readonly raison: string;
+  readonly raison: RaisonRefusOption;
 }
 
 export type ResultatOptions =
@@ -51,7 +71,7 @@ interface OptionIdentifiee extends OptionSoumise {
 /** Le prix d'une option en centimes (`undefined` sans prix), ou la raison du refus. */
 type PrixOption =
   | { readonly ok: true; readonly centimes: number | undefined }
-  | { readonly ok: false; readonly raison: string };
+  | { readonly ok: false; readonly raison: RaisonRefusOption };
 
 const FORME_ID = /^o(\d+)$/u;
 const SAUT_DE_LIGNE = /[\n\r\u2028\u2029]/u;
@@ -201,7 +221,7 @@ function raisonDuLibelle(
   brut: string,
   libelle: string,
   libellesVus: ReadonlySet<string>,
-): string | undefined {
+): RaisonRefusOption | undefined {
   if (libelle.length === 0) return "libelle-vide";
   if (SAUT_DE_LIGNE.test(brut)) return "libelle-saut-de-ligne";
   if (Array.from(libelle).length > LIBELLE_OPTION_LONGUEUR_MAX)
@@ -257,7 +277,10 @@ function verifierChamp(
   options: readonly OptionIdentifiee[],
 ): { readonly lues: OptionBrouillon[]; readonly refus: Refus[] } {
   const refus: Refus[] = [];
-  if (options.length < 1 || options.length > OPTIONS_PAR_CHAMP_MAX) {
+  if (
+    options.length < OPTIONS_PAR_CHAMP_MIN ||
+    options.length > OPTIONS_PAR_CHAMP_MAX
+  ) {
     refus.push({ champ: champ.id, raison: "nombre-options" });
   }
   const libellesVus = new Set<string>();
