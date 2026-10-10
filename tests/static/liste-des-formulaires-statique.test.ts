@@ -9,6 +9,10 @@ import { describe, it, expect } from 'vitest';
 import source from '../../src/pages/admin/formulaires.astro?raw';
 import textes from '../../src/admin/textes.ts?raw';
 import { TEXTE_AUCUN_FORMULAIRE } from '../../src/admin/textes.ts';
+import {
+  lireFormulairesDeclares,
+  type FichierFormulaireBrut,
+} from '../../src/core/formulaires/declaration.ts';
 
 const gabarit = source.slice(
   source.indexOf('---', source.indexOf('---') + 3) + 3,
@@ -26,6 +30,26 @@ describe('SC-02b — un site sans formulaire déclaré', () => {
     expect(gabarit).not.toMatch(/<button[\s>]/i);
     expect(gabarit).not.toMatch(/<input[\s>]/i);
     expect(textes).not.toMatch(/(ajouter|créer) un formulaire/i);
+  });
+
+  // La branche vide de l'écran s'ouvre sur ce que rend la lecture de `core/` :
+  // sans aucun fichier, ou sans aucun fichier lisible, c'est une liste vide.
+  it('SC-02b — lireFormulairesDeclares rend une liste vide quand aucun formulaire.json n’est déclaré', () => {
+    const aucunFichier: FichierFormulaireBrut[] = [];
+
+    expect(lireFormulairesDeclares(aucunFichier)).toEqual([]);
+  });
+
+  it('SC-02b — des déclarations toutes mal formées rendent aussi une liste vide, sans lever', () => {
+    const entrees: FichierFormulaireBrut[] = [
+      { id: 'nul', contenu: null },
+      { id: 'texte', contenu: 'Devis' },
+      { id: 'sans-nom', contenu: { champs: [] } },
+      { id: 'sans-champ', contenu: { nom: 'Devis', champs: [] } },
+    ];
+
+    expect(() => lireFormulairesDeclares(entrees)).not.toThrow();
+    expect(lireFormulairesDeclares(entrees)).toEqual([]);
   });
 });
 
