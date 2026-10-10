@@ -5,7 +5,8 @@ context: |
   Produit  : ColibriCMS — CMS auto-hébergé (Cloudflare palier gratuit), site vitrine statique
              éditable par une cliente non technicienne, qui survit à la disparition d'Isometria.
   Vision   : docs/vision.md (FR-001…, SC-…) · Roadmap : docs/roadmap.md (chaque change ↳ une STORY)
-  Archi    : invariants dans docs/architecture.md + décisions figées dans docs/adr/ (NE PAS contredire
+  Archi    : modèle LikeC4 docs/architecture/*.c4 (structure, projet colibri-cms) · invariants
+             docs/architecture.md · décisions figées dans docs/adr/ (NE PAS contredire
              un ADR accepté ; numérotation 2.x ; les ADR 0001–0008, promus depuis le cycle 1.x, citent
              des numéros 1.x dans leur corps, les ADR nés en 2.x (0009 et suivants) citent des numéros
              2.x — la table de correspondance est dans docs/adr/README.md)
@@ -26,6 +27,8 @@ rules:
   design:
     - Vérifier la conformité aux invariants d'architecture (docs/architecture.md) et des ADR (docs/adr/).
     - Décision structurante nouvelle → proposer un ADR (docs/adr/), ne pas la figer dans design.md.
+    - Citer les éléments LikeC4 touchés par leur FQN (ex. colibri-cms.core).
+    - Relation nouvelle → éditer le .c4 dans le change, puis `likec4 validate --no-layout --json --project colibri-cms docs/architecture`.
 operations:
   archive:
     guidance:

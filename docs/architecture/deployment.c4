@@ -1,0 +1,40 @@
+// Déploiement — où tourne quoi. Posé par /scd-spec-dev:archi-dossier (relevé).
+// Aucune production n'est encore déployée (Epic D de docs/roadmap.md) : seuls le poste local et la recette ont une trace.
+
+specification {
+  deploymentNode environment
+  deploymentNode node
+}
+
+deployment {
+  // trace : package.json:27 — "dev": "astro dev" (liaisons de wrangler.astro.jsonc) ; vitest.config.ts — tests dans workerd (ADR-0014)
+  local = environment 'Poste local' {
+    miniflare = node 'Miniflare (workerd)' {
+      description 'astro dev et la suite de tests : liaisons D1 et send_email servies localement, rien ne part vers un compte.'
+      instanceOf colibri-cms.worker
+      instanceOf colibri-cms.d1
+    }
+  }
+
+  // trace : .claude/skills/recette/SKILL.md:30 — déploiement principal, https://colibri.sebc.dev/admin/
+  recette = environment 'Recette' {
+    workers = node 'Cloudflare Workers — colibri.sebc.dev' {
+      instanceOf colibri-cms.worker
+    }
+    base = node 'Cloudflare D1' {
+      instanceOf colibri-cms.d1
+    }
+  }
+}
+
+views {
+  deployment view recette {
+    title 'Déploiement — recette'
+    include recette.**
+  }
+
+  deployment view local {
+    title 'Déploiement — poste local'
+    include local.**
+  }
+}

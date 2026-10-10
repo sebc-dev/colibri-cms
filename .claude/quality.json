@@ -56,6 +56,18 @@
       "cmd": "npm run knip",
       "severity": "advisory",
       "autofix": null
+    },
+    {
+      "id": "likec4",
+      "cmd": "likec4 validate --no-layout --json --project colibri-cms docs/architecture",
+      "severity": "blocking",
+      "autofix": null
+    },
+    {
+      "id": "architecture",
+      "cmd": "node .claude/scripts/scd-arch-conformance.mjs --model docs/architecture --project colibri-cms --base origin/main",
+      "severity": "advisory",
+      "autofix": null
     }
   ]
 }

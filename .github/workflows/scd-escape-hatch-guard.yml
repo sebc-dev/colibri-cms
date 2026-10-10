@@ -20,3 +20,23 @@ jobs:
             exit 1
           fi
           echo "OK — aucun escape-hatch."
+
+  # Ce job n'est écrit que si docs/architecture/likec4.config.json existe (dimension architecture).
+  likec4-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Valider le modèle LikeC4
+        run: |
+          # Garde : sans modèle, le job passe sans rien faire (le dépôt peut ne pas en avoir encore).
+          if [ ! -f docs/architecture/likec4.config.json ]; then
+            echo "Pas de docs/architecture/likec4.config.json — rien à valider."
+            exit 0
+          fi
+          PROJECT=$(jq -r '.name' docs/architecture/likec4.config.json)
+          npx --yes likec4@1.59.3 validate --no-layout --json --project "$PROJECT" docs/architecture
