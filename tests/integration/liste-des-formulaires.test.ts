@@ -89,6 +89,16 @@ async function ouvrirEnSession(): Promise<string> {
   return reponse.text();
 }
 
+/** Même requête qu'`ouvrirEnSession`, pour lire les en-têtes de la réponse. */
+async function ouvrirReponseEnSession(): Promise<Response> {
+  const cookie = await semerSession(await assurerSchema());
+  return exports.default.fetch(
+    new Request(ROUTE, {
+      headers: { cookie: `${NOM_COOKIE_SESSION}=${cookie}` },
+    }),
+  );
+}
+
 function sansBalises(html: string): string {
   return html
     .split('<')
@@ -195,6 +205,25 @@ it('SC-02e — seules quatre rubriques mènent à un écran servi, et aucun gest
       geste,
     );
   }
+});
+
+it('SC-02f — l’écran est servi sous la politique de sécurité de l’administration, sans script en ligne ni directive client:*', async () => {
+  const reponse = await ouvrirReponseEnSession();
+  expect(reponse.status).toBe(200);
+  const csp = reponse.headers.get('content-security-policy');
+  expect(csp, 'une Content-Security-Policy devrait être posée').toBeTruthy();
+
+  // La même politique que l'écran de connexion : l'écran ne l'assouplit pas.
+  const connexion = await exports.default.fetch(
+    new Request('https://example.com/admin/connexion'),
+  );
+  expect(csp).toBe(connexion.headers.get('content-security-policy'));
+  expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
+  expect(csp).not.toMatch(/unsafe-eval/);
+
+  const corps = await reponse.text();
+  expect(corps).not.toMatch(/client:(load|idle|visible|only|media)/);
+  expect(contenuPrincipal(corps)).not.toMatch(/<script[\s>]/i);
 });
 
 it('SC-02g — l’écran ne porte aucun terme de développeur ni identifiant visible', async () => {
