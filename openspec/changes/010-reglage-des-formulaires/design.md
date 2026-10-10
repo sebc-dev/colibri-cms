@@ -88,22 +88,30 @@ produit — le **formulaire** — à côté de la page et du réglage. Il est tr
 - **Forme de la soumission** : `POST /admin/formulaires/<id>/options`, corps JSON
   `{ champs: [{ id, options: [{ id?, libelle, prix? }] }] }`, `prix` étant le **texte saisi** (« 12,50 »)
   lu par `lirePrixSaisi` en `core/`. Une option sans `id` est une option ajoutée ; `core/` lui attribue
-  un identifiant `o<n>`, `n` étant le plus grand suffixe numérique déjà vu dans le champ — déclaration,
-  brouillon courant et soumission — plus un, pour qu'il ne reprenne jamais celui d'une option retirée.
-  Une option portant un `id` que ni la déclaration ni le brouillon courant ne connaissent, ou un `id`
+  un identifiant `o<n>`, `n` valant un de plus que le plus grand numéro que le champ a connu : le plus
+  grand suffixe `o<n>` de la déclaration, du brouillon courant et de la soumission, et le dernier numéro
+  que le brouillon courant retient pour ce champ. Le nouveau brouillon retient, champ par champ, ce plus
+  grand numéro, attributions nouvelles comprises : un numéro attribué ne revient jamais, même après le
+  retrait de son option par un enregistrement précédent (ADR-0018, « jamais réattribuée dans un
+  champ »). Le dernier numéro retenu ne vient jamais de la soumission. Une option portant un `id` que ni la déclaration ni le brouillon courant ne connaissent, ou un `id`
   répété dans la soumission, rend `forme-invalide`. La marque avec / sans prix, la nature et l'existence
   des champs sont **toujours** lues dans la déclaration.
 - **Un brouillon par formulaire, une ligne par formulaire** : migration additive
   `migrations/0008_brouillons_formulaires.sql` (numéro à reconfirmer par `ls migrations/` au ticket),
   table `brouillons_formulaires(formulaire TEXT PRIMARY KEY, contenu TEXT NOT NULL, maj_le INTEGER NOT
-  NULL)`. `contenu` est un JSON `{ champs: { <idChamp>: [{ id, libelle, prix? }] } }`, prix en centimes.
-  « Porte un brouillon » se dérive de la présence de la ligne, jamais stocké (règle de 0004 et 0007).
+  NULL)`. `contenu` est un JSON `{ champs: { <idChamp>: [{ id, libelle, prix? }] }, derniersNumeros:
+  { <idChamp>: n } }`, prix en centimes ; un brouillon sans `derniersNumeros`, ou sans entrée pour un
+  champ, vaut 0 pour ce champ. `derniersNumeros` ne quitte pas le serveur : la route ne rend que les
+  options, et l'affichage l'ignore. « Porte un brouillon » se dérive de la présence de la ligne, jamais stocké (règle de 0004 et 0007).
   Chaque enregistrement remplace la ligne entière du formulaire. Pas de contrainte `CHECK` sur
   l'identifiant : les formulaires sont déclarés site par site ; une ligne orpheline est ignorée à la
   lecture. Candidat `magasin-d1-brouillons-etat-publie-et-demandes` tenu.
   Écartés : une ligne par champ (le formulaire s'enregistre d'un bloc, FR-051 parle du brouillon *du
   formulaire*) ; réutiliser `brouillons_reglages` (sa contrainte `CHECK` le ferme, et mêler deux objets
-  brouillerait le récapitulatif de FR-083).
+  brouillerait le récapitulatif de FR-083) ; numéroter d'après les seuls numéros visibles — déclaration,
+  brouillon courant, soumission — (une option ajoutée, retirée par un enregistrement, puis remplacée par
+  un autre ajout, en reprendrait le numéro, contre ADR-0018) ; le dernier numéro dans une colonne D1
+  dédiée (une migration de plus pour une donnée qui vit et meurt avec le brouillon).
 - **Le magasin vit dans `src/platform/formulaires/magasin.ts`** (lire tous les brouillons ou celui d'un
   formulaire, enregistrer par le patron lire → appliquer en `core/` → écrire ssi acceptée ; table
   recréée défensivement au premier accès), et la lecture du contenu déclaré dans
@@ -157,6 +165,9 @@ routes → admin, platform, core ; admin → core ; platform → core, d1, conte
   déjà les natures des champs sans option et la marque obligatoire, que cette story ne fait que lire.
 - [Une option retirée puis ré-ajoutée sous le même libellé reçoit un nouvel identifiant] → assumé : les
   demandes porteront le libellé et le prix au moment de l'envoi (FR-068), pas un renvoi à l'option.
+- [Le dernier numéro attribué vit dans le brouillon] → les stories qui videront un brouillon
+  (« Aperçu et publication », « Restauration ») devront reporter `derniersNumeros` ou le recalculer
+  depuis l'état publié ; sans quoi un numéro déjà publié pourrait revenir, contre ADR-0018.
 - [Corps de requête démesuré ou profond] → lecture bornée à 64 Kio ; 30 options × champs déclarés tient
   largement dessous (voir security-review.md).
 

@@ -24,6 +24,8 @@ contient du balisage, s'affiche comme du texte.
     montre les **options de la déclaration** ;
   - un champ à choix nouvellement déclaré, inconnu du brouillon, montre ses **options de départ** ;
   - un brouillon de forme inattendue est traité comme absent ;
+  - `derniersNumeros` (le dernier numéro d'option attribué par champ, ticket 05) n'entre pas dans
+    l'affichage : un brouillon qui en est dépourvu reste un brouillon valide ;
   - l'ordre des champs, leur nature et leur marque avec ou sans prix viennent **toujours** de la
     déclaration.
   Elle servira plus tard l'aperçu et la publication.
