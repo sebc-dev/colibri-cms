@@ -253,6 +253,133 @@ describe("SC-05c — ajouter une option", () => {
     expect(derniere?.id).toBeTruthy();
     expect(new Set(ids).size).toBe(4);
   });
+
+  it("SC-05c — l’identifiant neuf de « Pistache » est stable : un second enregistrement qui le reprend remplace le brouillon, sans doublon", async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+    const r1 = await poster(
+      cookie,
+      JSON.stringify(
+        corpsGateau([...parfumsDeBase(), { libelle: "Pistache", prix: "12" }]),
+      ),
+    );
+    expect(r1.status).toBe(200);
+    const idPistache = (await parfumsRetournes(r1)).at(3)?.id;
+    expect(idPistache).toBeDefined();
+    if (idPistache === undefined) throw new Error("Pistache sans identifiant");
+
+    // Act
+    const r2 = await poster(
+      cookie,
+      JSON.stringify(
+        corpsGateau([
+          ...parfumsDeBase(),
+          { id: idPistache, libelle: "Pistache", prix: "13" },
+        ]),
+      ),
+    );
+
+    // Assert
+    expect(r2.status).toBe(200);
+    const retour = await parfumsRetournes(r2);
+    expect(retour).toHaveLength(4);
+    expect(retour.at(3)).toEqual({
+      id: idPistache,
+      libelle: "Pistache",
+      prix: 1300,
+    });
+    const stocke = await lignes(db);
+    expect(stocke).toHaveLength(1);
+    const contenu = JSON.parse(stocke.at(0)?.contenu ?? "{}") as {
+      champs: Record<string, OptionLue[]>;
+    };
+    expect(contenu.champs.parfum).toEqual(retour);
+  });
+
+  it("SC-05c — l’identifiant d’une option ajoutée puis retirée n’est jamais redonné", async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+    const r1 = await poster(
+      cookie,
+      JSON.stringify(
+        corpsGateau([...parfumsDeBase(), { libelle: "Pistache", prix: "12" }]),
+      ),
+    );
+    expect(r1.status).toBe(200);
+    const idPistache = (await parfumsRetournes(r1)).at(3)?.id;
+    expect(idPistache).toBeDefined();
+    const r2 = await poster(cookie, JSON.stringify(corpsGateau(parfumsDeBase())));
+    expect(r2.status).toBe(200);
+
+    // Act
+    const r3 = await poster(
+      cookie,
+      JSON.stringify(
+        corpsGateau([...parfumsDeBase(), { libelle: "Noisette", prix: "11" }]),
+      ),
+    );
+
+    // Assert
+    expect(r3.status).toBe(200);
+    const idNoisette = (await parfumsRetournes(r3)).at(3)?.id;
+    expect(idNoisette).toBeDefined();
+    for (const pris of [idPistache, "vanille", "chocolat", "fraise"]) {
+      expect(idNoisette).not.toBe(pris);
+    }
+    const stocke = await lignes(db);
+    expect(stocke).toHaveLength(1);
+    const contenu = JSON.parse(stocke.at(0)?.contenu ?? "{}") as {
+      derniersNumeros?: Record<string, number>;
+    };
+    expect(contenu.derniersNumeros).toHaveProperty("parfum");
+  });
+
+  it("SC-05c — un brouillon sans derniersNumeros reste un brouillon : l’option ajoutée qu’il porte est reprise par son identifiant", async () => {
+    // Arrange : un brouillon écrit sans la clé `derniersNumeros`.
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+    await db
+      .prepare(
+        `insert into ${TABLE_BROUILLONS} (formulaire, contenu, maj_le) values (?1, ?2, ?3)`,
+      )
+      .bind(
+        "devis-gateau",
+        JSON.stringify({
+          champs: {
+            parfum: [
+              { id: "vanille", libelle: "Vanille", prix: 800 },
+              { id: "chocolat", libelle: "Chocolat", prix: 900 },
+              { id: "fraise", libelle: "Fraise", prix: 1000 },
+              { id: "o4", libelle: "Pistache", prix: 1200 },
+            ],
+          },
+        }),
+        Date.now(),
+      )
+      .run();
+
+    // Act
+    const reponse = await poster(
+      cookie,
+      JSON.stringify(
+        corpsGateau([
+          ...parfumsDeBase(),
+          { id: "o4", libelle: "Pistache", prix: "12" },
+        ]),
+      ),
+    );
+
+    // Assert
+    expect(reponse.status).toBe(200);
+    expect((await parfumsRetournes(reponse)).at(3)).toEqual({
+      id: "o4",
+      libelle: "Pistache",
+      prix: 1200,
+    });
+    expect(await lignes(db)).toHaveLength(1);
+  });
 });
 
 describe("SC-05d — retirer une option", () => {
@@ -377,6 +504,34 @@ describe("SC-05i — corps illisible, inattendu ou démesuré", () => {
       expect(await lignes(db)).toHaveLength(0);
     },
   );
+
+  it("SC-05i — une valeur refusée (prix « douze » pour « Vanille ») est refusée en 400, désigne l’option fautive et laisse intact le brouillon existant", async () => {
+    // Arrange : un brouillon où « Vanille » vaut 10 €.
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+    const parfums = parfumsDeBase();
+    parfums[0] = { id: "vanille", libelle: "Vanille", prix: "10" };
+    const r1 = await poster(cookie, JSON.stringify(corpsGateau(parfums)));
+    expect(r1.status).toBe(200);
+    const fautifs = parfumsDeBase();
+    fautifs[0] = { id: "vanille", libelle: "Vanille", prix: "douze" };
+
+    // Act
+    const reponse = await poster(cookie, JSON.stringify(corpsGateau(fautifs)));
+
+    // Assert
+    expect(reponse.status).toBe(400);
+    expect(await reponse.json()).toEqual({
+      ok: false,
+      refus: [{ champ: "parfum.0.prix", raison: "prix-invalide" }],
+    });
+    const stocke = await lignes(db);
+    expect(stocke).toHaveLength(1);
+    const contenu = JSON.parse(stocke.at(0)?.contenu ?? "{}") as {
+      champs: Record<string, OptionLue[]>;
+    };
+    expect(contenu.champs.parfum.at(0)?.prix).toBe(1000);
+  });
 });
 
 describe("SC-05j — écriture forgée depuis une autre origine", () => {

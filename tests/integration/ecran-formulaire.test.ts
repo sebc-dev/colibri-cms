@@ -4,8 +4,8 @@
  * Couture : requête HTTP réelle via `exports.default.fetch` dans `workerd`,
  * contre la vraie D1 locale ; une session est semée directement (même geste
  * que `liste-des-pages.test.ts`). Les deux formulaires lus sont ceux déclarés
- * au dépôt (`content/formulaires/*`). L'état vide et la source sont prouvés
- * dans `tests/static/ecran-formulaire-statique.test.ts`.
+ * au dépôt (`content/formulaires/*`). Les contrôles de la source (import `?raw`
+ * de `[id].astro`) vivent dans ce fichier même (SC-04e, politique de sécurité).
  */
 import { env, exports } from "cloudflare:workers";
 import { it, expect, afterEach } from "vitest";
@@ -211,6 +211,18 @@ it("SC-04d — sans session, l’écran d’un formulaire déclaré renvoie à l
   expect(corps).not.toContain("Parfum");
 });
 
+it("SC-04d — sans session, un identifiant non déclaré renvoie aussi à la connexion, jamais à « introuvable »", async () => {
+  // La garde de session passe avant la recherche du formulaire.
+  const reponse = await exports.default.fetch(
+    new Request(`${BASE}n-existe-pas`, { redirect: "manual" }),
+  );
+
+  expect(reponse.status).toBeGreaterThanOrEqual(300);
+  expect(reponse.status).toBeLessThan(400);
+  expect(reponse.headers.get("location") ?? "").toContain("/admin/connexion");
+  expect(await reponse.text()).not.toContain("introuvable");
+});
+
 it("SC-04e — les libellés avec esperluette paraissent comme du texte, et la page n’injecte aucun balisage issu des données", async () => {
   const principal = contenuPrincipal(await ouvrirEnSession());
 
@@ -220,6 +232,70 @@ it("SC-04e — les libellés avec esperluette paraissent comme du texte, et la p
   expect(source).not.toMatch(/set:html|innerHTML|<Fragment|set:text/);
   expect(source).not.toMatch(/client:/);
   expect(source).not.toMatch(/<script/);
+});
+
+// La preuve à l'exécution avec un guillemet double ou des chevrons dans les
+// données attend une déclaration de test (arbitrage humain) ou le ticket 06.
+it("SC-04e — nom, libellés de champ et d’option avec apostrophe paraissent comme du texte, par l’interpolation échappée seule", async () => {
+  const principal = contenuPrincipal(
+    await ouvrirEnSession(`${BASE}devis-atelier`),
+  );
+
+  expect(/<h1[^>]*>([\s\S]*?)<\/h1>/.exec(principal)?.[1].trim()).toBe(
+    "Devis atelier",
+  );
+  const titre = /<h2[^>]*>([\s\S]*?)<\/h2>/.exec(principal)?.[1] ?? "";
+  // L'apostrophe arrive échappée par Astro, jamais brute dans la balise.
+  expect(titre).toContain("Type d&#39;atelier");
+  expect(titre).not.toContain("'");
+  const decode = titre
+    .replaceAll("&#39;", "'")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&amp;", "&");
+  expect(decode).toBe("Type d'atelier");
+
+  // Les trois lieux du critère passent par l'interpolation échappée d'Astro.
+  expect(source).toContain("<h1>{formulaire.nom}</h1>");
+  expect(source).toContain(">{champ.libelle}</h2>");
+  expect(source).toContain("value={option.libelle}");
+});
+
+it("SC-04a — la carte Parfum porte « € » une fois par option à prix", async () => {
+  const principal = contenuPrincipal(await ouvrirEnSession());
+  const parfum =
+    [...principal.matchAll(/<section[\s\S]*?<\/section>/g)].at(0)?.[0] ?? "";
+
+  expect(sansBalises(parfum)).toContain("Parfum");
+  expect(sansBalises(parfum).match(/€/g)).toHaveLength(3);
+});
+
+it("décision du ticket 04 — l’écran d’un formulaire est servi sous la politique de sécurité de l’administration, sans bloc <style> ni script", async () => {
+  const cookie = await semerSession(await assurerSchema());
+  const reponse = await exports.default.fetch(
+    new Request(ROUTE, {
+      headers: { cookie: `${NOM_COOKIE_SESSION}=${cookie}` },
+    }),
+  );
+  expect(reponse.status).toBe(200);
+  const csp = reponse.headers.get("content-security-policy");
+  expect(csp, "une Content-Security-Policy devrait être posée").toBeTruthy();
+
+  // La même politique que l'écran de connexion : l'écran ne l'assouplit pas.
+  const connexion = await exports.default.fetch(
+    new Request("https://example.com/admin/connexion"),
+  );
+  expect(csp).toBe(connexion.headers.get("content-security-policy"));
+  expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
+  expect(csp).not.toMatch(/unsafe-eval/);
+
+  const corps = await reponse.text();
+  expect(corps).not.toMatch(/client:(load|idle|visible|only|media)/);
+  expect(contenuPrincipal(corps)).not.toMatch(/<script[\s>]/i);
+  // Le glob de tests/static/politique-de-securite-statique.test.ts
+  // n'atteint pas src/pages/admin/formulaires/ : la source se vérifie ici.
+  expect(source).not.toMatch(/<style[\s>]/i);
 });
 
 it("SC-04f — aucun terme de développeur ni identifiant, aucun prix en centimes", async () => {
