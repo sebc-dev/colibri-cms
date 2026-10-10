@@ -51,7 +51,7 @@
 
 ## Commandes (source de vérité : `docs/ci.md` — s'y reporter, ne pas diverger)
 - Installation : `npm ci` — jamais `npm install`
-- Typage : `npm run typecheck`   # `tsc --noEmit` — le build seul ne type pas
+- Typage : `npm run typecheck`   # `tsc --noEmit` puis `svelte-check` (les `.svelte`) — le build seul ne type pas
 - Build : `npm run build`         # `astro build` — lancer `typecheck` **puis** `build`
 - Test : `npm test`               # dans `workerd` ; préférer un seul test, pas toute la suite
 - Lint/format : `npm run lint`    # SOURCE DE VÉRITÉ du style — ne pas documenter les règles ici

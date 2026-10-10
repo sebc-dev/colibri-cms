@@ -36,11 +36,24 @@
 -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { Editor } from '@tiptap/core';
+  import { Editor, type JSONContent } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import { Button } from '../composants/ui/button/index.ts';
   import { messageErreurCorrection, MESSAGE_ECHEC, MESSAGE_RESEAU } from './message-erreur-correction.ts';
-  import { analyserMarkdownRestreint, lienDeTexteRicheAutorise } from '../../core/pages/texte-riche.ts';
+  import {
+    analyserMarkdownRestreint,
+    lienDeTexteRicheAutorise,
+    type NoeudDocument,
+  } from '../../core/pages/texte-riche.ts';
+
+  /** Le document lu, recopié dans la forme modifiable que TipTap attend (ses listes ne sont pas en lecture seule). */
+  function versContenuEditeur(noeud: NoeudDocument): JSONContent {
+    return {
+      ...noeud,
+      content: noeud.content?.map(versContenuEditeur),
+      marks: noeud.marks?.map((marque) => ({ ...marque })),
+    };
+  }
 
   interface Props {
     /** Adresse d'enregistrement (POST JSON), composée par l'appelant. */
@@ -120,7 +133,7 @@
   onMount(() => {
     editeur = new Editor({
       element: zoneEdition,
-      content: analyserMarkdownRestreint(markdownInitial),
+      content: versContenuEditeur(analyserMarkdownRestreint(markdownInitial)),
       // Le `<style>` que TipTap injecterait est refusé par la CSP de
       // l'administration (`style-src 'self'`, ADR-0010) : ses règles vivent
       // dans `src/admin/admin.css`.

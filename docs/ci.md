@@ -16,7 +16,7 @@ Source unique — `CLAUDE.md` y renvoie, il ne les recopie pas.
 | Rôle | Commande | Note |
 |---|---|---|
 | Installation | `npm ci` | **jamais** `npm install` — l'installation est verrouillée par le lockfile |
-| Typage | `npm run typecheck` | `tsc --noEmit`. Le typage strict n'est pas fait par le build seul |
+| Typage | `npm run typecheck` | `tsc --noEmit`, puis `svelte-check` (les `.svelte`, que `tsc` ne lit pas ; erreurs seules, `--threshold error`). Le typage strict n'est pas fait par le build seul |
 | Build | `npm run build` | `astro build`, adaptateur `@astrojs/cloudflare`. `typecheck` **puis** `build` |
 | Tests | `npm test` | `vitest run --passWithNoTests`, dans `workerd` (voir [`docs/test.md`](./test.md)) |
 | Un seul test | `npx vitest run tests/integration/<fichier>.test.ts` | exige le **worker de test déjà bâti** — sinon, `npm run build` une fois, puis cette commande. Elle ne rejoue pas le build |
