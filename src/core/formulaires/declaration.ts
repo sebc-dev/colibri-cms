@@ -35,6 +35,12 @@ const NATURES_A_CHOIX: readonly NatureChamp[] = ['choix-unique', 'choix-multiple
 /** Le prix maximal d'une option, en centimes. */
 export const PRIX_CENTIMES_MAX = 9_999_999;
 
+/** Le nombre maximal d'options d'un champ à choix. */
+export const OPTIONS_PAR_CHAMP_MAX = 30;
+
+/** La longueur maximale (caractères) du libellé d'une option. */
+export const LIBELLE_OPTION_LONGUEUR_MAX = 80;
+
 /** Un fichier brut : identifiant = nom du répertoire, contenu = JSON lu. */
 export interface FichierFormulaireBrut {
   readonly id: string;
