@@ -58,13 +58,13 @@ comportement par une requête HTTP ; l'écran qui l'appelle arrive au ticket 07.
 (ticket 07) ; l'abandon d'un brouillon ; l'aperçu et la publication.
 
 ## Critères
-- [ ] Par la couture HTTP, en session, soumettre « Devis gâteau » avec « Vanille » à « 10 » au lieu de 8 €, toutes les autres options inchangées, fait porter au brouillon de « Devis gâteau » « Vanille » à 10 €, les autres options inchangées   (SC-05a)
-- [ ] Par la couture HTTP, en session, soumettre « Devis gâteau » avec l'option « Fraise » renommée « Fraise des bois » fait porter au brouillon « Fraise des bois », au même rang et avec le même identifiant que « Fraise »   (SC-05b)
-- [ ] Par la couture HTTP, en session, soumettre « Devis gâteau » avec une option nouvelle « Pistache » à « 12 » ajoutée en fin du champ « Parfum » fait porter au brouillon quatre parfums, « Pistache » en dernier à 12 €, avec un identifiant neuf distinct de ceux des trois autres   (SC-05c)
-- [ ] Par la couture HTTP, en session, soumettre « Devis gâteau » sans l'option « Chocolat » fait porter au brouillon « Vanille » puis « Fraise », et aucune option « Chocolat »   (SC-05d)
-- [ ] Par la couture HTTP, en session, enregistrer une correction de « Devis gâteau » lui fait porter un brouillon ; « Devis atelier » et les réglages n'en portent pas de nouveau, et la déclaration des formulaires est inchangée   (SC-05e)
-- [ ] La table D1 des brouillons de formulaires est créée par une migration versionnée additive, sans toucher aucune table existante   (SC-05f)
-- [ ] Par la couture HTTP, une correction d'un formulaire soumise sans session ouverte est refusée et aucun brouillon n'est écrit   (SC-05g)
-- [ ] Par la couture HTTP, en session, une correction soumise pour un identifiant qu'aucun formulaire déclaré ne porte reçoit la réponse « introuvable », et aucun brouillon n'est écrit   (SC-05h)
-- [ ] Par la couture HTTP, en session, une correction soumise avec un corps qui n'est pas du JSON, dont la forme n'est pas celle attendue, ou de plus de 64 Kio est refusée sans erreur du serveur, et aucun brouillon n'est écrit   (SC-05i)
-- [ ] Une écriture d'un formulaire forgée depuis une autre origine n'aboutit pas, la session `SameSite=Strict` n'étant pas attachée à une requête cross-site (ADR-0011)   (SC-05j)
+- [x] Par la couture HTTP, en session, soumettre « Devis gâteau » avec « Vanille » à « 10 » au lieu de 8 €, toutes les autres options inchangées, fait porter au brouillon de « Devis gâteau » « Vanille » à 10 €, les autres options inchangées   (SC-05a)
+- [x] Par la couture HTTP, en session, soumettre « Devis gâteau » avec l'option « Fraise » renommée « Fraise des bois » fait porter au brouillon « Fraise des bois », au même rang et avec le même identifiant que « Fraise »   (SC-05b)
+- [x] Par la couture HTTP, en session, soumettre « Devis gâteau » avec une option nouvelle « Pistache » à « 12 » ajoutée en fin du champ « Parfum » fait porter au brouillon quatre parfums, « Pistache » en dernier à 12 €, avec un identifiant neuf distinct de ceux des trois autres   (SC-05c)
+- [x] Par la couture HTTP, en session, soumettre « Devis gâteau » sans l'option « Chocolat » fait porter au brouillon « Vanille » puis « Fraise », et aucune option « Chocolat »   (SC-05d)
+- [x] Par la couture HTTP, en session, enregistrer une correction de « Devis gâteau » lui fait porter un brouillon ; « Devis atelier » et les réglages n'en portent pas de nouveau, et la déclaration des formulaires est inchangée   (SC-05e)
+- [x] La table D1 des brouillons de formulaires est créée par une migration versionnée additive, sans toucher aucune table existante   (SC-05f)
+- [x] Par la couture HTTP, une correction d'un formulaire soumise sans session ouverte est refusée et aucun brouillon n'est écrit   (SC-05g)
+- [x] Par la couture HTTP, en session, une correction soumise pour un identifiant qu'aucun formulaire déclaré ne porte reçoit la réponse « introuvable », et aucun brouillon n'est écrit   (SC-05h)
+- [x] Par la couture HTTP, en session, une correction soumise avec un corps qui n'est pas du JSON, dont la forme n'est pas celle attendue, ou de plus de 64 Kio est refusée sans erreur du serveur, et aucun brouillon n'est écrit   (SC-05i)
+- [x] Une écriture d'un formulaire forgée depuis une autre origine n'aboutit pas, la session `SameSite=Strict` n'étant pas attachée à une requête cross-site (ADR-0011)   (SC-05j)
