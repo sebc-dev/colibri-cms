@@ -82,9 +82,12 @@ produit — le **formulaire** — à côté de la page et du réglage. Il est tr
     `forme-invalide`, soit `valeur-refusee` avec `refus: [{ champ, raison }]`, `champ` valant
     `<idChamp>`, `<idChamp>.<rang>.libelle` ou `<idChamp>.<rang>.prix`. Les raisons sont des codes que
     l'îlot traduit en français, jamais affichés bruts.
-  - `brouillon.ts` — `optionsCourantes(formulaireDeclare, brouillon)` : rapprochement par identifiant
-    (champ disparu ignoré, champ en désaccord ou nouveau → options de départ). Sert l'écran et, plus
-    tard, l'aperçu et la publication.
+  - `brouillon.ts` — `optionsCourantes(formulaireDeclare, brouillon)` : rapprochement par identifiant,
+    champ par champ (champ disparu ignoré ; champ qui n'est plus à choix, sans option ; champ dont la
+    marque avec / sans prix ne s'accorde plus, ou champ nouveau → options de départ ; sinon la liste du
+    brouillon, entière et telle quelle). La nature ne compte que pour « à choix ou non » : le brouillon
+    ne la retient pas. Sert l'écran et, plus tard, l'aperçu et la publication, qui l'appellent sans la
+    réécrire.
 - **Forme de la soumission** : `POST /admin/formulaires/<id>/options`, corps JSON
   `{ champs: [{ id, options: [{ id?, libelle, prix? }] }] }`, `prix` étant le **texte saisi** (« 12,50 »)
   lu par `lirePrixSaisi` en `core/`. Une option sans `id` est une option ajoutée ; `core/` lui attribue
@@ -156,9 +159,15 @@ routes → admin, platform, core ; admin → core ; platform → core, d1, conte
 
 ## Risks / Trade-offs
 
-- [La déclaration change sous un brouillon — option ou champ retiré, marque avec / sans prix
-  changée] → rapprochement par identifiant en `core/` (`brouillon.ts`), scénario dédié dans la spec ;
-  un champ en désaccord retombe sur ses options de départ plutôt que de mêler deux formes.
+- [La déclaration change sous un brouillon — champ retiré ou devenu sans option, marque avec / sans
+  prix changée] → rapprochement par identifiant en `core/` (`brouillon.ts`), scénario dédié dans la
+  spec ; un champ en désaccord retombe sur ses options de départ plutôt que de mêler deux formes.
+- [Les options de départ changent sous un champ déjà enregistré — option ajoutée, retirée, renommée ou
+  au prix changé par l'intégrateur] → la liste du brouillon reste celle de l'éditrice, montrée telle quelle ;
+  aucune fusion option par option. Ce que la publication déposera pour ce champ est **reporté à la story
+  « Aperçu et publication »**, avec la décision proposée, les cas et les points d'appui :
+  `docs/adr/_candidates/brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md`. Les tests « SC-06d » de
+  `tests/unit/formulaires/brouillon.test.ts` figent le comportement d'ici là.
 - [Deux options au même libellé rendraient une demande ambiguë pour l'éditrice] → refus à la casse près
   dans le même champ.
 - [Le format choisi ici engage la story suivante] → c'est l'objet de l'ADR proposé ; le format couvre

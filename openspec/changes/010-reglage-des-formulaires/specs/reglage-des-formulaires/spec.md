@@ -201,12 +201,19 @@ Chaque formulaire SHALL porter son **propre brouillon**. Enregistrer un formulai
 brouillon et lui seul, sans jamais écrire le répertoire de contenu des formulaires ni toucher le site
 public (FR-051), et sans marquer d'autre formulaire ni aucun réglage. L'état « porte un brouillon » d'un
 formulaire DOIT être dérivé de la présence de son brouillon : vrai dès qu'un enregistrement a abouti,
-faux sinon. Les brouillons DOIVENT être portés par une table D1 créée par une migration versionnée
-additive. Quand la déclaration change sous un brouillon, le brouillon se rattache par les identifiants
-stables : le brouillon d'un formulaire ou d'un champ que la déclaration ne porte plus est ignoré, un
-champ dont le brouillon ne s'accorde plus à la déclaration (nature, marque avec prix / sans prix) montre
-les options de la déclaration, et un champ à choix nouvellement déclaré montre ses options de départ —
-jamais une erreur. Une écriture refusée NE DOIT rien enregistrer. Une écriture sans session ouverte DOIT
+faux sinon ; un brouillon dont le contenu n'a pas la forme attendue est tenu pour absent. Les brouillons
+DOIVENT être portés par une table D1 créée par une migration versionnée additive. Quand la déclaration
+change sous un brouillon, le brouillon se rattache par les identifiants stables : le brouillon d'un
+formulaire ou d'un champ que la déclaration ne porte plus est ignoré ; un champ qui n'est plus à choix ne
+montre aucune option ; un champ à choix dont le brouillon ne s'accorde plus à la marque avec prix / sans
+prix déclarée montre les options de la déclaration ; un champ à choix nouvellement déclaré montre ses
+options de départ — jamais une erreur. La nature d'un champ ne compte que pour savoir s'il est à choix :
+le brouillon ne la retient pas, et un champ passé de choix unique à choix multiple, ou l'inverse, garde
+la liste de son brouillon. Le brouillon d'un champ à choix porte **toute la liste de ses options** : elle
+est montrée telle quelle, sans y mêler les options de départ que la déclaration a ajoutées, retirées ou
+changées depuis l'enregistrement (ce que la publication en fera est réservé à la story « Aperçu et
+publication » : `docs/adr/_candidates/brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md`). Une
+écriture refusée NE DOIT rien enregistrer. Une écriture sans session ouverte DOIT
 être refusée, et une écriture forgée depuis une autre origine NE DOIT pas aboutir : la session
 `SameSite=Strict` n'est pas attachée à une requête cross-site (ADR-0011), sans jeton anti-forgerie
 dédié.

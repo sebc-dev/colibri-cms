@@ -81,5 +81,9 @@ pas contredire un ADR accepté », et un candidat n'en est pas un. Un renvoi ver
 absent de la table ci-dessus pointe donc vers une décision **non promue** — la lire dans
 l'archive, ne pas la traiter comme figée.
 
+S'y ajoute **un candidat né sous le cycle 2.x**, sans antécédent 1.x :
+[`brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md`](./_candidates/brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md),
+déposé par le change `010` et à trancher par la story « Aperçu et publication ».
+
 La promotion est un geste humain : on copie le candidat dans `docs/adr/` sous le prochain numéro
 libre, on renseigne statut et date, et on retire le fichier de `_candidates/`.
