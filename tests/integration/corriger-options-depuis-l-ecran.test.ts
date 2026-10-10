@@ -167,6 +167,25 @@ function zoneMarque(html: string): string {
   );
 }
 
+/** La première `<div>` qui porte `attribut`, de sa balise ouvrante à sa balise fermante. */
+function divPortant(html: string, attribut: string): string {
+  const debut = html.search(new RegExp(`<div[^>]*\\s${attribut}[\\s>=]`));
+  if (debut < 0) return "";
+  const balises = /<\/?div\b[^>]*>/g;
+  balises.lastIndex = debut;
+  let profondeur = 0;
+  for (let m = balises.exec(html); m !== null; m = balises.exec(html)) {
+    profondeur += m[0].startsWith("</") ? -1 : 1;
+    if (profondeur === 0) return html.slice(debut, m.index + m[0].length);
+  }
+  return "";
+}
+
+function nombreDeBoutonsEnregistrer(html: string): number {
+  return [...html.matchAll(/<button[^>]*>\s*Enregistrer\s*<\/button>/g)]
+    .length;
+}
+
 async function nombreDeBrouillons(db: DBLike): Promise<number> {
   const r = await db
     .prepare(`select formulaire from ${TABLE_BROUILLONS}`)
@@ -303,5 +322,28 @@ describe("SC-07c — un enregistrement réussi", () => {
     expect(apres.map((o) => o.id)).toEqual(rendu.map((o) => o.id));
     expect(apres).toHaveLength(4);
     expect(await nombreDeBrouillons(db)).toBe(1);
+  });
+});
+
+describe("SC-07a — un seul « Enregistrer » à l'écran", () => {
+  it("SC-07a — le seul « Enregistrer » de la page est dans la zone que l'îlot vide au montage", async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+    const monter = (
+      await import("../../src/admin/ilots-svelte-5/monter.ts?raw")
+    ).default;
+    const montage =
+      /export function monterEcranFormulaire[\s\S]*$/.exec(monter)?.[0] ?? "";
+
+    // Act
+    const html = await lireEcran(cookie);
+    const zone = divPortant(html, "data-ecran-formulaire");
+
+    // Assert
+    expect(zone).not.toBe("");
+    expect(nombreDeBoutonsEnregistrer(html)).toBe(1);
+    expect(nombreDeBoutonsEnregistrer(zone)).toBe(1);
+    expect(montage).toContain("cible.innerHTML = '';");
   });
 });

@@ -112,16 +112,13 @@ it("SC-07d — les messages de l'écran d'un formulaire ne portent ni terme de d
 it("SC-07d — chaque code de refus du noyau pour les options a un message français", async () => {
   // Arrange
   const { TEXTES_REFUS_FORMULAIRE } = await import("../../src/admin/textes.ts");
-  const options = (await import("../../src/core/formulaires/options.ts?raw"))
-    .default;
-  const prix = (await import("../../src/core/formulaires/prix.ts?raw")).default;
-  const codes = [
-    ...(options + prix).matchAll(/'((?:prix|libelle|nombre)-[a-z-]+)'/g),
-  ].map((m) => m[1]);
+  // La liste fermée du noyau : le typage y astreint chaque refus qu'il rend.
+  const { RAISONS_REFUS_OPTION } =
+    await import("../../src/core/formulaires/options.ts");
 
   // Act / Assert
-  expect(codes.length).toBeGreaterThan(0);
-  for (const code of new Set(codes)) {
+  for (const code of RAISONS_REFUS_OPTION) {
     expect(TEXTES_REFUS_FORMULAIRE[code], code).toBeDefined();
+    expect(TEXTES_REFUS_FORMULAIRE[code], code).not.toContain(code);
   }
 });
