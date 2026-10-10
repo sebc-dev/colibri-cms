@@ -134,7 +134,8 @@ celles de la déclaration, jamais celles qu'annonce la soumission :
 - un champ que la déclaration ne porte pas, un champ qui n'est pas à choix, ou un champ à choix déclaré
   absent de la soumission DOIT faire refuser la soumission.
 Une option conservée garde son identifiant ; une option ajoutée reçoit un identifiant neuf, stable
-ensuite, qui ne reprend celui d'aucune autre option du champ. Un seul refus refuse toute la soumission,
+ensuite, qui ne reprend celui d'aucune option du champ, présente ou retirée par un enregistrement
+précédent (ADR-0018). Un seul refus refuse toute la soumission,
 qui n'écrit alors rien ; chaque refus désigne le champ et l'option fautifs et dit ce qui est attendu,
 la saisie de l'éditrice restant affichée.
 
@@ -149,6 +150,10 @@ la saisie de l'éditrice restant affichée.
 #### Scenario: Ajouter un parfum
 - **WHEN** par la couture HTTP, en session, l'éditrice soumet « Devis gâteau » avec une option nouvelle « Pistache » à « 12 » ajoutée en fin du champ « Parfum »
 - **THEN** le brouillon porte quatre parfums, « Pistache » en dernier à 12 €, avec un identifiant neuf distinct de ceux des trois autres
+
+#### Scenario: L'identifiant d'une option retirée n'est jamais redonné
+- **WHEN** en `core/`, trois corrections d'un même champ s'enchaînent, chacune appliquée au brouillon rendu par la précédente : la première ajoute une option, la deuxième la retire, la troisième ajoute une autre option
+- **THEN** la dernière option ajoutée reçoit un identifiant distinct de celui de l'option retirée comme de ceux des options présentes
 
 #### Scenario: Retirer une option
 - **WHEN** par la couture HTTP, en session, l'éditrice soumet « Devis gâteau » sans l'option « Chocolat »

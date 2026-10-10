@@ -45,7 +45,9 @@
   refus n'écrit rien ; jamais de 5xx sur une entrée de l'éditrice.
 - La structure — existence du formulaire, liste et nature des champs, marque avec / sans prix — est
   **toujours** prise dans la déclaration ; un champ inconnu, un champ à choix omis, un identifiant
-  d'option inconnu ou répété sont refusés. Scénarios de spec dédiés.
+  d'option inconnu ou répété sont refusés. Scénarios de spec dédiés. Le dernier numéro d'option
+  retenu par le brouillon ne vient jamais de la soumission : une requête forgée ne peut pas le remettre
+  à zéro pour faire redonner l'identifiant d'une option retirée (ADR-0018).
 - Le prix arrive en **texte** et est lu par une seule fonction de `core/` vers un entier de centimes
   borné (0 à 9 999 999) ; aucun `parseFloat` d'une valeur brute ; le brouillon ne stocke que des
   entiers.

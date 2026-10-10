@@ -60,7 +60,8 @@ ce ticket produit.
   `o<n>`, réservée aux options créées par l'éditrice. Au moins un libellé déclaré porte une esperluette
   (`&`) et un autre une apostrophe, pour que l'affichage tel quel soit observable sur les écrans.
 - Modèle d'architecture : la description de `colibri-cms.contenu` (« Pages, emplacements et
-  réglages… ») et le libellé de la relation `integrateur -> colibri-cms.contenu` (« déclare pages,
+  réglages… »), celle de l'acteur `integrateur` (« pose les gabarits, les emplacements et les réglages
+  de départ… ») et le libellé de la relation `integrateur -> colibri-cms.contenu` (« déclare pages,
   emplacements et réglages ») reçoivent les formulaires. Aucun élément ni relation nouvelle ; le
   modèle reste valide (`likec4 validate --no-layout --json --project colibri-cms docs/architecture`).
 

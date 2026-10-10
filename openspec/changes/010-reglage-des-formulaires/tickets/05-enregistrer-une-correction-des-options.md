@@ -2,7 +2,7 @@
 
 **Bloqué par :** 03
 **Vérif :** test
-**Fichiers :** `migrations/0008_brouillons_formulaires.sql`, `src/platform/formulaires/magasin.ts`, `src/pages/admin/formulaires/[id]/options.ts`, `tests/unit/formulaires/magasin-schema.test.ts`, `tests/integration/enregistrer-options.test.ts`
+**Fichiers :** `migrations/0008_brouillons_formulaires.sql`, `src/platform/formulaires/magasin.ts`, `src/pages/admin/formulaires/[id]/options.ts`, `docs/architecture/model.c4`, `tests/unit/formulaires/magasin-schema.test.ts`, `tests/integration/enregistrer-options.test.ts`
 
 ## Ce que ça livre
 
@@ -21,8 +21,11 @@ comportement par une requête HTTP ; l'écran qui l'appelle arrive au ticket 07.
   `brouillons_formulaires(formulaire TEXT PRIMARY KEY, contenu TEXT NOT NULL, maj_le INTEGER NOT NULL)`,
   **sans** contrainte `CHECK` sur l'identifiant (les formulaires sont déclarés site par site). Aucune
   table existante touchée. **Une ligne par formulaire**, remplacée entière à chaque enregistrement ;
-  `contenu` est le JSON `{ champs: { <idChamp>: [{ id, libelle, prix? }] } }` rendu par le noyau, prix
-  en centimes. « Porte un brouillon » se **dérive** de la présence de la ligne, jamais stocké.
+  `contenu` est le JSON `{ champs: { <idChamp>: [{ id, libelle, prix? }] }, derniersNumeros:
+  { <idChamp>: n } }` rendu tel quel par le noyau, prix en centimes. `derniersNumeros` — le dernier
+  numéro d'option attribué dans chaque champ, pour qu'il ne revienne jamais (ADR-0018) — est relu avec
+  le brouillon courant et rendu au noyau à l'enregistrement suivant ; il ne quitte jamais le serveur.
+  « Porte un brouillon » se **dérive** de la présence de la ligne, jamais stocké.
 - Magasin `src/platform/formulaires/magasin.ts`, sur le patron de `src/platform/reglages/magasin.ts` :
   table recréée défensivement au premier accès (même définition que la migration) ; lire le brouillon
   courant du formulaire → `appliquerOptions` en `core/` (ticket 03) → écrire (*upsert* de la ligne
@@ -43,10 +46,13 @@ comportement par une requête HTTP ; l'écran qui l'appelle arrive au ticket 07.
   - refus de `core/` → `400 { ok: false, refus: [{ champ, raison }] }` (raisons en **codes**) ;
   - succès → `200 { ok: true, champs }`, `champs` portant les options enregistrées **avec leurs
     identifiants**, pour que l'écran reprenne les identifiants neufs et qu'un second enregistrement ne
-    duplique pas les options ajoutées.
+    duplique pas les options ajoutées ; la réponse ne porte **pas** `derniersNumeros`.
 - Anti-forgerie : la session `SameSite=Strict` seule (ADR-0011, `I13`), **aucun** jeton dédié — le test
   d'une écriture forgée est celui d'une requête qui n'emporte pas le cookie (patron de
   `tests/integration/corriger-bouton-action.test.ts`).
+- Modèle d'architecture : la description de `colibri-cms.d1` (« …brouillons des pages, des médias et
+  des réglages. ») reçoit les brouillons des formulaires. Aucun élément ni relation nouvelle ; le modèle
+  reste valide (`likec4 validate --no-layout --json --project colibri-cms docs/architecture`).
 
 **Hors périmètre :** l'affichage du brouillon et des marques (ticket 06) ; l'écran qui enregistre
 (ticket 07) ; l'abandon d'un brouillon ; l'aperçu et la publication.
