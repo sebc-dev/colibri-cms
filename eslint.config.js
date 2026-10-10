@@ -20,6 +20,10 @@ export default defineConfig(
     // de design (docs/design-system.md § Canvas maître) y pose des .jsx React
     // et un data.js de navigateur. Ce n'est pas du code du produit : rien n'y
     // est bâti ni servi, et le corriger ferait diverger la copie de sa source.
+    //
+    // .claude/scripts/ porte les scripts que le plugin scd-spec-dev copie et
+    // rafraîchit lui-même (/scd-spec-dev:setup) : même raison, une correction
+    // locale serait écrasée au prochain montage.
     ignores: [
       'dist/**',
       'node_modules/**',
@@ -29,6 +33,7 @@ export default defineConfig(
       '.stryker-tmp/**',
       'reports/**',
       '.claude/skills/**',
+      '.claude/scripts/**',
     ],
   },
   js.configs.recommended,
