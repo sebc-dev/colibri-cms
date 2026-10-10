@@ -1,0 +1,29 @@
+{
+  "nom": "Devis atelier",
+  "champs": [
+    {
+      "id": "stage",
+      "nature": "choix-unique",
+      "libelle": "Type d'atelier",
+      "obligatoire": true,
+      "avecPrix": true,
+      "options": [
+        { "id": "initiation", "libelle": "Initiation", "prix": 4500 },
+        { "id": "perfectionnement", "libelle": "Perfectionnement", "prix": 6500 }
+      ]
+    },
+    {
+      "id": "niveau",
+      "nature": "choix-unique",
+      "libelle": "Votre niveau",
+      "options": [
+        { "id": "debutant", "libelle": "Débutant" },
+        { "id": "confirme", "libelle": "Confirmé" }
+      ]
+    },
+    { "id": "nom", "nature": "texte", "libelle": "Votre nom" },
+    { "id": "courriel", "nature": "email", "libelle": "Votre adresse e-mail", "obligatoire": true },
+    { "id": "telephone", "nature": "telephone", "libelle": "Votre numéro de téléphone" },
+    { "id": "message", "nature": "texte-long", "libelle": "Votre message" }
+  ]
+}

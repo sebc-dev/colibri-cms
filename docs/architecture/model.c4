@@ -36,7 +36,7 @@ model {
         description "Écrans, gabarits et îlots de l'administration de l'éditrice."
         metadata { sourceDir 'src/admin' }
       }
-      // trace : src/core/zone.ts — zone déclarée ; sous-dossiers auth, medias, pages, reglages
+      // trace : src/core/zone.ts — zone déclarée ; sous-dossiers auth, formulaires, medias, pages, reglages
       core = component 'Noyau métier' {
         technology 'TypeScript pur'
         description 'La logique métier, sans framework ni plateforme (I2).'
@@ -72,7 +72,7 @@ model {
     // trace : src/platform/contenu/pages.ts:9 — import.meta.glob({ eager: true }) empaquette content/ au build
     contenu = store 'Contenu déclaré' {
       technology 'Fichiers JSON et Markdown versionnés'
-      description "Pages, emplacements et réglages de départ posés par l'intégrateur ; lus, jamais écrits par le produit."
+      description "Pages, emplacements, réglages et formulaires de départ posés par l'intégrateur ; lus, jamais écrits par le produit."
       metadata { sourceDir 'content' }
     }
   }
