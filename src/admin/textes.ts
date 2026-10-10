@@ -219,3 +219,15 @@ export const TEXTE_REFUS_RESEAU_INCONNU = "Cette valeur n'est pas acceptée.";
 /** L'écran « Formulaires » : titre et état vide (aucun geste de création, FR-117). */
 export const TEXTE_TITRE_FORMULAIRES = 'Formulaires';
 export const TEXTE_AUCUN_FORMULAIRE = 'Aucun formulaire n’est prévu pour votre site.';
+
+/** L'écran d'un formulaire : retour, aide, natures de choix, intitulés (FR-117). */
+export const TEXTE_RETOUR_FORMULAIRES = 'Formulaires';
+export const TEXTE_AIDE_FORMULAIRE =
+  'Vous réglez ici les choix proposés aux visiteurs et leurs prix. Les questions elles-mêmes sont posées avec vous à la création du site.';
+export const TEXTE_TITRE_INTROUVABLE = 'Page introuvable';
+export const TEXTE_FORMULAIRE_INTROUVABLE = 'Ce formulaire n’existe pas.';
+export const TEXTE_UN_SEUL_CHOIX = 'Un seul choix';
+export const TEXTE_PLUSIEURS_CHOIX = 'Plusieurs choix possibles';
+export const TEXTE_INTITULE_CHOIX = 'Choix';
+export const TEXTE_INTITULE_PRIX = 'Prix';
+export const TEXTE_SUFFIXE_EUROS = '€';
