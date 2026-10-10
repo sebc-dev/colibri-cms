@@ -41,6 +41,7 @@ numéros 2.x.
 | [0015](./0015-tokens-colibri-theme-de-l-administration.md) | — | Les tokens Colibri deviennent le thème de l'administration — clair seul, polices à part |
 | [0016](./0016-polices-de-l-administration-servies-en-meme-origine.md) | — | Polices de l'administration servies en même origine, par les paquets `@fontsource` |
 | [0017](./0017-declaration-des-reglages-transverses.md) | — | Déclaration des réglages transverses — `content/reglages/`, lue par `core/` |
+| [0018](./0018-declaration-des-formulaires-de-devis.md) | — | Déclaration des formulaires de devis — `content/formulaires/<id>/`, prix en centimes, lue par `core/` |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -56,6 +57,9 @@ l'administration — le canvas Colibri, entré dans le dépôt, attendait qu'on 
 avait laissé de côté parce qu'il touche la politique de sécurité.
 `ADR-0017` non plus : décision neuve, née le 2026-10-03 du change `008-reglages-transverses` —
 le réglage, deuxième objet publiable, attendait un lieu de déclaration ; il étend ADR-0012.
+`ADR-0018` non plus : décision neuve, née le 2026-10-10 du change `010-reglage-des-formulaires` —
+le formulaire, troisième objet publiable, attendait le sien ; il étend ADR-0012 et ADR-0017, un
+fichier par formulaire.
 
 ## Comment se lit un remplacement
 
