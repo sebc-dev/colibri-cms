@@ -10,6 +10,8 @@ import GabaritCadre from '../../admin/GabaritCadre.astro';
 import { verifierSession } from '../../platform/session/index.ts';
 import { lireFormulairesDeLaDeclaration } from '../../platform/contenu/formulaires.ts';
 import { TEXTE_TITRE_FORMULAIRES, TEXTE_AUCUN_FORMULAIRE } from '../../admin/textes.ts';
+import MarqueBrouillon from '../../admin/MarqueBrouillon.astro';
+import { obtenirBrouillonsFormulaires } from '../../platform/formulaires/magasin.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -18,6 +20,7 @@ if (!session) {
 }
 
 const formulaires = lireFormulairesDeLaDeclaration();
+const brouillons = await obtenirBrouillonsFormulaires(env.DB);
 ---
 
 <GabaritCadre titre="Formulaires — Administration" rubrique="formulaires">
@@ -33,8 +36,8 @@ const formulaires = lireFormulairesDeLaDeclaration();
           <li>
             <a
               href={`/admin/formulaires/${formulaire.id}`}
-              class="flex min-h-11 items-center break-words px-4 py-3"
-            >{formulaire.nom}</a>
+              class="flex min-h-11 items-center gap-3 break-words px-4 py-3"
+            >{formulaire.nom}{brouillons.has(formulaire.id) && <MarqueBrouillon />}</a>
           </li>
         ))}
       </ul>

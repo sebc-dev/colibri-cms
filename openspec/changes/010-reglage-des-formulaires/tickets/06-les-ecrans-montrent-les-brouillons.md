@@ -41,8 +41,8 @@ contient du balisage, s'affiche comme du texte.
 (ticket 07) ; l'abandon d'un brouillon ; l'aperçu et la publication.
 
 ## Critères
-- [ ] L'écran de « Devis gâteau » affiché alors que son brouillon passe « Vanille » à 10 € montre l'option « Vanille » à 10 €, et l'écran porte la marque de brouillon   (SC-06a)
-- [ ] L'`Écran : Formulaires` affiché alors que seul « Devis atelier » porte un brouillon montre la marque de brouillon sur « Devis atelier » et pas sur « Devis gâteau »   (SC-06b)
-- [ ] La liste des formulaires affichée sur une instance où aucun formulaire n'a été enregistré ne montre la marque de brouillon sur aucun formulaire   (SC-06c)
-- [ ] En `core/`, quand un brouillon porte les options d'un champ que la déclaration ne porte plus et que la déclaration ajoute un champ à choix que le brouillon ne connaît pas, la lecture des options courantes ignore les options du champ disparu, montre les options de départ du champ nouveau, garde les autres champs du brouillon, et n'échoue pas   (SC-06d)
-- [ ] Quand une option enregistrée au brouillon porte un libellé contenant `<`, `>`, `&` ou des guillemets — par exemple `<img src=x onerror=alert(1)>` —, l'écran du formulaire l'affiche comme du texte et aucun balisage n'est interprété   (SC-06e)
+- [x] L'écran de « Devis gâteau » affiché alors que son brouillon passe « Vanille » à 10 € montre l'option « Vanille » à 10 €, et l'écran porte la marque de brouillon   (SC-06a)
+- [x] L'`Écran : Formulaires` affiché alors que seul « Devis atelier » porte un brouillon montre la marque de brouillon sur « Devis atelier » et pas sur « Devis gâteau »   (SC-06b)
+- [x] La liste des formulaires affichée sur une instance où aucun formulaire n'a été enregistré ne montre la marque de brouillon sur aucun formulaire   (SC-06c)
+- [x] En `core/`, quand un brouillon porte les options d'un champ que la déclaration ne porte plus et que la déclaration ajoute un champ à choix que le brouillon ne connaît pas, la lecture des options courantes ignore les options du champ disparu, montre les options de départ du champ nouveau, garde les autres champs du brouillon, et n'échoue pas   (SC-06d)
+- [x] Quand une option enregistrée au brouillon porte un libellé contenant `<`, `>`, `&` ou des guillemets — par exemple `<img src=x onerror=alert(1)>` —, l'écran du formulaire l'affiche comme du texte et aucun balisage n'est interprété   (SC-06e)
