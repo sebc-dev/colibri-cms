@@ -11,7 +11,7 @@ Ce cahier complète les tests automatiques (`docs/test.md`), il ne les remplace 
 qu'un test dans `workerd` ne voit pas — le rendu au navigateur, la CSP réellement appliquée (voir
 `docs/test.md`, la CSP est invisible aux tests), les textes lus par l'éditrice, les gestes.
 
-**Hors périmètre** (pas encore livré, ne pas tester) : Réglages, Formulaires, Demandes, Aperçu et
+**Hors périmètre** (pas encore livré, ne pas tester) : Demandes, Aperçu et
 publication, le rendu des images sur le site public, l'effacement réel des images orphelines à la
 publication. Le site public n'a pas encore de page rendue : tout ce qui parle d'« état publié intact »
 n'est observable qu'en base (§ 0.5) ou par les tests automatiques.
@@ -197,9 +197,9 @@ Session ouverte. Ouvrir `/admin/mes-pages`.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-4.1 | Lire la barre latérale | Cinq rubriques : **Mes pages**, **Médias**, Réglages, Formulaires, Demandes ; « Mes pages » marquée active | |
+| CT-4.1 | Lire la barre latérale | Cinq rubriques : **Mes pages**, **Médias**, **Réglages**, **Formulaires**, Demandes ; « Mes pages » marquée active | |
 | CT-4.2 | Cliquer « Médias » | L'écran Médias s'ouvre, « Médias » devient la rubrique active | |
-| CT-4.3 | Cliquer Réglages, Formulaires, Demandes | Aucun écran ne s'ouvre (la rubrique situe, elle ne mène nulle part) ; pas d'erreur | |
+| CT-4.3 | Cliquer Demandes | Aucun écran ne s'ouvre (la rubrique situe, elle ne mène nulle part) ; pas d'erreur | |
 | CT-4.4 | Actionner « Replier le menu » | La barre devient un rail d'icônes seules ; la rubrique active reste marquée ; la zone de contenu s'élargit | |
 | CT-4.5 | Actionner « Déplier le menu » | Les libellés reparaissent à côté des icônes | |
 | CT-4.6 | Replier, puis **recharger** la page ; onglet Réseau pendant le repli | L'état replié est conservé ; **aucune** requête serveur n'a été émise par le repli | |
@@ -574,6 +574,18 @@ de recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 | CT-26.5 | À 360 px | Boutons d'au moins 44 px ; aucune violation CSP en console | OK — 2026-10-08 : boutons 50/66/47/51/50 × 44 px, « Enregistrer » 262 × 44 px, pas de défilement horizontal (360), mise en forme jouée à 360 px, console sans violation CSP |
 
 ---
+
+## 27. La liste des formulaires — change 010 · ticket 02
+
+Session ouverte. Ouvrir `/admin/formulaires`.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-27.1 | Cliquer « Formulaires » dans le menu | L'écran s'ouvre ; « Formulaires » est la seule rubrique marquée active | |
+| CT-27.2 | Lire la liste | « Devis atelier » puis « Devis gâteau », chacun sur une ligne entière cliquable | |
+| CT-27.3 | Chercher un geste d'ajout, retrait, renommage ou déplacement | Aucun, ni dans le menu ni sur l'écran ; aucun terme technique ni identifiant visible | |
+| CT-27.4 | Ouvrir l'adresse de la variante `sans-formulaire` | « Aucun formulaire n'est prévu pour votre site. », sans bouton de création | |
+| CT-27.5 | Ouvrir `/admin/formulaires` sans session | Renvoi vers la connexion, aucun formulaire montré | |
 
 ## Bilan
 

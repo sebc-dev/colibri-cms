@@ -161,6 +161,9 @@ function composer(nom) {
   const surcouche = `${SITE}/variantes/${nom}/pages`;
   if (existsSync(surcouche)) cpSync(surcouche, cible, { recursive: true });
   for (const slug of variante.retirer ?? []) rmSync(`${cible}/${slug}`, { recursive: true, force: true });
+  for (const id of variante.retirerFormulaires ?? []) {
+    rmSync(`${ARBRE}/content/formulaires/${id}`, { recursive: true, force: true });
+  }
   const pages = readdirSync(cible);
   console.log(`→ variante ${nom} : ${pages.length ? pages.join(', ') : 'aucune page'}`);
 }

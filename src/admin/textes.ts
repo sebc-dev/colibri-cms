@@ -215,3 +215,7 @@ export const TEXTES_REFUS_RESEAUX: Readonly<Record<string, string>> = {
 };
 
 export const TEXTE_REFUS_RESEAU_INCONNU = "Cette valeur n'est pas acceptée.";
+
+/** L'écran « Formulaires » : titre et état vide (aucun geste de création, FR-117). */
+export const TEXTE_TITRE_FORMULAIRES = 'Formulaires';
+export const TEXTE_AUCUN_FORMULAIRE = 'Aucun formulaire n’est prévu pour votre site.';

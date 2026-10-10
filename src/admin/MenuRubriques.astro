@@ -44,8 +44,8 @@ import Settings from '@lucide/svelte/icons/settings';
 import ClipboardList from '@lucide/svelte/icons/clipboard-list';
 import Mail from '@lucide/svelte/icons/mail';
 
-export type IdRubriqueServie = 'mes-pages' | 'medias' | 'reglages';
-type IdRubrique = IdRubriqueServie | 'formulaires' | 'demandes';
+export type IdRubriqueServie = 'mes-pages' | 'medias' | 'reglages' | 'formulaires';
+type IdRubrique = IdRubriqueServie | 'demandes';
 
 interface Props {
   rubrique: IdRubriqueServie;
@@ -66,7 +66,7 @@ const RUBRIQUES: ReadonlyArray<{ readonly id: IdRubrique; readonly libelle: stri
     { id: 'mes-pages', libelle: 'Mes pages', href: '/admin/mes-pages' },
     { id: 'medias', libelle: 'Médias', href: '/admin/medias' },
     { id: 'reglages', libelle: 'Réglages', href: '/admin/reglages' },
-    { id: 'formulaires', libelle: 'Formulaires', href: null },
+    { id: 'formulaires', libelle: 'Formulaires', href: '/admin/formulaires' },
     { id: 'demandes', libelle: 'Demandes', href: null },
   ];
 ---
