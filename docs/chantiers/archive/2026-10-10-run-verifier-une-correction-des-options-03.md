@@ -67,3 +67,11 @@ Hors de cette session : commiter le travail dans le worktree, puis relancer
   sa complexité est un vrai défaut du ticket.
 - Activer `noUncheckedIndexedAccess` pour rendre les types justes : décision de configuration hors du
   ticket.
+
+## Issue
+Corrections faites le 2026-10-10 : `appliquerOptions` découpée en fonctions locales par un agent séparé
+(comportement comparé à l'ancienne version sur des corrections tirées au hasard, aucune divergence),
+les trois retouches du conseiller, puis trois lignes de typage du test, assertions inchangées. `rerun`
+ajouté aux arguments du ticket dans la copie de l'orchestrateur, puis reprise avec `rerun: "2"` : le
+run a abouti à la PR #193. La review a retenu trois tests (prototype, identifiant inconnu ou répété,
+option ajoutée corrigée) que le correcteur n'a pas le droit d'écrire : ils restent à ajouter.
