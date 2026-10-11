@@ -118,6 +118,28 @@ ailleurs cesserait d'être vu ; bornée à ce fichier, il reste vu. `src/` garde
 > verdicts de `reports/stryker-incremental.json` ; ceux d'avant l'activation ont été rendus sans
 > qu'aucun mutant ne tourne. Le fichier a donc été retiré : le prochain rejeu repart de zéro. Un
 > rapport produit sans le pont se reconnaît à un `# timeout` nul sur toute la mesure.
+>
+> **Corrigé — le build rejoué par mutant, et ses collisions (2026-10-11).** Le runner `command`
+> lançait `npm test`, donc `pretest` → `npm run build`, **à chaque mutant**. Or Stryker ne crée
+> qu'**un** bac à sable, que tous ses runners partagent : onze builds concurrents y vidaient `dist/`
+> et réécrivaient `.wrangler/test-worker/` pendant que les autres runners testaient. Relevé dans le
+> rapport incrémental du 2026-10-10 : sur 2261 mutants « tués », **60** l'ont été par un `postbuild`
+> qui ne trouvait plus `dist/` — aucun test n'a tourné —, **371** ont vu au moins un test frapper
+> l'amorce 503 de `prebuild` au lieu du worker, **111** un `ENOENT` sur
+> `.wrangler/test-worker/client`. Ces verdicts ne disent rien du mutant. Le build, lui, ne dépend
+> pas du mutant : le code instrumenté est le même pour tous, et le mutant actif se choisit à
+> l'exécution (le pont ci-dessus). `stryker.conf.json` bâtit donc **une seule fois**
+> (`buildCommand`, dans le bac à sable, après l'instrumentation), et chaque mutant rejoue
+> `npm test --ignore-scripts` — la suite seule, sans `pretest`. **Éprouvé** sur `src/core/auth/code.ts`
+> et `regles.ts`, 31 mutants à 4 en parallèle : 31 tués, aucune trace de collision (6 dans l'ancien
+> rapport sur les mêmes fichiers), 2 anciens timeouts devenus de vrais échecs de test ; 7 min 07,
+> soit ~12,5 s par mutant contre ~15 s avec un build par mutant. Le gain est d'abord la
+> **justesse**. Le coût restant est la suite complète rejouée par mutant (~30 s seule), que le
+> runner `command` ne sait pas restreindre aux tests concernés.
+>
+> **Les verdicts d'avant ce correctif sont suspects**, et `incremental: true` les réutilise tant que
+> le code muté ne change pas. Le prochain passage complet (`--force`) les rejoue tous : le score
+> peut y baisser sans qu'aucun test n'ait perdu en profondeur.
 
 > **Le relevé est automatisé, hors du dépôt.** Un timer systemd utilisateur
 > (`colibri-mutation.timer`, 01:07) déclenche `~/.local/bin/colibri-mutation.sh`, qui mesure dans un
@@ -131,8 +153,12 @@ ailleurs cesserait d'être vu ; bornée à ce fichier, il reste vu. `src/` garde
 > **échoue** si la mesure est impossible ou si le score a baissé, ce que
 > `systemctl --user is-failed` relève. Des survivants, il y en a toujours : ça ne fait pas échouer.
 >
-> Compter ~2 h 30 pour un rejeu complet (1321 mutants ; `incremental` limite les suivants aux
-> fichiers touchés).
+> Compter ~10 h pour un rejeu complet (2939 mutants au 2026-10-11, ~12,5 s par mutant à 4 en
+> parallèle — estimation tirée de l'essai ci-dessus) ; `incremental` limite les suivants aux
+> fichiers touchés. Le script borne la concurrence à 4 (`--concurrency`) : au défaut de Stryker
+> (11 runners sur 12 cœurs), chaque runner ouvrant son propre pool `workerd`, la machine montait à
+> une charge de 44 et ~20 Go de mémoire (relevé du 2026-10-11). Le débit à 4 contre 11, à
+> configuration égale, n'a pas été mesuré. L'unité systemd plafonne le passage à 14 h.
 
 > **`npm test` bâtit d'abord.** Il déclenche `pretest` → `npm run build`, lui-même encadré par
 > `scripts/preparer-worker-de-test.mjs` (`prebuild` pose une amorce, `postbuild` recopie `dist/`
