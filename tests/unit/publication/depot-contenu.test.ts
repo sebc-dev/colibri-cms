@@ -230,15 +230,29 @@ describe("deposerContenu — la réponse de l'écriture s'est perdue", () => {
     const plan = planDeBase();
     forge.perdreLaReponseDeLaProchaineEcriture();
 
-    await deposerContenu(forge, plan, "Mise à jour du site");
+    const premier = await deposerContenu(forge, plan, "Mise à jour du site");
     const apresPremier = forge.historique();
     const commitsApresPremier = forge.commitsCrees;
     const resultat = await deposerContenu(forge, plan, "Mise à jour du site");
 
+    expect(premier).toMatchObject({ aboutie: true, reconnue: true });
     expect(resultat).toMatchObject({ aboutie: true, reconnue: true, commit: apresPremier[0]?.sha });
     expect(forge.historique()).toEqual(apresPremier);
     expect(forge.commitsCrees).toBe(commitsApresPremier);
     expect(forge.fichiers().get("content/pages/accueil/presentation.md")?.trim()).toBe(MARKDOWN_RICHE);
+  });
+
+  it("SC-12f — une réponse perdue en dépôt injoignable est reconnue dès le nouvel essai, dans le même dépôt", async () => {
+    const forge = await ForgeEnMemoire.creer(DEPART);
+    const avant = forge.historique().length;
+    forge.perdreLaReponseDeLaProchaineEcriture();
+
+    const resultat = await deposerContenu(forge, planDeBase(), "Mise à jour du site");
+
+    expect(resultat).toMatchObject({ aboutie: true, reconnue: true, essais: 2, commit: forge.historique()[0]?.sha });
+    expect(forge.historique()).toHaveLength(avant + 1);
+    expect(forge.commitsCrees).toBe(1);
+    expect(forge.deplacementsForces).toBe(0);
   });
 
   it("SC-12f — la reconnaissance vaut aussi pour une réponse perdue présentée comme un refus d'avance rapide", async () => {
