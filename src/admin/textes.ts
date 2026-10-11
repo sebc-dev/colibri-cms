@@ -261,3 +261,8 @@ export const TEXTES_REFUS_FORMULAIRE: Readonly<Record<string, string>> = {
   'nombre-options': 'Gardez au moins un choix.',
 } satisfies Record<RaisonRefusOption, string>;
 export const TEXTE_REFUS_FORMULAIRE_INCONNU = 'Cette valeur n’est pas acceptée.';
+
+/** Aperçu d'une page (change 011, ticket 08) : le bandeau et les liens, sans terme de développeur (FR-117). */
+export const TEXTE_BANDEAU_APERCU = 'Aperçu — cette page n’est pas encore en ligne.';
+export const TEXTE_LIEN_RETOUR_APERCU = 'Revenir à la page';
+export const TEXTE_BOUTON_VOIR_APERCU = 'Voir l’aperçu';

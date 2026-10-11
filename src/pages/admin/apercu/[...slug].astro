@@ -1,0 +1,48 @@
+---
+/**
+ * L'aperçu d'une page (change 011-apercu-et-publication, ticket 08) : la page
+ * rendue par le même gabarit et la même composition que la page publique
+ * (ADR-0024), sur le contenu courant hors brouillons — dernière version
+ * publiée de la page et des réglages. Réservé à la session (I6, ADR-0007) ;
+ * jamais conservé par un intermédiaire (`no-store`).
+ */
+import Page from '../../../site/page.astro';
+import BandeauApercu from '../../../admin/BandeauApercu.astro';
+import { verifierSession } from '../../../platform/session/index.ts';
+import { listerPagesDeclarees, obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
+import { lireReglagesDeLaDeclaration } from '../../../platform/contenu/reglages.ts';
+import { obtenirPublieEmplacements, obtenirPubliesReglages } from '../../../platform/publication/magasin-publie.ts';
+import { composerPage, reglagesRecouvertsParLePublie } from '../../../core/rendu/page.ts';
+import { adresseDeLaPage } from '../../../core/pages/declaration.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+const pages = listerPagesDeclarees();
+const adresse = `/${Astro.params.slug ?? ''}`;
+const slug = pages.find((p) => adresseDeLaPage(p.slug) === adresse)?.slug;
+const declaree = slug === undefined ? null : obtenirPageAvecEmplacements(slug);
+if (slug === undefined || !declaree) {
+  Astro.response.status = 404;
+  return new Response('Page introuvable', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+  });
+}
+
+const publie = await obtenirPublieEmplacements(env.DB, slug);
+const reglages = reglagesRecouvertsParLePublie(
+  lireReglagesDeLaDeclaration(),
+  await obtenirPubliesReglages(env.DB),
+);
+const page = composerPage({ slug, pages, page: declaree, reglages, publie });
+---
+
+<Page page={page}>
+  <BandeauApercu slot="bandeau" retour={`/admin/pages/${slug}`} />
+</Page>

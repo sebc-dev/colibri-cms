@@ -1,0 +1,21 @@
+---
+/**
+ * Le bandeau de l'aperçu (change 011, ticket 08) : posé hors du gabarit du
+ * site, pleine largeur, lisible sur téléphone. Son style vient de la feuille
+ * externe du gabarit, src/site/site.css (I14 : aucune couleur littérale sous
+ * src/admin/) ; aucun style en ligne, la CSP de l'administration le refuse ;
+ * aucun script (I4).
+ */
+import { TEXTE_BANDEAU_APERCU, TEXTE_LIEN_RETOUR_APERCU } from './textes.ts';
+
+interface Props {
+  retour: string;
+}
+
+const { retour } = Astro.props;
+---
+
+<div class="bandeau-apercu" role="status" data-bandeau-apercu>
+  <p>{TEXTE_BANDEAU_APERCU}</p>
+  <a href={retour}>{TEXTE_LIEN_RETOUR_APERCU}</a>
+</div>
