@@ -179,4 +179,19 @@ describe("construirePlan — formulaire.json des formulaires en brouillon", () =
     expect(json.champs.map((c) => c.libelle)).toEqual(["Votre nom", "Parfum", "Occasion"]);
     expect(champDepose(json, "parfum")).toMatchObject({ nature: "choix-unique", obligatoire: true });
   });
+
+  it("SC-14a — le formulaire.json déposé suit le format de la déclaration (ADR-0018)", () => {
+    const declare = gateau([NOM, PARFUM, OCCASION]);
+
+    const { json } = formulaireDepose(instantane(declare, brouillonParfum()));
+
+    expect(Object.keys(json)).toEqual(["nom", "champs"]);
+    const nom = champDepose(json, "nom");
+    expect(nom).not.toHaveProperty("avecPrix");
+    expect(nom).not.toHaveProperty("options");
+    const parfum = champDepose(json, "parfum");
+    expect(parfum).toHaveProperty("avecPrix", true);
+    expect(parfum).toHaveProperty("options", PARFUMS_DU_BROUILLON);
+    expect(champDepose(json, "occasion")).toHaveProperty("options", OCCASION.options);
+  });
 });

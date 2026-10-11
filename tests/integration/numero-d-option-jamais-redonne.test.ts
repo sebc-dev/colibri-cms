@@ -5,7 +5,9 @@
  * Couture : requête HTTP réelle via `exports.default.fetch` dans `workerd`,
  * contre la vraie D1 locale. L'état publié de « Devis gâteau » est semé
  * (ligne de `publies_formulaires`) : « Parfum » a reçu o1, o2 et o3, publiés ;
- * le brouillon est vide (neuf, après publication).
+ * le brouillon est vide (neuf, après publication). Les deux cas suivants
+ * sèment leur propre état publié — o3 donné puis retiré avant la publication,
+ * puis un brouillon dont le compteur est en retard sur celui du publié.
  */
 import { env, exports } from "cloudflare:workers";
 import { it, expect, afterEach, describe } from "vitest";
@@ -103,15 +105,48 @@ const PARFUMS_PUBLIES: OptionLue[] = [
   { id: "o3", libelle: "Noisette", prix: 1200 },
 ];
 
-async function semerPublie(db: DBLike): Promise<void> {
-  const contenu = {
-    champs: { parfum: PARFUMS_PUBLIES },
-    derniersNumeros: { parfum: 3 },
-  };
+interface ContenuSeme {
+  champs: { parfum: OptionLue[] };
+  derniersNumeros: { parfum: number };
+}
+
+async function semerPublie(
+  db: DBLike,
+  contenu: ContenuSeme = { champs: { parfum: PARFUMS_PUBLIES }, derniersNumeros: { parfum: 3 } },
+): Promise<void> {
   await db
     .prepare("insert into publies_formulaires (formulaire, contenu, publie_le) values (?1, ?2, ?3)")
     .bind("devis-gateau", JSON.stringify(contenu), Date.now())
     .run();
+}
+
+async function semerBrouillon(db: DBLike, contenu: ContenuSeme): Promise<void> {
+  await db
+    .prepare("insert into brouillons_formulaires (formulaire, contenu, maj_le) values (?1, ?2, ?3)")
+    .bind("devis-gateau", JSON.stringify(contenu), Date.now())
+    .run();
+}
+
+/** Les options telles que l'éditrice les soumet : `id` gardé, prix saisi en euros. */
+function enEuros(options: OptionLue[]): { id: string; libelle: string; prix: string }[] {
+  return options.map((o) => ({ id: o.id, libelle: o.libelle, prix: String((o.prix ?? 0) / 100) }));
+}
+
+/** Soumet les parfums ; rend le statut et la liste de parfums renvoyée. */
+async function soumettreParfums(
+  cookie: string,
+  parfums: { id?: string; libelle: string; prix: string }[],
+): Promise<{ statut: number; parfums: OptionLue[] }> {
+  const reponse = await exports.default.fetch(
+    new Request(ROUTE_GATEAU, {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie: `${NOM_COOKIE_SESSION}=${cookie}` },
+      body: corps(parfums),
+    }),
+  );
+  if (reponse.status !== 200) return { statut: reponse.status, parfums: [] };
+  const json = (await reponse.json()) as { champs: { id: string; options: OptionLue[] }[] };
+  return { statut: reponse.status, parfums: json.champs.find((c) => c.id === "parfum")?.options ?? [] };
 }
 
 function corps(parfums: { id?: string; libelle: string; prix: string }[]): string {
@@ -168,5 +203,49 @@ describe("SC-14f — un numéro d'option donné n'est jamais redonné", () => {
     expect(["o1", "o2", "o3"]).not.toContain(pistache?.id);
     expect(pistache?.id).toBe("o4");
     expect(parfums.map((o) => o.id)).not.toContain("o3");
+  });
+
+  it("SC-14f — un identifiant donné puis retiré avant la publication n'est jamais redonné : le compteur publié fait foi", async () => {
+    // Arrange : o3 a été donné puis retiré avant la publication — la liste
+    // publiée ne le porte plus, seul le compteur publié s'en souvient.
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+    const publies = PARFUMS_PUBLIES.slice(0, 5);
+    await semerPublie(db, { champs: { parfum: publies }, derniersNumeros: { parfum: 3 } });
+
+    // Act
+    const { statut, parfums } = await soumettreParfums(cookie, [
+      ...enEuros(publies),
+      { libelle: "Pistache", prix: "12" },
+    ]);
+
+    // Assert
+    expect(statut).toBe(200);
+    const pistache = parfums.find((o) => o.libelle === "Pistache");
+    expect(pistache).toBeDefined();
+    expect(["o1", "o2", "o3"]).not.toContain(pistache?.id);
+    expect(pistache?.id).toBe("o4");
+  });
+
+  it("SC-14f — le plus grand des compteurs du brouillon et du publié fait foi : un brouillon en retard ne redonne pas un numéro publié", async () => {
+    // Arrange : le brouillon retient 1, le publié 3 — o2 et o3 ont déjà été donnés.
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+    const quatre = PARFUMS_PUBLIES.slice(0, 4);
+    await semerPublie(db, { champs: { parfum: quatre }, derniersNumeros: { parfum: 3 } });
+    await semerBrouillon(db, { champs: { parfum: quatre }, derniersNumeros: { parfum: 1 } });
+
+    // Act
+    const { statut, parfums } = await soumettreParfums(cookie, [
+      ...enEuros(quatre),
+      { libelle: "Pistache", prix: "12" },
+    ]);
+
+    // Assert
+    expect(statut).toBe(200);
+    const pistache = parfums.find((o) => o.libelle === "Pistache");
+    expect(pistache).toBeDefined();
+    expect(["o1", "o2", "o3"]).not.toContain(pistache?.id);
+    expect(pistache?.id).toBe("o4");
   });
 });
