@@ -46,7 +46,7 @@ reste dans l'administration.
 existant, I11) ; le contenu des pages (tickets 04 à 06).
 
 ## Critères
-- [ ] Une page publique demandée arrive avec les en-têtes de sécurité du site public, posés sur les documents statiques du site, ce qui atteste qu'elle n'a pas traversé le code du site   (SC-07a)
-- [ ] Une page publique servie ne porte aucun script, et chacune de ses ressources — feuille de style, images — est servie par le site lui-même   (SC-07b)
-- [ ] Un visiteur qui demande une page publique, avec ou sans session d'administration ouverte, reçoit le même document, et la réponse ne pose aucun cookie   (SC-07c)
-- [ ] Quand un visiteur parcourt les pages publiques, aucun lien ni aucune ressource ne pointe vers l'aperçu   (SC-07d)
+- [x] Une page publique demandée arrive avec les en-têtes de sécurité du site public, posés sur les documents statiques du site, ce qui atteste qu'elle n'a pas traversé le code du site   (SC-07a)
+- [x] Une page publique servie ne porte aucun script, et chacune de ses ressources — feuille de style, images — est servie par le site lui-même   (SC-07b)
+- [x] Un visiteur qui demande une page publique, avec ou sans session d'administration ouverte, reçoit le même document, et la réponse ne pose aucun cookie   (SC-07c)
+- [x] Quand un visiteur parcourt les pages publiques, aucun lien ni aucune ressource ne pointe vers l'aperçu   (SC-07d)
