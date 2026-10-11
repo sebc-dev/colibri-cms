@@ -1,0 +1,13 @@
+{
+  "titre": "Accueil",
+  "rang": 0,
+  "emplacements": [
+    {
+      "id": "bouton-devis",
+      "nature": "bouton-action",
+      "rang": 0,
+      "libelle": "<b>Devis</b> & \"co\"",
+      "destination": "/contact"
+    }
+  ]
+}
