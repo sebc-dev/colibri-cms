@@ -27,9 +27,8 @@
  * `src/platform/brouillons/magasin.ts` qui les lit réellement (même matrice
  * qu'énoncée ci-dessous : jamais un autre fichier de `platform/`) — c'est
  * l'appelant commun, la route `.astro`, qui lit les deux magasins et compose.
- * L'ensemble PUBLIÉ n'a toujours aucune représentation (candidat
- * `medias-deux-magasins-un-par-etat`) : `REFERENCES_PUBLIEES_VIDE` en tient
- * lieu jusqu'à la feature de publication, jamais recalculé ici.
+ * L'ensemble PUBLIÉ (emplacements sans brouillon) est lui aussi reçu en
+ * données, calculé par `core/medias/references.ts` (change 011, ticket 03).
  *
  * `assurerTableMedias` (même geste défensif que `assurerTableBrouillons`,
  * `src/platform/brouillons/magasin.ts`, et `assurerTableSessions`,
@@ -51,15 +50,6 @@ import ddlMediasBrouillonAffichage from '../../../migrations/0006_medias_brouill
 import ddlMedias from '../../../migrations/0009_medias.sql?raw';
 
 const TABLE_MEDIAS = 'medias';
-
-/**
- * L'ensemble « publié » que reçoit `imageEffacable` (ticket 02) — toujours
- * vide aujourd'hui, faute de toute représentation de l'état publié (ticket
- * 10, voir le commentaire de fichier ci-dessus). Une seule instance
- * partagée : ni `listerMediasBrouillon` ni `obtenirFicheMediaBrouillon` ne
- * recalculent cet ensemble.
- */
-const REFERENCES_PUBLIEES_VIDE: ReadonlySet<string> = new Set();
 
 /** Limite D1 « Maximum string, BLOB or table row size » (developers.cloudflare.com/d1/platform/limits) — plus basse que `POIDS_MAX_OCTETS_IMAGE` (2 × 1024 × 1024) de `core/`. */
 export const CAPACITE_MAX_OCTETS_LIGNE_D1 = 2_000_000;
@@ -320,8 +310,8 @@ export async function inscrireImagesDeDepart(
  *
  * `referencesBrouillon` (ticket 10) : l'ensemble des identités de médias
  * encore référencées par au moins un emplacement en brouillon, toutes pages
- * confondues — REÇU en paramètre (`listerReferencesMediasBrouillon`,
- * `src/platform/brouillons/magasin.ts`), jamais relu ici (ce magasin
+ * confondues — REÇU en paramètre (dérivé par `referencesDuContenuCourant`,
+ * `src/core/medias/references.ts`, change 011, ticket 03), jamais relu ici (ce magasin
  * n'importe toujours que `core/`, voir le commentaire de fichier). Sert à
  * dériver `effacable` par image, via `imageEffacable`.
  */
@@ -329,6 +319,7 @@ export async function listerMediasBrouillon(
   db: DB,
   referencesBrouillon: ReadonlySet<string>,
   statiques: AdressesStatiques = AUCUNE_ADRESSE_STATIQUE,
+  referencesPubliees: ReadonlySet<string> = new Set(),
 ): Promise<MediaListe[]> {
   await assurerTableMedias(db);
   const resultat = await db
@@ -342,7 +333,7 @@ export async function listerMediasBrouillon(
     id: ligne.id,
     nomAffichage: ligne.nom_affichage ?? ligne.nom_origine,
     description: ligne.description ?? '',
-    effacable: imageEffacable(ligne.id, REFERENCES_PUBLIEES_VIDE, referencesBrouillon),
+    effacable: imageEffacable(ligne.id, referencesPubliees, referencesBrouillon),
     vignette: adresseVignette(ligne.id, ligne.octets_gardes, statiques),
   }));
 }
@@ -394,6 +385,7 @@ export async function obtenirFicheMediaBrouillon(
   id: string,
   referencesBrouillon: ReadonlySet<string>,
   statiques: AdressesStatiques = AUCUNE_ADRESSE_STATIQUE,
+  referencesPubliees: ReadonlySet<string> = new Set(),
 ): Promise<MediaFiche | null> {
   await assurerTableMedias(db);
   const resultat = await db
@@ -411,7 +403,7 @@ export async function obtenirFicheMediaBrouillon(
     nomAffichage: ligne.nom_affichage ?? ligne.nom_origine,
     description: ligne.description ?? '',
     format: ligne.format as FormatImageAdmis,
-    effacable: imageEffacable(id, REFERENCES_PUBLIEES_VIDE, referencesBrouillon),
+    effacable: imageEffacable(id, referencesPubliees, referencesBrouillon),
     vignette: adresseVignette(id, ligne.octets_gardes, statiques),
   };
 }

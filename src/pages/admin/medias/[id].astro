@@ -23,18 +23,21 @@
  *
  * Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
  * 10-signaler-images-orphelines.md, SC-10a/b) : même composition que
- * `medias.astro` — cette route lit `listerReferencesMediasBrouillon`
- * (`src/platform/brouillons/magasin.ts`) et la fournit à
- * `obtenirFicheMediaBrouillon`, qui n'importe que `core/`.
+ * `medias.astro` : cette route fournit à
+ * `obtenirFicheMediaBrouillon`, qui n'importe que `core/`, les ensembles de
+ * références que `referencesDuContenuCourant` (`src/core/medias/references.ts`)
+ * dérive des pages lues par `lirePagesContenuCourant`
+ * (`src/platform/contenu/references-medias.ts`, change 011, ticket 03).
  *
  * Ticket 11 (openspec/changes/004-bibliotheque-de-medias/tickets/
  * 11-ou-posee-et-supprimer.md, SC-11a/b) : la fiche montre désormais OÙ
  * l'image est posée — la liste des emplacements qui la référencent, désignés
  * par leur page et leur place, jamais un identifiant technique (design.md §
  * Decisions). Cette route est l'appelante commune qui lit les DEUX
- * magasins, cloisonnés l'un de l'autre (I1) : `listerEmplacementsReferencantMedia`
- * (`src/platform/brouillons/magasin.ts`) dit QUELS couples (page,
- * emplacement) la posent ; `obtenirPageAvecEmplacements`
+ * magasins, cloisonnés l'un de l'autre (I1) : `emplacementsPosantImage`
+ * (`src/core/medias/references.ts`, change 011, ticket 03), appliquée aux
+ * mêmes pages, dit QUELS couples (page, emplacement) la posent selon leur
+ * contenu courant ; `obtenirPageAvecEmplacements`
  * (`src/platform/contenu/pages.ts`, déjà utilisée par l'éditeur de page) en
  * tire le titre de la page et sert de base à `placeEmplacement`
  * (`src/admin/ilots-svelte-5/emplacements-media.ts`, pure) pour la place
@@ -46,10 +49,8 @@ import GabaritCadre from '../../../admin/GabaritCadre.astro';
 import { adressesOriginalesEmpaquetees, listerFichesMedias } from '../../../platform/contenu/medias.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { inscrireImagesDeDepart, obtenirFicheMediaBrouillon } from '../../../platform/medias/magasin.ts';
-import {
-  listerReferencesMediasBrouillon,
-  listerEmplacementsReferencantMedia,
-} from '../../../platform/brouillons/magasin.ts';
+import { lirePagesContenuCourant } from '../../../platform/contenu/references-medias.ts';
+import { emplacementsPosantImage, referencesDuContenuCourant } from '../../../core/medias/references.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { placeEmplacement, type EmplacementOuPoseeMedia } from '../../../admin/ilots-svelte-5/emplacements-media.ts';
 import { env } from 'cloudflare:workers';
@@ -64,15 +65,16 @@ if (!id) {
   return Astro.redirect('/admin/medias');
 }
 
-const referencesBrouillon = await listerReferencesMediasBrouillon(env.DB);
+const pagesContenuCourant = await lirePagesContenuCourant(env.DB);
+const { publiees, brouillon: referencesBrouillon } = referencesDuContenuCourant(pagesContenuCourant);
 await inscrireImagesDeDepart(env.DB, listerFichesMedias(), Date.now());
-const media = await obtenirFicheMediaBrouillon(env.DB, id, referencesBrouillon, adressesOriginalesEmpaquetees());
+const media = await obtenirFicheMediaBrouillon(env.DB, id, referencesBrouillon, adressesOriginalesEmpaquetees(), publiees);
 
 if (!media) {
   return Astro.redirect('/admin/medias');
 }
 
-const references = await listerEmplacementsReferencantMedia(env.DB, id);
+const references = emplacementsPosantImage(pagesContenuCourant, id);
 const emplacementsPosant: EmplacementOuPoseeMedia[] = [];
 for (const reference of references) {
   const page = obtenirPageAvecEmplacements(reference.pageSlug);
