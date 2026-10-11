@@ -35,7 +35,8 @@
 | Dépôt contre la forge : avance rapide refusée puis rebâtie, réponse perdue reconnue, `media` sans parent et `force` | la forge en mémoire tient l'état des références et des objets ; on constate l'état final des deux branches et le nombre d'écritures (`tdd`) |
 | Octets déposés identiques au téléversement | égalité octet pour octet entre le BLOB D1 et le blob reçu par la forge, décodé du base64 |
 | Récapitulatif exact (SC-016) | jeu de brouillons connu semé en base → les cinq listes égales à l'attendu, ni plus ni moins |
-| Aperçu = page publique (même rendu) | le même modèle de page rendu par les deux routes : on compare l'arbre du `<main>` et du pied de page, bandeau exclu, adresses d'images en brouillon normalisées |
+| Aperçu = page publique (même rendu) | le même modèle de page rendu par les deux routes : on compare l'arbre du `<main>` et du pied de page, bandeau exclu, adresses d'images en brouillon normalisées, liens vers une page du site ramenés à leur adresse publique |
+| Liens de l'aperçu | un lien vers une page déclarée (menu, bouton, texte riche) mène à `/admin/apercu<adresse>`, requête et ancre gardées ; un lien externe, de contact, en `//hôte`, ou vers une adresse du site non déclarée reste identique à la page publique |
 | Une page publique est un document statique | parcours : la réponse porte la CSP de `_headers` ; statique : le fichier existe dans `dist/client` |
 | Aucun terme de développeur | liste plancher de termes proscrits (dépôt, GitHub, branche, commit, build, déploiement, push, serveur, 404, 422…) cherchée dans le HTML et les messages JSON — oracle partiel, complété par la relecture |
 | SC-004 (< 5 min) | chronométrage en recette, de la confirmation à la page publique changée |

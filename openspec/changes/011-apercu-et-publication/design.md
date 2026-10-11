@@ -122,9 +122,19 @@ et la marque de brouillon resterait affichée après « Publier »).
 - Le carrousel est une bande `overflow-x` avec `scroll-snap`, sans script ; le lien de vidéo un lien
   « Voir la vidéo » (`rel="noopener noreferrer"`), sans `iframe` : aucune ressource tierce, aucune
   directive de politique à rouvrir.
+- **Dans l'aperçu seulement**, une fonction pure de `src/core/rendu/page.ts` réécrit, sur la page
+  composée, les liens dont le chemin correspond à une page déclarée — entrées de la navigation,
+  destination d'un bouton, liens d'un texte riche — vers `/admin/apercu<adresse>`, requête et ancre
+  gardées (`/tarifs` → `/admin/apercu/tarifs`, `/` → `/admin/apercu/`). L'adresse réécrite est
+  construite depuis la déclaration, jamais recopiée du contenu. Les liens externes, de contact
+  (`tel:`, `mailto:`), en `//hôte`, et les adresses du site qui ne sont pas une page déclarée restent
+  intacts. Le gabarit ne sait rien de l'aperçu : il reçoit la page déjà réécrite.
 Écartés : un HTML produit en `core/` puis injecté par `set:html` sous `render/markdown/` (I5 le
 permettrait, mais l'arbre rendu en composants n'ouvre aucune porte) ; un composant `<img>` pour
-l'aperçu et `<Image>` pour le public (deux jeux de composants, contre I3).
+l'aperçu et `<Image>` pour le public (deux jeux de composants, contre I3) ; garder dans l'aperçu les
+liens publics vers les autres pages (arbitrage du 2026-10-11 : une fois les brouillons montrés, un clic
+sur le menu ferait quitter l'aperçu pour le site en ligne, et l'éditrice croirait ses brouillons
+perdus).
 
 ### D4 — Les images publiées : octets sur `media`, fiche dans le contenu, inventaire en D1
 
@@ -279,8 +289,9 @@ supprimer tous les brouillons à la fin (une correction faite pendant le dépôt
   `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`. La story du formulaire
   public y ajoutera `script-src` et Turnstile (ADR-0004).
 - `src/pages/admin/apercu/[...slug].astro` : garde (`verifierSession`, I6), superposition D2 avec
-  brouillons, même `src/site/page.astro`, bandeau d'aperçu (composant `src/admin/BandeauApercu.astro`)
-  **hors** du gabarit ; `Cache-Control: no-store` posé par la route (I11 ne régit que les quatre en-têtes
+  brouillons, liens vers les pages déclarées réécrits vers leur aperçu (D3), même
+  `src/site/page.astro`, bandeau d'aperçu (composant `src/admin/BandeauApercu.astro`) **hors** du
+  gabarit ; `Cache-Control: no-store` posé par la route (I11 ne régit que les quatre en-têtes
   de sécurité, que le middleware pose déjà). Le gabarit se rend sous la CSP de l'administration :
   feuille externe, aucun attribut `style`.
 - `src/pages/admin/publier.astro` (écran) + îlot `EcranPublier.svelte` ; routes `POST

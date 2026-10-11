@@ -28,8 +28,10 @@ Publier » (large et étroit, avec ses états) et le **gabarit public** (page Ac
 - **Aperçu d'une page.** La page publique telle qu'elle sera, surmontée d'un **bandeau** pleine largeur,
   hors de la page : « Aperçu — cette page n'est pas encore en ligne. » et un lien « Revenir à la page »
   (vers l'éditeur de cette page). Le bandeau reste lisible sur téléphone (une ligne qui passe à la ligne,
-  pas de défilement horizontal). Les liens de la page mènent à leur destination réelle (site public),
-  comme une fois en ligne.
+  pas de défilement horizontal). Un lien vers une autre page du site (menu, bouton, lien d'un texte)
+  ouvre l'aperçu de cette page, sous le même bandeau : l'éditrice parcourt son site avec ses brouillons
+  sans le quitter par erreur. Les liens vers l'extérieur (réseaux, vidéo, téléphone, e-mail) mènent à
+  leur destination réelle.
 
 - **Écran : Publier** — titre « Publier », dans le cadre (aucune rubrique marquée active).
   - *récapitulatif* : une phrase d'introduction « Voici ce qui va être mis en ligne. Rien ne part tant
