@@ -304,3 +304,53 @@ it("SC-08i — « Voir l'aperçu » depuis l'éditeur ouvre l'aperçu de cette p
   expect(corps).toContain("<h1>Tarifs</h1>");
   expect(corps).toContain("Contenu courant publié");
 });
+
+it("SC-08b — l'aperçu de la page d'accueil a le même contenu que la page publique /", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+
+  const publique = await exports.default.fetch(new Request(`${ORIGINE}/`));
+  const reponse = await apercu("", cookie);
+
+  expect(publique.status).toBe(200);
+  expect(reponse.status).toBe(200);
+  const attendu = sansBandeau(await publique.text());
+  const obtenu = sansBandeau(await reponse.text());
+  expect(obtenu).toBe(attendu);
+});
+
+it("SC-08i — « Voir l'aperçu » depuis l'éditeur de l'accueil ouvre l'aperçu de l'accueil", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+
+  const editeur = await exports.default.fetch(
+    new Request(`${ORIGINE}/admin/pages/accueil`, { headers: { cookie } }),
+  );
+  const html = await editeur.text();
+  const lien =
+    /<a[^>]*id="voir-apercu"[^>]*href="([^"]*)"[^>]*>\s*Voir l’aperçu\s*<\/a>/.exec(
+      html,
+    ) ??
+    /<a[^>]*href="([^"]*)"[^>]*id="voir-apercu"[^>]*>\s*Voir l’aperçu\s*<\/a>/.exec(
+      html,
+    );
+  expect(lien?.[1]).toBe("/admin/apercu/");
+
+  const cible = await exports.default.fetch(
+    new Request(`${ORIGINE}${lien?.[1] ?? ""}`, { headers: { cookie } }),
+  );
+  expect(cible.status).toBe(200);
+  expect(await cible.text()).toContain("<h1>Accueil</h1>");
+});
+
+it("SC-08d — l'identifiant de l'accueil n'est pas une adresse publique : /admin/apercu/accueil est introuvable", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+
+  const reponse = await apercu("accueil", cookie);
+  const corps = await reponse.text();
+
+  expect(reponse.status).toBe(404);
+  expect(corps).toContain("introuvable");
+  expect(corps).not.toContain("data-bandeau-apercu");
+});
