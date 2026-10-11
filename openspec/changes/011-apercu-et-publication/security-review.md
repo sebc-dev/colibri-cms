@@ -64,7 +64,9 @@
    externes en `rel="noopener noreferrer"`.
 5. **Aperçu** : `verifierSession` en tête de route (I6), renvoi vers la connexion sans corps ;
    `Cache-Control: no-store` ; aucune page publique ne pointe vers `/admin/apercu/` (test statique sur
-   `dist/client`). Les octets d'image en brouillon restent servis par la route gardée existante.
+   `dist/client`) : la réécriture des liens vers les pages déclarées (design D3) n'a lieu que dans la
+   route gardée de l'aperçu, et l'adresse réécrite est construite depuis la déclaration, jamais
+   recopiée du contenu. Les octets d'image en brouillon restent servis par la route gardée existante.
 6. **En-têtes publics** : `public/_headers` versionné, règle `/*` ; contrôle statique que le
    `wrangler.json` produit ne pose aucun `run_worker_first` global, et que `dist/client/_headers` porte
    bien la CSP ; parcours qui vérifie la CSP sur une page publique servie par `wrangler dev`.

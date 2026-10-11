@@ -26,7 +26,8 @@ rapidité mesurée (**SC-005**) reste à la story « Site public rapide et compl
 - **L'aperçu d'une page.** Depuis l'éditeur d'une page — et depuis le récapitulatif —, « Voir l'aperçu »
   montre la page telle qu'elle sera en ligne, avec son brouillon et ceux des réglages, dessinée par
   exactement le même rendu que la page publique. Un bandeau signale que ce n'est pas encore en ligne et
-  ramène à l'édition. L'aperçu n'est atteignable qu'en session ouverte.
+  ramène à l'édition. Un lien vers une autre page du site y ouvre l'aperçu de cette page. L'aperçu n'est
+  atteignable qu'en session ouverte.
 - **Un geste « Publier » toujours à portée.** Le cadre de l'administration porte un bouton « Publier »
   et l'état de la dernière publication. Il mène au **récapitulatif** : les pages, les réglages et les
   formulaires qui vont partir en ligne, les images dont la description va changer, et les images qui

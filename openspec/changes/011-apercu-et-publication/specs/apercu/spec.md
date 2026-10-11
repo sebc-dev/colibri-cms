@@ -41,12 +41,21 @@ touche ni aux brouillons ni au site public.
 L'aperçu SHALL être dessiné par le **même gabarit de page et le même rendu des emplacements** que la page
 publique — un seul lieu de rendu, atteint par les deux (I3, ARCH-3). Pour un même contenu, la page de
 l'aperçu DOIT présenter les mêmes éléments, dans le même ordre, avec les mêmes textes, les mêmes liens et
-les mêmes images que la page publique ; seuls diffèrent le bandeau propre à l'aperçu et l'adresse d'où
-sont servis les octets d'une image encore en brouillon.
+les mêmes images que la page publique ; seuls diffèrent le bandeau propre à l'aperçu, l'adresse d'où
+sont servis les octets d'une image encore en brouillon, et l'adresse des liens qui visent une page
+déclarée du site, qui mènent à l'aperçu de cette page.
 
 #### Scenario: Pour un même contenu, l'aperçu et la page publique coïncident
 - **WHEN** une page ne porte aucun brouillon, qu'aucun réglage n'en porte, et que l'on compare son aperçu à sa page publique
-- **THEN** le contenu de la page — titre, navigation, emplacements, pied de page — est le même, élément par élément et dans le même ordre, hors le bandeau de l'aperçu
+- **THEN** le contenu de la page — titre, navigation, emplacements, pied de page — est le même, élément par élément et dans le même ordre, hors le bandeau de l'aperçu, les liens vers une page du site étant ramenés à leur adresse publique
+
+#### Scenario: Dans l'aperçu, un lien vers une page du site mène à son aperçu
+- **WHEN** l'éditrice, dans l'aperçu de « Accueil », actionne l'entrée « Tarifs » du menu, ou le bouton d'action qui mène à « Contact »
+- **THEN** l'aperçu de cette page s'ouvre, sous le même bandeau, avec ses brouillons
+
+#### Scenario: Un lien hors des pages du site reste celui de la page publique
+- **WHEN** l'aperçu porte un lien vers un réseau social, une vidéo, un numéro de téléphone, une adresse e-mail, ou une adresse du site qui n'est pas une page déclarée
+- **THEN** ce lien est identique à celui de la page publique
 
 ### Requirement: Aperçu réservé à la session ouverte
 
