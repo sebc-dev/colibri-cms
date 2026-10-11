@@ -73,6 +73,20 @@ describe('texte riche sur les pages publiques', () => {
     expect(corps).not.toMatch(/<img[^>]*onerror/i);
   });
 
+  it('SC-05d — un guillemet dans l’adresse d’un lien ne sort pas de l’attribut', () => {
+    const corps = accueilJetable();
+
+    // Le contenu jetable porte `[evasion](https://example.org/"onmouseover="boom7)`,
+    // sans `<` ni `>` : seul l'échappement d'attribut le neutralise. Chaque
+    // guillemet de l'adresse paraît en `&quot;`, l'attribut href reste entier.
+    // Écrit brut, `href="…/"onmouseover="boom7"` serait lu par le navigateur
+    // comme un second attribut, même sans espace avant lui.
+    expect(corps).toContain(
+      '<a href="https://example.org/&quot;onmouseover=&quot;boom7" rel="noopener noreferrer">evasion</a>',
+    );
+    expect(corps).not.toMatch(/<a\b[^>]*["\s]onmouseover=/i);
+  });
+
   it('SC-05d — aucun gabarit de rendu du texte riche n’écrit du balisage brut', async () => {
     const sources = await Promise.all([
       import('../../src/render/markdown/TexteRiche.astro?raw'),

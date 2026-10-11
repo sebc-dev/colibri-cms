@@ -7,6 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { composerPage, type EntreeComposition } from '../../../src/core/rendu/page.ts';
 import type { NoeudDocument } from '../../../src/core/pages/texte-riche.ts';
+import { analyserMarkdownRestreint, serialiserMarkdownRestreint } from '../../../src/core/pages/texte-riche.ts';
 import type { ReglagesDeclares } from '../../../src/core/reglages/declaration.ts';
 
 const REGLAGES: ReglagesDeclares = { coordonnees: [], reseaux: [], mention: '' };
@@ -113,5 +114,40 @@ describe('composerPage — texte riche', () => {
 
     expect(textes(doc).map((t) => t.text).join('')).toContain('<script>alert(1)</script>');
     expect(JSON.stringify(doc)).not.toMatch(/"type":"(script|img|html)"/);
+  });
+
+  it('SC-05a — un texte aux soulignés multiples paraît tel quel, sans italique parasite', () => {
+    // Un seul antislash réel avant chaque souligné : la forme qu'écrit la
+    // sérialisation du texte riche.
+    const composee = composerPage(
+      entree('Instagram : @patisserie\\_de\\_marie et jean\\_dupont\\_paris@exemple.fr'),
+    );
+    const noeuds = textes(documentDe(composee));
+
+    expect(noeuds.map((t) => t.text).join('')).toBe(
+      'Instagram : @patisserie_de_marie et jean_dupont_paris@exemple.fr',
+    );
+    expect(noeuds.flatMap((t) => t.marks ?? [])).toEqual([]);
+  });
+});
+
+describe('Markdown restreint — aller-retour d’un délimiteur écrit dans le texte', () => {
+  /** Sérialise un paragraphe d'un seul nœud, l'analyse, et rend le contenu du paragraphe relu. */
+  function relu(noeud: NoeudDocument): readonly NoeudDocument[] | undefined {
+    const markdown = serialiserMarkdownRestreint({
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [noeud] }],
+    });
+    return analyserMarkdownRestreint(markdown).content?.[0]?.content;
+  }
+
+  it('SC-05b — une marque dont le texte porte son propre délimiteur reste intacte', () => {
+    const gras: NoeudDocument = { type: 'text', text: 'offre*', marks: [{ type: 'bold' }] };
+    const italique: NoeudDocument = { type: 'text', text: 'mon_mot', marks: [{ type: 'italic' }] };
+    const sansMarque: NoeudDocument = { type: 'text', text: '@patisserie_de_marie' };
+
+    expect(relu(gras)).toStrictEqual([gras]);
+    expect(relu(italique)).toStrictEqual([italique]);
+    expect(relu(sansMarque)).toStrictEqual([sansMarque]);
   });
 });
