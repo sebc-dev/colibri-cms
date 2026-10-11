@@ -47,19 +47,24 @@ function optionsDuBrouillon(
 
 /**
  * Les options à montrer par champ à choix (identifiant du champ), dans l'ordre
- * de la déclaration. `brouillon` est tenu pour absent s'il n'a pas la forme
+ * de la déclaration. `publie` (facultatif) est la dernière version publiée :
+ * repli quand le brouillon manque ou ne s'accorde plus au champ (marque avec ou
+ * sans prix, ADR-0026), avant le contenu de départ. `brouillon` est tenu pour absent s'il n'a pas la forme
  * attendue ; `derniersNumeros` n'entre pas dans l'affichage.
  */
 export function optionsCourantes(
   formulaireDeclare: FormulaireDeclare,
   brouillon: unknown,
+  publie?: unknown,
 ): Map<string, readonly OptionBrouillon[]> {
   const courantes = new Map<string, readonly OptionBrouillon[]>();
   for (const champ of formulaireDeclare.champs) {
     if (champ.options === undefined) continue;
     courantes.set(
       champ.id,
-      optionsDuBrouillon(brouillon, champ.id, champ.avecPrix) ?? champ.options,
+      optionsDuBrouillon(brouillon, champ.id, champ.avecPrix) ??
+        optionsDuBrouillon(publie, champ.id, champ.avecPrix) ??
+        champ.options,
     );
   }
   return courantes;

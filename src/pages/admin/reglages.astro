@@ -16,6 +16,7 @@ import MarqueBrouillon from '../../admin/MarqueBrouillon.astro';
 import MontageCarteCoordonnees from '../../admin/MontageCarteCoordonnees.astro';
 import { lireReglagesDeLaDeclaration } from '../../platform/contenu/reglages.ts';
 import { obtenirBrouillonsReglages } from '../../platform/reglages/magasin.ts';
+import { obtenirPubliesReglages } from '../../platform/publication/magasin-publie.ts';
 import { coordonneesCourantes } from '../../core/reglages/coordonnees.ts';
 import {
   LIBELLES_NATURE_COORDONNEE,
@@ -37,6 +38,7 @@ if (!session) {
 
 const declares = lireReglagesDeLaDeclaration();
 const brouillons = await obtenirBrouillonsReglages(env.DB);
+const publies = await obtenirPubliesReglages(env.DB);
 
 /** Le brouillon des coordonnées (identifiant -> valeur), ou rien s'il est absent ou de forme inattendue. */
 function valeursBrouillon(brut: unknown): Record<string, string> {
@@ -44,17 +46,30 @@ function valeursBrouillon(brut: unknown): Record<string, string> {
   return Object.fromEntries(Object.entries(brut).filter((e): e is [string, string] => typeof e[1] === 'string'));
 }
 
-const coordonnees = coordonneesCourantes(declares.coordonnees, valeursBrouillon(brouillons.coordonnees));
-const reseauxBrouillon = brouillons.reseaux;
-const reseaux =
-  Array.isArray(reseauxBrouillon) &&
-  reseauxBrouillon.every(
-    (r): r is { nom: string; lien: string } =>
-      typeof r === 'object' && r !== null && typeof (r as { nom?: unknown }).nom === 'string' && typeof (r as { lien?: unknown }).lien === 'string',
-  )
-    ? reseauxBrouillon
-    : declares.reseaux;
-const mention = typeof brouillons.mention === 'string' ? brouillons.mention : declares.mention;
+const coordonnees = coordonneesCourantes(
+  coordonneesCourantes(declares.coordonnees, valeursBrouillon(publies.coordonnees)),
+  valeursBrouillon(brouillons.coordonnees),
+);
+
+type Reseau = { nom: string; lien: string };
+/** La liste de réseaux lisible, ou `undefined` si absente ou de forme inattendue. */
+function listeReseaux(brut: unknown): Reseau[] | undefined {
+  return Array.isArray(brut) &&
+    brut.every(
+      (r): r is Reseau =>
+        typeof r === 'object' && r !== null && typeof (r as { nom?: unknown }).nom === 'string' && typeof (r as { lien?: unknown }).lien === 'string',
+    )
+    ? brut
+    : undefined;
+}
+// Valeur courante : brouillon, sinon dernière version publiée, sinon contenu de départ.
+const reseaux = listeReseaux(brouillons.reseaux) ?? listeReseaux(publies.reseaux) ?? declares.reseaux;
+const mention =
+  typeof brouillons.mention === 'string'
+    ? brouillons.mention
+    : typeof publies.mention === 'string'
+      ? publies.mention
+      : declares.mention;
 
 const cartesCoordonnees = coordonnees.map((c) => ({
   id: c.id,
