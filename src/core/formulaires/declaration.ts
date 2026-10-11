@@ -35,6 +35,9 @@ const NATURES_A_CHOIX: readonly NatureChamp[] = ['choix-unique', 'choix-multiple
 /** Le prix maximal d'une option, en centimes. */
 export const PRIX_CENTIMES_MAX = 9_999_999;
 
+/** Le nombre minimal d'options d'un champ à choix. */
+export const OPTIONS_PAR_CHAMP_MIN = 1;
+
 /** Le nombre maximal d'options d'un champ à choix. */
 export const OPTIONS_PAR_CHAMP_MAX = 30;
 
@@ -126,7 +129,7 @@ function lireChamps(brut: unknown): ChampDeclare[] {
     if (NATURES_A_CHOIX.includes(c.nature)) {
       const avecPrix = c.avecPrix === true;
       const options = lireOptions(c.options, avecPrix);
-      if (options.length === 0) continue;
+      if (options.length < OPTIONS_PAR_CHAMP_MIN) continue;
       vus.add(id);
       lus.push({ id, nature: c.nature, libelle, obligatoire, avecPrix, options });
     } else {

@@ -25,6 +25,9 @@ import EcranMedias from './EcranMedias.svelte';
 import CarteCoordonnees from './CarteCoordonnees.svelte';
 import CarteReseaux from './CarteReseaux.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
+import EcranFormulaire from './EcranFormulaire.svelte';
+import type { ChampCarte } from './formulaire-carte.ts';
+import type { OptionBrouillon } from '../../core/formulaires/options.ts';
 import type { CoordonneeCarte } from './coordonnees-carte.ts';
 import type { ReseauCarte } from './reseaux-carte.ts';
 import type { MediaListe, MediaFiche } from '../../platform/medias/magasin.ts';
@@ -505,6 +508,102 @@ export function monterCarteMention(): void {
         libelle: TEXTE_CARTE_MENTION,
         // Même bouton que les cartes Coordonnées et Réseaux sociaux.
         classeEnregistrer: 'h-auto self-start rounded-md border-0 px-3 py-2 max-md:min-h-11',
+      },
+    });
+  });
+}
+
+/** Un élément de `data-champs` : un champ à choix et ses options courantes, encore à vérifier. */
+interface ChampBrut {
+  readonly id: string;
+  readonly libelle: string;
+  readonly avecPrix: boolean;
+  readonly nature: ChampCarte['nature'];
+  readonly options: unknown[];
+}
+
+function estChampBrut(element: unknown): element is ChampBrut {
+  return (
+    typeof element === 'object' &&
+    element !== null &&
+    typeof (element as { id?: unknown }).id === 'string' &&
+    typeof (element as { libelle?: unknown }).libelle === 'string' &&
+    typeof (element as { avecPrix?: unknown }).avecPrix === 'boolean' &&
+    ['choix-unique', 'choix-multiple'].includes((element as { nature?: string }).nature ?? '') &&
+    Array.isArray((element as { options?: unknown }).options)
+  );
+}
+
+/** Une option courante : identifiant et libellé textes, prix absent ou entier positif (centimes) ; sinon `null`. */
+function lireOptionBrute(element: unknown): OptionBrouillon | null {
+  if (typeof element !== 'object' || element === null) return null;
+  const { id, libelle, prix } = element as { id?: unknown; libelle?: unknown; prix?: unknown };
+  if (typeof id !== 'string' || typeof libelle !== 'string') return null;
+  if (prix === undefined) return { id, libelle };
+  if (typeof prix !== 'number' || !Number.isInteger(prix) || prix < 0) return null;
+  return { id, libelle, prix };
+}
+
+function lireOptionsChamp(brutes: readonly unknown[]): OptionBrouillon[] | null {
+  const options: OptionBrouillon[] = [];
+  for (const brute of brutes) {
+    const option = lireOptionBrute(brute);
+    if (option === null) return null;
+    options.push(option);
+  }
+  return options;
+}
+
+/**
+ * Les champs à choix de l'écran et leurs options courantes, tels que
+ * sérialisés en JSON par le serveur dans `data-champs` — `null` si la valeur
+ * est mal formée ou d'une autre forme (même garde qu'`analyserCoordonnees`).
+ */
+function lireChampsFormulaire(valeurBrute: string): readonly ChampCarte[] | null {
+  let valeur: unknown;
+  try {
+    valeur = JSON.parse(valeurBrute);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(valeur)) return null;
+  const champs: ChampCarte[] = [];
+  for (const element of valeur) {
+    if (!estChampBrut(element)) return null;
+    const options = lireOptionsChamp(element.options);
+    if (options === null) return null;
+    champs.push({ id: element.id, libelle: element.libelle, nature: element.nature, avecPrix: element.avecPrix, options });
+  }
+  return champs;
+}
+
+/**
+ * Monte l'îlot `EcranFormulaire` (change 010, ticket 07) sur l'écran d'un
+ * formulaire — repéré par `data-ecran-formulaire`, l'identifiant du
+ * formulaire en `data-id-formulaire`, les champs à choix et leurs options
+ * courantes (identifiant, libellé, prix en centimes) en JSON dans
+ * `data-champs`. La marque de brouillon se révèle dans la zone
+ * `data-zone-marque-brouillon` de l'écran. Même garde que ci-dessus.
+ */
+export function monterEcranFormulaire(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-ecran-formulaire]');
+
+  cibles.forEach((cible) => {
+    const { idFormulaire, champs: brut } = cible.dataset;
+    if (idFormulaire === undefined || brut === undefined) return;
+    const champs = lireChampsFormulaire(brut);
+    if (champs === null) return;
+    const zoneMarque = document.querySelector('[data-zone-marque-brouillon]');
+
+    cible.innerHTML = '';
+    mount(EcranFormulaire, {
+      target: cible,
+      props: {
+        idFormulaire,
+        champs,
+        apresEnregistrement: () => {
+          afficherPastilleDansLaZone(zoneMarque);
+        },
       },
     });
   });
