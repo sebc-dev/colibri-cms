@@ -212,6 +212,7 @@ it("SC-01b — page sans brouillon, le bouton présente le libellé et la destin
   expect(main).toContain("Destination : /reserver");
   expect(main).not.toContain("Demander un devis");
   expect(main).not.toContain("Destination : /contact");
+  expect(main).not.toContain(MARQUE);
 });
 
 it("SC-01c — seul Réseaux sociaux porte un brouillon : liste du brouillon dans sa carte, départ dans Coordonnées et Mention", async () => {
@@ -264,6 +265,82 @@ it("SC-01d — mention publiée, sans brouillon : la mention publiée est dans s
   expect(mention).not.toContain("ne sont ni revendues");
   expect(mention).not.toContain(MARQUE);
   expect(main).not.toContain(MARQUE);
+});
+
+it("SC-01d — coordonnées publiées sans brouillon : la valeur publiée remplace le départ, les autres coordonnées gardent le leur", async () => {
+  // Arrange
+  const db = await assurerSchema();
+  await semerPublieReglage(db, "coordonnees", { telephone: "09 87 65 43 21" });
+
+  // Act
+  const main = await ouvrir(db, "/reglages");
+
+  // Assert
+  const coordonnees = carte(main, "carte-coordonnees");
+  expect(coordonnees).toContain("09 87 65 43 21");
+  expect(coordonnees).not.toContain("01 23 45 67 89");
+  expect(coordonnees).toContain("atelier@example.org");
+  expect(coordonnees).not.toContain(MARQUE);
+});
+
+it("SC-01d — réseaux publiés sans brouillon : la liste publiée remplace celle de départ", async () => {
+  // Arrange
+  const db = await assurerSchema();
+  await semerPublieReglage(db, "reseaux", [
+    { nom: "Mastodon", lien: "https://mastodon.example/@atelier" },
+  ]);
+
+  // Act
+  const main = await ouvrir(db, "/reglages");
+
+  // Assert
+  const reseaux = carte(main, "carte-reseaux");
+  expect(reseaux).toContain("Mastodon");
+  expect(reseaux).not.toContain("Instagram");
+  expect(reseaux).not.toContain(MARQUE);
+});
+
+it("SC-01d — le brouillon prime sur la version publiée pour chaque réglage", async () => {
+  // Arrange
+  const db = await assurerSchema();
+  await semerPublieReglage(db, "coordonnees", { telephone: "09 87 65 43 21" });
+  await semerPublieReglage(db, "reseaux", [
+    { nom: "Mastodon", lien: "https://mastodon.example/@atelier" },
+  ]);
+  await semerPublieReglage(db, "mention", "Mention publiee de test.");
+  const brouillons: [string, unknown][] = [
+    ["coordonnees", { telephone: "04 11 22 33 44" }],
+    [
+      "reseaux",
+      [{ nom: "Bluesky", lien: "https://bsky.app/profile/atelier.example" }],
+    ],
+    ["mention", "Mention du brouillon de test."],
+  ];
+  for (const [reglage, contenu] of brouillons) {
+    await db
+      .prepare(
+        "insert into brouillons_reglages (reglage, contenu, maj_le) values (?1, ?2, ?3)",
+      )
+      .bind(reglage, JSON.stringify(contenu), Date.now())
+      .run();
+  }
+
+  // Act
+  const main = await ouvrir(db, "/reglages");
+
+  // Assert
+  const coordonnees = carte(main, "carte-coordonnees");
+  expect(coordonnees).toContain("04 11 22 33 44");
+  expect(coordonnees).not.toContain("09 87 65 43 21");
+  expect(coordonnees).toContain(MARQUE);
+  const reseaux = carte(main, "carte-reseaux");
+  expect(reseaux).toContain("Bluesky");
+  expect(reseaux).not.toContain("Mastodon");
+  expect(reseaux).toContain(MARQUE);
+  const mention = carte(main, "carte-mention");
+  expect(mention).toContain("Mention du brouillon de test.");
+  expect(mention).not.toContain("Mention publiee de test.");
+  expect(mention).toContain(MARQUE);
 });
 
 it("SC-01e — « Devis gâteau » après publication ajoutant « Pistache » à 12 €, sans brouillon : « Pistache » à 12 € dans « Parfum », sans marque", async () => {
