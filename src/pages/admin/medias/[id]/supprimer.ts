@@ -16,7 +16,7 @@
  * l'îlot (`FicheMedia.svelte`) dans sa confirmation — cette route n'a donc
  * rien à lister elle-même, elle n'exécute que l'ordre confirmé.
  *
- * Une seule écriture (aucun effacement de `medias_brouillon` ici, FR-037
+ * Une seule écriture (aucun effacement de `medias` ici, FR-037
  * délégué à « Aperçu et publication ») : `existeMediaBrouillon`
  * (`src/platform/medias/magasin.ts`) garde l'identifiant inconnu — 404 SANS
  * rien écrire, même contrat que `[id]/renommer.ts` ; puis, seulement si

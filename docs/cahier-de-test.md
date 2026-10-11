@@ -89,13 +89,13 @@ find .wrangler/tmp/email -name '*.txt' -printf '%T@ %p\n' | sort -n | tail -1 | 
 ```sh
 npx wrangler d1 execute DB --local --command "select id, identifiant_appareil, essais, utilise_le, annule_le from codes_connexion;"
 npx wrangler d1 execute DB --local --command "select * from brouillons_emplacements;"
-npx wrangler d1 execute DB --local --command "select id, nom_origine, nom_affichage, format, largeur, hauteur, poids_octets from medias_brouillon;"
+npx wrangler d1 execute DB --local --command "select id, nom_origine, nom_affichage, format, largeur, hauteur, poids_octets from medias;"
 ```
 
 ### 0.6 Remettre à zéro
 
 ```sh
-npx wrangler d1 execute DB --local --command "delete from codes_connexion; delete from sessions; delete from brouillons_emplacements; delete from medias_brouillon; delete from brouillons_reglages; delete from brouillons_formulaires;"
+npx wrangler d1 execute DB --local --command "delete from codes_connexion; delete from sessions; delete from brouillons_emplacements; delete from medias; delete from brouillons_reglages; delete from brouillons_formulaires;"
 ```
 
 Le plafond de **cinq codes par heure** se déclenche vite en test : `delete from codes_connexion`
@@ -275,7 +275,7 @@ Page **Contact**, emplacement « texte riche ».
 
 ## 10. La bibliothèque — écran Médias — `bibliotheque-de-medias`
 
-Bibliothèque vide au départ (`delete from medias_brouillon`).
+Bibliothèque vide au départ (`delete from medias`).
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
@@ -331,7 +331,7 @@ Page **Accueil**, emplacement **image**. `.wrangler/tmp/email` et l'onglet Rése
 | CT-13.4 | Recharger l'éditeur | L'image posée est retrouvée | |
 | CT-13.5 | Fiche de `logo.png` → « Posée dans » | « Accueil — image » (titre de page + nature en français, **pas** `image-hero`) | |
 | CT-13.6 | Vignette et fiche de `logo.png` | La marque d'orphelin a **disparu** ; celle de « Façade de l'atelier » (plus posée nulle part) est **revenue** | |
-| CT-13.7 | Sélecteur d'image sur une bibliothèque vidée (`delete from medias_brouillon`, après le § 14) | État vide compréhensible, sans terme de développeur | |
+| CT-13.7 | Sélecteur d'image sur une bibliothèque vidée (`delete from medias`, après le § 14) | État vide compréhensible, sans terme de développeur | |
 
 ## 14. Composer une galerie ou un carrousel — `pages-et-emplacements`
 

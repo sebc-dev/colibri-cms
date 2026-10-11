@@ -18,7 +18,7 @@ import { it, expect, afterEach } from 'vitest';
 
 const NOM_COOKIE_SESSION = '__Host-session';
 const TABLE_SESSIONS = 'sessions';
-const TABLE_MEDIAS = 'medias_brouillon';
+const TABLE_MEDIAS = 'medias';
 const ROUTE_RENOMMER = (id: string) => `https://example.com/admin/medias/${id}/renommer`;
 const ROUTE_DECRIRE = (id: string) => `https://example.com/admin/medias/${id}/decrire`;
 
@@ -69,6 +69,14 @@ async function assurerSchema(): Promise<DBLike> {
         await db.prepare(requete).run();
       } catch {
         // colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+      }
+    }
+    const renommage = await import('../../migrations/0009_medias.sql?raw');
+    for (const requete of separerRequetes(renommage.default)) {
+      try {
+        await db.prepare(requete).run();
+      } catch {
+        // déjà renommée, ou colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
       }
     }
   })();

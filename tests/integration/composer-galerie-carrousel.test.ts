@@ -31,7 +31,7 @@ import { it, expect, afterEach } from 'vitest';
 const NOM_COOKIE_SESSION = '__Host-session';
 const TABLE_SESSIONS = 'sessions';
 const TABLE_BROUILLONS = 'brouillons_emplacements';
-const TABLE_MEDIAS = 'medias_brouillon';
+const TABLE_MEDIAS = 'medias';
 const ROUTE_ACCUEIL_GALERIE = 'https://example.com/admin/pages/accueil/emplacements/galerie-realisations';
 const ROUTE_CONTACT_CARROUSEL = 'https://example.com/admin/pages/contact/emplacements/carrousel-clients';
 const ROUTE_MES_PAGES = 'https://example.com/admin/mes-pages';
@@ -87,6 +87,22 @@ async function assurerSchema(): Promise<DBLike> {
       await db.prepare(`alter table ${TABLE_MEDIAS} add column nom_affichage text`).run();
     } catch {
       // déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+    }
+    const affichage = await import('../../migrations/0006_medias_brouillon_affichage.sql?raw');
+    for (const requete of separerRequetes(affichage.default)) {
+      try {
+        await db.prepare(requete).run();
+      } catch {
+        // colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+      }
+    }
+    const renommage = await import('../../migrations/0009_medias.sql?raw');
+    for (const requete of separerRequetes(renommage.default)) {
+      try {
+        await db.prepare(requete).run();
+      } catch {
+        // déjà renommée, ou colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+      }
     }
   })();
   await schemaPret;
