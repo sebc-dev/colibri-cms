@@ -41,10 +41,10 @@ L'effacement définitif lui-même est exécuté par la publication (ticket 15).
 effacer dans le récapitulatif (ticket 11) ; les images de départ dans la grille (ticket 02).
 
 ## Critères
-- [ ] Quand l'éditrice consulte la fiche d'une image que la dernière version publiée d'un emplacement pose, cet emplacement ne portant pas de brouillon, cet emplacement figure dans la liste des emplacements qui la posent   (SC-03a)
-- [ ] Quand la dernière version publiée d'un emplacement pose une image et que son brouillon la remplace par une autre, cet emplacement ne figure pas dans la liste des emplacements qui posent la première image   (SC-03b)
-- [ ] En `core/`, une image que le contenu courant d'au moins un emplacement pose n'est pas effaçable   (SC-03c)
-- [ ] En `core/`, une image qu'aucun emplacement ne pose, ni par son brouillon, ni par sa dernière version publiée, est effaçable   (SC-03d)
-- [ ] En `core/`, une image posée seulement par la dernière version publiée d'un emplacement dont le brouillon la remplace est effaçable   (SC-03e)
-- [ ] En `core/`, une image posée seulement par la dernière version publiée d'un emplacement qui ne porte pas de brouillon n'est pas effaçable   (SC-03f)
-- [ ] Par la couture HTTP, confirmer la suppression d'une image que seule la dernière version publiée d'un emplacement pose, la page ne portant pas de brouillon, inscrit le retrait de l'image dans le brouillon de cette page ; la page bascule à « brouillon », l'état publié reste intact, et l'image devient orpheline   (SC-03g)
+- [x] Quand l'éditrice consulte la fiche d'une image que la dernière version publiée d'un emplacement pose, cet emplacement ne portant pas de brouillon, cet emplacement figure dans la liste des emplacements qui la posent   (SC-03a)
+- [x] Quand la dernière version publiée d'un emplacement pose une image et que son brouillon la remplace par une autre, cet emplacement ne figure pas dans la liste des emplacements qui posent la première image   (SC-03b)
+- [x] En `core/`, une image que le contenu courant d'au moins un emplacement pose n'est pas effaçable   (SC-03c)
+- [x] En `core/`, une image qu'aucun emplacement ne pose, ni par son brouillon, ni par sa dernière version publiée, est effaçable   (SC-03d)
+- [x] En `core/`, une image posée seulement par la dernière version publiée d'un emplacement dont le brouillon la remplace est effaçable   (SC-03e)
+- [x] En `core/`, une image posée seulement par la dernière version publiée d'un emplacement qui ne porte pas de brouillon n'est pas effaçable   (SC-03f)
+- [x] Par la couture HTTP, confirmer la suppression d'une image que seule la dernière version publiée d'un emplacement pose, la page ne portant pas de brouillon, inscrit le retrait de l'image dans le brouillon de cette page ; la page bascule à « brouillon », l'état publié reste intact, et l'image devient orpheline   (SC-03g)

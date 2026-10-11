@@ -35,7 +35,12 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { verifierSession } from '../../../../platform/session/index.ts';
 import { existeMediaBrouillon } from '../../../../platform/medias/magasin.ts';
-import { retirerMediaDesEmplacements } from '../../../../platform/brouillons/magasin.ts';
+import {
+  retirerMediaDesEmplacements,
+  inscrireRetraitsDansBrouillon,
+} from '../../../../platform/brouillons/magasin.ts';
+import { lirePagesContenuCourant } from '../../../../platform/contenu/references-medias.ts';
+import { retraitsDeImage } from '../../../../core/medias/references.ts';
 
 export const POST: APIRoute = async ({ params, request }) => {
   const session = await verifierSession(env.DB, request);
@@ -52,7 +57,12 @@ export const POST: APIRoute = async ({ params, request }) => {
     return new Response(null, { status: 404 });
   }
 
-  await retirerMediaDesEmplacements(env.DB, id, Date.now());
+  const maintenant = Date.now();
+  await retirerMediaDesEmplacements(env.DB, id, maintenant);
+  // Ce que seule la version publiée (ou le contenu de départ) pose : le retrait
+  // s'inscrit au brouillon de la page, jamais dans l'état publié (ADR-0020).
+  const retraits = retraitsDeImage(await lirePagesContenuCourant(env.DB), id);
+  await inscrireRetraitsDansBrouillon(env.DB, retraits, maintenant);
 
   return Response.json({ ok: true }, { status: 200 });
 };
