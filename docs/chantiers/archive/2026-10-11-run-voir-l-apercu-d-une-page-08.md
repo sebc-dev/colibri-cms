@@ -51,3 +51,11 @@ Hors de cette session : commiter le travail dans le worktree, puis relancer
 ## Écarté
 - Éteindre les règles par `eslint-disable` : les deux remontées sont fondées, pas des faux positifs.
 - Relever le seuil de `sonarjs/regex-complexity` : décision de configuration hors ticket.
+
+## Issue
+Retouches faites le 2026-10-11 dans les deux tests neufs : `href` affiné avant la ligne 270, regex
+`TERMES_DEVELOPPEUR` coupée en deux expressions, aucune assertion retirée. Reprise avec `rerun: "2"` :
+le run a abouti à la PR #215. La review a déplacé le style du bandeau de `src/admin/apercu.css` vers
+`src/site/site.css` (I14). Elle a aussi retenu des tests que le correcteur n'a pas le droit d'écrire :
+l'accueil (`architecture-F-2`), les réglages publiés (`coverage-F-1`), les termes plancher et le
+bandeau rendu (`coverage-F-5`). Ils restent à ajouter.
