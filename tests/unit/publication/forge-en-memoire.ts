@@ -67,6 +67,7 @@ function comparerBinaire(a: string, b: string): number {
 type Arbre = ReadonlyMap<string, string>;
 
 export const REF_PRINCIPALE = "refs/heads/main";
+export const REF_MEDIA = "refs/heads/media";
 
 export class ForgeEnMemoire implements Forge {
   private readonly blobs = new Map<string, Uint8Array<ArrayBuffer>>();
@@ -133,10 +134,26 @@ export class ForgeEnMemoire implements Forge {
     return texte;
   }
 
-  /** Les commits de la branche principale, du plus récent au plus ancien. */
-  historique(): readonly CommitLu[] {
+  /** Les octets d'un fichier d'une branche (principale par défaut), `undefined` s'il est absent. */
+  octets(chemin: string, ref: string = REF_PRINCIPALE): Uint8Array<ArrayBuffer> | undefined {
+    const sha = this.refs.get(ref);
+    const commit = sha === undefined ? undefined : this.commits.get(sha);
+    const shaBlob = commit === undefined ? undefined : this.arbres.get(commit.arbre)?.get(chemin);
+    return shaBlob === undefined ? undefined : this.blobs.get(shaBlob);
+  }
+
+  /** Les chemins d'une branche (principale par défaut), en ordre binaire. */
+  chemins(ref: string = REF_PRINCIPALE): readonly string[] {
+    const sha = this.refs.get(ref);
+    const commit = sha === undefined ? undefined : this.commits.get(sha);
+    const arbre = commit === undefined ? undefined : this.arbres.get(commit.arbre);
+    return [...(arbre?.keys() ?? [])].sort(comparerBinaire);
+  }
+
+  /** Les commits d'une branche (principale par défaut), du plus récent au plus ancien. */
+  historique(ref: string = REF_PRINCIPALE): readonly CommitLu[] {
     const suite: CommitLu[] = [];
-    let courant = this.refs.get(REF_PRINCIPALE);
+    let courant = this.refs.get(ref);
     while (courant !== undefined) {
       const commit = this.commits.get(courant);
       if (commit === undefined) break;

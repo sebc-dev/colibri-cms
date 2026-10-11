@@ -3,10 +3,12 @@
  * fichiers à écrire et à supprimer sur la branche principale. Aucun dépôt ici.
  */
 import type { FicheMedia } from '../medias/fiche.ts';
+import type { FormatImageAdmis } from '../medias/ingestion.ts';
 import { appliquerBrouillonSurEmplacement, pagePorteUnBrouillon, type Brouillon } from '../pages/brouillon.ts';
 import type { Emplacement, EmplacementJson } from '../pages/declaration.ts';
 import { coordonneesCourantes } from '../reglages/coordonnees.ts';
 import type { ReglagesDeclares, ReseauDeclare } from '../reglages/declaration.ts';
+import type { ImagePubliee } from './depot.ts';
 import { cheminAutorise, identifiantValide } from './prefixes.ts';
 
 export interface PageInstantane {
@@ -180,4 +182,42 @@ export function construirePlan(
     if (!cheminAutorise(chemin)) throw new Error(`chemin refusé : ${chemin}`);
   }
   return { ecritures, suppressions, marque };
+}
+
+export interface ImageEnBase {
+  readonly id: string;
+  readonly format: FormatImageAdmis;
+  readonly publiee: boolean; // publiee_le non nul en D1
+  readonly empreinteDepot: string | null;
+}
+
+export interface SelectionImages {
+  readonly aDeposer: readonly { readonly id: string; readonly extension: string }[];
+  readonly deposees: readonly ImagePubliee[];
+}
+
+/**
+ * Sélection des images à déposer (D6) : les posées sans empreinte sont à déposer ; les porteuses
+ * d'empreinte restent si publiées ou posées. Une image que cette publication efface reste jusqu'à
+ * la finalisation (D5).
+ */
+export function selectionnerImages(
+  images: readonly ImageEnBase[],
+  poseesParLeContenu: ReadonlySet<string>,
+): SelectionImages {
+  const aDeposer: { readonly id: string; readonly extension: string }[] = [];
+  const deposees: ImagePubliee[] = [];
+  for (const image of images) {
+    const posee = poseesParLeContenu.has(image.id);
+    if (image.empreinteDepot === null) {
+      if (posee) aDeposer.push({ id: exigerIdentifiant(image.id), extension: image.format });
+    } else if (image.publiee || posee) {
+      deposees.push({
+        id: exigerIdentifiant(image.id),
+        extension: image.format,
+        empreinte: image.empreinteDepot,
+      });
+    }
+  }
+  return { aDeposer, deposees };
 }
