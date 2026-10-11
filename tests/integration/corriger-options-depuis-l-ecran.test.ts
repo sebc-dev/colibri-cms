@@ -186,6 +186,15 @@ function nombreDeBoutonsEnregistrer(html: string): number {
     .length;
 }
 
+/** Les options d'un champ telles que la page les sert à l'îlot, lues dans le JSON de `data-champs`. */
+function optionsServies(html: string, idChamp: string): unknown {
+  const brut = /\sdata-champs="([^"]*)"/.exec(html)?.[1] ?? "";
+  const champs = JSON.parse(
+    brut.replaceAll("&quot;", '"').replaceAll("&amp;", "&"),
+  ) as { id: string; options: unknown }[];
+  return champs.find((champ) => champ.id === idChamp)?.options;
+}
+
 async function nombreDeBrouillons(db: DBLike): Promise<number> {
   const r = await db
     .prepare(`select formulaire from ${TABLE_BROUILLONS}`)
@@ -238,6 +247,41 @@ describe("SC-07a — monter « Fraise » de deux rangs puis enregistrer", () => 
       "Fraise",
       "Vanille",
       "Chocolat",
+    ]);
+  });
+
+  it("SC-07a — l'écran sert à l'îlot les options de « Devis gâteau », identifiants et prix en centimes", async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+
+    // Act
+    const html = await lireEcran(cookie);
+
+    // Assert
+    expect(optionsServies(html, "parfum")).toEqual(PARFUMS);
+    const occasions = optionsServies(html, "occasion");
+    expect(occasions).toHaveLength(3);
+    for (const option of occasions as object[]) {
+      expect(Object.hasOwn(option, "prix")).toBe(false);
+    }
+  });
+
+  it("SC-07a — après l'enregistrement, l'écran sert à l'îlot l'ordre et les prix du brouillon", async () => {
+    // Arrange
+    const db = await assurerSchema();
+    const cookie = await semerSession(db);
+    const lignes = deplacer(deplacer(lignesDepuis(PARFUMS, 0), 2, -1), 1, -1);
+    expect((await poster(cookie, corpsDeLIlot(lignes))).status).toBe(200);
+
+    // Act
+    const html = await lireEcran(cookie);
+
+    // Assert
+    expect(optionsServies(html, "parfum")).toEqual([
+      { id: "fraise", libelle: "Fraise", prix: 1000 },
+      { id: "vanille", libelle: "Vanille", prix: 800 },
+      { id: "chocolat", libelle: "Chocolat", prix: 900 },
     ]);
   });
 });
