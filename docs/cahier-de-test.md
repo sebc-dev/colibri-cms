@@ -591,16 +591,18 @@ Session ouverte. Ouvrir `/admin/formulaires`.
 
 Session ouverte. Ouvrir « Devis gâteau » depuis `/admin/formulaires`.
 
+Joué le 2026-10-11 sur l'adresse d'aperçu de la branche `impl/corriger-les-options-depuis-l-ecran-07` (`d9499f1`), au navigateur piloté (`playwright-cli`), à partir d'un formulaire sans brouillon. Console : aucune violation CSP sur tout le §, seuls le 404 de `favicon.ico` et le 400 attendu du refus.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-28.1 | Monter « Fraise » de deux rangs, puis « Enregistrer » | « Fraise », « Vanille », « Chocolat » dans cet ordre ; la marque « Brouillon » apparaît à côté du titre sans changement d'écran ; la saisie reste affichée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » | |
-| CT-28.2 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | Message en haut ; la ligne fautive porte « Un montant en euros, par exemple 12 ou 12,50. » ; toute la saisie reste ; la marque n'apparaît pas si elle n'y était pas | |
-| CT-28.3 | Cliquer « Ajouter un choix » | Le curseur est dans la ligne vide | |
-| CT-28.4 | Garder une seule option dans un champ | « Retirer » inactif, « Gardez au moins un choix. » | |
-| CT-28.5 | Pendant l'envoi | Le bouton est inactif et affiche « Enregistrement… » | |
-| CT-28.6 | Sur téléphone, monter, descendre, retirer au doigt et au clavier | Les boutons sont assez grands et atteignables ; aucun terme technique ni identifiant visible | |
-| CT-28.7 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | L'écran se place sur ce prix et le curseur y est ; le message en haut reste affiché | |
-| CT-28.8 | Ouvrir « Devis gâteau » | Un seul bouton « Enregistrer » à l'écran, et il enregistre | |
+| CT-28.1 | Monter « Fraise » de deux rangs, puis « Enregistrer » | « Fraise », « Vanille », « Chocolat » dans cet ordre ; la marque « Brouillon » apparaît à côté du titre sans changement d'écran ; la saisie reste affichée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » | OK — 1280 px : Fraise, Vanille, Chocolat à l'écran et en base (10, 8 et 9 €) ; marque « Brouillon » apparue à côté du titre, même page (témoin JS conservé, adresse inchangée) ; saisie gardée ; message de confirmation affiché |
+| CT-28.2 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | Message en haut ; la ligne fautive porte « Un montant en euros, par exemple 12 ou 12,50. » ; toute la saisie reste ; la marque n'apparaît pas si elle n'y était pas | OK — « Rien n'est enregistré : corrigez les choix signalés. » en haut, rouge sur rouge pâle ; sous le prix de Fraise, « Un montant en euros, par exemple 12 ou 12,50. » (`aria-invalid`, relié par `aria-describedby`) ; les 15 zones gardent leur saisie, « douze » compris ; aucune marque ; aucun brouillon en base |
+| CT-28.3 | Cliquer « Ajouter un choix » | Le curseur est dans la ligne vide | OK — « Ajouter un choix dans Parfum » : le curseur est dans la zone « Choix » de la nouvelle ligne, vide, 4e de la carte |
+| CT-28.4 | Garder une seule option dans un champ | « Retirer » inactif, « Gardez au moins un choix. » | OK — Occasion réduite à « Baptême & communion » : « Retirer » inactif, « Gardez au moins un choix. » affiché |
+| CT-28.5 | Pendant l'envoi | Le bouton est inactif et affiche « Enregistrement… » | OK — envoi retardé de 3 s (interception réseau) : à 1 s, bouton inactif, « Enregistrement… », pas encore de marque ; actif et « Enregistrer » à la fin |
+| CT-28.6 | Sur téléphone, monter, descendre, retirer au doigt et au clavier | Les boutons sont assez grands et atteignables ; aucun terme technique ni identifiant visible | OK — 360 × 740 au navigateur : `scrollWidth` 360, 47 boutons, zones et liens tous ≥ 44 × 44 px ; au clavier, Tab mène du prix à « Descendre Fraise » puis « Retirer Fraise » (« Monter », inactif, est sauté), Entrée descend Fraise ; aucun terme technique ni identifiant dans le texte de l'écran. Pas joué au doigt sur un vrai téléphone |
+| CT-28.7 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | L'écran se place sur ce prix et le curseur y est ; le message en haut reste affiché | OK — après le refus, le prix de Fraise est dans la vue et a le curseur ; le message du haut reste en place, au-dessus de la première carte (hors de la vue tant qu'on ne remonte pas) |
+| CT-28.8 | Ouvrir « Devis gâteau » | Un seul bouton « Enregistrer » à l'écran, et il enregistre | OK — un seul « Enregistrer » (celui de l'îlot, `type="submit"`) ; c'est lui qui enregistre en CT-28.1 |
 
 ## Bilan
 
