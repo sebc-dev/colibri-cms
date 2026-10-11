@@ -32,7 +32,7 @@ import { it, expect, afterEach } from "vitest";
 
 const NOM_COOKIE_SESSION = "__Host-session";
 const TABLE_SESSIONS = "sessions";
-const TABLE_MEDIAS = "medias_brouillon";
+const TABLE_MEDIAS = "medias";
 
 interface InstructionLike {
   bind(...valeurs: unknown[]): {
@@ -90,6 +90,14 @@ async function assurerSchema(): Promise<DBLike> {
         await db.prepare(requete).run();
       } catch {
         // colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+      }
+    }
+    const renommage = await import("../../migrations/0009_medias.sql?raw");
+    for (const requete of separerRequetes(renommage.default)) {
+      try {
+        await db.prepare(requete).run();
+      } catch {
+        // déjà renommée, ou colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
       }
     }
   })();
@@ -163,7 +171,7 @@ interface EcranCadre {
 /**
  * Prépare les quatre écrans cadrés pour un test donné : sème une image en
  * brouillon (fraîche à chaque appel, puisque `afterEach` vide
- * `medias_brouillon`) pour que l'`Écran : Fiche d'une image` reste
+ * `medias`) pour que l'`Écran : Fiche d'une image` reste
  * atteignable.
  */
 async function obtenirEcrans(db: DBLike): Promise<readonly EcranCadre[]> {

@@ -11,10 +11,12 @@
  * format : il persiste et relit ce que `core/medias/ingestion.ts` a déjà
  * déduit — jamais un `typeDeclare` ni une extension (SC-04d).
  *
- * Table `medias_brouillon` (`migrations/0005_medias_brouillon.sql`, SC-04a) :
- * une ligne par image en brouillon, clé `id` (identifiant opaque engendré
- * ici à la persistance). L'état publié n'a ici aucune représentation : ce
- * magasin ne connaît que la réserve brouillon.
+ * Table `medias` (`migrations/0005_medias_brouillon.sql`, SC-04a, renommée
+ * par `migrations/0009_medias.sql`) : une ligne par image, clé `id`
+ * (identifiant opaque engendré ici à la persistance). Ses trois colonnes de
+ * l'état publié (`publiee_le`, `description_publiee`, `empreinte_depot`)
+ * n'ont encore aucun lecteur : ce magasin ne connaît que la réserve
+ * brouillon.
  *
  * Ticket 10 (openspec/changes/004-bibliotheque-de-medias/tickets/
  * 10-signaler-images-orphelines.md, SC-10a/b) : `listerMediasBrouillon` et
@@ -45,8 +47,9 @@ import type { DimensionsImage, FormatImageAdmis } from '../../core/medias/ingest
 import { imageEffacable } from '../../core/medias/references.ts';
 import ddlMediasBrouillon from '../../../migrations/0005_medias_brouillon.sql?raw';
 import ddlMediasBrouillonAffichage from '../../../migrations/0006_medias_brouillon_affichage.sql?raw';
+import ddlMedias from '../../../migrations/0009_medias.sql?raw';
 
-const TABLE_MEDIAS = 'medias_brouillon';
+const TABLE_MEDIAS = 'medias';
 
 /**
  * L'ensemble « publié » que reçoit `imageEffacable` (ticket 02) — toujours
@@ -100,19 +103,44 @@ function separerRequetes(sql: string): string[] {
  * sans effet observable sur une D1 qui les porte déjà, l'échec est donc
  * avalé (même geste que `dernier_usage_le` dans `assurerTableSessions`,
  * `src/platform/session/index.ts`).
+ *
+ * `migrations/0009_medias.sql` renomme la table en `medias` : 0005 et 0006
+ * ne se rejouent donc que si `medias` n'existe pas encore — sinon le
+ * `create table if not exists medias_brouillon` de 0005 recréerait, à côté
+ * de `medias`, une table vide que plus rien ne lit. 0009 se rejoue ensuite
+ * énoncé par énoncé, échecs avalés : le renommage échoue sans effet quand
+ * `medias` existe déjà, chaque `alter table` quand sa colonne est posée.
  */
 async function assurerTableMedias(db: DB): Promise<void> {
   schemaMediasAssure ??= (async () => {
-    await db.prepare(ddlMediasBrouillon).bind().run();
-    for (const requete of separerRequetes(ddlMediasBrouillonAffichage)) {
-      try {
-        await db.prepare(requete).bind().run();
-      } catch {
-        // colonne déjà ajoutée : sans effet.
-      }
+    if (!(await tableExiste(db, TABLE_MEDIAS))) {
+      await db.prepare(ddlMediasBrouillon).bind().run();
+      await rejouerEnAvalantLesEchecs(db, ddlMediasBrouillonAffichage);
     }
+    await rejouerEnAvalantLesEchecs(db, ddlMedias);
   })();
   await schemaMediasAssure;
+}
+
+/** Vrai si la table existe : une lecture vide y réussit, et échoue sur une table absente. */
+async function tableExiste(db: DB, table: string): Promise<boolean> {
+  try {
+    await db.prepare(`select 1 from ${table} limit 0`).bind().all();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Rejoue une migration énoncé par énoncé ; un énoncé déjà appliqué échoue sans effet. */
+async function rejouerEnAvalantLesEchecs(db: DB, migration: string): Promise<void> {
+  for (const requete of separerRequetes(migration)) {
+    try {
+      await db.prepare(requete).bind().run();
+    } catch {
+      // déjà appliqué : sans effet.
+    }
+  }
 }
 
 /** Une image admise, prête à être persistée (SC-04a) — le format et les dimensions sont ceux déduits par `core/medias/ingestion.ts`, jamais recalculés ici. */

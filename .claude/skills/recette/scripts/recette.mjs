@@ -199,7 +199,7 @@ function raz(reglages) {
   ecrireConfigRecette(reglages);
   sql(
     reglages,
-    'delete from codes_connexion; delete from sessions; delete from brouillons_emplacements; delete from medias_brouillon; delete from brouillons_reglages; delete from brouillons_formulaires;',
+    'delete from codes_connexion; delete from sessions; delete from brouillons_emplacements; delete from medias; delete from brouillons_reglages; delete from brouillons_formulaires;',
   );
   console.log('✔ codes, sessions, brouillons et médias vidés');
   semer(reglages);

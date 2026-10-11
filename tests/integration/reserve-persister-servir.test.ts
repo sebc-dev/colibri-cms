@@ -22,7 +22,7 @@ import { POIDS_MAX_OCTETS_IMAGE } from '../../src/core/medias/ingestion.ts';
 
 const NOM_COOKIE_SESSION = '__Host-session';
 const TABLE_SESSIONS = 'sessions';
-const TABLE_MEDIAS = 'medias_brouillon';
+const TABLE_MEDIAS = 'medias';
 const ROUTE_TELEVERSER = 'https://example.com/admin/medias/televerser';
 const ROUTE_OCTETS = (id: string) => `https://example.com/admin/medias/${id}/octets`;
 
@@ -66,6 +66,22 @@ async function assurerSchema(): Promise<DBLike> {
     const medias = await import('../../migrations/0005_medias_brouillon.sql?raw');
     for (const requete of separerRequetes(medias.default)) {
       await db.prepare(requete).run();
+    }
+    const affichage = await import('../../migrations/0006_medias_brouillon_affichage.sql?raw');
+    for (const requete of separerRequetes(affichage.default)) {
+      try {
+        await db.prepare(requete).run();
+      } catch {
+        // colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+      }
+    }
+    const renommage = await import('../../migrations/0009_medias.sql?raw');
+    for (const requete of separerRequetes(renommage.default)) {
+      try {
+        await db.prepare(requete).run();
+      } catch {
+        // déjà renommée, ou colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+      }
     }
   })();
   await schemaPret;

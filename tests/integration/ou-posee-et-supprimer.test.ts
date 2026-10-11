@@ -33,7 +33,7 @@ import { it, expect, afterEach, describe } from 'vitest';
 const NOM_COOKIE_SESSION = '__Host-session';
 const TABLE_SESSIONS = 'sessions';
 const TABLE_BROUILLONS = 'brouillons_emplacements';
-const TABLE_MEDIAS = 'medias_brouillon';
+const TABLE_MEDIAS = 'medias';
 const ROUTE_FICHE = (id: string) => `https://example.com/admin/medias/${id}`;
 const ROUTE_SUPPRIMER = (id: string) => `https://example.com/admin/medias/${id}/supprimer`;
 const ROUTE_MES_PAGES = 'https://example.com/admin/mes-pages';
@@ -89,6 +89,14 @@ async function assurerSchema(): Promise<DBLike> {
         await db.prepare(requete).run();
       } catch {
         // colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
+      }
+    }
+    const renommage = await import('../../migrations/0009_medias.sql?raw');
+    for (const requete of separerRequetes(renommage.default)) {
+      try {
+        await db.prepare(requete).run();
+      } catch {
+        // déjà renommée, ou colonne déjà ajoutée (rejeu au sein du même run de fichier) : sans effet.
       }
     }
   })();
@@ -304,7 +312,7 @@ it(
     expect(await reponse.json()).toEqual({ ok: true });
 
     // …l'image reste dans la réserve, désormais orpheline (FR-037, délégué
-    // à « Aperçu et publication » — aucun effacement de `medias_brouillon`
+    // à « Aperçu et publication » — aucun effacement de `medias`
     // ici)…
     expect(await existeMedia(db, 'media-partagee')).toBe(true);
     const fiche = await requeteAvecSession(ROUTE_FICHE('media-partagee'), cookieSession);
@@ -429,7 +437,7 @@ it(
     const reponse = await poster(ROUTE_SUPPRIMER('media-jamais-posee'), cookieSession);
 
     // Assert : la réponse confirme la suppression, l'image reste dans la
-    // réserve, orpheline (aucune ligne `medias_brouillon` n'est jamais
+    // réserve, orpheline (aucune ligne `medias` n'est jamais
     // effacée ici — FR-037, délégué à « Aperçu et publication »)…
     expect(reponse.status).toBe(200);
     expect(await reponse.json()).toEqual({ ok: true });
