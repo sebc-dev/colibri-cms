@@ -54,3 +54,12 @@ Hors de cette session : commiter le travail dans le worktree, puis relancer
 - Couper `sonarjs/no-alphabetical-sort` dans `eslint.config.analyse.js` alors qu'elle mord ici sur
   des tests corrects (les deux côtés sont triés pareil) : décision de configuration hors ticket.
 - `localeCompare` dans le double `forge-en-memoire.ts` : il casserait l'ordre binaire voulu.
+
+## Issue
+Retouches faites le 2026-10-11 : `tenterUneFois` extrait de `depot.ts`, et retouches de forme des quatre
+fichiers de test, aucune assertion retirée. Un `prettier --write` avait reformaté ces fichiers en entier :
+j'ai reconstitué les originaux en rejouant les écritures des agents (empreintes identiques à celles de la
+quality gate), puis refait les retouches. Reprise avec `rerun: "2"` : le run a abouti à la PR #214. La
+review a retenu des tests que le correcteur n'a pas le droit d'écrire : les réglages
+(`architecture-F-1`), l'`injoignable` rejoué au déplacement (`error-handling-F-1`) et la priorité du
+brouillon (`coverage-F-3`). Ils restent à ajouter.
