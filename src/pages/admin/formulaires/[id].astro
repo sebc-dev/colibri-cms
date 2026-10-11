@@ -27,6 +27,7 @@ import {
 import MontageEcranFormulaire from '../../../admin/MontageEcranFormulaire.astro';
 import MarqueBrouillon from '../../../admin/MarqueBrouillon.astro';
 import { obtenirBrouillonFormulaire } from '../../../platform/formulaires/magasin.ts';
+import { obtenirPublieFormulaire } from '../../../platform/publication/magasin-publie.ts';
 import { optionsCourantes } from '../../../core/formulaires/brouillon.ts';
 import { env } from 'cloudflare:workers';
 
@@ -42,8 +43,10 @@ if (formulaire === undefined) {
 
 const brouillon =
   formulaire === undefined ? undefined : await obtenirBrouillonFormulaire(env.DB, formulaire.id);
+const publie =
+  formulaire === undefined ? undefined : await obtenirPublieFormulaire(env.DB, formulaire.id);
 const courantes =
-  formulaire === undefined ? new Map() : optionsCourantes(formulaire, brouillon);
+  formulaire === undefined ? new Map() : optionsCourantes(formulaire, brouillon, publie);
 const champsAChoix = (formulaire?.champs ?? []).filter(
   (champ) => champ.options !== undefined && champ.options.length > 0,
 );
