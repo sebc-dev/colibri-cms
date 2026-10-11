@@ -48,16 +48,16 @@ model {
         description "Session, magasins D1, envoi d'e-mail, lecture du contenu déclaré, en-têtes de sécurité."
         metadata { sourceDir 'src/platform' }
       }
-      // trace : src/render/zone.ts — zone déclarée, vide (zone.ts seul)
+      // trace : src/render/index.ts — BoutonAction.astro, LienVideo.astro
       render = component 'Rendu des emplacements' {
         technology 'Astro'
-        description "Le rendu des emplacements, partagé par le site publié et l'aperçu — zone posée, encore vide."
+        description "Le rendu des emplacements, partagé par le site publié et l'aperçu — dessine le bouton d'action et le lien de vidéo."
         metadata { sourceDir 'src/render' }
       }
-      // trace : src/site/zone.ts — zone déclarée, vide (zone.ts seul)
+      // trace : src/site/page.astro, src/site/PiedDePage.astro, src/site/site.css
       site = component 'Site public' {
         technology 'Astro'
-        description 'Gabarits du site publié — zone posée, encore vide.'
+        description 'Gabarit du site publié : navigation, emplacements dans l’ordre, pied de page ; feuille de style propre au site.'
         metadata { sourceDir 'src/site' }
       }
     }
@@ -89,6 +89,10 @@ model {
   colibri-cms.worker.admin -[sync]-> colibri-cms.worker.platform 'reprend les types des magasins'
   // trace : 15 imports src/platform → src/core, ex. src/platform/reglages/magasin.ts:9
   colibri-cms.worker.platform -[sync]-> colibri-cms.worker.core 'applique une correction avant écriture'
+  // trace : src/pages/[...slug].astro:9 — import Page from '../site/page.astro'
+  colibri-cms.worker.routes -[sync]-> colibri-cms.worker.site 'rend la page publique et son aperçu par le gabarit'
+  // trace : src/site/page.astro:10 — import { BoutonAction, LienVideo } from '../render/index.ts'
+  colibri-cms.worker.site -[sync]-> colibri-cms.worker.render 'dessine les emplacements'
   // trace : src/render/zone.ts:10 — import type Zone
   colibri-cms.worker.render -[sync]-> colibri-cms.worker.core 'lit le contenu à rendre'
   // trace : src/site/zone.ts:10 — import type Zone
