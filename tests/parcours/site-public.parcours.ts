@@ -1,6 +1,7 @@
 // Site public — servi comme en production, documents statiques sous leurs en-têtes.
 import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
+import { poserGardePolitique } from "./garde-politique.ts";
 
 const PAGES = ["/", "/tarifs", "/contact"];
 
@@ -27,15 +28,20 @@ test.describe("site public statique", () => {
   });
 
   test("SC-07b — aucune violation de politique, aucune ressource d'une autre origine", async ({
-    page,
+    browser,
   }) => {
-    const messages: string[] = [];
-    const origines = new Set<string>();
-    page.on("console", (m) => messages.push(m.text()));
-    page.on("request", (r) => origines.add(new URL(r.url()).origin));
-    for (const chemin of PAGES) await page.goto(chemin);
-    expect(messages.filter((t) => /Content Security Policy|Refused/i.test(t))).toEqual([]);
-    expect([...origines]).toEqual(["http://localhost:8788"]);
+    const contexte = await browser.newContext();
+    const garde = await poserGardePolitique(contexte);
+    try {
+      const page = await contexte.newPage();
+      const origines = new Set<string>();
+      page.on("request", (r) => origines.add(new URL(r.url()).origin));
+      for (const chemin of PAGES) await page.goto(chemin);
+      garde.verifier();
+      expect([...origines]).toEqual(["http://localhost:8788"]);
+    } finally {
+      await contexte.close();
+    }
   });
 
   test("SC-07c — même document avec ou sans session d'administration, et aucun cookie posé", async ({
