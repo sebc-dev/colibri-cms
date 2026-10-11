@@ -43,8 +43,9 @@
  * l'écriture du brouillon) est ignoré plutôt que de faire échouer la fiche.
  */
 import GabaritCadre from '../../../admin/GabaritCadre.astro';
+import { adressesOriginalesEmpaquetees, listerFichesMedias } from '../../../platform/contenu/medias.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
-import { obtenirFicheMediaBrouillon } from '../../../platform/medias/magasin.ts';
+import { inscrireImagesDeDepart, obtenirFicheMediaBrouillon } from '../../../platform/medias/magasin.ts';
 import {
   listerReferencesMediasBrouillon,
   listerEmplacementsReferencantMedia,
@@ -64,7 +65,8 @@ if (!id) {
 }
 
 const referencesBrouillon = await listerReferencesMediasBrouillon(env.DB);
-const media = await obtenirFicheMediaBrouillon(env.DB, id, referencesBrouillon);
+await inscrireImagesDeDepart(env.DB, listerFichesMedias(), Date.now());
+const media = await obtenirFicheMediaBrouillon(env.DB, id, referencesBrouillon, adressesOriginalesEmpaquetees());
 
 if (!media) {
   return Astro.redirect('/admin/medias');

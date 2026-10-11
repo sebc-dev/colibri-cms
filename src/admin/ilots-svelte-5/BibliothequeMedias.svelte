@@ -177,7 +177,7 @@
       {#each mediasFiltres as media (media.id)}
         <li class="flex flex-col gap-2">
           <a href={`/admin/medias/${media.id}`} class="block">
-            <VignetteMedia id={media.id} alt={media.nomAffichage} />
+            <VignetteMedia id={media.id} alt={media.nomAffichage} src={media.vignette} />
           </a>
           {#if media.effacable}
             <p class="rounded-md bg-ambre-soft px-2 py-1 text-xs text-ambre">

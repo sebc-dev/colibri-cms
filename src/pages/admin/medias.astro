@@ -35,8 +35,9 @@
  * image.
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
+import { adressesOriginalesEmpaquetees, listerFichesMedias } from '../../platform/contenu/medias.ts';
 import { verifierSession } from '../../platform/session/index.ts';
-import { listerMediasBrouillon } from '../../platform/medias/magasin.ts';
+import { inscrireImagesDeDepart, listerMediasBrouillon } from '../../platform/medias/magasin.ts';
 import { listerReferencesMediasBrouillon } from '../../platform/brouillons/magasin.ts';
 import { env } from 'cloudflare:workers';
 
@@ -46,7 +47,8 @@ if (!session) {
 }
 
 const referencesBrouillon = await listerReferencesMediasBrouillon(env.DB);
-const medias = await listerMediasBrouillon(env.DB, referencesBrouillon);
+await inscrireImagesDeDepart(env.DB, listerFichesMedias(), Date.now());
+const medias = await listerMediasBrouillon(env.DB, referencesBrouillon, adressesOriginalesEmpaquetees());
 ---
 
 <GabaritCadre titre="Médias — Administration" rubrique="medias">

@@ -45,6 +45,7 @@
  */
 import type { DimensionsImage, FormatImageAdmis } from '../../core/medias/ingestion.ts';
 import { imageEffacable } from '../../core/medias/references.ts';
+import type { FicheMedia } from '../../core/medias/fiche.ts';
 import ddlMediasBrouillon from '../../../migrations/0005_medias_brouillon.sql?raw';
 import ddlMediasBrouillonAffichage from '../../../migrations/0006_medias_brouillon_affichage.sql?raw';
 import ddlMedias from '../../../migrations/0009_medias.sql?raw';
@@ -251,6 +252,29 @@ export interface MediaListe {
   readonly nomAffichage: string;
   readonly description: string;
   readonly effacable: boolean;
+  /**
+   * L'adresse de la vignette (change 011, ticket 02, ADR-0020) : la route
+   * gardée des octets quand la base les garde, sinon l'adresse statique de
+   * la variante originale empaquetée. Absente pour une image qui vient
+   * d'être téléversée (la route gardée, par défaut côté vue).
+   */
+  readonly vignette?: string;
+}
+
+/** Les adresses statiques des variantes originales empaquetées, par identité d'image. */
+export type AdressesStatiques = ReadonlyMap<string, string>;
+
+const AUCUNE_ADRESSE_STATIQUE: AdressesStatiques = new Map();
+
+/** La route gardée qui sert les octets d'une image gardée en base. */
+function adresseOctetsGardes(id: string): string {
+  return `/admin/medias/${id}/octets`;
+}
+
+/** Octets gardés en base : la route gardée ; sinon la variante empaquetée, si le site en porte une. */
+function adresseVignette(id: string, octetsGardes: number, statiques: AdressesStatiques): string {
+  if (octetsGardes > 0) return adresseOctetsGardes(id);
+  return statiques.get(id) ?? adresseOctetsGardes(id);
 }
 
 interface LigneMediaListeBrute {
@@ -258,6 +282,32 @@ interface LigneMediaListeBrute {
   readonly nom_origine: string;
   readonly nom_affichage: string | null;
   readonly description: string | null;
+  readonly octets_gardes: number;
+}
+
+/**
+ * Inscrit les images que le contenu pose au départ (leurs fiches) dans la
+ * table `medias` (change 011, ticket 02) : sans octets (BLOB de longueur
+ * nulle, la colonne reste `NOT NULL`), marquées publiées (`publiee_le`,
+ * `description_publiee` reprise de la fiche). Idempotente : une image déjà
+ * inscrite — posée au départ ou téléversée — n'est jamais retouchée.
+ */
+export async function inscrireImagesDeDepart(
+  db: DB,
+  fiches: readonly FicheMedia[],
+  maintenant: number,
+): Promise<void> {
+  await assurerTableMedias(db);
+  for (const fiche of fiches) {
+    await db
+      .prepare(
+        `insert or ignore into ${TABLE_MEDIAS}
+           (id, nom_origine, format, largeur, hauteur, poids_octets, octets, creee_le, description, publiee_le, description_publiee)
+         values (?1, ?2, ?3, ?4, ?5, 0, x'', ?6, ?7, ?6, ?7)`,
+      )
+      .bind(fiche.id, fiche.nomOrigine, fiche.format, fiche.largeur, fiche.hauteur, maintenant, fiche.description)
+      .run();
+  }
 }
 
 /**
@@ -278,10 +328,14 @@ interface LigneMediaListeBrute {
 export async function listerMediasBrouillon(
   db: DB,
   referencesBrouillon: ReadonlySet<string>,
+  statiques: AdressesStatiques = AUCUNE_ADRESSE_STATIQUE,
 ): Promise<MediaListe[]> {
   await assurerTableMedias(db);
   const resultat = await db
-    .prepare(`select id, nom_origine, nom_affichage, description from ${TABLE_MEDIAS} order by creee_le desc`)
+    .prepare(
+      `select id, nom_origine, nom_affichage, description, length(octets) as octets_gardes
+       from ${TABLE_MEDIAS} order by creee_le desc`,
+    )
     .bind()
     .all();
   return (resultat.results as LigneMediaListeBrute[]).map((ligne) => ({
@@ -289,6 +343,7 @@ export async function listerMediasBrouillon(
     nomAffichage: ligne.nom_affichage ?? ligne.nom_origine,
     description: ligne.description ?? '',
     effacable: imageEffacable(ligne.id, REFERENCES_PUBLIEES_VIDE, referencesBrouillon),
+    vignette: adresseVignette(ligne.id, ligne.octets_gardes, statiques),
   }));
 }
 
@@ -314,6 +369,8 @@ export interface MediaFiche {
   readonly description: string;
   readonly format: FormatImageAdmis;
   readonly effacable: boolean;
+  /** Même adresse de vignette que `MediaListe.vignette`. */
+  readonly vignette?: string;
 }
 
 interface LigneFicheMediaBrute {
@@ -321,6 +378,7 @@ interface LigneFicheMediaBrute {
   readonly nom_affichage: string | null;
   readonly description: string | null;
   readonly format: string;
+  readonly octets_gardes: number;
 }
 
 /**
@@ -335,10 +393,14 @@ export async function obtenirFicheMediaBrouillon(
   db: DB,
   id: string,
   referencesBrouillon: ReadonlySet<string>,
+  statiques: AdressesStatiques = AUCUNE_ADRESSE_STATIQUE,
 ): Promise<MediaFiche | null> {
   await assurerTableMedias(db);
   const resultat = await db
-    .prepare(`select nom_origine, nom_affichage, description, format from ${TABLE_MEDIAS} where id = ?1`)
+    .prepare(
+      `select nom_origine, nom_affichage, description, format, length(octets) as octets_gardes
+       from ${TABLE_MEDIAS} where id = ?1`,
+    )
     .bind(id)
     .all();
   const ligne = (resultat.results as LigneFicheMediaBrute[]).at(0);
@@ -350,6 +412,7 @@ export async function obtenirFicheMediaBrouillon(
     description: ligne.description ?? '',
     format: ligne.format as FormatImageAdmis,
     effacable: imageEffacable(id, REFERENCES_PUBLIEES_VIDE, referencesBrouillon),
+    vignette: adresseVignette(id, ligne.octets_gardes, statiques),
   };
 }
 
