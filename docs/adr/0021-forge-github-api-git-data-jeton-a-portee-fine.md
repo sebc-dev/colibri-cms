@@ -1,10 +1,17 @@
-# Candidat ADR : Forge et écriture de la publication — GitHub, API REST *git data*, avance rapide obligatoire, jeton à portée fine à une seule permission
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md` (ADR-0005 accepté sous le cycle 1.x)
+# ADR-0021 : Forge et écriture de la publication — GitHub, API REST *git data*, avance rapide obligatoire, jeton à portée fine à une seule permission
+Statut : Accepté | Date : 2026-10-11
 
-> Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
+Promu depuis `docs/legacy/1.x/adr/0005-forge-github-api-git-data-jeton-a-portee-fine.md` — ADR-0005, accepté sous le cycle 1.x.
 
+> Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x, **sauf ce que l'amendement de la
+> promotion change** : les points marqués *(amendé)* — le § « Amendée à la promotion » dit quoi et
+> pourquoi ; la forme d'origine reste dans l'archive. Les renvois `FR-xxx`, `SC-xxx` et `I-n` sont
+> des noms de **notation** et pointent vers `docs/legacy/1.x/` : ce ne sont pas des noms de
+> fichier. Dans le texte d'origine, chaque renvoi à une autre décision porte la mention « (1.x) » —
+> c'est son numéro du cycle 1.x ; dans le texte amendé, un numéro sans mention est un numéro 2.x
+> (correspondance : [`README.md`](./README.md)).
+
+**Modèle** : aucun delta dans cet ADR. Le système externe `github` (`#external`) et la relation `colibri-cms.worker.platform -[sync]-> github` entrent au modèle avec l'adaptateur qui les matérialise (change `011-apercu-et-publication`) : le modèle et le code arrivent ensemble.
 
 ## Contexte
 
@@ -21,11 +28,11 @@ l'intégrateur — et `SC-006`, qui interdit d'envoyer la cliente visiter des co
 
 Les faits qui portent la décision sont datés et portent chacun leur niveau de preuve. Relevés
 versés :
-[`docs/legacy/research/2026-08-12-permissions-rest-git-data.md`](../../legacy/research/2026-08-12-permissions-rest-git-data.md)
+[`docs/legacy/research/2026-08-12-permissions-rest-git-data.md`](../legacy/research/2026-08-12-permissions-rest-git-data.md)
 et
-[`docs/legacy/research/2026-08-11-sous-requetes-publication.md`](../../legacy/research/2026-08-11-sous-requetes-publication.md)
+[`docs/legacy/research/2026-08-11-sous-requetes-publication.md`](../legacy/research/2026-08-11-sous-requetes-publication.md)
 (mesures du 2026-08-11 sur dépôt jetable, avec témoin) ;
-[`docs/legacy/research/2026-08-12-jeton-github-desuetude.md`](../../legacy/research/2026-08-12-jeton-github-desuetude.md)
+[`docs/legacy/research/2026-08-12-jeton-github-desuetude.md`](../legacy/research/2026-08-12-jeton-github-desuetude.md)
 pour la désuétude.
 
 Trois d'entre eux sont décisifs :
@@ -49,14 +56,19 @@ publication :
 - les **médias sont déposés par `POST /git/blobs` en base64** — un appel chacun, non
   mutualisable, le contenu inliné étant de l'UTF-8 où un binaire est corrompu en silence ;
 - puis `POST /git/commits` et `PATCH /git/refs` en **`force: false`**, avance rapide
-  obligatoire — **sauf l'élagage de `media`**, seul geste non-avance-rapide, exécuté sous le
-  verrou et calculé depuis D1.
+  obligatoire — *(amendé)* **sauf la réécriture de `media`**
+  ([ADR-0020](./0020-medias-deux-magasins-un-par-etat.md)) : un arbre complet calculé depuis D1,
+  sans arbre de base, un commit **sans parent**, puis `PATCH /git/refs` en `force: true` — ou la
+  création de la référence si elle manque. C'est le seul geste non-avance-rapide, exécuté sous
+  le verrou.
 
 Le jeton sera **à portée fine**, sur le **dépôt unique** de la cliente, **sans expiration**, et
 portera la permission **`Contents: Read and write` seule**.
 
 Nous le maintiendrons en vie par un **Cron Trigger dans le compte de la cliente**, faisant un
-appel anodin **hebdomadaire**.
+appel anodin **hebdomadaire**. *(amendé)* Ce Cron est posé par la **livraison d'une instance
+dans le compte de la cliente**, pas par la publication : c'est la livraison qui crée ce compte
+et ce jeton, la publication ne fait que s'en servir.
 
 ## Conséquences
 
@@ -69,7 +81,7 @@ appel anodin **hebdomadaire**.
   fichiers texte** — mesuré jusqu'à 1 000 entrées en une requête. Un blob par fichier coûtait
   `N + 4`, soit les 50 sous-requêtes franchies au 47ᵉ fichier.
 - Le jeton vit dans le compte de la cliente : l'invariant `I6` et la contrainte `C10` du
-  [socle de livraison](../../legacy/socle-de-livraison.md) tiennent, et `FR-101` avec eux.
+  [socle de livraison](../legacy/socle-de-livraison.md) tiennent, et `FR-101` avec eux.
 - La cadence hebdomadaire **est** la parade : le Cron du palier gratuit n'a pas de retry, un
   appel sauté n'est jamais réémis, et 52 passages par an laissent la marge que la fenêtre
   glissante d'un an absorbe.
@@ -80,7 +92,7 @@ appel anodin **hebdomadaire**.
   l'argument « une seule permission » est vrai. Si elle tombe, le jeton se fait refuser au
   **dernier** geste de la publication — celui qui rend le contenu visible — et **rien dans le
   code ne relierait la panne à cette décision**. La contrainte est rendue falsifiable par
-  l'invariant `I9` de [`docs/archi.md`](../../legacy/1.x/archi.md).
+  l'invariant `I9` de [`docs/archi.md`](../legacy/1.x/archi.md).
 - **Le jeton est permanent, sans rotation et sans détection de compromission**, sur un dépôt
   qui **est** le site publié. La révocation à un an était une sécurité **passive** — un jeton
   oublié meurt — et le Cron la neutralise sciemment. La rotation n'a **aucun porteur
@@ -90,9 +102,12 @@ appel anodin **hebdomadaire**.
   signale : la panne ne se manifeste que par une publication qui échoue, **jusqu'à un an plus
   tard**, ce que `FR-101` interdit. Aucune exigence ne porte ce constat — dette au dossier de
   `/scd-sdd:premortem socle`.
-- **Le budget de sous-requêtes borne les médias à 42 par publication.** Le budget est de
-  `M + 4` appels pour `M` médias ; un réessai coûte 4 appels de plus sans recréer les blobs,
-  d'où `M + 8 ≤ 50`. Les fichiers texte, eux, ne sont pas contraints.
+- *(amendé)* **Le budget de sous-requêtes borne les médias déposés par requête, non par
+  publication.** Une requête n'a que 50 sous-requêtes et un média en coûte une ; la mémoire
+  d'une requête — 128 Mo, base64 compris — borne aussi leur poids cumulé. La publication dépose
+  donc ses médias en **plusieurs requêtes successives**, sous le bail
+  ([ADR-0023](./0023-serialisation-des-publications-et-constat-de-mise-en-ligne.md)), puis écrit
+  les deux branches dans une dernière. Les fichiers texte, eux, ne sont pas contraints.
 - **Le réessai est obligatoire.** La lecture du HEAD n'est pas fiablement *read-your-writes* :
   sur dix publications enchaînées, **deux** `PATCH` ont été rejetés en `422` alors que rien
   d'autre n'écrivait sur la branche, et les deux voies de lecture se sont montrées en retard
@@ -123,6 +138,25 @@ appel anodin **hebdomadaire**.
   (documenté), mais que la clé privée n'expire jamais n'est écrit sur aucune page lue, et la
   propriété d'une App installée sur un compte de particulier n'a pas été établie. Sans objet
   tant que la voie retenue tient.
+
+## Amendée à la promotion
+
+Promue le 2026-10-11 par le change `011-apercu-et-publication`, le premier à écrire dans le dépôt
+de la cliente. Trois points changent ; la voie d'écriture, l'avance rapide obligatoire sur la
+branche principale et le jeton à une seule permission sont repris tels quels.
+
+1. **La branche `media` est réécrite en un commit sans parent**, conséquence directe
+   d'[ADR-0020](./0020-medias-deux-magasins-un-par-etat.md) : l'« élagage » de la forme
+   d'origine n'est plus un geste à part, c'est l'écriture même de `media`.
+2. **Les médias se déposent en plusieurs requêtes.** La forme d'origine tenait la publication en
+   une seule requête, d'où un plafond de 42 médias par publication : une première publication
+   qui pose plus d'images aurait été impossible, sans recours pour l'éditrice.
+3. **Le Cron de maintien en vie relève de la livraison d'une instance.** La décision de le
+   tenir est conservée ; elle n'incombe pas au change qui écrit la publication, parce que le
+   compte de la cliente, où le Cron vit, est créé par la livraison.
+
+Retouchés en conséquence, marqués *(amendé)* : deux points de la Décision et une conséquence
+négative.
 
 ## Vérifiable ?
 

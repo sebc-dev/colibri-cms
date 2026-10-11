@@ -1,9 +1,10 @@
-# Candidat ADR : Le brouillon d'un champ à choix porte toute sa liste d'options, et la publication la dépose telle quelle
-Statut : Candidat — à trancher par la story « Aperçu et publication » | Date : 2026-10-10 | Provenance : change `010-reglage-des-formulaires`, review du ticket 06 (finding `change-F-2`, PR #198)
+# ADR-0026 : Le brouillon d'un champ à choix porte toute sa liste d'options, et la publication la dépose telle quelle
+Statut : Accepté | Date : 2026-10-11
 
-> Candidat né sous le cycle 2.x, sans antécédent 1.x. Il prolonge [ADR-0018](../0018-declaration-des-formulaires-de-devis.md)
-> sur un cas que celui-ci ne règle pas. La promotion — ou le choix d'une alternative — revient à la
-> story « Aperçu et publication » (FR-080→091), qui est la première à déposer un formulaire.
+Né sous le cycle 2.x, sans antécédent 1.x : déposé en candidat le 2026-10-10 par la review du ticket 06
+du change `010-reglage-des-formulaires` (finding `change-F-2`, PR #198), tranché et promu par le change
+`011-apercu-et-publication`, le premier à déposer un formulaire. Il prolonge
+[ADR-0018](./0018-declaration-des-formulaires-de-devis.md) sur un cas que celui-ci ne règle pas.
 
 ## Contexte
 
@@ -41,7 +42,7 @@ L'écran n'est qu'un aperçu de travail. **La question se pose vraiment à la pu
 (FR-089). Ce qu'elle dépose pour un champ dont les options de départ ont changé détermine ce que le
 visiteur choisit et ce qu'une demande porte (FR-068).
 
-## Décision (proposée)
+## Décision
 
 **Le brouillon d'un champ à choix porte toute la liste de ses options : c'est la liste de
 l'éditrice, et la publication la dépose telle quelle.**
@@ -53,33 +54,31 @@ l'éditrice, et la publication la dépose telle quelle.**
   caractère obligatoire et la marque avec ou sans prix des champs (ADR-0018).
 - « La nature ne s'accorde plus » (ADR-0018) se lit **« le champ n'est plus à choix »**. Passer de
   choix unique à choix multiple, ou l'inverse, ne touche pas la liste des options : le brouillon ne
-  retient pas la nature, et l'éditrice garde son travail. Ce point-là n'attend pas la story : la spec
-  du change `010` (Requirement « Brouillon propre à chaque formulaire ») le fixe dès maintenant, et un
-  test le tient.
+  retient pas la nature, et l'éditrice garde son travail. La spec du change `010` (Requirement
+  « Brouillon propre à chaque formulaire ») le fixe déjà, et un test le tient.
 - **Une seule règle de rattachement** : l'aperçu et la publication appellent `optionsCourantes`, sans
   la réécrire.
 
-## Ce que la story « Aperçu et publication » devra trancher ou faire
+Les quatre points que le candidat laissait ouverts sont tranchés ainsi :
 
-1. **Confirmer cette décision ou retenir une alternative** (ci-dessous), puis promouvoir le candidat
-   dans `docs/adr/` sous le prochain numéro libre (`ls docs/adr/`).
-2. **Le récapitulatif avant publication** (FR-083) : dire ou non à l'éditrice qu'un formulaire publié
-   garde une liste dont les options de départ ont changé depuis son enregistrement.
-3. **`derniersNumeros` au moment où la publication vide le brouillon** : le reporter dans l'état
-   publié, ou le recalculer depuis lui. Sans cela, un numéro `o<n>` déjà publié pourrait revenir,
-   contre ADR-0018 (déjà relevé dans `openspec/changes/archive/2026-10-11-010-reglage-des-formulaires/design.md`,
-   § Risks).
-4. **Le format déposé** : la liste du brouillon remplace `options` du champ dans le `formulaire.json`
-   déposé ; `id`, `libelle` et `prix` en centimes, sans conversion (ADR-0018, « au format déposé »).
-5. **Les cas à poser en scénarios** (chacun avec un formulaire de la démonstration) :
-   - une option de départ ajoutée après l'enregistrement n'est pas publiée pour ce champ ;
-   - une option de départ retirée, gardée au brouillon, est publiée ;
-   - un champ passé de choix unique à choix multiple publie la liste du brouillon ;
-   - un champ devenu sans option ne publie aucune option, et son brouillon n'empêche pas la
-     publication ;
-   - un champ à choix sans brouillon publie ses options de départ.
+- **Le récapitulatif avant publication** (FR-083) **ne signale pas** qu'un formulaire publié garde
+  une liste dont les options de départ ont changé depuis son enregistrement : l'éditrice publie ce
+  qu'elle a vu.
+- **`derniersNumeros` passe dans l'état publié.** La publication le garde avec la liste publiée ; un
+  brouillon neuf part, champ par champ, du plus grand des deux compteurs — le sien et celui du
+  publié. Un identifiant `o<n>` déjà donné dans un champ ne revient jamais (ADR-0018).
+- **Le format déposé** : dans le `formulaire.json` déposé, la liste du brouillon remplace les
+  `options` du champ — `{ id, libelle, prix? }`, le prix en centimes, sans conversion.
+- **Les cinq cas sont des scénarios de la spec `publication`**, tenus sur le formulaire « Devis
+  gâteau » de la démonstration :
+  - une option de départ ajoutée après l'enregistrement n'est pas publiée pour ce champ ;
+  - une option de départ retirée, gardée au brouillon, est publiée ;
+  - un champ passé de choix unique à choix multiple publie la liste du brouillon ;
+  - un champ devenu sans option ne publie aucune option, et son brouillon n'empêche pas la
+    publication ;
+  - un champ à choix sans brouillon publie ses options de départ.
 
-**Points d'appui dans le code, à réutiliser :**
+**Points d'appui dans le code :**
 
 | Où | Quoi |
 |---|---|
@@ -97,24 +96,40 @@ l'éditrice, et la publication la dépose telle quelle.**
   `core/`.
 - **Aucune fusion à inventer** : pas de règle sur l'ordre d'une option de départ ajoutée parmi celles
   de l'éditrice, ni sur un conflit de libellé entre les deux.
+- **Un identifiant d'option ne change jamais de sens** d'une publication à l'autre, même après le
+  retrait de l'option qui le portait.
 
 **Négatives — ce à quoi le produit s'engage.**
-- **Une option de départ que l'intégrateur ajoute n'atteint pas un champ déjà enregistré.** Il doit
-  demander à l'éditrice de l'ajouter, ou attendre qu'elle abandonne son brouillon (FR-092, story
-  « Restauration »).
+- **Une option de départ que l'intégrateur ajoute n'atteint pas un champ déjà enregistré**, et rien
+  ne le signale à l'éditrice. L'intégrateur doit lui demander de l'ajouter, ou attendre qu'elle
+  abandonne son brouillon (FR-092, story « Restauration »).
 - **Une option de départ que l'intégrateur retire reste proposée au visiteur** si l'éditrice l'a
   gardée, jusqu'à ce qu'elle la retire elle-même.
 - **Un renommage ou un changement de prix de départ** ne touche pas un champ enregistré.
+- **L'état publié d'un formulaire porte un compteur** en plus de ses options. Il vit en D1 seule :
+  le `formulaire.json` déposé ne le porte pas.
 
 ## Alternatives considérées
 
 - **Fusion option par option à la publication** : retirer du brouillon les options de départ que la
-  déclaration ne porte plus, ajouter en fin de liste celles qu'elle a gagnées. Écartée en proposition :
+  déclaration ne porte plus, ajouter en fin de liste celles qu'elle a gagnées. Écartée :
   l'intégrateur reprendrait la main sur une liste que FR-046→049 donnent à l'éditrice, et la fusion
-  demande des règles d'ordre et de conflit de libellé que rien ne fonde encore.
-- **Signaler et laisser choisir** : marquer à l'écran le champ dont les options de départ ont changé,
-  et proposer à l'éditrice de les reprendre. Possible en complément de la décision proposée, si le
-  récapitulatif (point 2) le demande ; elle suppose un état et un geste nouveaux.
+  demande des règles d'ordre et de conflit de libellé que rien ne fonde.
+- **Signaler et laisser choisir** : marquer à l'écran, ou au récapitulatif, le champ dont les
+  options de départ ont changé, et proposer à l'éditrice de les reprendre. Écartée : l'éditrice
+  publie ce qu'elle a vu, et un signal demanderait un état et un geste nouveaux pour un cas que
+  seul un changement de l'intégrateur provoque.
 - **La déclaration l'emporte dès qu'elle change** : un champ dont les options de départ ont changé
   retombe sur elles, brouillon perdu pour ce champ. Écartée : un changement anodin de l'intégrateur
   effacerait des corrections de l'éditrice sans qu'elle le sache.
+- **Recalculer `derniersNumeros` depuis la liste publiée**, par le plus grand `o<n>` qu'elle
+  porte : écartée car le numéro d'une option publiée puis retirée reviendrait, contre ADR-0018.
+
+## Vérifiable ?
+Par les tests, pas par la structure. Les cas « SC-06d » de `tests/unit/formulaires/brouillon.test.ts`
+figent la règle de rattachement ; les cinq scénarios de la spec `publication` tiennent ce que la
+publication dépose. **Aucun invariant n'est ajouté** à la table de `docs/architecture.md` : c'est une
+règle de sens produit, qu'aucun contrôle sur l'arborescence ou les imports ne prend en défaut.
+
+**Modèle** : aucun delta. La règle vit dans `colibri-cms.worker.core` (`src/core/formulaires/`), déjà
+modélisé ; pas de vue `adr-0026`.
