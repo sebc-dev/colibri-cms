@@ -95,7 +95,7 @@ npx wrangler d1 execute DB --local --command "select id, nom_origine, nom_affich
 ### 0.6 Remettre à zéro
 
 ```sh
-npx wrangler d1 execute DB --local --command "delete from codes_connexion; delete from sessions; delete from brouillons_emplacements; delete from medias_brouillon;"
+npx wrangler d1 execute DB --local --command "delete from codes_connexion; delete from sessions; delete from brouillons_emplacements; delete from medias_brouillon; delete from brouillons_reglages; delete from brouillons_formulaires;"
 ```
 
 Le plafond de **cinq codes par heure** se déclenche vite en test : `delete from codes_connexion`

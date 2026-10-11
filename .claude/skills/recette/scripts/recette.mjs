@@ -190,11 +190,16 @@ function deployer(reglages, principal, aliasImpose) {
   if (url) console.log(`✔ ${url}/admin/`);
 }
 
+/**
+ * Même liste que le § 0.6 du cahier de test : une migration qui ajoute une
+ * table de brouillon l'ajoute aux deux, sinon une recette part d'un état
+ * déjà marqué « Brouillon ».
+ */
 function raz(reglages) {
   ecrireConfigRecette(reglages);
   sql(
     reglages,
-    'delete from codes_connexion; delete from sessions; delete from brouillons_emplacements; delete from medias_brouillon;',
+    'delete from codes_connexion; delete from sessions; delete from brouillons_emplacements; delete from medias_brouillon; delete from brouillons_reglages; delete from brouillons_formulaires;',
   );
   console.log('✔ codes, sessions, brouillons et médias vidés');
   semer(reglages);
