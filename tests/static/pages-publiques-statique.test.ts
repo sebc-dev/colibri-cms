@@ -95,7 +95,7 @@ describe('pages publiques bâties', () => {
   it('SC-04e — le bouton « Demander un devis » paraît comme un lien menant à /contact', async () => {
     const { corps } = await lire('/tarifs');
 
-    expect(corps).toMatch(/<a class="bouton-action" href="\/contact">Demander un devis<\/a>/);
+    expect(corps).toMatch(/<a class="bouton-action" href="\/contact" rel="noopener noreferrer">Demander un devis<\/a>/);
   });
 
   it('SC-04f — le lien de vidéo paraît comme « Voir la vidéo » vers la vidéo, sans rien charger de l’hébergeur', async () => {

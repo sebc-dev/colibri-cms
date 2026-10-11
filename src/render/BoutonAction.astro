@@ -1,9 +1,11 @@
 ---
 /**
  * Un bouton d'action : un lien qui porte le libellé choisi vers sa
- * destination. Une destination refusée (`adresse` nul) reste du texte.
- * Aucun balisage n'est interprété : le libellé n'est écrit que par
- * interpolation (I5).
+ * destination. Une destination refusée (`adresse` nul) reste du texte. Tout
+ * lien porte `rel="noopener noreferrer"`, sans trier les destinations
+ * externes : `//hôte` en est une et commence pourtant par `/`. Aucun
+ * balisage n'est interprété : le libellé n'est écrit que par interpolation
+ * (I5).
  */
 interface Props {
   libelle: string;
@@ -13,4 +15,4 @@ interface Props {
 const { libelle, adresse } = Astro.props;
 ---
 
-{adresse === null ? <span class="bouton-action">{libelle}</span> : <a class="bouton-action" href={adresse}>{libelle}</a>}
+{adresse === null ? <span class="bouton-action">{libelle}</span> : <a class="bouton-action" href={adresse} rel="noopener noreferrer">{libelle}</a>}
