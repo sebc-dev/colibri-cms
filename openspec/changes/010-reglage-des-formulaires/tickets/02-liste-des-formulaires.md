@@ -53,7 +53,7 @@ rubrique « Demandes ».
 
 ## Critères
 - [x] En session, choisir « Formulaires » dans le menu du cadre ouvre l'`Écran : Formulaires` dans le cadre, « Formulaires » marquée active, présentant « Devis atelier » puis « Devis gâteau », chacun menant à l'écran de ce formulaire   (SC-02a)
-- [ ] Sur un site qui ne déclare aucun formulaire, l'`Écran : Formulaires` dit qu'aucun formulaire n'est prévu pour le site, et n'offre aucun geste de création   (SC-02b)
+- [x] Sur un site qui ne déclare aucun formulaire, l'`Écran : Formulaires` dit qu'aucun formulaire n'est prévu pour le site, et n'offre aucun geste de création   (SC-02b)
 - [x] L'`Écran : Formulaires` demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer des formulaires   (SC-02c)
 - [x] Sur l'`Écran : Formulaires`, la barre latérale montre les cinq rubriques, « Formulaires » seule marquée active   (SC-02d)
 - [x] Aucune rubrique autre que « Mes pages », « Médias », « Réglages » et « Formulaires » ne mène à un écran servi, et ni le menu ni l'`Écran : Formulaires` n'offrent de geste d'ajout, de retrait, de renommage ni de déplacement de rubrique, de page ou de formulaire   (SC-02e)
