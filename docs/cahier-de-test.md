@@ -581,11 +581,11 @@ Session ouverte. Ouvrir `/admin/formulaires`.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-27.1 | Cliquer « Formulaires » dans le menu | L'écran s'ouvre ; « Formulaires » est la seule rubrique marquée active | |
-| CT-27.2 | Lire la liste | « Devis atelier » puis « Devis gâteau », chacun sur une ligne entière cliquable | |
-| CT-27.3 | Chercher un geste d'ajout, retrait, renommage ou déplacement | Aucun, ni dans le menu ni sur l'écran ; aucun terme technique ni identifiant visible | |
-| CT-27.4 | Ouvrir l'adresse de la variante `sans-formulaire` | « Aucun formulaire n'est prévu pour votre site. », sans bouton de création | |
-| CT-27.5 | Ouvrir `/admin/formulaires` sans session | Renvoi vers la connexion, aucun formulaire montré | |
+| CT-27.1 | Cliquer « Formulaires » dans le menu | L'écran s'ouvre ; « Formulaires » est la seule rubrique marquée active | OK — depuis « Mes pages », le clic ouvre `/admin/formulaires` ; « Formulaires » seule en surbrillance (fond vert, texte blanc) et seule `aria-current="page"`, dans la barre latérale comme dans le tiroir du téléphone ; console vide, aucune violation CSP |
+| CT-27.2 | Lire la liste | « Devis atelier » puis « Devis gâteau », chacun sur une ligne entière cliquable | OK — « Devis atelier » puis « Devis gâteau » (ce dernier avec sa marque « Brouillon », laissée par le § 28) ; chaque lien couvre toute sa ligne (990 × 46 px) : un clic au bord droit ouvre l'écran du formulaire |
+| CT-27.3 | Chercher un geste d'ajout, retrait, renommage ou déplacement | Aucun, ni dans le menu ni sur l'écran ; aucun terme technique ni identifiant visible | OK — aucun bouton hors « Replier le menu » et « Ouvrir le menu », aucun champ, aucun élément à glisser ni modifiable ; texte visible : les cinq rubriques, « Formulaires », les deux noms, « Brouillon » — aucun identifiant |
+| CT-27.4 | Ouvrir l'adresse de la variante `sans-formulaire` | « Aucun formulaire n'est prévu pour votre site. », sans bouton de création | OK — adresse d'aperçu `site-sans-formulaire` : « Aucun formulaire n’est prévu pour votre site. », aucun bouton ni lien dans la zone principale, « Formulaires » active ; seule erreur de console, le 404 de `favicon.ico` |
+| CT-27.5 | Ouvrir `/admin/formulaires` sans session | Renvoi vers la connexion, aucun formulaire montré | OK — sans cookie, 302 vers `/admin/connexion`, corps vide ; au navigateur, l'écran de connexion s'affiche et la page ne contient aucun nom de formulaire |
 
 ## 28. L'écran d'un formulaire, corriger les options — change 010 · ticket 07
 
