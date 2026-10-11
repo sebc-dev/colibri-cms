@@ -34,3 +34,12 @@ J'allais soumettre deux voies à l'humain avant `/scd-spec-dev:run 011-apercu-et
 
 ## Écarté
 - Corriger dans le ticket 08 : la navigation identique était son critère, et il est fusionné.
+
+## Issue
+Tranché le 2026-10-11 : option A. Dans l'aperçu seulement, un lien vers une page déclarée (menu,
+bouton, texte riche) mène à l'aperçu de cette page ; liens externes, de contact et adresses non
+déclarées inchangés. Écartées : garder la sortie en le disant dans le bandeau (le piège restait), et
+un sélecteur de pages dans le bandeau (le menu du site sortait toujours, deux menus à l'écran). Le
+change 011 est amendé (exigence « Même rendu », scénarios, ux, design D3, plan de test, revue de
+sécurité), le ticket 09 porte SC-09e et SC-09f, et le test SC-08b compare désormais après avoir ramené
+ces liens à leur adresse publique.
