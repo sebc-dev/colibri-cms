@@ -8,6 +8,12 @@
       "rang": 0,
       "libelle": "<b>Devis</b> & \"co\"",
       "destination": "/contact"
+    },
+    {
+      "id": "presentation",
+      "nature": "texte-riche",
+      "rang": 1,
+      "nom": "Présentation"
     }
   ]
 }
