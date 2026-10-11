@@ -15,6 +15,7 @@ const TERMES_DEVELOPPEUR = [
   /\b(d[ée]ploiement|d[ée]ployer|deploy)\b/i,
   /\b(github|git|json|html|css|api)\b/i,
   /\b(cache|serveur|server|draft|preview|merge|pull)\b/i,
+  /\b(d[ée]p[ôo]t|push|404|422)\b/i,
 ];
 
 describe("aperçu d'une page — statique", () => {

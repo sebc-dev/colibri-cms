@@ -399,3 +399,23 @@ it("SC-08a — des réseaux publiés de forme inattendue laissent l'aperçu sur 
   expect(reponse.status).toBe(200);
   expect(corps).toContain("Instagram");
 });
+
+it("SC-08h — le bandeau rendu de l'aperçu ne porte aucun terme de développeur", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  const termesDeveloppeur = [
+    /\b(commit|branche|branch|build)\b/i,
+    /\b(d[ée]ploiement|d[ée]ployer|deploy)\b/i,
+    /\b(github|git|json|html|css|api)\b/i,
+    /\b(cache|serveur|server|draft|preview|merge|pull)\b/i,
+    /\b(d[ée]p[ôo]t|push|404|422)\b/i,
+  ];
+
+  const corps = await (await apercu("tarifs", cookie)).text();
+  const texte = (BANDEAU.exec(corps)?.[0] ?? "").replace(/<[^<>]*>/g, " ");
+
+  expect(texte.trim()).not.toBe("");
+  for (const termes of termesDeveloppeur) {
+    expect(texte).not.toMatch(termes);
+  }
+});
