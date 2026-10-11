@@ -50,3 +50,11 @@ tests/unit/publication/plan-formulaires.test.ts
 - Corriger `depot.ts` dans le ticket 14 : fichier du ticket 13, hors de la ligne `**Fichiers :**`.
 - Déplacer l'import pour faire taire `dup` : tromperait la mesure sans changer le code.
 - `eslint --fix` laissé sans regard sur le test : la retouche est d'une ligne, elle se fait lue.
+
+## Issue
+Reprise faite le 2026-10-11. `deposerImages` simplifiée sur la branche du ticket 13 (`face7e6` :
+`cheminsImages` et `placerBrancheImages` sorties, même comportement), branche 14 replacée dessus,
+` as InstantanePublication` retiré du test sans retirer aucune assertion. Reprise avec `rerun: "2"` :
+le run a abouti à la PR #220, empilée sur #217. La review a retenu deux tests que le correcteur n'a
+pas le droit d'écrire : le format de `formulaire.json` (`architecture-F-1`, code appliqué, test
+absent) et le compteur publié qui fait foi (`coverage-F-1`). Ils restent à ajouter.
