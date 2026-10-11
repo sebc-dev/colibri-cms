@@ -49,6 +49,32 @@ it("SC-10d — les pages suivent l'ordre posé et seules celles à brouillon son
   expect(recap.pages.map((p) => p.slug)).toEqual(["accueil", "tarifs"]);
 });
 
+it("SC-10d — les trois objets ensemble : réglages dans l'ordre de l'écran Réglages, noms non déclarés écartés", () => {
+  const recap = composerRecapitulatif(
+    entrees({
+      slugsAvecBrouillon: new Set(["accueil"]),
+      reglagesAvecBrouillon: new Set([
+        "mention",
+        "coordonnees",
+        "reseaux",
+        "inconnu",
+      ]),
+      formulairesAvecBrouillon: new Set(["devis-gateau", "absent"]),
+    }),
+  );
+
+  expect(recap.pages).toEqual([{ slug: "accueil", titre: "Accueil" }]);
+  expect(recap.reglages).toEqual([
+    { nom: "coordonnees", libelle: "Coordonnées" },
+    { nom: "reseaux", libelle: "Réseaux sociaux" },
+    { nom: "mention", libelle: "Mention d'information" },
+  ]);
+  expect(recap.formulaires).toEqual([
+    { id: "devis-gateau", nom: "Devis gâteau" },
+  ]);
+  expect(recapitulatifEstVide(recap)).toBe(false);
+});
+
 it("SC-10f — sans aucun brouillon, le récapitulatif est vide", () => {
   expect(recapitulatifEstVide(composerRecapitulatif(entrees()))).toBe(true);
 });
@@ -69,6 +95,9 @@ it("SC-10h — l'adresse de retour interne sous /admin/ est conservée, avec sa 
   expect(retourSur("/admin/formulaires/devis-gateau?x=1")).toBe(
     "/admin/formulaires/devis-gateau?x=1",
   );
+  expect(retourSur("/admin/reglages#ancre")).toBe("/admin/reglages#ancre");
+  // Un point encodé au milieu d'un nom n'est pas un segment de point.
+  expect(retourSur("/admin/pages/a%2eb")).toBe("/admin/pages/a%2eb");
 });
 
 it("SC-10h — toute adresse de retour non interne retombe sur l'écran par défaut", () => {
@@ -85,6 +114,19 @@ it("SC-10h — toute adresse de retour non interne retombe sur l'écran par déf
     "/admin/a\nb",
     "/admin/publier",
     "/admin/publier/suite",
+    "/admin/./x",
+    "/admin/a\u007Fb",
+    "/admin/publier#x",
+    "/admin/publier?retour=/admin/reglages",
+    // Segments de point encodés : le navigateur les résout comme `.` et `..`.
+    "/admin/%2e/x",
+    "/admin/%2E/x",
+    "/admin/%2e%2e/x",
+    "/admin/%2E%2E/x",
+    "/admin/%2E%2e",
+    "/admin/.%2e/mes-pages",
+    "/admin/%2e./x",
+    "/admin/x/%2e%2e/publier",
   ];
   for (const brut of refusees) {
     expect(retourSur(brut), String(brut)).toBe(RETOUR_PAR_DEFAUT);

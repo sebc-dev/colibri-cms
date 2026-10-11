@@ -6,6 +6,11 @@
  */
 import { env, exports } from "cloudflare:workers";
 import { it, expect, afterEach } from "vitest";
+import {
+  TEXTE_CARTE_COORDONNEES,
+  TEXTE_CARTE_MENTION,
+  TEXTE_CARTE_RESEAUX,
+} from "../../src/admin/textes.ts";
 
 const NOM_COOKIE_SESSION = "__Host-session";
 const TABLE_SESSIONS = "sessions";
@@ -154,6 +159,8 @@ it("SC-10a — un écran gardé arrive avec le logo, les cinq rubriques, « Publ
 
   expect(reponse.status).toBe(200);
   expect(corps).toMatch(/<svg[\s\S]*?<\/svg>/);
+  // Le logo lui-même, pas l'une des icônes (menu, repli) du cadre.
+  expect(corps).toMatch(/<svg[^>]*role="img"[^>]*aria-label="Colibri CMS"/);
   const aside = /<aside[^>]*>([\s\S]*?)<\/aside>/.exec(corps)?.[1] ?? "";
   for (const rubrique of [
     "Mes pages",
@@ -325,3 +332,174 @@ it("SC-10d — un formulaire en brouillon est listé par son nom, sans les autre
 function balise(corps: string, id: string): string {
   return new RegExp(`<a[^>]*id="${id}"[^>]*>`).exec(corps)?.[0] ?? "";
 }
+
+/** L'adresse portée par une balise `<a>`, entités `&amp;` décodées. */
+function hrefDe(baliseA: string): string {
+  return (/href="([^"]*)"/.exec(baliseA)?.[1] ?? "").replaceAll("&amp;", "&");
+}
+
+function sectionDe(corps: string, marque: string): string {
+  return (
+    new RegExp(`<section[^>]*${marque}[^>]*>([\\s\\S]*?)</section>`).exec(
+      mainDe(corps),
+    )?.[1] ?? ""
+  );
+}
+
+async function assurerTablesPubliees(db: DBLike): Promise<void> {
+  const module = await import("../../migrations/0010_etat_publie.sql?raw");
+  for (const requete of separerRequetes(module.default)) {
+    try {
+      await db.prepare(requete).run();
+    } catch {
+      // déjà créée : sans effet.
+    }
+  }
+}
+
+const TABLES_PHOTOGRAPHIEES = [
+  ...TABLES_BROUILLONS,
+  "publies_emplacements",
+  "publies_reglages",
+  "publies_formulaires",
+];
+
+/** Les lignes complètes des brouillons et du contenu publié, contenu et dates compris. */
+async function photographier(db: DBLike): Promise<Record<string, unknown[]>> {
+  const photo: Record<string, unknown[]> = {};
+  for (const table of TABLES_PHOTOGRAPHIEES) {
+    const { results } = await (
+      db as unknown as {
+        prepare(q: string): { all(): Promise<{ results: unknown[] }> };
+      }
+    )
+      .prepare(`select * from ${table} order by 1, 2`)
+      .all();
+    photo[table] = results;
+  }
+  return photo;
+}
+
+it("SC-10h — depuis un écran gardé, « Publier » puis « Annuler » ramène à cet écran", async () => {
+  const db = await assurerSchema();
+  await semerBrouillonReglage(db, "mention");
+
+  for (const ecran of [
+    "/admin/reglages",
+    "/admin/formulaires/devis-gateau?vue=champs&tri=nom",
+  ]) {
+    const depart = await ouvrir(db, `https://example.com${ecran}`);
+    expect(depart.reponse.status, ecran).toBe(200);
+    const versPublier = hrefDe(balise(depart.corps, "bouton-publier"));
+    expect(versPublier, ecran).toMatch(/^\/admin\/publier\?retour=/);
+
+    const publier = await ouvrir(db, `https://example.com${versPublier}`);
+
+    expect(publier.reponse.status, ecran).toBe(200);
+    expect(hrefDe(balise(publier.corps, "annuler-publier")), ecran).toBe(ecran);
+  }
+});
+
+it("SC-10b — l'écran Publier ne marque aucune rubrique comme active, ni dans la barre latérale ni dans le tiroir", async () => {
+  const db = await assurerSchema();
+  await semerBrouillonReglage(db, "mention");
+
+  const { corps } = await ouvrir(db, PUBLIER);
+
+  const aside = /<aside[^>]*>([\s\S]*?)<\/aside>/.exec(corps)?.[1] ?? "";
+  const tiroir =
+    /<dialog[^>]*id="tiroir-menu"[\s\S]*?<\/dialog>/.exec(corps)?.[0] ?? "";
+  expect(aside).toContain("Mes pages");
+  expect(tiroir).toContain("Mes pages");
+  expect(aside).not.toContain('aria-current="page"');
+  expect(tiroir).not.toContain('aria-current="page"');
+});
+
+it("SC-10e — la page d'accueil listée mène à son aperçu, à l'adresse /admin/apercu/", async () => {
+  const db = await assurerSchema();
+  await semerBrouillonPage(db, "accueil");
+
+  const { corps } = await ouvrir(db, PUBLIER);
+
+  const pages = sectionDe(corps, "data-recap-pages");
+  expect(pages).toContain("Accueil");
+  expect(pages).toMatch(/<a[^>]*href="\/admin\/apercu\/"[^>]*>Voir l/);
+  expect(pages).not.toContain("/admin/apercu/accueil");
+});
+
+it("SC-10h — ouvrir l'écran Publier puis « Annuler » laisse chaque brouillon identique et marqué, et rien de publié", async () => {
+  const db = await assurerSchema();
+  await assurerTablesPubliees(db);
+  await semerBrouillonReglage(db, "mention");
+  await semerBrouillonPage(db, "tarifs");
+  await semerBrouillonFormulaire(db, "devis-gateau");
+  const avant = await photographier(db);
+
+  const publier = await ouvrir(
+    db,
+    `${PUBLIER}?retour=${encodeURIComponent("/admin/reglages")}`,
+  );
+  const retour = hrefDe(balise(publier.corps, "annuler-publier"));
+  expect(retour).toBe("/admin/reglages");
+  const ecran = await ouvrir(db, `https://example.com${retour}`);
+
+  expect(await photographier(db)).toEqual(avant);
+  expect(avant.brouillons_reglages).toHaveLength(1);
+  expect(avant.brouillons_emplacements).toHaveLength(1);
+  expect(avant.brouillons_formulaires).toHaveLength(1);
+  expect(ecran.reponse.status).toBe(200);
+  const zoneMention =
+    /id="carte-mention"[\s\S]*?<div[^>]*data-zone-marque-brouillon[^>]*>([\s\S]*?)<\/div>/.exec(
+      ecran.corps,
+    )?.[1] ?? "";
+  expect(zoneMention).toContain("data-pastille-brouillon");
+});
+
+it("SC-10d — les trois réglages en brouillon portent les libellés de l'écran Réglages (textes de l'éditrice), dans son ordre", async () => {
+  const db = await assurerSchema();
+  for (const reglage of ["mention", "reseaux", "coordonnees"]) {
+    await semerBrouillonReglage(db, reglage);
+  }
+
+  const { corps } = await ouvrir(db, PUBLIER);
+
+  const libelles = [
+    ...sectionDe(corps, "data-recap-reglages").matchAll(
+      /<li[^>]*>([\s\S]*?)<\/li>/g,
+    ),
+  ].map((m) => m[1].replaceAll("&#39;", "'").trim());
+  expect(libelles).toEqual([
+    TEXTE_CARTE_COORDONNEES,
+    TEXTE_CARTE_RESEAUX,
+    TEXTE_CARTE_MENTION,
+  ]);
+});
+
+it("SC-10d — les formulaires sont listés sous l'intitulé « Formulaires de devis »", async () => {
+  const db = await assurerSchema();
+  await semerBrouillonFormulaire(db, "devis-gateau");
+
+  const { corps } = await ouvrir(db, PUBLIER);
+
+  expect(sectionDe(corps, "data-recap-formulaires")).toMatch(
+    /<h2[^>]*>\s*Formulaires de devis\s*<\/h2>/,
+  );
+});
+
+it("SC-10h — « Annuler » est un lien habillé en bouton secondaire, qui garde son adresse de retour", async () => {
+  const db = await assurerSchema();
+  await semerBrouillonReglage(db, "mention");
+
+  const { corps } = await ouvrir(
+    db,
+    `${PUBLIER}?retour=${encodeURIComponent("/admin/medias")}`,
+  );
+
+  const annuler = balise(corps, "annuler-publier");
+  expect(hrefDe(annuler)).toBe("/admin/medias");
+  const classes = (/class="([^"]*)"/.exec(annuler)?.[1] ?? "").split(/\s+/);
+  expect(classes).toEqual(
+    expect.arrayContaining(["inline-flex", "min-h-11", "rounded-md", "border"]),
+  );
+  expect(corps).toMatch(/<a[^>]*id="annuler-publier"[^>]*>\s*Annuler\s*<\/a>/);
+});

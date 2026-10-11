@@ -56,6 +56,16 @@ it("SC-10h — l'adresse de retour de « Annuler » passe par la revérification
   expect(publier).toContain('id="annuler-publier"');
 });
 
+it("SC-10d — l'écran Publier nomme les réglages par LIBELLES_REGLAGES_PUBLIER, tiré des textes de l'écran Réglages", () => {
+  expect(publier).toMatch(/LIBELLES_REGLAGES_PUBLIER\[/);
+  const table =
+    /export const LIBELLES_REGLAGES_PUBLIER\b[\s\S]*?\};/.exec(textes)?.[0] ??
+    "";
+  expect(table).toMatch(/coordonnees:\s*TEXTE_CARTE_COORDONNEES\b/);
+  expect(table).toMatch(/reseaux:\s*TEXTE_CARTE_RESEAUX\b/);
+  expect(table).toMatch(/mention:\s*TEXTE_CARTE_MENTION\b/);
+});
+
 it("SC-10f — les textes de l'écran Publier n'emploient aucun terme de développeur", () => {
   const visibles = textesPublier().toLowerCase();
   expect(visibles.length).toBeGreaterThan(0);
