@@ -19,7 +19,8 @@ import {
 } from '../pages/declaration.ts';
 import { destinationBoutonAutorisee, type Brouillon, type ContenuCorrige } from '../pages/brouillon.ts';
 import { lienVideoAutorise } from '../pages/lien-video.ts';
-import type { NatureCoordonnee, ReglagesDeclares } from '../reglages/declaration.ts';
+import type { NatureCoordonnee, ReglagesDeclares, ReseauDeclare } from '../reglages/declaration.ts';
+import { coordonneesCourantes } from '../reglages/coordonnees.ts';
 
 /** Une entrée de la navigation : une page déclarée, la courante marquée. */
 export interface EntreeNavigation {
@@ -166,5 +167,41 @@ export function composerPage(entree: EntreeComposition): PageComposee {
     })),
     emplacements: entree.page.emplacements.map((e) => composerEmplacement(e, entree.publie, entree.brouillon)),
     pied: composerPied(entree.reglages),
+  };
+}
+
+/** Les réglages publiés, tels que lus en base (formes non vérifiées). */
+export interface ReglagesPubliesBruts {
+  readonly coordonnees?: unknown;
+  readonly reseaux?: unknown;
+  readonly mention?: unknown;
+}
+
+function valeursPubliees(brut: unknown): Record<string, string> {
+  if (typeof brut !== 'object' || brut === null || Array.isArray(brut)) return {};
+  return Object.fromEntries(Object.entries(brut).filter((e): e is [string, string] => typeof e[1] === 'string'));
+}
+
+function listeReseaux(brut: unknown): ReseauDeclare[] | undefined {
+  if (!Array.isArray(brut)) return undefined;
+  const lus: ReseauDeclare[] = [];
+  for (const r of brut as unknown[]) {
+    if (typeof r !== 'object' || r === null) return undefined;
+    const { nom, lien } = r as { nom?: unknown; lien?: unknown };
+    if (typeof nom !== 'string' || typeof lien !== 'string') return undefined;
+    lus.push({ nom, lien });
+  }
+  return lus;
+}
+
+/** La déclaration des réglages recouverte par leur dernière version publiée (jamais un brouillon). */
+export function reglagesRecouvertsParLePublie(
+  declares: ReglagesDeclares,
+  publies: ReglagesPubliesBruts,
+): ReglagesDeclares {
+  return {
+    coordonnees: coordonneesCourantes(declares.coordonnees, valeursPubliees(publies.coordonnees)),
+    reseaux: listeReseaux(publies.reseaux) ?? declares.reseaux,
+    mention: typeof publies.mention === 'string' ? publies.mention : declares.mention,
   };
 }

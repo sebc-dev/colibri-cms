@@ -26,6 +26,7 @@ const { page } = Astro.props;
     <title>{page.titre}</title>
   </head>
   <body>
+    <slot name="bandeau" />
     <header>
       <nav aria-label="Pages du site">
         <details>

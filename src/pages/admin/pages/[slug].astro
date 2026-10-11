@@ -125,6 +125,8 @@ import { obtenirBrouillon, listerReferencesMediasBrouillon } from '../../../plat
 import { obtenirPublieEmplacements } from '../../../platform/publication/magasin-publie.ts';
 import { listerMediasBrouillon } from '../../../platform/medias/magasin.ts';
 import { appliquerBrouillonSurEmplacement, pagePorteUnBrouillon } from '../../../core/pages/brouillon.ts';
+import { TEXTE_BOUTON_VOIR_APERCU } from '../../../admin/textes.ts';
+import { adresseDeLaPage } from '../../../core/pages/declaration.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -182,6 +184,13 @@ const page = {
           </span>
         </h1>
       </div>
+      <a
+        id="voir-apercu"
+        href={`/admin/apercu${adresseDeLaPage(slug)}`}
+        class="mt-2 inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-ink hover:bg-muted"
+      >
+        {TEXTE_BOUTON_VOIR_APERCU}
+      </a>
     </div>
     <ul class="flex flex-col gap-4">
       {
