@@ -129,6 +129,25 @@ describe('composerPage — texte riche', () => {
     );
     expect(noeuds.flatMap((t) => t.marks ?? [])).toEqual([]);
   });
+
+  it('SC-05b — un délimiteur échappé n’ouvre pas de marque : seul le délimiteur nu qui suit en ouvre une', () => {
+    const composee = composerPage(entree('mon\\_mot et _penché_, puis \\*\\*a et **gras**'));
+    const noeuds = textes(documentDe(composee));
+
+    expect(noeuds.map((t) => [t.text, (t.marks ?? []).map((m) => m.type)])).toEqual([
+      ['mon_mot et ', []],
+      ['penché', ['italic']],
+      [', puis **a et ', []],
+      ['gras', ['bold']],
+    ]);
+  });
+
+  it('SC-05b — un astérisque échappé collé à un astérisque nu n’ouvre pas le gras', () => {
+    const composee = composerPage(entree('\\**x**'));
+    const noeuds = textes(documentDe(composee));
+
+    expect(noeuds.map((t) => [t.text, (t.marks ?? []).map((m) => m.type)])).toEqual([['**x**', []]]);
+  });
 });
 
 describe('Markdown restreint — aller-retour d’un délimiteur écrit dans le texte', () => {
