@@ -171,8 +171,14 @@ interface JetonInline {
 // lui —, donc le parcours reste LINÉAIRE. La forme gloutonne `[^\]]*` mesurait
 // 5,2 s sur 80 000 crochets ouvrants (quadratique) contre 0,5 ms ici.
 const MOTIF_LIEN = /\[((?:[^[\]\\]|\\.)*)\]\(([^()]*)\)/g;
-const MOTIF_GRAS = /\*\*([^*]+)\*\*/g;
-const MOTIF_ITALIQUE = /_([^_]+)_/g;
+// Gras et italique ignorent les séquences échappées que produit `echapperTexte`.
+// La garde arrière refuse un délimiteur ouvrant précédé d'un nombre impair
+// d'antislashs (donc échappé) ; le contenu consomme les échappements par paires
+// (`[^*\\]` ou `\\.`, branches disjointes), si bien que le délimiteur fermant
+// n'est jamais échappé. Le parcours reste LINÉAIRE : la forme sans garde arrière
+// est quadratique (3 s sur 40 000 `\_`).
+const MOTIF_GRAS = /(?<=(?:^|[^\\])(?:\\\\)*)\*\*((?:[^*\\]|\\.)+)\*\*/g;
+const MOTIF_ITALIQUE = /(?<=(?:^|[^\\])(?:\\\\)*)_((?:[^_\\]|\\.)+)_/g;
 
 function prochainJeton(texte: string, depuis: number): JetonInline | null {
   // Le plus à gauche gagne ; à égalité, l'ordre de la liste tranche (lien, gras,

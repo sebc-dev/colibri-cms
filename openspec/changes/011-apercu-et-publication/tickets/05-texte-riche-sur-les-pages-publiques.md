@@ -36,7 +36,7 @@ Le même rendu servira à l'aperçu (ticket 08).
 livrée).
 
 ## Critères
-- [ ] Le texte de chacun des emplacements d'une page publique figure dans la réponse elle-même, sans qu'aucun échange supplémentaire ne soit nécessaire pour l'obtenir   (SC-05a)
-- [ ] Un emplacement de texte riche publié qui porte un titre, un paragraphe avec un mot en gras et un en italique, et une liste à puces paraît avec ce titre, ce paragraphe avec ses mots en gras et en italique, et la liste à puces   (SC-05b)
-- [ ] Quand un texte riche publié porte un lien vers `https://exemple.fr`, un lien `mailto:`, un lien relatif `/contact` et un lien `javascript:` ou `data:`, les trois premiers sont rendus comme liens, et le dernier ne paraît que par son texte, sans lien   (SC-05c)
-- [ ] Quand un texte riche publié contient `<script>` ou `<img onerror=…>` écrits comme texte, la page les affiche comme du texte, et aucune balise n'est créée   (SC-05d)
+- [x] Le texte de chacun des emplacements d'une page publique figure dans la réponse elle-même, sans qu'aucun échange supplémentaire ne soit nécessaire pour l'obtenir   (SC-05a)
+- [x] Un emplacement de texte riche publié qui porte un titre, un paragraphe avec un mot en gras et un en italique, et une liste à puces paraît avec ce titre, ce paragraphe avec ses mots en gras et en italique, et la liste à puces   (SC-05b)
+- [x] Quand un texte riche publié porte un lien vers `https://exemple.fr`, un lien `mailto:`, un lien relatif `/contact` et un lien `javascript:` ou `data:`, les trois premiers sont rendus comme liens, et le dernier ne paraît que par son texte, sans lien   (SC-05c)
+- [x] Quand un texte riche publié contient `<script>` ou `<img onerror=…>` écrits comme texte, la page les affiche comme du texte, et aucune balise n'est créée   (SC-05d)

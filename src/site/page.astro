@@ -7,7 +7,7 @@
  * inventé.
  */
 import './site.css';
-import { BoutonAction, LienVideo } from '../render/index.ts';
+import { BoutonAction, LienVideo, TexteRiche } from '../render/index.ts';
 import type { PageComposee } from '../core/rendu/page.ts';
 import PiedDePage from './PiedDePage.astro';
 
@@ -54,6 +54,9 @@ const { page } = Astro.props;
           }
           if (emplacement.nature === 'lien-video') {
             return <LienVideo adresse={emplacement.adresse} lien={emplacement.lien} />;
+          }
+          if (emplacement.nature === 'texte-riche') {
+            return <TexteRiche document={emplacement.document} />;
           }
           return null;
         })

@@ -1,0 +1,51 @@
+---
+/**
+ * Un nœud du texte riche : paragraphe, titre, liste à puces, ou texte portant
+ * ses marques (lien, gras, italique), rendues l'une dans l'autre. Un nœud
+ * inconnu n'écrit que le texte qu'il porte. Le titre de la page est le
+ * niveau 1 : les titres du texte commencent au niveau 2.
+ */
+import type { NoeudDocument } from '../../core/pages/texte-riche.ts';
+import Noeud from './Noeud.astro';
+
+interface Props {
+  noeud: NoeudDocument;
+}
+
+const { noeud } = Astro.props;
+const enfants = noeud.content ?? [];
+const marques = noeud.marks ?? [];
+const marque = marques[0];
+const reste: NoeudDocument = { ...noeud, marks: marques.slice(1) };
+const niveauBrut = noeud.attrs?.level;
+const niveau = typeof niveauBrut === 'number' ? Math.min(Math.max(Math.trunc(niveauBrut), 2), 6) : 2;
+const href = typeof marque?.attrs?.href === 'string' ? marque.attrs.href : null;
+---
+
+{
+  noeud.type === 'text' ? (
+    marque === undefined ? (
+      noeud.text ?? ''
+    ) : marque.type === 'bold' ? (
+      <strong><Noeud noeud={reste} /></strong>
+    ) : marque.type === 'italic' ? (
+      <em><Noeud noeud={reste} /></em>
+    ) : marque.type === 'link' && href !== null ? (
+      <a href={href} rel="noopener noreferrer"><Noeud noeud={reste} /></a>
+    ) : (
+      <Noeud noeud={reste} />
+    )
+  ) : noeud.type === 'heading' ? (
+    niveau === 2 ? <h2>{enfants.map((e) => <Noeud noeud={e} />)}</h2>
+    : niveau === 3 ? <h3>{enfants.map((e) => <Noeud noeud={e} />)}</h3>
+    : niveau === 4 ? <h4>{enfants.map((e) => <Noeud noeud={e} />)}</h4>
+    : niveau === 5 ? <h5>{enfants.map((e) => <Noeud noeud={e} />)}</h5>
+    : <h6>{enfants.map((e) => <Noeud noeud={e} />)}</h6>
+  ) : noeud.type === 'bulletList' ? (
+    <ul>{enfants.map((e) => <Noeud noeud={e} />)}</ul>
+  ) : noeud.type === 'listItem' ? (
+    <li>{enfants.map((e) => <Noeud noeud={e} />)}</li>
+  ) : (
+    <p>{enfants.map((e) => <Noeud noeud={e} />)}</p>
+  )
+}
