@@ -1,0 +1,93 @@
+---
+/**
+ * L'`Écran : Publier` (change 011, ticket 10) : le récapitulatif des pages,
+ * réglages et formulaires qui portent un brouillon. Il ne met rien en ligne
+ * (confirmation et mise en ligne : ticket 15). Rendu serveur, garde de
+ * session importée (I6, ADR-0007), aucun script ni `client:*` (I4, ADR-0006).
+ * Les noms sont interpolés échappés (I5). « Annuler » ramène à l'écran
+ * quitté, dont l'adresse est revérifiée (`retourSur`).
+ */
+import GabaritCadre from '../../admin/GabaritCadre.astro';
+import { verifierSession } from '../../platform/session/index.ts';
+import { listerPagesDeclarees } from '../../platform/contenu/pages.ts';
+import { lireFormulairesDeLaDeclaration } from '../../platform/contenu/formulaires.ts';
+import { listerSlugsAvecBrouillon } from '../../platform/brouillons/magasin.ts';
+import { obtenirBrouillonsReglages } from '../../platform/reglages/magasin.ts';
+import { obtenirBrouillonsFormulaires } from '../../platform/formulaires/magasin.ts';
+import { composerRecapitulatif, recapitulatifEstVide, retourSur } from '../../core/publication/recapitulatif.ts';
+import { adresseDeLaPage } from '../../core/pages/declaration.ts';
+import {
+  TEXTE_BOUTON_ANNULER_PUBLIER,
+  TEXTE_INTRO_PUBLIER,
+  TEXTE_LIEN_VOIR_APERCU,
+  TEXTE_REVENIR_A_MES_PAGES,
+  TEXTE_RIEN_A_PUBLIER,
+  TEXTE_SECTION_FORMULAIRES_PUBLIER,
+  TEXTE_SECTION_PAGES_PUBLIER,
+  TEXTE_SECTION_REGLAGES_PUBLIER,
+  TEXTE_TITRE_PUBLIER,
+  LIBELLES_REGLAGES_PUBLIER,
+} from '../../admin/textes.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+const recapitulatif = composerRecapitulatif({
+  pagesDeclarees: listerPagesDeclarees(),
+  slugsAvecBrouillon: await listerSlugsAvecBrouillon(env.DB),
+  reglagesAvecBrouillon: new Set(Object.keys(await obtenirBrouillonsReglages(env.DB))),
+  formulairesDeclares: lireFormulairesDeLaDeclaration(),
+  formulairesAvecBrouillon: new Set((await obtenirBrouillonsFormulaires(env.DB)).keys()),
+});
+const rien = recapitulatifEstVide(recapitulatif);
+const retour = retourSur(Astro.url.searchParams.get('retour'));
+const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border bg-card [&>li]:min-h-11 [&>li]:break-words [&>li]:px-4 [&>li]:py-3';
+---
+
+<GabaritCadre titre="Publier — Administration">
+  <h1>{TEXTE_TITRE_PUBLIER}</h1>
+  {
+    rien ? (
+      <div class="mt-6 rounded-lg border border-border bg-card p-4 text-ink-muted">
+        <p data-rien-a-publier>{TEXTE_RIEN_A_PUBLIER}</p>
+        <p class="mt-4"><a href="/admin/mes-pages">{TEXTE_REVENIR_A_MES_PAGES}</a></p>
+      </div>
+    ) : (
+      <>
+        <p class="mt-4">{TEXTE_INTRO_PUBLIER}</p>
+        {recapitulatif.pages.length > 0 && (
+          <section class="mt-6" data-recap-pages>
+            <h2>{TEXTE_SECTION_PAGES_PUBLIER}</h2>
+            <ul class={classeListe}>
+              {recapitulatif.pages.map((page) => (
+                <li>{page.titre} <a href={`/admin/apercu${adresseDeLaPage(page.slug)}`}>{TEXTE_LIEN_VOIR_APERCU}</a></li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {recapitulatif.reglages.length > 0 && (
+          <section class="mt-6" data-recap-reglages>
+            <h2>{TEXTE_SECTION_REGLAGES_PUBLIER}</h2>
+            <ul class={classeListe}>
+              {recapitulatif.reglages.map((reglage) => <li>{LIBELLES_REGLAGES_PUBLIER[reglage.nom] ?? reglage.libelle}</li>)}
+            </ul>
+          </section>
+        )}
+        {recapitulatif.formulaires.length > 0 && (
+          <section class="mt-6" data-recap-formulaires>
+            <h2>{TEXTE_SECTION_FORMULAIRES_PUBLIER}</h2>
+            <ul class={classeListe}>
+              {recapitulatif.formulaires.map((formulaire) => <li>{formulaire.nom}</li>)}
+            </ul>
+          </section>
+        )}
+        <p class="mt-6"><a id="annuler-publier" href={retour} class="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-ink hover:bg-muted">{TEXTE_BOUTON_ANNULER_PUBLIER}</a></p>
+      </>
+    )
+  }
+</GabaritCadre>
