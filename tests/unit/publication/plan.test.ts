@@ -9,15 +9,23 @@
  *   - `instantane.images[]` : fiches (`FicheMedia`) nouvellement publiées ou
  *     redécrites ; `instantane.imagesEffacees[]` : identifiants à retirer ;
  *   - `instantane.reglages` est facultatif : absent, aucun fichier de réglage ;
+ *     présent, `{ declares, publies, brouillons }` : sans brouillon, aucun
+ *     fichier ; sinon `reglages.json` et `mention.md` composés dans l'ordre
+ *     déclaration < publié < brouillon (ADR-0017) ;
  *   - `aleatoire(octets)` fournit l'aléa (le noyau reste pur) ;
  *   - rend `{ ecritures: { chemin, contenu }[], suppressions: string[], marque }`.
  */
 import { describe, it, expect } from "vitest";
-import { construirePlan, type InstantanePublication } from "../../../src/core/publication/plan.ts";
+import {
+  construirePlan,
+  type InstantanePublication,
+  type ReglagesInstantane,
+} from "../../../src/core/publication/plan.ts";
 import { cheminAutorise } from "../../../src/core/publication/prefixes.ts";
 import { lireFicheMedia, type FicheMedia } from "../../../src/core/medias/fiche.ts";
 import type { Brouillon } from "../../../src/core/pages/brouillon.ts";
 import type { Emplacement } from "../../../src/core/pages/declaration.ts";
+import type { ReglagesDeclares } from "../../../src/core/reglages/declaration.ts";
 
 const MARKDOWN_RICHE = "## Nos gâteaux\n\nDes **gâteaux** faits maison :\n\n- tarte\n- éclair";
 
@@ -202,5 +210,92 @@ describe("construirePlan — chemins autorisés et marque", () => {
     const json = contenuDe(un, "content/pages/accueil/page.json");
     expect(json.endsWith("}\n")).toBe(true);
     expect(json).toBe(`${JSON.stringify(JSON.parse(json), null, 2)}\n`);
+  });
+});
+
+const REGLAGES_DECLARES: ReglagesDeclares = {
+  coordonnees: [
+    { id: "telephone", nature: "telephone", nom: "Téléphone", valeur: "01 00 00 00 00" },
+    { id: "courriel", nature: "email", valeur: "a@example.org" },
+  ],
+  reseaux: [
+    { nom: "Facebook", lien: "https://www.facebook.com/depart" },
+    { nom: "Pinterest", lien: "https://www.pinterest.com/depart" },
+  ],
+  mention: "Mention de départ",
+};
+
+function reglages(
+  publies: ReglagesInstantane["publies"],
+  brouillons: ReglagesInstantane["brouillons"],
+): ReglagesInstantane {
+  return { declares: REGLAGES_DECLARES, publies, brouillons };
+}
+
+describe("construirePlan — les réglages (ADR-0017)", () => {
+  it("SC-12a — seul le réglage des réseaux porte un brouillon : reglages.json reprend les coordonnées publiées", () => {
+    const plan = construirePlan(
+      instantane({
+        reglages: reglages(
+          { coordonnees: { telephone: "01 23 45 67 89" } },
+          { reseaux: [{ nom: "Instagram", lien: "https://www.instagram.com/x" }] },
+        ),
+      }),
+      aleatoire,
+    );
+
+    expect(JSON.parse(contenuDe(plan, "content/reglages/reglages.json"))).toEqual({
+      coordonnees: [
+        { id: "telephone", nature: "telephone", nom: "Téléphone", valeur: "01 23 45 67 89" },
+        { id: "courriel", nature: "email", valeur: "a@example.org" },
+      ],
+      reseaux: [{ nom: "Instagram", lien: "https://www.instagram.com/x" }],
+    });
+    expect(contenuDe(plan, "content/reglages/mention.md")).toBe("Mention de départ\n");
+  });
+
+  it("SC-12a — aucun réglage en brouillon : aucun fichier sous content/reglages/", () => {
+    const plan = construirePlan(
+      instantane({
+        reglages: reglages(
+          {
+            coordonnees: { telephone: "01 23 45 67 89" },
+            reseaux: [{ nom: "Instagram", lien: "https://www.instagram.com/publie" }],
+            mention: "Mention publiée",
+          },
+          {},
+        ),
+      }),
+      aleatoire,
+    );
+
+    expect(plan.ecritures.map((e) => e.chemin).filter((c) => c.startsWith("content/reglages"))).toEqual([]);
+  });
+
+  it("SC-12b — la mention en brouillon est déposée en Markdown lisible", () => {
+    const texte = "## Mentions\n\n**Éditrice** : Atelier\n\n- SIRET 123";
+    const plan = construirePlan(instantane({ reglages: reglages({}, { mention: texte }) }), aleatoire);
+    const mention = contenuDe(plan, "content/reglages/mention.md");
+
+    expect(mention).toBe(`${texte}\n`);
+    expect(mention).toContain("## Mentions");
+    expect(mention).toContain("**Éditrice**");
+    expect(mention).toContain("- SIRET 123");
+    expect(mention).not.toContain("\\n");
+  });
+
+  it("SC-12d — les chemins des réglages appartiennent aux préfixes autorisés", () => {
+    const plan = construirePlan(
+      instantane({ reglages: reglages({}, { coordonnees: { courriel: "b@example.org" }, mention: "Mention" }) }),
+      aleatoire,
+    );
+    const chemins = plan.ecritures.map((e) => e.chemin);
+
+    expect(chemins).toContain("content/reglages/reglages.json");
+    expect(chemins).toContain("content/reglages/mention.md");
+    for (const chemin of chemins) {
+      expect(cheminAutorise(chemin)).toBe(true);
+      expect(chemin.startsWith(".github/")).toBe(false);
+    }
   });
 });
