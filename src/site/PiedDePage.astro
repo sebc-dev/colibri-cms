@@ -1,0 +1,48 @@
+---
+/**
+ * Le pied de page : les coordonnées dans l'ordre déclaré (téléphone en lien
+ * d'appel, e-mail en lien de message, adresse sur ses lignes), puis les
+ * réseaux sociaux sous leur nom — la section est absente quand aucun réseau
+ * n'est publié. Tout est écrit par interpolation (I5).
+ */
+import type { PiedRendu } from '../core/rendu/page.ts';
+
+interface Props {
+  pied: PiedRendu;
+}
+
+const { pied } = Astro.props;
+---
+
+<footer class="pied">
+  {
+    pied.coordonnees.length > 0 && (
+      <ul class="coordonnees">
+        {pied.coordonnees.map((c) => (
+          <li>
+            {c.nom !== undefined && <span class="nom">{c.nom} : </span>}
+            {c.href !== undefined ? (
+              <a href={c.href}>{c.valeur}</a>
+            ) : (
+              c.lignes.map((ligne, i) => (
+                <>
+                  {i > 0 && <br />}
+                  {ligne}
+                </>
+              ))
+            )}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  {
+    pied.reseaux.length > 0 && (
+      <ul class="reseaux">
+        {pied.reseaux.map((r) => (
+          <li>{r.adresse === null ? r.nom : <a href={r.adresse} rel="noopener noreferrer">{r.nom}</a>}</li>
+        ))}
+      </ul>
+    )
+  }
+</footer>

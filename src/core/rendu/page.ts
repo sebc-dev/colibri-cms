@@ -1,0 +1,170 @@
+/**
+ * La composition d'une page publique (change 011-apercu-et-publication,
+ * ticket 04 ; ADR-0024) : fonction pure qui assemble, depuis la déclaration,
+ * l'état publié, les brouillons voulus et les réglages, tout ce que le
+ * gabarit du site dessine — titre, navigation, emplacements dans l'ordre,
+ * pied de page. Le site publié et l'aperçu (ticket 08) passent par elle ;
+ * seule l'origine des brouillons diffère.
+ *
+ * Zone `core` (I1/I2) : aucune lecture, aucune dépendance de plateforme. Les
+ * destinations sont revérifiées ici (`destinationBoutonAutorisee`,
+ * `lienVideoAutorise`) : un lien refusé devient du texte, jamais un lien.
+ * Rien n'est échappé ici — le gabarit n'écrit que par interpolation (I5).
+ */
+import {
+  adresseDeLaPage,
+  type Emplacement,
+  type PageAvecEmplacements,
+  type PageDeclaree,
+} from '../pages/declaration.ts';
+import { destinationBoutonAutorisee, type Brouillon, type ContenuCorrige } from '../pages/brouillon.ts';
+import { lienVideoAutorise } from '../pages/lien-video.ts';
+import type { NatureCoordonnee, ReglagesDeclares } from '../reglages/declaration.ts';
+
+/** Une entrée de la navigation : une page déclarée, la courante marquée. */
+export interface EntreeNavigation {
+  readonly titre: string;
+  readonly adresse: string;
+  readonly courante: boolean;
+}
+
+/** Un bouton d'action : `adresse` est `null` quand la destination est refusée (texte seul). */
+export interface BoutonRendu {
+  readonly id: string;
+  readonly nature: 'bouton-action';
+  readonly libelle: string;
+  readonly adresse: string | null;
+}
+
+/** Un lien de vidéo : `adresse` est `null` quand l'hébergeur n'est pas reconnu (texte seul). */
+export interface LienVideoRendu {
+  readonly id: string;
+  readonly nature: 'lien-video';
+  readonly adresse: string | null;
+  readonly lien: string;
+}
+
+/** Les natures que ce ticket ne dessine pas encore (texte riche : 05 ; images : 06). */
+export interface EmplacementNonDessine {
+  readonly id: string;
+  readonly nature: 'texte-riche' | 'image' | 'galerie' | 'carrousel';
+}
+
+export type EmplacementRendu = BoutonRendu | LienVideoRendu | EmplacementNonDessine;
+
+/** Une coordonnée du pied de page. `href` est absent pour un texte ou une adresse. */
+export interface CoordonneeRendue {
+  readonly nature: NatureCoordonnee;
+  readonly nom?: string;
+  readonly valeur: string;
+  readonly lignes: readonly string[];
+  readonly href?: string;
+}
+
+/** Un réseau social : `adresse` est `null` quand le lien n'est pas en https (texte seul). */
+export interface ReseauRendu {
+  readonly nom: string;
+  readonly adresse: string | null;
+}
+
+export interface PiedRendu {
+  readonly coordonnees: readonly CoordonneeRendue[];
+  readonly reseaux: readonly ReseauRendu[];
+}
+
+export interface PageComposee {
+  readonly titre: string;
+  readonly navigation: readonly EntreeNavigation[];
+  readonly emplacements: readonly EmplacementRendu[];
+  readonly pied: PiedRendu;
+}
+
+export interface EntreeComposition {
+  /** L'identifiant de la page à composer. */
+  readonly slug: string;
+  /** Toutes les pages déclarées, dans l'ordre posé. */
+  readonly pages: readonly PageDeclaree[];
+  /** La page déclarée, avec ses emplacements. */
+  readonly page: PageAvecEmplacements;
+  readonly reglages: ReglagesDeclares;
+  /** Les contenus publiés, par identifiant d'emplacement (absents : la déclaration seule). */
+  readonly publie?: Brouillon;
+  /** Les brouillons voulus (aperçu), qui l'emportent sur le publié. */
+  readonly brouillon?: Brouillon;
+}
+
+function contenuDe(
+  emplacement: Emplacement,
+  publie: Brouillon | undefined,
+  brouillon: Brouillon | undefined,
+): ContenuCorrige | undefined {
+  const voulu = brouillon?.get(emplacement.id) ?? publie?.get(emplacement.id);
+  return voulu?.nature === emplacement.nature ? voulu : undefined;
+}
+
+function composerEmplacement(
+  emplacement: Emplacement,
+  publie: Brouillon | undefined,
+  brouillon: Brouillon | undefined,
+): EmplacementRendu {
+  const contenu = contenuDe(emplacement, publie, brouillon);
+  if (emplacement.nature === 'bouton-action') {
+    const { libelle, destination } =
+      contenu?.nature === 'bouton-action' ? contenu : emplacement;
+    return {
+      id: emplacement.id,
+      nature: 'bouton-action',
+      libelle,
+      adresse: destinationBoutonAutorisee(destination) ? destination : null,
+    };
+  }
+  if (emplacement.nature === 'lien-video') {
+    const lien = contenu?.nature === 'lien-video' ? contenu.lien : emplacement.lien;
+    return {
+      id: emplacement.id,
+      nature: 'lien-video',
+      lien,
+      adresse: lienVideoAutorise(lien) ? lien : null,
+    };
+  }
+  return { id: emplacement.id, nature: emplacement.nature };
+}
+
+function hrefDeCoordonnee(nature: NatureCoordonnee, valeur: string): string | undefined {
+  if (nature === 'telephone') return `tel:${valeur.replace(/[^\d+]/g, '')}`;
+  if (nature === 'email') return `mailto:${valeur}`;
+  return undefined;
+}
+
+function composerPied(reglages: ReglagesDeclares): PiedRendu {
+  const coordonnees = reglages.coordonnees
+    .filter((c) => c.valeur.trim().length > 0)
+    .map((c): CoordonneeRendue => {
+      const href = hrefDeCoordonnee(c.nature, c.valeur.trim());
+      return {
+        nature: c.nature,
+        ...(c.nom !== undefined ? { nom: c.nom } : {}),
+        valeur: c.valeur,
+        lignes: c.valeur.split(/\r\n|\r|\n/).map((ligne) => ligne.trim()).filter((l) => l.length > 0),
+        ...(href !== undefined ? { href } : {}),
+      };
+    });
+  const reseaux = reglages.reseaux.map(
+    (r): ReseauRendu => ({ nom: r.nom, adresse: r.lien.startsWith('https://') ? r.lien : null }),
+  );
+  return { coordonnees, reseaux };
+}
+
+/** Compose la page publique : titre, navigation, emplacements, pied de page. */
+export function composerPage(entree: EntreeComposition): PageComposee {
+  return {
+    titre: entree.page.titre,
+    navigation: entree.pages.map((p) => ({
+      titre: p.titre,
+      adresse: adresseDeLaPage(p.slug),
+      courante: p.slug === entree.slug,
+    })),
+    emplacements: entree.page.emplacements.map((e) => composerEmplacement(e, entree.publie, entree.brouillon)),
+    pied: composerPied(entree.reglages),
+  };
+}

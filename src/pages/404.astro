@@ -1,0 +1,25 @@
+---
+/**
+ * La page « introuvable » du site : une adresse qu'aucune page déclarée ne
+ * porte n'affiche le contenu d'aucune autre page.
+ */
+import './../site/site.css';
+
+export const prerender = true;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page introuvable</title>
+  </head>
+  <body>
+    <main>
+      <h1>Page introuvable</h1>
+      <p>Cette page n'existe pas.</p>
+      <p><a href="/">Retour à l'accueil</a></p>
+    </main>
+  </body>
+</html>

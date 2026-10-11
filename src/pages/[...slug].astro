@@ -1,0 +1,33 @@
+---
+/**
+ * Les pages publiques : une par page déclarée, bâtie à la construction
+ * (FR-097 — aucun traitement serveur sur le site public). La route ne passe
+ * que la déclaration ; le graphe publié n'est jamais lu en base (C1).
+ * Dérogation I3 temporaire : seule cette route importe le gabarit, jusqu'à la
+ * route d'aperçu (ticket 08).
+ */
+import Page from '../site/page.astro';
+import { adresseDeLaPage } from '../core/pages/declaration.ts';
+import { composerPage } from '../core/rendu/page.ts';
+import { listerPagesDeclarees, obtenirPageAvecEmplacements } from '../platform/contenu/pages.ts';
+import { lireReglagesDeLaDeclaration } from '../platform/contenu/reglages.ts';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return listerPagesDeclarees().map((p) => {
+    const adresse = adresseDeLaPage(p.slug);
+    return { params: { slug: adresse === '/' ? undefined : adresse.slice(1) }, props: { slug: p.slug } };
+  });
+}
+
+const { slug } = Astro.props;
+const pages = listerPagesDeclarees();
+const declaree = obtenirPageAvecEmplacements(slug);
+if (declaree === null) {
+  return Astro.redirect('/404');
+}
+const page = composerPage({ slug, pages, page: declaree, reglages: lireReglagesDeLaDeclaration() });
+---
+
+<Page page={page} />

@@ -69,12 +69,12 @@ mise en page fine et la rapidité mesurée (story « Site public rapide et compl
 devis public.
 
 ## Critères
-- [ ] Un visiteur qui demande `/tarifs` puis `/contact` reçoit la page « Tarifs » puis la page « Contact », chacune avec son propre titre et son propre contenu   (SC-04a)
-- [ ] Sur n'importe quelle page publique, la navigation liste toutes les pages déclarées dans l'ordre posé par l'intégrateur, chacune menant à son adresse, la page courante marquée   (SC-04b)
-- [ ] Un visiteur qui demande une adresse qu'aucune page déclarée ne porte reçoit une page « introuvable » du site, qui ne montre le contenu d'aucune autre page   (SC-04c)
-- [ ] Quand un titre de page, un libellé de bouton ou une coordonnée publiés contiennent `<`, `>`, `&` ou des guillemets, la page publique les affiche comme du texte, et aucun balisage n'est interprété   (SC-04d)
-- [ ] Un emplacement de bouton d'action publié qui porte le libellé « Demander un devis » et la destination `/contact` paraît comme un lien « Demander un devis » qui mène à `/contact`   (SC-04e)
-- [ ] Un emplacement de lien de vidéo publié paraît comme un lien « Voir la vidéo » vers l'adresse de la vidéo, et la page ne charge rien de l'hébergeur de la vidéo   (SC-04f)
-- [ ] Sur n'importe quelle page publique, le pied de page présente les coordonnées publiées dans l'ordre déclaré, le téléphone en lien d'appel, l'e-mail en lien de message, l'adresse sur ses lignes   (SC-04g)
-- [ ] Quand trois liens de réseaux sociaux sont publiés, le pied de page de chaque page présente ces trois liens dans leur ordre, chacun sous son nom   (SC-04h)
-- [ ] Quand aucun lien de réseau social n'est publié, le pied de page ne porte pas de section des réseaux   (SC-04i)
+- [x] Un visiteur qui demande `/tarifs` puis `/contact` reçoit la page « Tarifs » puis la page « Contact », chacune avec son propre titre et son propre contenu   (SC-04a)
+- [x] Sur n'importe quelle page publique, la navigation liste toutes les pages déclarées dans l'ordre posé par l'intégrateur, chacune menant à son adresse, la page courante marquée   (SC-04b)
+- [x] Un visiteur qui demande une adresse qu'aucune page déclarée ne porte reçoit une page « introuvable » du site, qui ne montre le contenu d'aucune autre page   (SC-04c)
+- [x] Quand un titre de page, un libellé de bouton ou une coordonnée publiés contiennent `<`, `>`, `&` ou des guillemets, la page publique les affiche comme du texte, et aucun balisage n'est interprété   (SC-04d)
+- [x] Un emplacement de bouton d'action publié qui porte le libellé « Demander un devis » et la destination `/contact` paraît comme un lien « Demander un devis » qui mène à `/contact`   (SC-04e)
+- [x] Un emplacement de lien de vidéo publié paraît comme un lien « Voir la vidéo » vers l'adresse de la vidéo, et la page ne charge rien de l'hébergeur de la vidéo   (SC-04f)
+- [x] Sur n'importe quelle page publique, le pied de page présente les coordonnées publiées dans l'ordre déclaré, le téléphone en lien d'appel, l'e-mail en lien de message, l'adresse sur ses lignes   (SC-04g)
+- [x] Quand trois liens de réseaux sociaux sont publiés, le pied de page de chaque page présente ces trois liens dans leur ordre, chacun sous son nom   (SC-04h)
+- [x] Quand aucun lien de réseau social n'est publié, le pied de page ne porte pas de section des réseaux   (SC-04i)

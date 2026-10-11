@@ -1,0 +1,23 @@
+---
+/**
+ * Un lien de vidéo : un simple lien « Voir la vidéo » vers l'adresse de la
+ * vidéo — rien n'est chargé de l'hébergeur (aucun cadre intégré). Une adresse
+ * non reconnue (`adresse` nul) n'est pas un lien.
+ */
+interface Props {
+  adresse: string | null;
+  lien: string;
+}
+
+const { adresse, lien } = Astro.props;
+---
+
+{
+  adresse === null ? (
+    <p class="lien-video">{lien}</p>
+  ) : (
+    <p class="lien-video">
+      <a href={adresse} rel="noopener noreferrer">Voir la vidéo</a>
+    </p>
+  )
+}

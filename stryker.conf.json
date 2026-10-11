@@ -2,7 +2,7 @@
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "packageManager": "npm",
   "testRunner": "command",
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run pretest",
   "commandRunner": { "command": "npm test --ignore-scripts" },
   "mutate": ["src/core/**/*.ts", "src/platform/**/*.ts"],
   "reporters": ["clear-text", "progress", "json"],

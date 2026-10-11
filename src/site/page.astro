@@ -1,0 +1,63 @@
+---
+/**
+ * Le gabarit du site publié — et, plus tard, de l'aperçu (ADR-0024, I3) :
+ * document complet, navigation, emplacements dans l'ordre, pied de page. Seul
+ * importateur du baril de rendu. Feuille externe `site.css` (jamais celle de
+ * l'administration), aucun script, aucun attribut de style, aucun nom de site
+ * inventé.
+ */
+import './site.css';
+import { BoutonAction, LienVideo } from '../render/index.ts';
+import type { PageComposee } from '../core/rendu/page.ts';
+import PiedDePage from './PiedDePage.astro';
+
+interface Props {
+  page: PageComposee;
+}
+
+const { page } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{page.titre}</title>
+  </head>
+  <body>
+    <header>
+      <nav aria-label="Pages du site">
+        <details>
+          <summary>Menu</summary>
+          <ul>
+            {
+              page.navigation.map((entree) => (
+                <li>
+                  <a href={entree.adresse} aria-current={entree.courante ? 'page' : undefined}>
+                    {entree.titre}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </details>
+      </nav>
+    </header>
+    <main>
+      <h1>{page.titre}</h1>
+      {
+        page.emplacements.map((emplacement) => {
+          if (emplacement.nature === 'bouton-action') {
+            return <BoutonAction libelle={emplacement.libelle} adresse={emplacement.adresse} />;
+          }
+          if (emplacement.nature === 'lien-video') {
+            return <LienVideo adresse={emplacement.adresse} lien={emplacement.lien} />;
+          }
+          return null;
+        })
+      }
+    </main>
+    <PiedDePage pied={page.pied} />
+  </body>
+</html>
