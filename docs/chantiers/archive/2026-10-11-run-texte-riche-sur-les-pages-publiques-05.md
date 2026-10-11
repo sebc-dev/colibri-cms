@@ -57,3 +57,13 @@ Hors de cette session : commiter le travail dans le worktree, puis relancer
 - Rendre `document` optionnel dans le type de production pour taire la règle : le type mentirait.
 - `eslint --fix` seul : il ne corrige que l'assertion, pas la garde `?.`.
 - Le constat knip (avis) : faux positifs du worktree sans `node_modules/.bin`, antérieurs au ticket.
+
+## Issue
+Retouche faite le 2026-10-11 dans `documentDe` : `.at(0)`, garde réduite, `as` retiré, aucune
+assertion retirée. La reprise avec `rerun: "2"` s'est arrêtée en `blocked-record-incomplete` : le
+commit d'enregistrement avait laissé hors de lui les deux données du site jetable. Je les ai
+commitées à part (`93ec3d9`), j'ai rejoué les deux tests du ticket (14 passés), puis j'ai lancé à la
+main la description et la PR avec les agents du workflow : PR #221. La review a retenu deux trous
+que le correcteur n'a pas le droit de combler : le test du guillemet dans l'adresse d'un lien
+(`securite-F-1`, non appliqué) et les tests du correctif des délimiteurs échappés
+(`error-handling-F-1`, code appliqué). Ils restent à ajouter.
