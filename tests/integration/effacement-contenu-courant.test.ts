@@ -121,6 +121,19 @@ async function lire(db: DBLike, sql: string, ...valeurs: unknown[]): Promise<{ c
   return (await db.prepare(sql).bind(...valeurs).all()).results as { contenu: string }[];
 }
 
+async function lireBrouillonEmplacement(
+  db: DBLike,
+  pageSlug: string,
+  idEmplacement: string,
+): Promise<{ nature: string; contenu: string }[]> {
+  return (
+    await db
+      .prepare('select nature, contenu from brouillons_emplacements where page_slug = ?1 and id_emplacement = ?2')
+      .bind(pageSlug, idEmplacement)
+      .all()
+  ).results as { nature: string; contenu: string }[];
+}
+
 async function ouvrirFiche(cookie: string, id: string): Promise<string> {
   const reponse = await exports.default.fetch(
     new Request(`${BASE}/medias/${id}`, { headers: { cookie: `${NOM_COOKIE_SESSION}=${cookie}` } }),
@@ -147,6 +160,8 @@ it("SC-03a — la fiche d'une image que la version publiée d'un emplacement san
   // Assert : désigné par sa page et sa place, jamais par son identifiant.
   expect(emplacementsDeLaFiche(corps)).toEqual([{ pageTitre: 'Accueil', place: 'image' }]);
   expect(corps).not.toContain('image-hero');
+  // …et la fiche ne la propose pas à l'effacement : la version publiée la pose.
+  expect(corps).toContain('&quot;effacable&quot;:false');
 });
 
 it("SC-03b — quand le brouillon remplace l'image publiée, l'emplacement ne figure pas dans la liste de la première image", async () => {
@@ -171,6 +186,28 @@ it("SC-03b — quand le brouillon remplace l'image publiée, l'emplacement ne fi
 
   // Assert : seul l'emplacement sans brouillon figure ; l'image remplacée n'est pas listée.
   expect(emplacementsDeLaFiche(corps)).toEqual([{ pageTitre: 'Accueil', place: 'galerie' }]);
+});
+
+it("SC-03f — par la couture HTTP, la grille des médias marque non effaçable une image que seule la version publiée d'un emplacement sans brouillon pose", async () => {
+  // Arrange : la page « accueil » ne porte aucun brouillon.
+  const db = await assurerSchema();
+  const cookie = await semerSession(db);
+  await semerMedia(db, 'media-publiee-grille');
+  await semerPublieImage(db, 'media-publiee-grille');
+
+  // Act
+  const reponse = await exports.default.fetch(
+    new Request(`${BASE}/medias`, { headers: { cookie: `${NOM_COOKIE_SESSION}=${cookie}` } }),
+  );
+
+  // Assert
+  expect(reponse.status).toBe(200);
+  const corps = await reponse.text();
+  const attribut = /data-medias="([^"]*)"/.exec(corps)?.[1] ?? '[]';
+  const medias = JSON.parse(attribut.replace(/&quot;/g, '"')) as { id: string; effacable: boolean }[];
+  const media = medias.find((entree) => entree.id === 'media-publiee-grille');
+  expect(media).toBeDefined();
+  expect(media?.effacable).toBe(false);
 });
 
 it("SC-03g — confirmer la suppression d'une image que seule la version publiée pose écrit le retrait dans le brouillon, l'état publié reste intact", async () => {
@@ -217,4 +254,58 @@ it("SC-03g — confirmer la suppression d'une image que seule la version publié
   const fiche = await ouvrirFiche(cookie, 'media-publiee-a-supprimer');
   expect(emplacementsDeLaFiche(fiche)).toEqual([]);
   expect(fiche).toContain('&quot;effacable&quot;:true');
+});
+
+it("SC-03g — confirmer la suppression d'une image que seule la version publiée d'une galerie et d'un carrousel pose la retire des deux listes dans le brouillon, sans toucher les autres images ; l'état publié reste intact", async () => {
+  // Arrange : aucune page ne porte de brouillon.
+  const db = await assurerSchema();
+  const cookie = await semerSession(db);
+  await semerMedia(db, 'media-galerie-publiee');
+  const galeriePubliee = JSON.stringify({ nature: 'galerie', mediaIds: ['autre-a', 'media-galerie-publiee', 'autre-b'] });
+  const carrouselPublie = JSON.stringify({ nature: 'carrousel', mediaIds: ['media-galerie-publiee', 'autre-c'] });
+  const publier = db.prepare(
+    'insert into publies_emplacements (page_slug, id_emplacement, nature, contenu, publie_le) values (?1, ?2, ?3, ?4, ?5)',
+  );
+  await publier.bind('accueil', 'galerie-realisations', 'galerie', galeriePubliee, Date.now()).run();
+  await publier.bind('contact', 'carrousel-clients', 'carrousel', carrouselPublie, Date.now()).run();
+
+  // Act
+  const reponse = await exports.default.fetch(
+    new Request(`${BASE}/medias/media-galerie-publiee/supprimer`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: `${NOM_COOKIE_SESSION}=${cookie}` },
+    }),
+  );
+
+  // Assert : suppression confirmée…
+  expect(reponse.status).toBe(200);
+  expect(await reponse.json()).toEqual({ ok: true });
+
+  // …la galerie et le carrousel sont recomposés sans elle dans le brouillon, les autres images gardées dans l'ordre…
+  const galerie = await lireBrouillonEmplacement(db, 'accueil', 'galerie-realisations');
+  expect(galerie).toHaveLength(1);
+  expect(galerie[0].nature).toBe('galerie');
+  expect(JSON.parse(galerie[0].contenu)).toEqual({ nature: 'galerie', mediaIds: ['autre-a', 'autre-b'] });
+  const carrousel = await lireBrouillonEmplacement(db, 'contact', 'carrousel-clients');
+  expect(carrousel).toHaveLength(1);
+  expect(carrousel[0].nature).toBe('carrousel');
+  expect(JSON.parse(carrousel[0].contenu)).toEqual({ nature: 'carrousel', mediaIds: ['autre-c'] });
+
+  // …l'état publié reste intact…
+  const galerieEnLigne = await lire(
+    db,
+    "select contenu from publies_emplacements where page_slug = 'accueil' and id_emplacement = 'galerie-realisations'",
+  );
+  expect(galerieEnLigne).toHaveLength(1);
+  expect(galerieEnLigne[0].contenu).toBe(galeriePubliee);
+  const carrouselEnLigne = await lire(
+    db,
+    "select contenu from publies_emplacements where page_slug = 'contact' and id_emplacement = 'carrousel-clients'",
+  );
+  expect(carrouselEnLigne).toHaveLength(1);
+  expect(carrouselEnLigne[0].contenu).toBe(carrouselPublie);
+
+  // …et l'image est devenue orpheline.
+  const fiche = await ouvrirFiche(cookie, 'media-galerie-publiee');
+  expect(emplacementsDeLaFiche(fiche)).toEqual([]);
 });
