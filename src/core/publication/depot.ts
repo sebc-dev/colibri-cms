@@ -128,19 +128,11 @@ export async function deposerImages(
   demande: DemandeImages,
   message: string,
 ): Promise<ResultatImages> {
-  const entrees: EntreeArbre[] = [];
-  for (const image of demande.publiees) {
-    const c = cheminImage(image);
-    if (c === null || !cheminAutorise(c, 'media')) return { aboutie: false, raison: 'chemin-refuse' };
-    entrees.push({ chemin: c, sha: image.empreinte });
-  }
-  const nouvelles: { readonly image: ImageNouvelle; readonly chemin: string }[] = [];
-  for (const image of demande.nouvelles) {
-    const c = cheminImage(image);
-    if (c === null || !cheminAutorise(c, 'media')) return { aboutie: false, raison: 'chemin-refuse' };
-    nouvelles.push({ image, chemin: c });
-  }
+  const publiees = cheminsImages(demande.publiees);
+  const nouvelles = cheminsImages(demande.nouvelles);
+  if (publiees === null || nouvelles === null) return { aboutie: false, raison: 'chemin-refuse' };
 
+  const entrees: EntreeArbre[] = publiees.map(({ image, chemin }) => ({ chemin, sha: image.empreinte }));
   const inventaire: ImagePubliee[] = [...demande.publiees];
   for (const { image, chemin } of nouvelles) {
     const blob = await forge.creerBlob(enBase64(image.octets));
@@ -154,17 +146,32 @@ export async function deposerImages(
   const commit = await forge.creerCommit({ message, arbre: arbre.valeur.sha, parents: [] });
   if (!commit.ok) return { aboutie: false, raison: commit.issue };
 
-  const tete = await forge.lireRef(REF_MEDIA);
-  let issue: IssueForge | null = null;
-  if (tete.ok) {
-    const deplacement = await forge.deplacerRef(REF_MEDIA, commit.valeur.sha, true);
-    if (!deplacement.ok) issue = deplacement.issue;
-  } else if (tete.issue === 'introuvable') {
-    const creation = await forge.creerRef(REF_MEDIA, commit.valeur.sha);
-    if (!creation.ok) issue = creation.issue;
-  } else {
-    issue = tete.issue;
-  }
+  const issue = await placerBrancheImages(forge, commit.valeur.sha);
   if (issue !== null) return { aboutie: false, raison: issue };
   return { aboutie: true, commit: commit.valeur.sha, inventaire };
+}
+
+/** Le chemin de chaque image, ou `null` dès qu'une seule est hors forme ou hors de la branche des images. */
+function cheminsImages<T extends { readonly id: string; readonly extension: string }>(
+  images: readonly T[],
+): { readonly image: T; readonly chemin: string }[] | null {
+  const chemins: { readonly image: T; readonly chemin: string }[] = [];
+  for (const image of images) {
+    const chemin = cheminImage(image);
+    if (chemin === null || !cheminAutorise(chemin, 'media')) return null;
+    chemins.push({ image, chemin });
+  }
+  return chemins;
+}
+
+/** Déplace la branche des images en force sur `commit`, ou la crée si elle n'existe pas encore. */
+async function placerBrancheImages(forge: Forge, commit: string): Promise<IssueForge | null> {
+  const tete = await forge.lireRef(REF_MEDIA);
+  if (tete.ok) {
+    const deplacement = await forge.deplacerRef(REF_MEDIA, commit, true);
+    return deplacement.ok ? null : deplacement.issue;
+  }
+  if (tete.issue !== 'introuvable') return tete.issue;
+  const creation = await forge.creerRef(REF_MEDIA, commit);
+  return creation.ok ? null : creation.issue;
 }
