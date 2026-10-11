@@ -145,6 +145,19 @@ async function semerBrouillon(
     .run();
 }
 
+async function semerPublieReglage(
+  db: DBLike,
+  reglage: string,
+  contenu: unknown,
+): Promise<void> {
+  await db
+    .prepare(
+      "insert into publies_reglages (reglage, contenu, publie_le) values (?1, ?2, ?3)",
+    )
+    .bind(reglage, JSON.stringify(contenu), Date.now())
+    .run();
+}
+
 const BANDEAU = /<div[^>]*data-bandeau-apercu[\s\S]*?<\/div>/;
 
 // Le nom haché de la feuille de style dépend du lot de construction (page bâtie
@@ -353,4 +366,36 @@ it("SC-08d — l'identifiant de l'accueil n'est pas une adresse publique : /admi
   expect(reponse.status).toBe(404);
   expect(corps).toContain("introuvable");
   expect(corps).not.toContain("data-bandeau-apercu");
+});
+
+it("SC-08a — l'aperçu présente aussi la dernière version publiée des réglages, dans le pied de page", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  await semerPublieReglage(db, "coordonnees", { telephone: "09 87 65 43 21" });
+  await semerPublieReglage(db, "reseaux", [
+    { nom: "Mastodon", lien: "https://mastodon.example/@atelier" },
+  ]);
+
+  const reponse = await apercu("tarifs", cookie);
+  const corps = await reponse.text();
+
+  expect(reponse.status).toBe(200);
+  expect(corps).toContain("09 87 65 43 21");
+  expect(corps).toContain("Mastodon");
+  expect(corps).toContain("https://mastodon.example/@atelier");
+  expect(corps).not.toContain("01 23 45 67 89");
+  expect(corps).not.toContain("Instagram");
+  expect(corps).toContain("12 rue des Tilleuls");
+});
+
+it("SC-08a — des réseaux publiés de forme inattendue laissent l'aperçu sur les réseaux déclarés", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  await semerPublieReglage(db, "reseaux", [{ nom: 1 }]);
+
+  const reponse = await apercu("tarifs", cookie);
+  const corps = await reponse.text();
+
+  expect(reponse.status).toBe(200);
+  expect(corps).toContain("Instagram");
 });
