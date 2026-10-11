@@ -44,5 +44,5 @@ des octets en base et la finalisation (ticket 15) ; le constat, en recette, que 
 principale déclenche la reconstruction (ticket 19).
 
 ## Critères
-- [ ] Quand une image JPEG, une PNG et une WebP sont publiées pour la première fois, les octets déposés sur la branche des images sont identiques, octet pour octet, à ceux téléversés   (SC-13a)
-- [ ] Quand la publication réécrit la branche des images alors que le dernier contenu déposé pose encore une image, les octets de cette image restent sur la branche   (SC-13b)
+- [x] Quand une image JPEG, une PNG et une WebP sont publiées pour la première fois, les octets déposés sur la branche des images sont identiques, octet pour octet, à ceux téléversés   (SC-13a)
+- [x] Quand la publication réécrit la branche des images alors que le dernier contenu déposé pose encore une image, les octets de cette image restent sur la branche   (SC-13b)
