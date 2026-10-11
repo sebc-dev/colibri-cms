@@ -1,17 +1,22 @@
-# Candidat ADR : Magasin — D1 porte les brouillons, l'état publié et les demandes ; le dépôt reçoit la copie publiée
-Statut : Candidat | Date : 2026-08-23 | Provenance : `docs/legacy/1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md` (ADR-0003 accepté sous le cycle 1.x)
+# ADR-0019 : Magasin — D1 porte les brouillons, l'état publié et les demandes ; le dépôt reçoit la copie publiée
+Statut : Accepté | Date : 2026-10-11
 
-> Corps repris **verbatim** de l'ADR archivé. Les renvois `FR-xxx`, `SC-xxx` et `I-n`
-> pointent vers `docs/legacy/1.x/` : ce sont des noms de **notation**, pas des noms de fichier.
-> La numérotation 1.x ne survit pas — le numéro 2.x est attribué à la promotion, un geste humain dans `docs/adr/`.
+Promu depuis `docs/legacy/1.x/adr/0003-magasin-d1-brouillons-etat-publie-et-demandes.md` — ADR-0003, accepté sous le cycle 1.x.
 
+> Corps repris **verbatim** de l'ADR archivé sous le cycle 1.x. Les renvois `FR-xxx`,
+> `SC-xxx` et `I-n` sont des noms de **notation** et pointent vers `docs/legacy/1.x/` : ce ne sont
+> pas des noms de fichier. Seule retouche : chaque renvoi à une autre décision porte la mention
+> « (1.x) » — c'est son numéro du cycle 1.x, pas un numéro 2.x (correspondance :
+> [`README.md`](./README.md)).
+
+**Modèle** : aucun delta dans cet ADR. La base (`colibri-cms.d1`) et le contenu déclaré (`colibri-cms.contenu`) sont déjà modélisés ; le dépôt de la cliente (`github`, `#external`) entre au modèle avec l'adaptateur qui y écrit, et la description de `colibri-cms.d1` s'étend à l'état publié avec le code qui le pose (change `011-apercu-et-publication`).
 
 ## Contexte
 
 Le produit doit tenir ensemble deux propriétés que le socle de livraison impose et qu'un seul
 magasin ne donne pas :
 
-- l'invariant `I2` du [socle de livraison](../../legacy/socle-de-livraison.md) — « le contenu existe à
+- l'invariant `I2` du [socle de livraison](../legacy/socle-de-livraison.md) — « le contenu existe à
   tout moment en clair, hors base » — et sa contrainte `C1`, qui fait écrire le contenu dans la
   base **et** le commiter en fichiers plats à la publication ;
 - un **index inverse** interrogeable : `FR-032` exige d'indiquer, pour une image donnée, les
