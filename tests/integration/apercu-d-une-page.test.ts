@@ -409,6 +409,7 @@ it("SC-08h — le bandeau rendu de l'aperçu ne porte aucun terme de développeu
     /\b(github|git|json|html|css|api)\b/i,
     /\b(cache|serveur|server|draft|preview|merge|pull)\b/i,
     /\b(d[ée]p[ôo]t|push|404|422)\b/i,
+    /\bbrouillon d[ée]ploy\b/i,
   ];
 
   const corps = await (await apercu("tarifs", cookie)).text();
