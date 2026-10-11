@@ -50,13 +50,18 @@ import MenuRubriques, { type IdRubriqueServie } from './MenuRubriques.astro';
 import { Button } from './composants/ui/button/index.ts';
 import PanelLeft from '@lucide/svelte/icons/panel-left';
 import Menu from '@lucide/svelte/icons/menu';
+import { TEXTE_BOUTON_PUBLIER } from './textes.ts';
 
 interface Props {
   titre: string;
-  rubrique: IdRubriqueServie;
+  rubrique?: IdRubriqueServie;
 }
 
 const { titre, rubrique } = Astro.props;
+
+// Le geste « Publier » : un lien rendu serveur vers l'écran Publier, qui
+// porte l'écran quitté pour que « Annuler » y ramène (ticket 10).
+const hrefPublier = `/admin/publier?retour=${encodeURIComponent(`${Astro.url.pathname}${Astro.url.search}`)}`;
 
 const ID_BARRE = 'barre-laterale';
 const ID_BOUTON_REPLI = 'bouton-repli-menu';
@@ -113,7 +118,7 @@ const ID_TIROIR = 'tiroir-menu';
 
     <div class="flex min-w-0 flex-1 flex-col">
       <header
-        class="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-card p-3 md:hidden"
+        class="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-card p-3"
       >
         <Button
           id={ID_BOUTON_OUVRIR_TIROIR}
@@ -123,11 +128,12 @@ const ID_TIROIR = 'tiroir-menu';
           aria-haspopup="dialog"
           aria-controls={ID_TIROIR}
           aria-label="Ouvrir le menu"
-          class="max-md:min-h-11 max-md:min-w-11"
+          class="max-md:min-h-11 max-md:min-w-11 md:hidden"
         >
           <Menu class="size-5" aria-hidden="true" />
         </Button>
-        <Logo class="h-7 w-7 shrink-0" />
+        <Logo class="h-7 w-7 shrink-0 md:hidden" />
+        <Button id="bouton-publier" href={hrefPublier} class="ml-auto max-md:min-h-11">{TEXTE_BOUTON_PUBLIER}</Button>
       </header>
       <main class="min-w-0 flex-1 p-8">
         <slot />

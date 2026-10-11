@@ -266,3 +266,20 @@ export const TEXTE_REFUS_FORMULAIRE_INCONNU = 'Cette valeur n’est pas accepté
 export const TEXTE_BANDEAU_APERCU = 'Aperçu — cette page n’est pas encore en ligne.';
 export const TEXTE_LIEN_RETOUR_APERCU = 'Revenir à la page';
 export const TEXTE_BOUTON_VOIR_APERCU = 'Voir l’aperçu';
+
+/** L'écran Publier (change 011, ticket 10) : récapitulatif de ce qui serait mis en ligne (FR-117). */
+export const TEXTE_BOUTON_PUBLIER = 'Publier';
+export const TEXTE_TITRE_PUBLIER = 'Publier';
+export const TEXTE_INTRO_PUBLIER = 'Voici ce qui va être mis en ligne. Rien ne part tant que vous n’avez pas confirmé.';
+export const TEXTE_SECTION_PAGES_PUBLIER = 'Pages';
+export const TEXTE_SECTION_REGLAGES_PUBLIER = 'Réglages';
+export const TEXTE_SECTION_FORMULAIRES_PUBLIER = 'Formulaires de devis';
+export const TEXTE_LIEN_VOIR_APERCU = 'Voir l’aperçu';
+export const TEXTE_RIEN_A_PUBLIER = 'Il n’y a rien à publier pour le moment.';
+export const TEXTE_REVENIR_A_MES_PAGES = 'Revenir à mes pages';
+export const TEXTE_BOUTON_ANNULER_PUBLIER = 'Annuler';
+export const LIBELLES_REGLAGES_PUBLIER: Readonly<Record<string, string>> = {
+  coordonnees: TEXTE_CARTE_COORDONNEES,
+  reseaux: TEXTE_CARTE_RESEAUX,
+  mention: TEXTE_CARTE_MENTION,
+};

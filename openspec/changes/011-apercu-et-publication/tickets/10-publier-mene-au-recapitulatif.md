@@ -49,11 +49,11 @@ confirmation et la mise en ligne (ticket 15) ; l'état de la dernière publicati
 (ticket 18).
 
 ## Critères
-- [ ] Un écran servi derrière la garde arrive avec le logo, le menu des cinq rubriques avec la rubrique courante marquée, le geste « Publier », et le contenu de l'écran à l'intérieur du cadre, sans que ni le menu, ni « Publier », ni le contenu n'attendent l'exécution d'un script pour exister   (SC-10a)
-- [ ] Quand l'éditrice actionne « Publier » depuis n'importe quel écran servi derrière la garde, l'`Écran : Publier` s'ouvre, portant le récapitulatif de ce qui va partir, sans que rien ne soit encore mis en ligne   (SC-10b)
+- [x] Un écran servi derrière la garde arrive avec le logo, le menu des cinq rubriques avec la rubrique courante marquée, le geste « Publier », et le contenu de l'écran à l'intérieur du cadre, sans que ni le menu, ni « Publier », ni le contenu n'attendent l'exécution d'un script pour exister   (SC-10a)
+- [x] Quand l'éditrice actionne « Publier » depuis n'importe quel écran servi derrière la garde, l'`Écran : Publier` s'ouvre, portant le récapitulatif de ce qui va partir, sans que rien ne soit encore mis en ligne   (SC-10b)
 - [ ] Sur un appareil étroit, le menu est fermé et le contenu occupe toute la largeur ; un bouton de menu, toujours visible en haut de l'écran, ouvre le tiroir portant les cinq rubriques ; et le geste « Publier » reste visible en haut de l'écran, tiroir fermé   (SC-10c)
-- [ ] Quand seul le réglage « Mention d'information » porte un brouillon, le récapitulatif présente « Mention d'information » parmi les réglages, et ne présente aucune page, aucun formulaire ni aucune image   (SC-10d)
-- [ ] Quand l'éditrice actionne une page listée dans le récapitulatif, l'aperçu de cette page s'ouvre   (SC-10e)
-- [ ] Quand aucune page, aucun réglage ni aucun formulaire ne porte de brouillon, qu'aucune description n'a changé, qu'aucune image n'est à effacer, et que la dernière publication n'a pas échoué, l'écran dit qu'il n'y a rien à publier, et n'offre aucun geste de mise en ligne   (SC-10f)
-- [ ] L'écran Publier demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer du récapitulatif   (SC-10g)
-- [ ] Quand le récapitulatif est affiché et que l'éditrice annule, elle revient à l'écran qu'elle quittait ; rien n'est déposé, chaque brouillon est intact et porte toujours sa marque, et le site public est inchangé   (SC-10h)
+- [x] Quand seul le réglage « Mention d'information » porte un brouillon, le récapitulatif présente « Mention d'information » parmi les réglages, et ne présente aucune page, aucun formulaire ni aucune image   (SC-10d)
+- [x] Quand l'éditrice actionne une page listée dans le récapitulatif, l'aperçu de cette page s'ouvre   (SC-10e)
+- [x] Quand aucune page, aucun réglage ni aucun formulaire ne porte de brouillon, qu'aucune description n'a changé, qu'aucune image n'est à effacer, et que la dernière publication n'a pas échoué, l'écran dit qu'il n'y a rien à publier, et n'offre aucun geste de mise en ligne   (SC-10f)
+- [x] L'écran Publier demandé sans session ouverte renvoie à l'écran de connexion, sans rien montrer du récapitulatif   (SC-10g)
+- [x] Quand le récapitulatif est affiché et que l'éditrice annule, elle revient à l'écran qu'elle quittait ; rien n'est déposé, chaque brouillon est intact et porte toujours sa marque, et le site public est inchangé   (SC-10h)
