@@ -162,6 +162,15 @@ const BANDEAU = /<div[^>]*data-bandeau-apercu[\s\S]*?<\/div>/;
 
 // Le nom haché de la feuille de style dépend du lot de construction (page bâtie
 // ou route de l'administration) : ce n'est pas du contenu de la page.
+/**
+ * Ramène les liens de l'aperçu vers une page du site à leur adresse publique
+ * (`/admin/apercu/tarifs` → `/tarifs`, `/admin/apercu/` → `/`) : seule différence
+ * de liens admise entre l'aperçu et la page publique (spec apercu, « Même rendu »).
+ */
+function versAdressesPubliques(html: string): string {
+  return html.replaceAll('href="/admin/apercu/', 'href="/');
+}
+
 function sansBandeau(html: string): string {
   return html
     .replace(BANDEAU, "")
@@ -201,7 +210,7 @@ it("SC-08b — l'aperçu a le même contenu que la page publique, élément par 
     expect(publique.status).toBe(200);
     expect(reponse.status).toBe(200);
     const attendu = sansBandeau(await publique.text());
-    const obtenu = sansBandeau(await reponse.text());
+    const obtenu = sansBandeau(versAdressesPubliques(await reponse.text()));
     expect(obtenu).toBe(attendu);
   }
 });
@@ -328,7 +337,7 @@ it("SC-08b — l'aperçu de la page d'accueil a le même contenu que la page pub
   expect(publique.status).toBe(200);
   expect(reponse.status).toBe(200);
   const attendu = sansBandeau(await publique.text());
-  const obtenu = sansBandeau(await reponse.text());
+  const obtenu = sansBandeau(versAdressesPubliques(await reponse.text()));
   expect(obtenu).toBe(attendu);
 });
 
