@@ -52,12 +52,12 @@ publiée de la page et des réglages (ticket 01). Les brouillons y entrent au ti
 « Composer et envoyer une demande de devis »).
 
 ## Critères
-- [ ] Quand l'éditrice demande l'aperçu d'une page qui ne porte aucun brouillon, alors qu'aucun réglage n'en porte, l'aperçu présente la dernière version publiée de la page   (SC-08a)
-- [ ] Pour une page qui ne porte aucun brouillon, aucun réglage n'en portant, le contenu de l'aperçu — titre, navigation, emplacements, pied de page — est le même que celui de la page publique, élément par élément et dans le même ordre, hors le bandeau de l'aperçu   (SC-08b)
-- [ ] L'aperçu d'une page déclarée demandé sans session ouverte renvoie à l'écran de connexion, et rien du contenu de la page ni de son brouillon n'est montré   (SC-08c)
-- [ ] En session, l'aperçu demandé pour un identifiant qu'aucune page déclarée ne porte répond « introuvable », sans rien montrer d'autre   (SC-08d)
-- [ ] En session, l'aperçu d'une page est servi sous la politique de sécurité stricte de l'administration, et sa réponse interdit sa conservation par un intermédiaire   (SC-08e)
-- [ ] Quand l'éditrice consulte l'aperçu d'une page, un bandeau, hors de la page, dit que ce qu'elle voit n'est pas encore en ligne   (SC-08f)
-- [ ] Quand l'éditrice actionne le retour à l'édition depuis l'aperçu d'une page, l'éditeur de cette page s'ouvre   (SC-08g)
-- [ ] Aucun terme de développeur ne paraît dans le bandeau de l'aperçu (FR-117)   (SC-08h)
-- [ ] Quand l'éditrice actionne « Voir l'aperçu » depuis l'éditeur d'une page, l'aperçu de cette page s'ouvre, présentant son contenu courant   (SC-08i)
+- [x] Quand l'éditrice demande l'aperçu d'une page qui ne porte aucun brouillon, alors qu'aucun réglage n'en porte, l'aperçu présente la dernière version publiée de la page   (SC-08a)
+- [x] Pour une page qui ne porte aucun brouillon, aucun réglage n'en portant, le contenu de l'aperçu — titre, navigation, emplacements, pied de page — est le même que celui de la page publique, élément par élément et dans le même ordre, hors le bandeau de l'aperçu   (SC-08b)
+- [x] L'aperçu d'une page déclarée demandé sans session ouverte renvoie à l'écran de connexion, et rien du contenu de la page ni de son brouillon n'est montré   (SC-08c)
+- [x] En session, l'aperçu demandé pour un identifiant qu'aucune page déclarée ne porte répond « introuvable », sans rien montrer d'autre   (SC-08d)
+- [x] En session, l'aperçu d'une page est servi sous la politique de sécurité stricte de l'administration, et sa réponse interdit sa conservation par un intermédiaire   (SC-08e)
+- [x] Quand l'éditrice consulte l'aperçu d'une page, un bandeau, hors de la page, dit que ce qu'elle voit n'est pas encore en ligne   (SC-08f)
+- [x] Quand l'éditrice actionne le retour à l'édition depuis l'aperçu d'une page, l'éditeur de cette page s'ouvre   (SC-08g)
+- [x] Aucun terme de développeur ne paraît dans le bandeau de l'aperçu (FR-117)   (SC-08h)
+- [x] Quand l'éditrice actionne « Voir l'aperçu » depuis l'éditeur d'une page, l'aperçu de cette page s'ouvre, présentant son contenu courant   (SC-08i)
