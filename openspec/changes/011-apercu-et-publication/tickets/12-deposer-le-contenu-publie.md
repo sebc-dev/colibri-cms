@@ -83,9 +83,9 @@ aux tickets 15 et 16.
 clé (ticket 16).
 
 ## Critères
-- [ ] Quand seule la page « Accueil » porte un brouillon de son texte de présentation et que la publication dépose, le dépôt réécrit le `page.json` et le fichier Markdown de la présentation d'« Accueil » avec le contenu du brouillon, et ne réécrit aucun fichier de « Tarifs » ni de « Contact »   (SC-12a)
-- [ ] Quand un texte riche publié porte un titre, du gras et une liste, le fichier déposé pour cet emplacement est un texte Markdown lisible dans n'importe quel éditeur, et non une chaîne échappée dans un JSON   (SC-12b)
-- [ ] Quand une image est publiée pour la première fois, sa fiche déposée porte son identité, son nom d'origine, son format, sa largeur, sa hauteur et sa description   (SC-12c)
-- [ ] Quand la publication compose son dépôt, chaque chemin écrit appartient aux préfixes autorisés, et aucun ne commence par `.github/`   (SC-12d)
-- [ ] Quand la branche principale a avancé entre la lecture de son état et l'écriture du dépôt, l'écriture bâtie sur l'état périmé est refusée par le dépôt, la publication la rebâtit sur l'état courant, et l'état plus récent est conservé   (SC-12e)
-- [ ] Quand l'écriture du dépôt a abouti mais que sa réponse s'est perdue, et que la publication réessaie, le nouvel essai reconnaît son propre dépôt, le compte comme fait, et n'en ajoute pas un second   (SC-12f)
+- [x] Quand seule la page « Accueil » porte un brouillon de son texte de présentation et que la publication dépose, le dépôt réécrit le `page.json` et le fichier Markdown de la présentation d'« Accueil » avec le contenu du brouillon, et ne réécrit aucun fichier de « Tarifs » ni de « Contact »   (SC-12a)
+- [x] Quand un texte riche publié porte un titre, du gras et une liste, le fichier déposé pour cet emplacement est un texte Markdown lisible dans n'importe quel éditeur, et non une chaîne échappée dans un JSON   (SC-12b)
+- [x] Quand une image est publiée pour la première fois, sa fiche déposée porte son identité, son nom d'origine, son format, sa largeur, sa hauteur et sa description   (SC-12c)
+- [x] Quand la publication compose son dépôt, chaque chemin écrit appartient aux préfixes autorisés, et aucun ne commence par `.github/`   (SC-12d)
+- [x] Quand la branche principale a avancé entre la lecture de son état et l'écriture du dépôt, l'écriture bâtie sur l'état périmé est refusée par le dépôt, la publication la rebâtit sur l'état courant, et l'état plus récent est conservé   (SC-12e)
+- [x] Quand l'écriture du dépôt a abouti mais que sa réponse s'est perdue, et que la publication réessaie, le nouvel essai reconnaît son propre dépôt, le compte comme fait, et n'en ajoute pas un second   (SC-12f)
