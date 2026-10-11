@@ -65,3 +65,6 @@ reports/
 # Parcours Playwright (rapports et résultats)
 test-results/
 playwright-report/
+
+# Octets des images publiées, extraits de la branche `media` à la construction (scripts/recuperer-images-publiees.mjs)
+/medias/

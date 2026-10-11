@@ -14,13 +14,15 @@
   interface Props {
     id: string;
     alt: string;
+    /** L'adresse de la vignette quand elle n'est pas la route gardée des octets (image publiée dont la base ne garde plus les octets). */
+    src?: string;
   }
 
-  const { id, alt }: Props = $props();
+  const { id, alt, src }: Props = $props();
 </script>
 
 <img
-  src={`/admin/medias/${id}/octets`}
+  src={src ?? `/admin/medias/${id}/octets`}
   {alt}
   loading="lazy"
   class="aspect-square w-full rounded-lg border border-border bg-muted object-cover"

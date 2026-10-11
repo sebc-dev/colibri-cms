@@ -270,7 +270,7 @@
 
   <div class="flex flex-col gap-8 md:flex-row md:items-start">
     <img
-      src={`/admin/medias/${media.id}/octets`}
+      src={media.vignette ?? `/admin/medias/${media.id}/octets`}
       alt={nom}
       class="aspect-square w-full min-w-0 rounded-lg border border-border object-cover md:max-w-xl md:flex-1"
     />

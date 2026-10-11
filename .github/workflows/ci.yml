@@ -60,6 +60,8 @@ jobs:
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm ci
       - if: steps.scaffold.outputs.ok == 'true'
+        run: node scripts/recuperer-images-publiees.mjs
+      - if: steps.scaffold.outputs.ok == 'true'
         run: npm run typecheck
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm run build
@@ -106,6 +108,8 @@ jobs:
           cache: npm
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: node scripts/recuperer-images-publiees.mjs
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm test
 
@@ -164,6 +168,8 @@ jobs:
           cache: npm
       - if: steps.scaffold.outputs.ok == 'true'
         run: npm ci
+      - if: steps.scaffold.outputs.ok == 'true'
+        run: node scripts/recuperer-images-publiees.mjs
       - id: playwright-version
         if: steps.scaffold.outputs.ok == 'true'
         run: echo "version=$(npm ls @playwright/test --json | node -p 'JSON.parse(require("fs").readFileSync(0)).dependencies["@playwright/test"].version')" >> "$GITHUB_OUTPUT"
