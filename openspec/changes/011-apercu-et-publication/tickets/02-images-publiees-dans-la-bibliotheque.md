@@ -57,5 +57,5 @@ octets d'une image publiée que le site porte (tickets 15 et 18) ; l'effacement 
 (ticket 03).
 
 ## Critères
-- [ ] Quand le contenu de départ pose une image que l'éditrice n'a jamais téléversée, l'`Écran : Médias` présente cette image dans la grille avec sa vignette, son nom et sa description   (SC-02a)
-- [ ] Une image publiée que le site en service porte — ses octets n'étant plus gardés en base — paraît dans la grille avec sa vignette, comme avant sa publication   (SC-02b)
+- [x] Quand le contenu de départ pose une image que l'éditrice n'a jamais téléversée, l'`Écran : Médias` présente cette image dans la grille avec sa vignette, son nom et sa description   (SC-02a)
+- [x] Une image publiée que le site en service porte — ses octets n'étant plus gardés en base — paraît dans la grille avec sa vignette, comme avant sa publication   (SC-02b)
