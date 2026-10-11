@@ -19,6 +19,11 @@ import {
 } from '../pages/declaration.ts';
 import { destinationBoutonAutorisee, type Brouillon, type ContenuCorrige } from '../pages/brouillon.ts';
 import { lienVideoAutorise } from '../pages/lien-video.ts';
+import {
+  analyserMarkdownRestreint,
+  lienDeTexteRicheAutorise,
+  type NoeudDocument,
+} from '../pages/texte-riche.ts';
 import type { NatureCoordonnee, ReglagesDeclares, ReseauDeclare } from '../reglages/declaration.ts';
 import { coordonneesCourantes } from '../reglages/coordonnees.ts';
 
@@ -45,13 +50,20 @@ export interface LienVideoRendu {
   readonly lien: string;
 }
 
-/** Les natures que ce ticket ne dessine pas encore (texte riche : 05 ; images : 06). */
-export interface EmplacementNonDessine {
+/** Un texte riche : l'arbre du Markdown restreint, chaque lien revérifié. */
+export interface TexteRicheRendu {
   readonly id: string;
-  readonly nature: 'texte-riche' | 'image' | 'galerie' | 'carrousel';
+  readonly nature: 'texte-riche';
+  readonly document: NoeudDocument;
 }
 
-export type EmplacementRendu = BoutonRendu | LienVideoRendu | EmplacementNonDessine;
+/** Les natures que ce ticket ne dessine pas encore (images : 06). */
+export interface EmplacementNonDessine {
+  readonly id: string;
+  readonly nature: 'image' | 'galerie' | 'carrousel';
+}
+
+export type EmplacementRendu = BoutonRendu | LienVideoRendu | TexteRicheRendu | EmplacementNonDessine;
 
 /** Une coordonnée du pied de page. `href` est absent pour un texte ou une adresse. */
 export interface CoordonneeRendue {
@@ -103,6 +115,20 @@ function contenuDe(
   return voulu?.nature === emplacement.nature ? voulu : undefined;
 }
 
+/** Revérifie chaque lien de l'arbre : une marque refusée disparaît, le texte reste. */
+function sansLienRefuse(noeud: NoeudDocument): NoeudDocument {
+  const marks = noeud.marks?.filter((m) => {
+    if (m.type !== 'link') return true;
+    const href = m.attrs?.href;
+    return typeof href === 'string' && lienDeTexteRicheAutorise(href);
+  });
+  return {
+    ...noeud,
+    ...(marks !== undefined ? { marks } : {}),
+    ...(noeud.content !== undefined ? { content: noeud.content.map(sansLienRefuse) } : {}),
+  };
+}
+
 function composerEmplacement(
   emplacement: Emplacement,
   publie: Brouillon | undefined,
@@ -126,6 +152,14 @@ function composerEmplacement(
       nature: 'lien-video',
       lien,
       adresse: lienVideoAutorise(lien) ? lien : null,
+    };
+  }
+  if (emplacement.nature === 'texte-riche') {
+    const markdown = contenu?.nature === 'texte-riche' ? contenu.markdown : emplacement.contenu;
+    return {
+      id: emplacement.id,
+      nature: 'texte-riche',
+      document: sansLienRefuse(analyserMarkdownRestreint(markdown)),
     };
   }
   return { id: emplacement.id, nature: emplacement.nature };

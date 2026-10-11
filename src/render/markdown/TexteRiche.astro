@@ -1,0 +1,20 @@
+---
+/**
+ * Un emplacement de texte riche : l'arbre du Markdown restreint, déjà analysé
+ * et dont les liens ont été revérifiés par la composition, est rendu nœud par
+ * nœud. Aucun balisage écrit n'est interprété : tout passe par l'échappement
+ * par défaut (I5).
+ */
+import type { NoeudDocument } from '../../core/pages/texte-riche.ts';
+import Noeud from './Noeud.astro';
+
+interface Props {
+  document: NoeudDocument;
+}
+
+const { document } = Astro.props;
+---
+
+<div class="texte-riche">
+  {(document.content ?? []).map((enfant) => <Noeud noeud={enfant} />)}
+</div>

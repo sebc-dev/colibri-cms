@@ -4,3 +4,4 @@
  */
 export { default as BoutonAction } from './BoutonAction.astro';
 export { default as LienVideo } from './LienVideo.astro';
+export { default as TexteRiche } from './markdown/TexteRiche.astro';

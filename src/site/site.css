@@ -102,3 +102,7 @@ footer ul + ul {
   color: inherit;
   text-decoration: underline;
 }
+
+.texte-riche ul {
+  padding-left: 1.5rem;
+}
