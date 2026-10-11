@@ -172,13 +172,23 @@ interface JetonInline {
 // 5,2 s sur 80 000 crochets ouvrants (quadratique) contre 0,5 ms ici.
 const MOTIF_LIEN = /\[((?:[^[\]\\]|\\.)*)\]\(([^()]*)\)/g;
 // Gras et italique ignorent les séquences échappées que produit `echapperTexte`.
-// La garde arrière refuse un délimiteur ouvrant précédé d'un nombre impair
-// d'antislashs (donc échappé) ; le contenu consomme les échappements par paires
+// La première branche (`\\.`) consomme chaque échappement, si bien qu'un
+// délimiteur échappé n'ouvre jamais une marque : `premiereMarque` passe ces
+// correspondances. Le contenu consomme lui aussi les échappements par paires
 // (`[^*\\]` ou `\\.`, branches disjointes), si bien que le délimiteur fermant
-// n'est jamais échappé. Le parcours reste LINÉAIRE : la forme sans garde arrière
-// est quadratique (3 s sur 40 000 `\_`).
-const MOTIF_GRAS = /(?<=(?:^|[^\\])(?:\\\\)*)\*\*((?:[^*\\]|\\.)+)\*\*/g;
-const MOTIF_ITALIQUE = /(?<=(?:^|[^\\])(?:\\\\)*)_((?:[^_\\]|\\.)+)_/g;
+// n'est jamais échappé. Le parcours reste LINÉAIRE, sans garde arrière (que
+// l'analyse refuse) : la forme sans échappements est quadratique (3 s sur
+// 40 000 `\_`).
+const MOTIF_GRAS = /\\.|\*\*((?:[^*\\]|\\.)+)\*\*/g;
+const MOTIF_ITALIQUE = /\\.|_((?:[^_\\]|\\.)+)_/g;
+
+/** La première marque à partir de `depuis`, échappements passés. */
+function premiereMarque(motif: RegExp, texte: string, depuis: number): RegExpExecArray | null {
+  motif.lastIndex = depuis;
+  let correspondance = motif.exec(texte);
+  while (correspondance?.[0].startsWith('\\')) correspondance = motif.exec(texte);
+  return correspondance;
+}
 
 function prochainJeton(texte: string, depuis: number): JetonInline | null {
   // Le plus à gauche gagne ; à égalité, l'ordre de la liste tranche (lien, gras,
@@ -191,8 +201,7 @@ function prochainJeton(texte: string, depuis: number): JetonInline | null {
     [MOTIF_GRAS, 'gras'],
     [MOTIF_ITALIQUE, 'italique'],
   ] as const) {
-    motif.lastIndex = depuis;
-    const correspondance = motif.exec(texte);
+    const correspondance = premiereMarque(motif, texte, depuis);
     if (correspondance && (meilleur === null || correspondance.index < meilleur.debut)) {
       meilleur = { debut: correspondance.index, fin: motif.lastIndex, type, correspondance };
     }
@@ -220,8 +229,9 @@ function analyserInline(texte: string): NoeudDocument[] {
   const apres = texte.slice(jeton.fin);
   const noeudsAvant = avant.length > 0 ? [{ type: 'text', text: desechapperTexte(avant) }] : [];
 
-  // Aucun groupe de capture de ces trois motifs n'est optionnel ni porté par une
-  // alternance : `(…)*` et `([^*]+)` participent toujours, quitte à rendre `''`.
+  // Aucun groupe de capture d'une marque retenue n'est optionnel : `(…)*` et
+  // `(…)+` participent toujours, quitte à rendre `''`. Seule la branche
+  // d'échappement de gras et italique n'en porte pas, et `premiereMarque` l'écarte.
   // Les groupes sont donc des `string`, jamais `undefined` — ni repli ni garde.
   let noeudsJeton: NoeudDocument[];
   if (jeton.type === 'lien') {
