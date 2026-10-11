@@ -67,7 +67,7 @@ l'éditrice, et la publication la dépose telle quelle.**
    garde une liste dont les options de départ ont changé depuis son enregistrement.
 3. **`derniersNumeros` au moment où la publication vide le brouillon** : le reporter dans l'état
    publié, ou le recalculer depuis lui. Sans cela, un numéro `o<n>` déjà publié pourrait revenir,
-   contre ADR-0018 (déjà relevé dans `openspec/changes/010-reglage-des-formulaires/design.md`,
+   contre ADR-0018 (déjà relevé dans `openspec/changes/archive/2026-10-11-010-reglage-des-formulaires/design.md`,
    § Risks).
 4. **Le format déposé** : la liste du brouillon remplace `options` du champ dans le `formulaire.json`
    déposé ; `id`, `libelle` et `prix` en centimes, sans conversion (ADR-0018, « au format déposé »).
