@@ -17,8 +17,11 @@ règle de lecture tient en une ligne :
 > **Un `ADR-00NN` cité DANS le corps d'un ADR promu désigne le numéro 1.x.**
 > Le numéro 2.x est celui du nom de fichier.
 
-Cette règle ne vaut que pour 0001–0008. Les ADR nés en 2.x (0009 et suivants) citent des
-numéros 2.x.
+Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, puis 0019–0025. À partir de
+0019, chaque renvoi à l'ancien cycle porte en plus la mention « (1.x) » dans son libellé
+(`ADR-0015 (1.x)`) : il se lit sans la règle. Dans le texte qu'un amendement ou un complément de
+promotion ajoute — les points marqués *(amendé)* ou *(ajouté)* —, un numéro sans mention est un
+numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026) citent des numéros 2.x.
 
 ## Correspondance
 
@@ -42,6 +45,14 @@ numéros 2.x.
 | [0016](./0016-polices-de-l-administration-servies-en-meme-origine.md) | — | Polices de l'administration servies en même origine, par les paquets `@fontsource` |
 | [0017](./0017-declaration-des-reglages-transverses.md) | — | Déclaration des réglages transverses — `content/reglages/`, lue par `core/` |
 | [0018](./0018-declaration-des-formulaires-de-devis.md) | — | Déclaration des formulaires de devis — `content/formulaires/<id>/`, prix en centimes, lue par `core/` |
+| [0019](./0019-magasin-d1-brouillons-etat-publie-et-demandes.md) | 0003 | Magasin — D1 porte les brouillons, l'état publié et les demandes ; le dépôt reçoit la copie publiée |
+| [0020](./0020-medias-deux-magasins-un-par-etat.md) | 0004 | Médias — deux magasins, un par état — **amendé** : octets gardés en D1 jusqu'à la mise en ligne, `media` réécrite en un commit sans parent |
+| [0021](./0021-forge-github-api-git-data-jeton-a-portee-fine.md) | 0005 | Forge — GitHub, API REST *git data*, avance rapide obligatoire, jeton à une seule permission — **amendé** : réécriture de `media`, médias déposés en plusieurs requêtes, Cron posé par la livraison |
+| [0022](./0022-format-du-contenu-un-repertoire-par-objet.md) | 0007 | Format du contenu déposé — un répertoire par objet — **complété** : la fiche d'image `content/medias/<id>.json` |
+| [0023](./0023-serialisation-des-publications-et-constat-de-mise-en-ligne.md) | 0017 | Sérialisation des publications et constat de mise en ligne — **amendé** : une marque de publication empaquetée remplace l'empreinte exposée ; passes sur un instantané |
+| [0024](./0024-rendu-partage-par-le-publie-et-l-apercu.md) | 0023 | Rendu partagé par le publié et l'aperçu — un point d'entrée unique, deux routes nommées |
+| [0025](./0025-prefixes-de-publication-en-constante-unique.md) | 0029 | Préfixes de publication dans une constante unique, sans `.github/` |
+| [0026](./0026-brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md) | — | Le brouillon d'un champ à choix porte toute sa liste ; la publication la dépose telle quelle |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -61,6 +72,15 @@ le réglage, deuxième objet publiable, attendait un lieu de déclaration ; il �
 le formulaire, troisième objet publiable, attendait le sien ; il étend ADR-0012 et ADR-0017, un
 fichier par formulaire.
 
+`ADR-0019` à `ADR-0025` sont promus du cycle 1.x le 2026-10-11, pour le change
+`011-apercu-et-publication`, le premier à publier — dans l'ordre croissant de leurs numéros 1.x,
+comme le premier lot. Quatre ne sont pas repris tels quels : 0020, 0021 et 0023 sont **amendés**
+à la promotion, 0022 est **complété** ; chacun le dit dans une section dédiée et marque chaque
+point retouché. Deux coïncidences à ne pas lire de travers : l'ADR-0017 du cycle 1.x est ici
+0023, et l'ADR-0023 du cycle 1.x est ici 0024.
+`ADR-0026` n'a pas d'antécédent 1.x : déposé en candidat le 2026-10-10 par la review du change
+`010-reglage-des-formulaires`, il a été tranché et promu par le change 011.
+
 ## Comment se lit un remplacement
 
 Un ADR remplacé **reste sur disque et ne se modifie pas** — c'est la propriété qui fait sa valeur.
@@ -75,15 +95,11 @@ avec la table sous les yeux.
 
 ## Ce qui n'est pas encore promu
 
-**26 décisions du cycle 1.x attendent encore** dans
+**19 décisions du cycle 1.x attendent encore** dans
 [`docs/adr/_candidates/`](./_candidates/). Elles restent des candidats : `CLAUDE.md` dit « ne
 pas contredire un ADR accepté », et un candidat n'en est pas un. Un renvoi vers un numéro 1.x
 absent de la table ci-dessus pointe donc vers une décision **non promue** — la lire dans
 l'archive, ne pas la traiter comme figée.
-
-S'y ajoute **un candidat né sous le cycle 2.x**, sans antécédent 1.x :
-[`brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md`](./_candidates/brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md),
-déposé par le change `010` et à trancher par la story « Aperçu et publication ».
 
 La promotion est un geste humain : on copie le candidat dans `docs/adr/` sous le prochain numéro
 libre, on renseigne statut et date, et on retire le fichier de `_candidates/`.
