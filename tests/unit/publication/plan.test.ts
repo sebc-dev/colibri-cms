@@ -122,6 +122,46 @@ describe("construirePlan — quels fichiers", () => {
     expect(plan.ecritures.map((e) => e.chemin)).toEqual(["content/publication.json"]);
     expect(plan.suppressions).toEqual([]);
   });
+
+  it("SC-12a — le brouillon l'emporte sur la valeur déjà publiée du même emplacement", () => {
+    const accueil = page(
+      "accueil",
+      "Accueil",
+      0,
+      brouillonDe(
+        ["presentation", { nature: "texte-riche", markdown: MARKDOWN_RICHE }],
+        ["bouton-devis", { nature: "bouton-action", libelle: "Nouveau", destination: "/devis" }],
+      ),
+      brouillonDe(
+        ["presentation", { nature: "texte-riche", markdown: "Ancien texte publié" }],
+        ["bouton-devis", { nature: "bouton-action", libelle: "Ancien", destination: "/contact" }],
+      ),
+    );
+    const plan = construirePlan(instantane({ pages: [accueil] }), aleatoire);
+
+    const markdown = contenuDe(plan, "content/pages/accueil/presentation.md");
+    expect(markdown).toContain(MARKDOWN_RICHE);
+    expect(markdown).not.toContain("Ancien texte publié");
+    const json = JSON.parse(contenuDe(plan, "content/pages/accueil/page.json")) as {
+      emplacements: { id: string; libelle?: string; destination?: string }[];
+    };
+    const bouton = json.emplacements.find((e) => e.id === "bouton-devis");
+    expect(bouton?.libelle).toBe("Nouveau");
+    expect(bouton?.destination).toBe("/devis");
+  });
+
+  it("SC-12a — une page qui n'a que des valeurs publiées, sans brouillon, n'est pas réécrite", () => {
+    const tarifs = page(
+      "tarifs",
+      "Tarifs",
+      1,
+      VIDE,
+      brouillonDe(["presentation", { nature: "texte-riche", markdown: "Tarifs publiés" }]),
+    );
+    const plan = construirePlan(instantane({ pages: [tarifs] }), aleatoire);
+
+    expect(plan.ecritures.map((e) => e.chemin).filter((c) => c.startsWith("content/pages/tarifs"))).toEqual([]);
+  });
 });
 
 describe("construirePlan — le Markdown lisible", () => {
