@@ -463,3 +463,41 @@ export async function decrireMediaBrouillon(
   await db.prepare(`update ${TABLE_MEDIAS} set description = ?1 where id = ?2`).bind(description, id).run();
   return { decrite: true };
 }
+
+/** Une image avec ce qu'il faut au récapitulatif de l'écran Publier (change 011, ticket 11). */
+export interface ImagePourRecapitulatif {
+  readonly id: string;
+  readonly nomAffichage: string;
+  readonly description: string;
+  readonly publiee: boolean;
+  readonly descriptionPubliee: string | null;
+  readonly vignette: string;
+}
+
+/** Toutes les images, avec leur état publié ; la décision (redécrite, effacée) est prise par `core/`. */
+export async function listerImagesPourRecapitulatif(
+  db: DB,
+  statiques: AdressesStatiques = AUCUNE_ADRESSE_STATIQUE,
+): Promise<ImagePourRecapitulatif[]> {
+  await assurerTableMedias(db);
+  const resultat = await db
+    .prepare(
+      `select id, nom_origine, nom_affichage, description, publiee_le, description_publiee, length(octets) as octets_gardes
+       from ${TABLE_MEDIAS} order by creee_le desc`,
+    )
+    .bind()
+    .all();
+  return (
+    resultat.results as (LigneMediaListeBrute & {
+      readonly publiee_le: number | null;
+      readonly description_publiee: string | null;
+    })[]
+  ).map((ligne) => ({
+    id: ligne.id,
+    nomAffichage: ligne.nom_affichage ?? ligne.nom_origine,
+    description: ligne.description ?? '',
+    publiee: ligne.publiee_le !== null,
+    descriptionPubliee: ligne.description_publiee,
+    vignette: adresseVignette(ligne.id, ligne.octets_gardes, statiques),
+  }));
+}

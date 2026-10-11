@@ -14,6 +14,10 @@ import { lireFormulairesDeLaDeclaration } from '../../platform/contenu/formulair
 import { listerSlugsAvecBrouillon } from '../../platform/brouillons/magasin.ts';
 import { obtenirBrouillonsReglages } from '../../platform/reglages/magasin.ts';
 import { obtenirBrouillonsFormulaires } from '../../platform/formulaires/magasin.ts';
+import { inscrireImagesDeDepart, listerImagesPourRecapitulatif } from '../../platform/medias/magasin.ts';
+import { lirePagesContenuCourant } from '../../platform/contenu/references-medias.ts';
+import { referencesDuContenuCourant } from '../../core/medias/references.ts';
+import { adressesOriginalesEmpaquetees, listerFichesMedias } from '../../platform/contenu/medias.ts';
 import { composerRecapitulatif, recapitulatifEstVide, retourSur } from '../../core/publication/recapitulatif.ts';
 import { adresseDeLaPage } from '../../core/pages/declaration.ts';
 import {
@@ -24,6 +28,9 @@ import {
   TEXTE_RIEN_A_PUBLIER,
   TEXTE_SECTION_FORMULAIRES_PUBLIER,
   TEXTE_SECTION_PAGES_PUBLIER,
+  TEXTE_SECTION_IMAGES_REDECRITES_PUBLIER,
+  TEXTE_SECTION_IMAGES_EFFACEES_PUBLIER,
+  TEXTE_IMAGES_EFFACEES_EXPLICATION,
   TEXTE_SECTION_REGLAGES_PUBLIER,
   TEXTE_TITRE_PUBLIER,
   LIBELLES_REGLAGES_PUBLIER,
@@ -37,7 +44,13 @@ if (!session) {
 
 Astro.response.headers.set('Cache-Control', 'no-store');
 
+await inscrireImagesDeDepart(env.DB, listerFichesMedias(), Date.now());
+
+const references = referencesDuContenuCourant(await lirePagesContenuCourant(env.DB));
 const recapitulatif = composerRecapitulatif({
+  images: await listerImagesPourRecapitulatif(env.DB, adressesOriginalesEmpaquetees()),
+  referencesPubliees: references.publiees,
+  referencesBrouillon: references.brouillon,
   pagesDeclarees: listerPagesDeclarees(),
   slugsAvecBrouillon: await listerSlugsAvecBrouillon(env.DB),
   reglagesAvecBrouillon: new Set(Object.keys(await obtenirBrouillonsReglages(env.DB))),
@@ -83,6 +96,25 @@ const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border
             <h2>{TEXTE_SECTION_FORMULAIRES_PUBLIER}</h2>
             <ul class={classeListe}>
               {recapitulatif.formulaires.map((formulaire) => <li>{formulaire.nom}</li>)}
+            </ul>
+          </section>
+        )}
+        {recapitulatif.imagesRedecrites.length > 0 && (
+          <section class="mt-6" data-recap-images-redecrites>
+            <h2>{TEXTE_SECTION_IMAGES_REDECRITES_PUBLIER}</h2>
+            <ul class={classeListe}>
+              {recapitulatif.imagesRedecrites.map((image) => <li>{image.nom}</li>)}
+            </ul>
+          </section>
+        )}
+        {recapitulatif.imagesEffacees.length > 0 && (
+          <section class="mt-6" data-recap-images-effacees>
+            <h2>{TEXTE_SECTION_IMAGES_EFFACEES_PUBLIER}</h2>
+            <p class="mt-2 text-ink-muted">{TEXTE_IMAGES_EFFACEES_EXPLICATION}</p>
+            <ul class={classeListe}>
+              {recapitulatif.imagesEffacees.map((image) => (
+                <li><img src={image.vignette} alt="" class="mr-3 inline-block h-12 w-12 rounded object-cover align-middle" /> {image.nom}</li>
+              ))}
             </ul>
           </section>
         )}

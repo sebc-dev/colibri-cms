@@ -43,9 +43,9 @@ terme de développeur ne paraît sur l'écran.
 lui-même (ticket 15).
 
 ## Critères
-- [ ] Quand les pages « Contact » et « Tarifs » portent un brouillon, le formulaire « Devis gâteau » aussi, et qu'une image n'est plus posée par aucun emplacement, le récapitulatif présente « Tarifs » et « Contact » parmi les pages, « Devis gâteau » parmi les formulaires et cette image parmi les images effacées — et rien d'autre : ni « Accueil », ni aucun réglage, ni « Devis atelier »   (SC-11a)
-- [ ] Quand l'éditrice a modifié la description d'une image déjà publiée, sans toucher à aucune page, le récapitulatif présente cette image parmi les images dont la description va changer en ligne   (SC-11b)
-- [ ] Quand une image publiée n'était posée que dans un emplacement dont le brouillon la remplace par une autre, le récapitulatif la présente parmi les images qui seront définitivement effacées   (SC-11c)
-- [ ] Quand une image n'est posée que par la dernière version publiée d'un emplacement qui ne porte pas de brouillon, le récapitulatif ne la présente pas parmi les images effacées   (SC-11d)
-- [ ] Quand un titre de page, un nom de formulaire ou un nom d'image du récapitulatif contient `<`, `>`, `&` ou des guillemets, ces caractères paraissent comme du texte, et aucun balisage n'est interprété   (SC-11e)
-- [ ] Aucun terme de développeur ne paraît sur l'écran Publier, ni dans ses listes, ses boutons et ses messages (FR-117)   (SC-11f)
+- [x] Quand les pages « Contact » et « Tarifs » portent un brouillon, le formulaire « Devis gâteau » aussi, et qu'une image n'est plus posée par aucun emplacement, le récapitulatif présente « Tarifs » et « Contact » parmi les pages, « Devis gâteau » parmi les formulaires et cette image parmi les images effacées — et rien d'autre : ni « Accueil », ni aucun réglage, ni « Devis atelier »   (SC-11a)
+- [x] Quand l'éditrice a modifié la description d'une image déjà publiée, sans toucher à aucune page, le récapitulatif présente cette image parmi les images dont la description va changer en ligne   (SC-11b)
+- [x] Quand une image publiée n'était posée que dans un emplacement dont le brouillon la remplace par une autre, le récapitulatif la présente parmi les images qui seront définitivement effacées   (SC-11c)
+- [x] Quand une image n'est posée que par la dernière version publiée d'un emplacement qui ne porte pas de brouillon, le récapitulatif ne la présente pas parmi les images effacées   (SC-11d)
+- [x] Quand un titre de page, un nom de formulaire ou un nom d'image du récapitulatif contient `<`, `>`, `&` ou des guillemets, ces caractères paraissent comme du texte, et aucun balisage n'est interprété   (SC-11e)
+- [x] Aucun terme de développeur ne paraît sur l'écran Publier, ni dans ses listes, ses boutons et ses messages (FR-117)   (SC-11f)
