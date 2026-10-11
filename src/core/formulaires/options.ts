@@ -139,10 +139,13 @@ function propre<T>(r: Readonly<Record<string, T>>, cle: string): T | undefined {
 function idsConnus(
   champ: ChampDeclare,
   brouillonCourant: ContenuOptions,
+  publie?: ContenuOptions,
 ): Set<string> {
   const connus = new Set<string>();
   for (const o of champ.options ?? []) connus.add(o.id);
   for (const o of propre(brouillonCourant.champs, champ.id) ?? [])
+    connus.add(o.id);
+  for (const o of (publie && propre(publie.champs, champ.id)) ?? [])
     connus.add(o.id);
   return connus;
 }
@@ -181,8 +184,14 @@ function plafondDesNumeros(
   champ: ChampDeclare,
   brouillonCourant: ContenuOptions,
   options: readonly OptionSoumise[],
+  publie?: ContenuOptions,
 ): number {
-  let max = propre(brouillonCourant.derniersNumeros, champ.id) ?? 0;
+  let max = Math.max(
+    propre(brouillonCourant.derniersNumeros, champ.id) ?? 0,
+    (publie && propre(publie.derniersNumeros, champ.id)) ?? 0,
+  );
+  for (const o of (publie && propre(publie.champs, champ.id)) ?? [])
+    max = Math.max(max, suffixe(o.id));
   for (const o of champ.options ?? []) max = Math.max(max, suffixe(o.id));
   for (const o of propre(brouillonCourant.champs, champ.id) ?? [])
     max = Math.max(max, suffixe(o.id));
@@ -297,6 +306,7 @@ export function appliquerOptions(
   formulaireDeclare: FormulaireDeclare,
   brouillonCourant: ContenuOptions,
   corpsBrut: unknown,
+  publie?: ContenuOptions,
 ): ResultatOptions {
   const soumis = lireChampsSoumis(corpsBrut);
   if (soumis === null) return FORME_INVALIDE;
@@ -311,10 +321,10 @@ export function appliquerOptions(
     const brutes = soumis.get(champ.id) ?? [];
     const options = lireOptionsSoumises(
       brutes,
-      idsConnus(champ, brouillonCourant),
+      idsConnus(champ, brouillonCourant, publie),
     );
     if (options === null) return FORME_INVALIDE;
-    const plafond = plafondDesNumeros(champ, brouillonCourant, options);
+    const plafond = plafondDesNumeros(champ, brouillonCourant, options, publie);
     const { identifiees, dernierNumero } = attribuerIdentifiants(
       options,
       plafond,

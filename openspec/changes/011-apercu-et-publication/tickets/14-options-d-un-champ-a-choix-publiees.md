@@ -39,9 +39,9 @@ même champ, y compris après une publication.
 dessin public du formulaire (story « Composer et envoyer une demande de devis »).
 
 ## Critères
-- [ ] Quand l'intégrateur ajoute l'option de départ « Pistache » au champ « Parfum » de « Devis gâteau » après que l'éditrice a enregistré ce champ, puis que l'éditrice publie, le `formulaire.json` déposé porte pour « Parfum » la liste du brouillon, sans « Pistache »   (SC-14a)
-- [ ] Quand l'intégrateur retire l'option de départ « Fraise » que le brouillon de l'éditrice garde, puis que l'éditrice publie, le `formulaire.json` déposé porte « Fraise » dans « Parfum »   (SC-14b)
-- [ ] Quand l'intégrateur passe un champ de choix unique à choix multiple après l'enregistrement de ce champ, puis que l'éditrice publie, le `formulaire.json` déposé porte ce champ en choix multiple, avec la liste du brouillon   (SC-14c)
-- [ ] Quand l'intégrateur fait d'un champ à choix enregistré un champ de texte, puis que l'éditrice publie, le `formulaire.json` déposé porte ce champ sans aucune option, et la publication aboutit   (SC-14d)
-- [ ] Quand un formulaire est publié alors qu'un de ses champs à choix n'a pas de brouillon, ce champ porte dans le `formulaire.json` déposé sa liste publiée, celle de la déclaration s'il n'a jamais été publié   (SC-14e)
-- [ ] Quand un champ dont les options ajoutées par l'éditrice ont reçu trois identifiants est publié, puis que l'éditrice retire la dernière de ces options et en ajoute une nouvelle, la nouvelle option reçoit un identifiant distinct des trois identifiants déjà donnés   (SC-14f)
+- [x] Quand l'intégrateur ajoute l'option de départ « Pistache » au champ « Parfum » de « Devis gâteau » après que l'éditrice a enregistré ce champ, puis que l'éditrice publie, le `formulaire.json` déposé porte pour « Parfum » la liste du brouillon, sans « Pistache »   (SC-14a)
+- [x] Quand l'intégrateur retire l'option de départ « Fraise » que le brouillon de l'éditrice garde, puis que l'éditrice publie, le `formulaire.json` déposé porte « Fraise » dans « Parfum »   (SC-14b)
+- [x] Quand l'intégrateur passe un champ de choix unique à choix multiple après l'enregistrement de ce champ, puis que l'éditrice publie, le `formulaire.json` déposé porte ce champ en choix multiple, avec la liste du brouillon   (SC-14c)
+- [x] Quand l'intégrateur fait d'un champ à choix enregistré un champ de texte, puis que l'éditrice publie, le `formulaire.json` déposé porte ce champ sans aucune option, et la publication aboutit   (SC-14d)
+- [x] Quand un formulaire est publié alors qu'un de ses champs à choix n'a pas de brouillon, ce champ porte dans le `formulaire.json` déposé sa liste publiée, celle de la déclaration s'il n'a jamais été publié   (SC-14e)
+- [x] Quand un champ dont les options ajoutées par l'éditrice ont reçu trois identifiants est publié, puis que l'éditrice retire la dernière de ces options et en ajoute une nouvelle, la nouvelle option reçoit un identifiant distinct des trois identifiants déjà donnés   (SC-14f)

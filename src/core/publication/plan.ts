@@ -8,6 +8,9 @@ import { appliquerBrouillonSurEmplacement, pagePorteUnBrouillon, type Brouillon 
 import type { Emplacement, EmplacementJson } from '../pages/declaration.ts';
 import { coordonneesCourantes } from '../reglages/coordonnees.ts';
 import type { ReglagesDeclares, ReseauDeclare } from '../reglages/declaration.ts';
+import { optionsCourantes } from '../formulaires/brouillon.ts';
+import type { ChampDeclare, FormulaireDeclare } from '../formulaires/declaration.ts';
+import type { ContenuOptions } from '../formulaires/options.ts';
 import type { ImagePubliee } from './depot.ts';
 import { cheminAutorise, identifiantValide } from './prefixes.ts';
 
@@ -37,6 +40,13 @@ export interface InstantanePublication {
   readonly images: readonly FicheMedia[];
   readonly imagesEffacees: readonly string[];
   readonly reglages?: ReglagesInstantane;
+  readonly formulaires?: readonly FormulaireInstantane[];
+}
+
+export interface FormulaireInstantane {
+  readonly declare: FormulaireDeclare;
+  readonly publie?: ContenuOptions;
+  readonly brouillon: ContenuOptions;
 }
 
 export interface EcritureDepot {
@@ -118,6 +128,26 @@ function ecrituresDeReglages(reglages: ReglagesInstantane): EcritureDepot[] {
   ];
 }
 
+/** Le formulaire.json au format d'ADR-0018 (`{ nom, champs }`), la liste des options d'un champ à choix venant de l'état courant (ADR-0026). */
+function ecritureDeFormulaire(formulaire: FormulaireInstantane): EcritureDepot {
+  const { declare, publie, brouillon } = formulaire;
+  const courantes = optionsCourantes(declare, brouillon, publie);
+  const versChamp = (champ: ChampDeclare): Record<string, unknown> => {
+    const base = {
+      id: champ.id,
+      nature: champ.nature,
+      libelle: champ.libelle,
+      obligatoire: champ.obligatoire,
+    };
+    const options = courantes.get(champ.id);
+    return options === undefined ? base : { ...base, avecPrix: champ.avecPrix, options };
+  };
+  return {
+    chemin: `content/formulaires/${exigerIdentifiant(declare.id)}/formulaire.json`,
+    contenu: json({ nom: declare.nom, champs: declare.champs.map(versChamp) }),
+  };
+}
+
 function ecrituresDePage(page: PageInstantane): EcritureDepot[] {
   const dossier = `content/pages/${exigerIdentifiant(page.slug)}`;
   const effectifs = page.emplacements.map((emplacement) =>
@@ -159,6 +189,9 @@ export function construirePlan(
   }
   if (instantane.reglages !== undefined) {
     ecritures.push(...ecrituresDeReglages(instantane.reglages));
+  }
+  for (const formulaire of instantane.formulaires ?? []) {
+    ecritures.push(ecritureDeFormulaire(formulaire));
   }
   for (const fiche of instantane.images) {
     ecritures.push({

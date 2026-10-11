@@ -1,9 +1,11 @@
 /**
  * Le magasin des brouillons de formulaires (ticket 05, migration 0008). Même
  * patron que `src/platform/reglages/magasin.ts` : lire le brouillon courant,
- * appliquer en `core/`, écrire ssi acceptée. Zone `platform` : n'importe que
- * `core/` (I1). Requêtes D1 préparées exclusivement ; aucune valeur saisie
- * n'est journalisée.
+ * appliquer en `core/`, écrire ssi acceptée. Zone `platform` (I1) : importe
+ * `core/` et, pour l'état publié d'un formulaire (sa liste et son compteur
+ * `derniersNumeros`, ADR-0026), `src/platform/publication/magasin-publie.ts`,
+ * seul propriétaire de `publies_formulaires` (ADR-0019). Requêtes D1 préparées
+ * exclusivement ; aucune valeur saisie n'est journalisée.
  */
 import {
   appliquerOptions,
@@ -11,6 +13,7 @@ import {
   type ResultatOptions,
 } from '../../core/formulaires/options.ts';
 import type { FormulaireDeclare } from '../../core/formulaires/declaration.ts';
+import { obtenirPublieFormulaire } from '../publication/magasin-publie.ts';
 
 /** Le sous-ensemble de D1 dont ce magasin a besoin (duck-typé). */
 export interface DB {
@@ -99,7 +102,8 @@ export async function enregistrerOptions(
   maintenant: number,
 ): Promise<ResultatOptions> {
   const courant = (await obtenirBrouillonFormulaire(db, declare.id)) ?? VIDE;
-  const resultat = appliquerOptions(declare, courant, corpsBrut);
+  const publie = await obtenirPublieFormulaire(db, declare.id);
+  const resultat = appliquerOptions(declare, courant, corpsBrut, publie);
   if (resultat.ok) {
     await db
       .prepare(
