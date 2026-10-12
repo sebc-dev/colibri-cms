@@ -274,6 +274,10 @@ export const TEXTE_INTRO_PUBLIER = 'Voici ce qui va être mis en ligne. Rien ne 
 export const TEXTE_SECTION_PAGES_PUBLIER = 'Pages';
 export const TEXTE_SECTION_REGLAGES_PUBLIER = 'Réglages';
 export const TEXTE_SECTION_FORMULAIRES_PUBLIER = 'Formulaires de devis';
+export const TEXTE_SECTION_IMAGES_REDECRITES_PUBLIER = 'Images dont la description change';
+export const TEXTE_SECTION_IMAGES_EFFACEES_PUBLIER = 'Images qui seront définitivement effacées';
+export const TEXTE_IMAGES_EFFACEES_EXPLICATION =
+  'Ces images ne sont plus utilisées sur votre site. Elles seront effacées et ne pourront pas être récupérées.';
 export const TEXTE_LIEN_VOIR_APERCU = 'Voir l’aperçu';
 export const TEXTE_RIEN_A_PUBLIER = 'Il n’y a rien à publier pour le moment.';
 export const TEXTE_REVENIR_A_MES_PAGES = 'Revenir à mes pages';

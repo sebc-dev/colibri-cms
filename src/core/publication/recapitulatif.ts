@@ -5,6 +5,8 @@
  * entrées. Les images et l'exactitude complète sont le ticket 11.
  */
 
+import { imageEffacable } from '../medias/references.ts';
+
 export interface PageRecapitulee {
   readonly slug: string;
   readonly titre: string;
@@ -20,7 +22,28 @@ export interface FormulaireRecapitule {
   readonly nom: string;
 }
 
+/** Une image telle que la plateforme la fournit au récapitulatif. */
+export interface ImageEntree {
+  readonly id: string;
+  readonly nomAffichage: string;
+  readonly description: string;
+  /** Vrai si l'image a déjà été publiée. */
+  readonly publiee: boolean;
+  readonly descriptionPubliee: string | null;
+  readonly vignette: string;
+}
+
+export interface ImageRecapitulee {
+  readonly id: string;
+  readonly nom: string;
+  readonly vignette: string;
+}
+
 export interface Recapitulatif {
+  /** Les images publiées dont la description courante diffère de celle en ligne. */
+  readonly imagesRedecrites: readonly ImageRecapitulee[];
+  /** Les images qu'aucun emplacement ne pose dans son contenu courant. */
+  readonly imagesEffacees: readonly ImageRecapitulee[];
   readonly pages: readonly PageRecapitulee[];
   readonly reglages: readonly ReglageRecapitule[];
   readonly formulaires: readonly FormulaireRecapitule[];
@@ -41,10 +64,26 @@ export interface EntreesRecapitulatif {
   readonly reglagesAvecBrouillon: ReadonlySet<string>;
   readonly formulairesDeclares: readonly { readonly id: string; readonly nom: string }[];
   readonly formulairesAvecBrouillon: ReadonlySet<string>;
+  readonly images?: readonly ImageEntree[];
+  /** Les images posées par le contenu courant : emplacements sans brouillon, puis avec brouillon. */
+  readonly referencesPubliees?: ReadonlySet<string>;
+  readonly referencesBrouillon?: ReadonlySet<string>;
+}
+
+function versImageRecapitulee(image: ImageEntree): ImageRecapitulee {
+  return { id: image.id, nom: image.nomAffichage, vignette: image.vignette };
 }
 
 export function composerRecapitulatif(entrees: EntreesRecapitulatif): Recapitulatif {
+  const images = entrees.images ?? [];
+  const publiees = entrees.referencesPubliees ?? new Set<string>();
+  const brouillon = entrees.referencesBrouillon ?? new Set<string>();
+  const effacable = (i: ImageEntree): boolean => imageEffacable(i.id, publiees, brouillon);
   return {
+    imagesRedecrites: images
+      .filter((i) => i.publiee && i.description !== (i.descriptionPubliee ?? '') && !effacable(i))
+      .map(versImageRecapitulee),
+    imagesEffacees: images.filter(effacable).map(versImageRecapitulee),
     pages: entrees.pagesDeclarees
       .filter((p) => entrees.slugsAvecBrouillon.has(p.slug))
       .map((p) => ({ slug: p.slug, titre: p.titre })),
@@ -57,7 +96,11 @@ export function composerRecapitulatif(entrees: EntreesRecapitulatif): Recapitula
 
 export function recapitulatifEstVide(recapitulatif: Recapitulatif): boolean {
   return (
-    recapitulatif.pages.length === 0 && recapitulatif.reglages.length === 0 && recapitulatif.formulaires.length === 0
+    recapitulatif.pages.length === 0 &&
+    recapitulatif.reglages.length === 0 &&
+    recapitulatif.formulaires.length === 0 &&
+    recapitulatif.imagesRedecrites.length === 0 &&
+    recapitulatif.imagesEffacees.length === 0
   );
 }
 
