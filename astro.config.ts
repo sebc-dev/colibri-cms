@@ -5,6 +5,7 @@ import type { AstroIntegration } from 'astro';
 import cloudflare from '@astrojs/cloudflare';
 import svelte from '@astrojs/svelte';
 import tailwindcss from '@tailwindcss/vite';
+import { depotValide } from './src/platform/publication/forge-github.ts';
 import { exigerAdresseExpediteur } from './src/platform/instance/expediteur.ts';
 
 // FR-012, FR-024 (plan § décision 4) : la route de sonde (`src/platform/d1/
@@ -58,10 +59,17 @@ const instancePath = fileURLToPath(new URL('./instance.json', import.meta.url));
 const instance = JSON.parse(readFileSync(instancePath, 'utf-8')) as {
   domain: string;
   senderAddress?: unknown;
+  depotDePublication?: unknown;
 };
 // Ticket 01 (007) : l'adresse d'expéditeur du code de connexion est validée
 // ici (la construction échoue en nommant `senderAddress`), puis injectée.
 const adresseExpediteur = exigerAdresseExpediteur(instance.senderAddress);
+// Ticket 16 (011) : le dépôt de publication est facultatif (le dépôt produit n'en déclare pas) ;
+// une valeur déclarée mais mal formée arrête la construction en nommant le champ.
+if (instance.depotDePublication !== undefined && !depotValide(instance.depotDePublication)) {
+  throw new Error("instance.json : le champ depotDePublication doit avoir la forme « propriétaire/dépôt ».");
+}
+const depotDePublication = instance.depotDePublication ?? null;
 
 export default defineConfig({
   site: `https://${instance.domain}`,
@@ -129,7 +137,10 @@ export default defineConfig({
   // `.js` sont exclus ; tout autre fichier garde le seuil par défaut
   // (`undefined` = décision laissée à Vite).
   vite: {
-    define: { __ADRESSE_EXPEDITEUR__: JSON.stringify(adresseExpediteur) },
+    define: {
+      __ADRESSE_EXPEDITEUR__: JSON.stringify(adresseExpediteur),
+      __DEPOT_DE_PUBLICATION__: JSON.stringify(depotDePublication),
+    },
     plugins: [tailwindcss()],
     build: {
       assetsInlineLimit: (chemin: string) => (chemin.endsWith('.js') ? false : undefined),

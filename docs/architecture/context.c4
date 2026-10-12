@@ -27,12 +27,19 @@ model {
     // trace : wrangler.astro.jsonc:12-17 — send_email EXPEDITEUR_CODE_CONNEXION ; src/platform/email/index.ts:53 — expediteur.send(...)
   }
 
+  github = system 'GitHub' {
+    #external
+    description 'Héberge le dépôt du client : le contenu et les images publiés y sont déposés.'
+    // trace : src/platform/publication/forge-github.ts — API REST git data, avec la clé JETON_DEPOT du compte client
+  }
+
   editrice -> colibri-cms.worker.routes "ouvre l'administration et y corrige son contenu"
   visiteur -> colibri-cms.worker 'consulte les pages publiques'
   integrateur -> colibri-cms.contenu 'déclare pages, emplacements, réglages et formulaires'
   // trace : src/pages/admin/connexion.astro:145 — demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, …)
   colibri-cms.worker.platform -[async]-> email-routing 'expédie le code de connexion'
   email-routing -[async]-> editrice 'remet le code'
+  colibri-cms.worker.platform -[sync]-> github 'dépose le contenu et les images publiés'
 }
 
 views {

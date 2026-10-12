@@ -41,6 +41,8 @@ declare module 'cloudflare:workers' {
     EXPEDITEUR_CODE_CONNEXION: {
       send(message: unknown): void | Promise<void>;
     };
+    // Clé d'écriture du dépôt de publication (secret du compte client, ADR-0021) ; absente tant qu'elle n'est pas posée.
+    JETON_DEPOT?: string;
     // Liaison `ASSETS` (wrangler.jsonc) : lit les originales empaquetées (ticket 15).
     ASSETS: { fetch(requete: Request): Promise<Response> };
   };

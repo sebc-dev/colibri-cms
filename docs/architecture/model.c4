@@ -72,7 +72,7 @@ model {
     // trace : src/platform/contenu/pages.ts:9 — import.meta.glob({ eager: true }) empaquette content/ au build
     contenu = store 'Contenu déclaré' {
       technology 'Fichiers JSON et Markdown versionnés'
-      description "Pages, emplacements, réglages et formulaires de départ posés par l'intégrateur ; lus, jamais écrits par le produit."
+      description "Pages, emplacements, réglages et formulaires de départ posés par l'intégrateur ; lu par le produit ; la publication en dépose la copie publiée."
       metadata { sourceDir 'content' }
     }
   }

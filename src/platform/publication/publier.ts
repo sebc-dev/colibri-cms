@@ -11,6 +11,7 @@ import type { Brouillon, ContenuCorrige } from '../../core/pages/brouillon.ts';
 import type { ContenuOptions } from '../../core/formulaires/options.ts';
 import { BAIL, deposerContenu, deposerImages, type ImagePubliee } from '../../core/publication/depot.ts';
 import type { Forge } from '../../core/publication/forge.ts';
+import { creerForgeGithub, depotValide, type Fetch } from './forge-github.ts';
 import {
   construirePlan,
   selectionnerImages,
@@ -217,11 +218,17 @@ export async function confirmerPublication(
 }
 
 /**
- * La fabrique du dépôt distant. L'adaptateur GitHub est le ticket 16 : tant qu'il n'existe pas,
- * aucun dépôt n'est raccordé et la publication échoue avant tout appel, sans rien changer.
+ * La fabrique du dépôt distant : l'adaptateur GitHub si le dépôt de publication et la clé
+ * d'écriture sont tous deux présents, sinon `null` — la publication échoue alors avant tout appel,
+ * sans rien changer (FR-091).
  */
-export function obtenirForge(): Forge | null {
-  return null;
+export function obtenirForge(
+  depot: unknown,
+  jeton: unknown,
+  appeler: Fetch = (requete) => fetch(requete),
+): Forge | null {
+  if (!depotValide(depot) || typeof jeton !== 'string' || jeton === '') return null;
+  return creerForgeGithub({ depot, jeton, fetch: appeler });
 }
 
 export type IssueSuite =

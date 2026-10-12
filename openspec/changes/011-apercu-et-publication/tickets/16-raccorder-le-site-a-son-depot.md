@@ -40,7 +40,8 @@ réécrirait le site publié.
 - **Messages** (dans `src/admin/textes.ts`) :
   - échec avant le dépôt : « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos
     modifications sont intacts. Réessayez dans quelques minutes. » ;
-  - site non raccordé : « La publication n'est pas encore possible sur ce site. Rien n'a changé. »
+  - site non raccordé : le même message (arbitrage du 2026-10-12 : la spec de la publication l'emporte
+    sur `ux.md`, qui annonçait un message distinct).
 - **Tests** :
   - l'adaptateur se teste avec un `fetch` de substitution qui rend des `Response`, sans aucun appel
     réseau : forme des requêtes (méthode, chemin, en-têtes), traduction des statuts 401, 403, 404 et
@@ -61,4 +62,4 @@ Cron de maintien en vie de la clé, le déploiement d'une instance au nom du cli
 ## Critères
 - [ ] Quand l'éditrice confirme une publication et que le dépôt refuse l'écriture, chaque brouillon est intact et porte toujours sa marque, le contenu publié est inchangé, et l'écran dit que la publication n'a pas pu se faire et que rien n'a changé   (SC-16a)
 - [ ] Quand l'instance n'a pas de dépôt de publication configuré, ou pas de clé d'écriture, et que l'éditrice confirme une publication, rien n'est déposé, chaque brouillon est intact, et l'écran dit que la publication n'a pas pu se faire, sans aucun terme de développeur   (SC-16b)
-- [ ] Quand une publication aboutit puis qu'une autre échoue, la clé d'écriture du dépôt ne figure dans aucune réponse, aucun écran ni aucune ligne de journal   (SC-16c)
+- [x] Quand une publication aboutit puis qu'une autre échoue, la clé d'écriture du dépôt ne figure dans aucune réponse, aucun écran ni aucune ligne de journal   (SC-16c)
