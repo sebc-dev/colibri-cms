@@ -1,7 +1,7 @@
 /**
- * La suite de la publication (change 011, ticket 15) : dépose la branche des images puis la
- * branche principale en une seule passe, finalise en un lot D1. Gardée (I6), `SameSite=Strict`
- * (ADR-0011, I13), aucune écriture en GET. Les passes bornées sont le ticket 17.
+ * La suite de la publication (change 011, ticket 15) : dépose les images par passes bornées, puis la
+ * branche des images et la branche principale, et finalise en un lot D1. Gardée (I6), `SameSite=Strict`
+ * (ADR-0011, I13), aucune écriture en GET. Une passe par appel (ADR-0023) : l'îlot enchaîne jusqu'à `fini`.
  */
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
@@ -11,7 +11,7 @@ import {
   type IssueSuite,
   lecteurDesOriginalesEmpaquetees,
   obtenirForge,
-  poursuivrePublication,
+  poursuivreUnePasse,
 } from '../../../platform/publication/publier.ts';
 
 /** Le statut HTTP de chaque issue manquée de la suite : un cas neuf sans statut ne type pas. */
@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ ok: false, raison: 'forme-invalide' }, { status: 400 });
   }
 
-  const issue = await poursuivrePublication(
+  const issue = await poursuivreUnePasse(
     env.DB,
     jeton,
     Date.now(),
@@ -49,5 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
       { status: STATUT_PAR_RAISON[issue.raison] },
     );
   }
-  return Response.json({ ok: true, fini: true });
+  return Response.json(
+    issue.fini ? { ok: true, fini: true } : { ok: true, fini: false, parties: issue.parties, total: issue.total },
+  );
 };

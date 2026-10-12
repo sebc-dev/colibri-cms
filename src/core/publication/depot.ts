@@ -112,7 +112,7 @@ function cheminImage(image: { readonly id: string; readonly extension: string })
 
 const TAILLE_BLOC_BASE64 = 0x8000;
 
-function enBase64(octets: Uint8Array): string {
+export function enBase64(octets: Uint8Array): string {
   // La concaténation octet par octet coûte plusieurs dizaines de Mo pour une image de 2 Mo.
   const morceaux: string[] = [];
   for (let i = 0; i < octets.length; i += TAILLE_BLOC_BASE64) {

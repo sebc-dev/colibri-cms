@@ -285,6 +285,7 @@ export const TEXTE_BOUTON_ANNULER_PUBLIER = 'Annuler';
 /** La mise en ligne depuis le récapitulatif (change 011, ticket 15). */
 export const TEXTE_BOUTON_PUBLIER_MAINTENANT = 'Publier maintenant';
 export const TEXTE_PUBLICATION_EN_COURS = 'Publication…';
+export const TEXTE_PUBLICATION_ENVOI_IMAGES = 'Envoi des images';
 export const TEXTE_PUBLICATION_TERMINEE =
   "C'est publié. Votre site sera à jour dans quelques minutes. Vous pouvez continuer à travailler.";
 export const TEXTE_PUBLICATION_CHANGEMENT =

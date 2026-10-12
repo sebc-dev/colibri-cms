@@ -15,6 +15,7 @@
     TEXTE_PUBLICATION_INACHEVEE,
     TEXTE_PUBLICATION_TERMINEE,
   } from '../textes.ts';
+  import { libelleAvancement } from './libelle-avancement.ts';
   import { messageErreurCorrection, MESSAGE_RESEAU } from './message-erreur-correction.ts';
 
   interface Props {
@@ -27,12 +28,15 @@
   let enCours = $state(false);
   let termine = $state(false);
   let message = $state<string | null>(null);
+  let avancement = $state<string | null>(null);
 
   interface Reponse {
     readonly ok: boolean;
     readonly raison?: string;
     readonly jeton?: string;
     readonly fini?: boolean;
+    readonly parties?: number;
+    readonly total?: number;
   }
 
   async function poster(adresse: string, corps: unknown): Promise<{ statut: number; json: Reponse | null }> {
@@ -53,6 +57,7 @@
   async function publier(): Promise<void> {
     enCours = true;
     message = null;
+    avancement = null;
     try {
       const confirmation = await poster('/admin/publication', { empreinte });
       if (confirmation.statut === 409 && confirmation.json?.raison === 'en-cours') {
@@ -86,6 +91,9 @@
           return;
         }
         if (suite.json.fini === true) break;
+        if (typeof suite.json.parties === 'number' && typeof suite.json.total === 'number') {
+          avancement = libelleAvancement(suite.json.parties, suite.json.total);
+        }
       }
       termine = true;
       enCours = false;
@@ -109,6 +117,9 @@
     >
       {enCours ? TEXTE_PUBLICATION_EN_COURS : TEXTE_BOUTON_PUBLIER_MAINTENANT}
     </Button>
+    {#if enCours && avancement !== null}
+      <p class="mt-3 text-sm" role="status" data-avancement>{avancement}</p>
+    {/if}
     {#if message !== null}
       <p class="mt-3 text-sm text-danger" role="alert">{message}</p>
     {/if}
