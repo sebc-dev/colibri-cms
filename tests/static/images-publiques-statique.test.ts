@@ -124,11 +124,12 @@ describe('images sur les pages publiques bâties', () => {
   it('SC-06f — la construction du site échoue en nommant l’image et la page, et ne produit aucun site', () => {
     const entrees = Object.values(RESULTAT_ECHEC);
     expect(entrees.length, 'construction absente : lancer `node scripts/batir-site-jetable.mjs`').toBe(1);
-    const resultat = JSON.parse(entrees[0]) as { code: number | null; sortie: string };
+    const resultat = JSON.parse(entrees[0]) as { code: number | null; sortie: string; pagesProduites: string[] };
 
     expect(resultat.code).not.toBe(0);
     expect(resultat.sortie).toContain('« sans-octets »');
     expect(resultat.sortie).toContain('« accueil »');
+    expect(resultat.pagesProduites, 'aucune page du site ne doit sortir de la construction').toEqual([]);
   });
 
   it('Sécurité (mitigation 3) — une description d’image porteuse de balisage reste du texte dans le texte de remplacement', async () => {
@@ -138,8 +139,8 @@ describe('images sur les pages publiques bâties', () => {
     const piege = '"><img src=x onerror=alert(1)><script>alert(1)</script>';
 
     const images = await relever(corps, 'img');
-    expect(images.length).toBe(1);
-    expect((await relever(corps, 'script')).length).toBe(0);
+    expect(images).toHaveLength(1);
+    expect(await relever(corps, 'script')).toHaveLength(0);
     expect(images[0].map(([nom]) => nom)).toEqual(['src', 'width', 'height', 'alt', 'loading', 'decoding']);
     expect(decoder(new Map(images[0]).get('alt') ?? '')).toBe(piege);
     expect(corps).toContain('alt="&quot;>');

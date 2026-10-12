@@ -37,7 +37,7 @@
  * (même raison que `scripts/preparer-worker-de-test.mjs`).
  */
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 
@@ -121,7 +121,19 @@ function batir(arbre, client) {
   cpSync(sortie, client, { recursive: true });
 }
 
-/** Construction attendue en échec : consigne le code et la sortie, sans jamais échouer. */
+/**
+ * Les pages HTML qu'une construction a laissées dans `dist/client/`, hors la
+ * page 404 du gabarit, qu'Astro produit avant d'atteindre les pages du site.
+ */
+function pagesProduites(arbre) {
+  const client = resolve(arbre, 'dist/client');
+  if (!existsSync(client)) return [];
+  return readdirSync(client, { recursive: true })
+    .map(String)
+    .filter((chemin) => chemin.endsWith('.html') && chemin !== '404.html');
+}
+
+/** Construction attendue en échec : consigne le code, la sortie et les pages produites, sans jamais échouer. */
 function batirEnEchec(arbre, dossier) {
   const astro = resoudreAstro(arbre);
   const resultat = spawnSync(globalThis.process.execPath, [astro, 'build'], {
@@ -130,7 +142,10 @@ function batirEnEchec(arbre, dossier) {
     stdio: 'pipe',
   });
   const sortie = `${resultat.stdout ?? ''}${resultat.stderr ?? ''}${resultat.error ? String(resultat.error.message) : ''}`;
-  writeFileSync(resolve(dossier, 'resultat.json'), JSON.stringify({ code: resultat.status, sortie }));
+  writeFileSync(
+    resolve(dossier, 'resultat.json'),
+    JSON.stringify({ code: resultat.status, sortie, pagesProduites: pagesProduites(arbre) }),
+  );
 }
 
 const JETABLE = resolve(RACINE, '.wrangler/site-jetable');
