@@ -1,0 +1,16 @@
+---
+/**
+ * Monte l'îlot de l'`Écran : Publier` (change 011, ticket 15).
+ *
+ * Même patron que `MontageEcranFormulaire.astro` : un composant à part pour
+ * que le `<script>` de module reste traité par Astro (bundlé, chargé par
+ * `src`, conforme à la CSP) tout en étant posé dans `<slot name="scripts"/>`
+ * de `GabaritCadre.astro`.
+ */
+---
+
+<script>
+  import { monterEcranPublier } from './ilots-svelte-5/monter.ts';
+
+  monterEcranPublier();
+</script>

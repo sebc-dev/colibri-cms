@@ -74,3 +74,36 @@ it("SC-10f — les textes de l'écran Publier n'emploient aucun terme de dévelo
   }
   expect(textes).toContain("Il n’y a rien à publier");
 });
+
+it("SC-15f — l'îlot affiche TEXTE_PUBLICATION_DEJA_EN_COURS sur un refus 'en-cours', avant la branche générique du 409", async () => {
+  // Arrange
+  const source = (
+    await import("../../src/admin/ilots-svelte-5/EcranPublier.svelte?raw")
+  ).default;
+
+  // Act
+  const dejaEnCours = source.search(
+    /raison === 'en-cours'\) \{\s*message = TEXTE_PUBLICATION_DEJA_EN_COURS;/,
+  );
+  const generique = source.search(/statut === 409\) \{\s*apresChangement\(\);/);
+
+  // Assert
+  expect(dejaEnCours, "branche « déjà en cours »").toBeGreaterThan(-1);
+  expect(generique, "branche générique du 409, après").toBeGreaterThan(dejaEnCours);
+  expect([...source.matchAll(/apresChangement\(\)/g)]).toHaveLength(1);
+});
+
+it("SC-15b — sur un récapitulatif changé, l'écran se recharge avec message=changement", async () => {
+  // Arrange
+  const monter = (await import("../../src/admin/ilots-svelte-5/monter.ts?raw"))
+    .default;
+  const zone = /export function monterEcranPublier[\s\S]*?\n\}/.exec(monter)?.[0] ?? "";
+
+  // Act
+  const marque = zone.indexOf("searchParams.set('message', 'changement')");
+  const rechargement = zone.indexOf("location.assign(");
+
+  // Assert
+  expect(marque, "la marque du changement").toBeGreaterThan(-1);
+  expect(rechargement, "le rechargement, après la marque").toBeGreaterThan(marque);
+});

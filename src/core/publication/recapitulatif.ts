@@ -104,6 +104,40 @@ export function recapitulatifEstVide(recapitulatif: Recapitulatif): boolean {
   );
 }
 
+/** Un objet que la confirmation engage : son genre, son identité et la version qui le date. */
+export interface ObjetEngage {
+  readonly genre: 'page' | 'reglage' | 'formulaire' | 'image-redecrite' | 'image-effacee';
+  readonly id: string;
+  /** Le `maj_le` d'un brouillon, la description d'une image redécrite. */
+  readonly version: string;
+}
+
+/**
+ * Compare deux lignes par unités de code UTF-16, sans dépendre de la langue : l'empreinte
+ * doit être la même d'une exécution à l'autre, et deux lignes distinctes ne sont jamais égales.
+ */
+function comparerParUnitesDeCode(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+function hexadecimal(octets: Uint8Array): string {
+  return [...octets].map((octet) => octet.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * L'empreinte de ce que le récapitulatif présente : le condensat SHA-256 de la liste triée
+ * des objets engagés. Deux listes égales donnent la même empreinte, quel que soit l'ordre
+ * de lecture ; un brouillon corrigé (son `maj_le`), une image redécrite ou effacée de plus
+ * ou de moins la change (SC-016).
+ */
+export async function empreinteDuRecapitulatif(objets: readonly ObjetEngage[]): Promise<string> {
+  const lignes = objets.map((o) => JSON.stringify([o.genre, o.id, o.version])).sort(comparerParUnitesDeCode);
+  const condensat = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(lignes.join('\n')));
+  return hexadecimal(new Uint8Array(condensat));
+}
+
 export const RETOUR_PAR_DEFAUT = '/admin/mes-pages';
 
 /**

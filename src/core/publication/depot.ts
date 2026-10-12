@@ -10,6 +10,9 @@ import type { PlanDepot } from './plan.ts';
 import { cheminAutorise, identifiantValide } from './prefixes.ts';
 
 const REF_PRINCIPALE = 'refs/heads/main';
+
+/** La durée d'un bail de publication (ADR-0023) : au-delà, le verrou est repris par la suivante. */
+export const BAIL = 5 * 60 * 1000;
 const ESSAIS_MAX = 3;
 
 export type ResultatDepot =

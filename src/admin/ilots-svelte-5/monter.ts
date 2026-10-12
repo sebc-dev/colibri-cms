@@ -26,6 +26,7 @@ import CarteCoordonnees from './CarteCoordonnees.svelte';
 import CarteReseaux from './CarteReseaux.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
 import EcranFormulaire from './EcranFormulaire.svelte';
+import EcranPublier from './EcranPublier.svelte';
 import type { ChampCarte } from './formulaire-carte.ts';
 import type { OptionBrouillon } from '../../core/formulaires/options.ts';
 import type { CoordonneeCarte } from './coordonnees-carte.ts';
@@ -603,6 +604,33 @@ export function monterEcranFormulaire(): void {
         champs,
         apresEnregistrement: () => {
           afficherPastilleDansLaZone(zoneMarque);
+        },
+      },
+    });
+  });
+}
+
+/**
+ * Monte l'îlot `EcranPublier` (change 011, ticket 15) sur le nœud `data-ecran-publier` de
+ * l'`Écran : Publier`. Il porte l'empreinte du récapitulatif affiché dans `data-empreinte` ; la
+ * route de confirmation la revérifie. Ne fait rien si le nœud est absent (rien à publier).
+ */
+export function monterEcranPublier(): void {
+  const cibles = document.querySelectorAll<HTMLElement>('[data-ecran-publier]');
+
+  cibles.forEach((cible) => {
+    const { empreinte } = cible.dataset;
+    if (empreinte === undefined) return;
+
+    cible.innerHTML = '';
+    mount(EcranPublier, {
+      target: cible,
+      props: {
+        empreinte,
+        apresChangement: () => {
+          const adresse = new URL(window.location.href);
+          adresse.searchParams.set('message', 'changement');
+          window.location.assign(adresse);
         },
       },
     });
