@@ -11,6 +11,7 @@ import BandeauApercu from '../../../admin/BandeauApercu.astro';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { listerPagesDeclarees, obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { lireReglagesDeLaDeclaration } from '../../../platform/contenu/reglages.ts';
+import { imagesPubliees } from '../../../platform/contenu/medias.ts';
 import { obtenirPublieEmplacements, obtenirPubliesReglages } from '../../../platform/publication/magasin-publie.ts';
 import { composerPage, reglagesRecouvertsParLePublie } from '../../../core/rendu/page.ts';
 import { adresseDeLaPage } from '../../../core/pages/declaration.ts';
@@ -40,7 +41,7 @@ const reglages = reglagesRecouvertsParLePublie(
   lireReglagesDeLaDeclaration(),
   await obtenirPubliesReglages(env.DB),
 );
-const page = composerPage({ slug, pages, page: declaree, reglages, publie });
+const page = composerPage({ slug, pages, page: declaree, reglages, publie, images: imagesPubliees() });
 ---
 
 <Page page={page}>
