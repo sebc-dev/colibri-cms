@@ -117,7 +117,8 @@ et la marque de brouillon resterait affichée après « Publier »).
   `src/site/site.css` externe (jamais Tailwind ni `admin.css`, ADR-0009). Aucun script.
 - Une image entre dans le rendu comme `{ source, largeur, hauteur, description }`, où `source` est soit
   la métadonnée d'une image empaquetée (image publiée, traitée par `<Image>` au build — variantes
-  d'ADR-0019 1.x), soit l'adresse sous garde `/admin/medias/<id>/octets` (image en brouillon, aperçu
+  d'ADR-0019 1.x), soit l'adresse sous garde `/admin/medias/<id>/octets` (image que le site en service
+  ne porte pas encore — en brouillon, ou publiée avant la fin de la reconstruction, ADR-0020 —, aperçu
   seulement). Le même composant reçoit les deux.
 - Le carrousel est une bande `overflow-x` avec `scroll-snap`, sans script ; le lien de vidéo un lien
   « Voir la vidéo » (`rel="noopener noreferrer"`), sans `iframe` : aucune ressource tierce, aucune
