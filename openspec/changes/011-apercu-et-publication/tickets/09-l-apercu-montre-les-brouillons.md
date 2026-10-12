@@ -47,10 +47,10 @@ par erreur (arbitrage du 2026-10-11, exigence « Même rendu que la page publiqu
 demande de devis », qui dessinera le formulaire dans le rendu partagé) ; le récapitulatif (ticket 10).
 
 ## Critères
-- [ ] Quand la page « Accueil » porte un brouillon de son texte de présentation et que l'éditrice en demande l'aperçu, l'aperçu présente le texte du brouillon, alors que la page publique « Accueil » présente toujours le texte publié   (SC-09a)
-- [ ] Quand la page « Contact » porte un brouillon et que le réglage des coordonnées porte un nouveau numéro de téléphone en brouillon, l'aperçu de « Contact » présente ensemble le contenu du brouillon de la page et le nouveau numéro dans le pied de page   (SC-09b)
-- [ ] Quand l'éditrice a téléversé une image, l'a décrite et l'a posée dans un emplacement de « Tarifs », sans publier, l'aperçu de « Tarifs » présente l'image à sa place, avec sa description comme texte de remplacement   (SC-09c)
-- [ ] Quand l'éditrice demande l'aperçu d'une page qui porte un brouillon, le brouillon est inchangé, la page porte toujours sa marque de brouillon, et le site public est inchangé   (SC-09d)
-- [ ] Dans l'aperçu de « Accueil », l'entrée « Tarifs » du menu, le bouton d'action qui mène à « Contact » et un lien d'un texte riche vers « Contact » mènent à l'aperçu de ces pages ; ouverts, ils présentent la page sous le bandeau, avec ses brouillons   (SC-09e)
-- [ ] Dans l'aperçu, un lien vers un réseau social, une vidéo, un numéro de téléphone, une adresse e-mail, ou une adresse du site qui n'est pas une page déclarée, est identique à celui de la page publique   (SC-09f)
-- [ ] Quand l'éditrice a publié « Tarifs » avec une image téléversée et décrite, et que le site en service ne porte pas encore cette image, l'aperçu de « Tarifs » présente l'image à sa place, avec sa description comme texte de remplacement — et non une erreur   (SC-09g)
+- [x] Quand la page « Accueil » porte un brouillon de son texte de présentation et que l'éditrice en demande l'aperçu, l'aperçu présente le texte du brouillon, alors que la page publique « Accueil » présente toujours le texte publié   (SC-09a)
+- [x] Quand la page « Contact » porte un brouillon et que le réglage des coordonnées porte un nouveau numéro de téléphone en brouillon, l'aperçu de « Contact » présente ensemble le contenu du brouillon de la page et le nouveau numéro dans le pied de page   (SC-09b)
+- [x] Quand l'éditrice a téléversé une image, l'a décrite et l'a posée dans un emplacement de « Tarifs », sans publier, l'aperçu de « Tarifs » présente l'image à sa place, avec sa description comme texte de remplacement   (SC-09c)
+- [x] Quand l'éditrice demande l'aperçu d'une page qui porte un brouillon, le brouillon est inchangé, la page porte toujours sa marque de brouillon, et le site public est inchangé   (SC-09d)
+- [x] Dans l'aperçu de « Accueil », l'entrée « Tarifs » du menu, le bouton d'action qui mène à « Contact » et un lien d'un texte riche vers « Contact » mènent à l'aperçu de ces pages ; ouverts, ils présentent la page sous le bandeau, avec ses brouillons   (SC-09e)
+- [x] Dans l'aperçu, un lien vers un réseau social, une vidéo, un numéro de téléphone, une adresse e-mail, ou une adresse du site qui n'est pas une page déclarée, est identique à celui de la page publique   (SC-09f)
+- [x] Quand l'éditrice a publié « Tarifs » avec une image téléversée et décrite, et que le site en service ne porte pas encore cette image, l'aperçu de « Tarifs » présente l'image à sa place, avec sa description comme texte de remplacement — et non une erreur   (SC-09g)

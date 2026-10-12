@@ -560,3 +560,35 @@ export async function viderOctetsDesPubliees(db: DB, empaquetees: Iterable<strin
       .run();
   }
 }
+
+/** Ce que l'aperçu sait d'une image que la base possède : dimensions et description courante. */
+export interface ImageDeLApercu {
+  readonly largeur: number;
+  readonly hauteur: number;
+  readonly description: string;
+}
+
+interface LigneImageApercuBrute {
+  readonly id: string;
+  readonly largeur: number;
+  readonly hauteur: number;
+  readonly description: string | null;
+}
+
+/**
+ * Lecture seule : les dimensions et la description courante des images
+ * demandées (par identité), celles que la base ne possède pas sont omises.
+ */
+export async function lireImagesDeLApercu(db: DB, ids: readonly string[]): Promise<ReadonlyMap<string, ImageDeLApercu>> {
+  const images = new Map<string, ImageDeLApercu>();
+  if (ids.length === 0) return images;
+  await assurerTableMedias(db);
+  const resultat = await db
+    .prepare(`select id, largeur, hauteur, description from ${TABLE_MEDIAS} where id in (select value from json_each(?1))`)
+    .bind(JSON.stringify(ids))
+    .all();
+  for (const ligne of resultat.results as LigneImageApercuBrute[]) {
+    images.set(ligne.id, { largeur: ligne.largeur, hauteur: ligne.hauteur, description: ligne.description ?? '' });
+  }
+  return images;
+}
