@@ -7,7 +7,7 @@
  * inventé.
  */
 import './site.css';
-import { BoutonAction, LienVideo, TexteRiche } from '../render/index.ts';
+import { BoutonAction, Carrousel, Galerie, Image, LienVideo, TexteRiche } from '../render/index.ts';
 import type { PageComposee } from '../core/rendu/page.ts';
 import PiedDePage from './PiedDePage.astro';
 
@@ -58,7 +58,13 @@ const { page } = Astro.props;
           if (emplacement.nature === 'texte-riche') {
             return <TexteRiche document={emplacement.document} />;
           }
-          return null;
+          if (emplacement.nature === 'image') {
+            return emplacement.image === null ? null : <Image image={emplacement.image} />;
+          }
+          if (emplacement.nature === 'galerie') {
+            return <Galerie images={emplacement.images} />;
+          }
+          return <Carrousel images={emplacement.images} />;
         })
       }
     </main>

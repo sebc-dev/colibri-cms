@@ -10,6 +10,7 @@ import { adresseDeLaPage } from '../core/pages/declaration.ts';
 import { composerPage } from '../core/rendu/page.ts';
 import { listerPagesDeclarees, obtenirPageAvecEmplacements } from '../platform/contenu/pages.ts';
 import { lireReglagesDeLaDeclaration } from '../platform/contenu/reglages.ts';
+import { imagesPubliees } from '../platform/contenu/medias.ts';
 
 export const prerender = true;
 
@@ -26,7 +27,7 @@ const declaree = obtenirPageAvecEmplacements(slug);
 if (declaree === null) {
   return Astro.redirect('/404');
 }
-const page = composerPage({ slug, pages, page: declaree, reglages: lireReglagesDeLaDeclaration() });
+const page = composerPage({ slug, pages, page: declaree, reglages: lireReglagesDeLaDeclaration(), images: imagesPubliees() });
 ---
 
 <Page page={page} />
