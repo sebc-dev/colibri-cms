@@ -57,8 +57,8 @@ Publier » (large et étroit, avec ses états) et le **gabarit public** (page Ac
   - *n'a pas abouti* (mise en ligne) : « La mise en ligne n'a pas abouti. Votre site est resté tel qu'il
     était, et vos modifications sont gardées. » et le bouton « Relancer la mise en ligne ».
   - *échec avant le dépôt* : « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos
-    modifications sont intacts. Réessayez dans quelques minutes. » ; si le site n'est pas raccordé (pas
-    de dépôt ou pas de clé) : « La publication n'est pas encore possible sur ce site. Rien n'a changé. »
+    modifications sont intacts. Réessayez dans quelques minutes. » Le même message vaut quand le site
+    n'est pas raccordé (pas de dépôt ou pas de clé), comme le veut la spec de la publication.
   - Vocabulaire proscrit sur tout l'écran : dépôt, GitHub, branche, commit, build, déploiement, push,
     serveur, erreur 4xx/5xx. On dit « publier », « mettre en ligne », « votre site ».
 

@@ -14,7 +14,7 @@ import {
   obtenirForge,
   poursuivrePublication,
 } from '../../src/platform/publication/publier.ts';
-import { TEXTE_PUBLICATION_ECHEC, TEXTE_PUBLICATION_PAS_POSSIBLE } from '../../src/admin/textes.ts';
+import { TEXTE_PUBLICATION_ECHEC } from '../../src/admin/textes.ts';
 import {
   BASE,
   NOM_COOKIE_SESSION,
@@ -121,8 +121,6 @@ it("SC-16b — instance sans dépôt ou sans clé : aucun adaptateur, rien n'est
   // Les textes montrés : la publication n'a pas pu se faire, sans terme de développeur
   expect(TEXTE_PUBLICATION_ECHEC).toContain("n'a pas pu se faire");
   expect(TEXTE_PUBLICATION_ECHEC).not.toMatch(DEVELOPPEUR);
-  expect(TEXTE_PUBLICATION_PAS_POSSIBLE).toContain("Rien n'a changé");
-  expect(TEXTE_PUBLICATION_PAS_POSSIBLE).not.toMatch(DEVELOPPEUR);
 });
 
 it("SC-16c — une publication aboutit puis une autre échoue : la clé n'est dans aucune réponse, aucun écran, aucune ligne de journal", async () => {

@@ -40,7 +40,8 @@ réécrirait le site publié.
 - **Messages** (dans `src/admin/textes.ts`) :
   - échec avant le dépôt : « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos
     modifications sont intacts. Réessayez dans quelques minutes. » ;
-  - site non raccordé : « La publication n'est pas encore possible sur ce site. Rien n'a changé. »
+  - site non raccordé : le même message (arbitrage du 2026-10-12 : la spec de la publication l'emporte
+    sur `ux.md`, qui annonçait un message distinct).
 - **Tests** :
   - l'adaptateur se teste avec un `fetch` de substitution qui rend des `Response`, sans aucun appel
     réseau : forme des requêtes (méthode, chemin, en-têtes), traduction des statuts 401, 403, 404 et
