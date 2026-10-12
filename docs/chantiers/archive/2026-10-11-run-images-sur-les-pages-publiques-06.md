@@ -68,3 +68,12 @@ Hors de cette session : commiter le travail dans le worktree, puis relancer
 - Retoucher SC-08b pour ignorer les images : ce serait affaiblir un test existant pour faire passer le
   ticket.
 - Lancer le 09 sur le 06 rouge : il hériterait de l'écart, et la chaîne s'arrête d'elle-même.
+
+## Issue
+Voie A arbitrée le 2026-10-11 : l'aperçu reçoit les images publiées (`dbf9e2a`). Reprise avec
+`rerun: "2"` : le run est allé jusqu'à l'enregistrement, puis s'est arrêté en
+`blocked-tests-touched-after-verify` — le correcteur de review avait retouché deux tests, hors de son
+rôle. Retouches auditées par un `test-edit-validator` neuf sur la version d'avant reconstituée à
+l'octet près : additives, probantes, sauf SC-06f qui ne vérifiait pas « aucun site n'est produit ».
+Test renforcé et fixtures commitées (`a43bccf`), puis PR #225 ouverte à la main. Le correcteur a
+aussi ajouté une décision au ticket 09 (`architecture-F-2`), laissée à l'arbitrage humain.
