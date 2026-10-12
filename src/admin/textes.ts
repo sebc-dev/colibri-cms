@@ -292,7 +292,8 @@ export const TEXTE_PUBLICATION_CHANGEMENT =
 export const TEXTE_PUBLICATION_DEJA_EN_COURS =
   "Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez.";
 export const TEXTE_PUBLICATION_ECHEC =
-  "La publication n'a pas pu aboutir. Votre site n'a pas changé : réessayez dans un instant.";
+  "La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes.";
+export const TEXTE_PUBLICATION_PAS_POSSIBLE = "La publication n'est pas encore possible sur ce site. Rien n'a changé.";
 export const TEXTE_PUBLICATION_INACHEVEE =
   "La publication n'est pas allée jusqu'au bout. Vos modifications sont gardées : réessayez dans quelques minutes.";
 export const LIBELLES_REGLAGES_PUBLIER: Readonly<Record<string, string>> = {

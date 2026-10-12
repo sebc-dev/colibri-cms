@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
     env.DB,
     jeton,
     Date.now(),
-    obtenirForge(),
+    obtenirForge(__DEPOT_DE_PUBLICATION__, env.JETON_DEPOT),
     lecteurDesOriginalesEmpaquetees(env.ASSETS),
   );
   if (!issue.ok) {

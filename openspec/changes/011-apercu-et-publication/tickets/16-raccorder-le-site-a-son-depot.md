@@ -61,4 +61,4 @@ Cron de maintien en vie de la clé, le déploiement d'une instance au nom du cli
 ## Critères
 - [ ] Quand l'éditrice confirme une publication et que le dépôt refuse l'écriture, chaque brouillon est intact et porte toujours sa marque, le contenu publié est inchangé, et l'écran dit que la publication n'a pas pu se faire et que rien n'a changé   (SC-16a)
 - [ ] Quand l'instance n'a pas de dépôt de publication configuré, ou pas de clé d'écriture, et que l'éditrice confirme une publication, rien n'est déposé, chaque brouillon est intact, et l'écran dit que la publication n'a pas pu se faire, sans aucun terme de développeur   (SC-16b)
-- [ ] Quand une publication aboutit puis qu'une autre échoue, la clé d'écriture du dépôt ne figure dans aucune réponse, aucun écran ni aucune ligne de journal   (SC-16c)
+- [x] Quand une publication aboutit puis qu'une autre échoue, la clé d'écriture du dépôt ne figure dans aucune réponse, aucun écran ni aucune ligne de journal   (SC-16c)
