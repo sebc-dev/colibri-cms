@@ -501,3 +501,62 @@ export async function listerImagesPourRecapitulatif(
     vignette: adresseVignette(ligne.id, ligne.octets_gardes, statiques),
   }));
 }
+
+/** Une image avec ce qu'il faut pour décider de son dépôt (change 011, ticket 15). */
+export interface ImagePourDepot {
+  readonly id: string;
+  readonly nomOrigine: string;
+  readonly format: FormatImageAdmis;
+  readonly largeur: number;
+  readonly hauteur: number;
+  readonly description: string;
+  readonly publiee: boolean;
+  readonly empreinteDepot: string | null;
+}
+
+interface LigneImagePourDepotBrute {
+  readonly id: string;
+  readonly nom_origine: string;
+  readonly format: string;
+  readonly largeur: number;
+  readonly hauteur: number;
+  readonly description: string | null;
+  readonly publiee_le: number | null;
+  readonly empreinte_depot: string | null;
+}
+
+/** Toutes les images, sans leurs octets, avec leur état de dépôt. */
+export async function listerImagesPourDepot(db: DB): Promise<ImagePourDepot[]> {
+  await assurerTableMedias(db);
+  const resultat = await db
+    .prepare(
+      `select id, nom_origine, format, largeur, hauteur, description, publiee_le, empreinte_depot
+       from ${TABLE_MEDIAS} order by creee_le desc`,
+    )
+    .bind()
+    .all();
+  return (resultat.results as LigneImagePourDepotBrute[]).map((ligne) => ({
+    id: ligne.id,
+    nomOrigine: ligne.nom_origine,
+    format: ligne.format as FormatImageAdmis,
+    largeur: ligne.largeur,
+    hauteur: ligne.hauteur,
+    description: ligne.description ?? '',
+    publiee: ligne.publiee_le !== null,
+    empreinteDepot: ligne.empreinte_depot,
+  }));
+}
+
+/**
+ * Vide les octets des images publiées que le site en service porte déjà (ADR-0020) : un BLOB de
+ * longueur nulle, la colonne reste `NOT NULL`. Une image non empaquetée garde ses octets.
+ */
+export async function viderOctetsDesPubliees(db: DB, empaquetees: Iterable<string>): Promise<void> {
+  await assurerTableMedias(db);
+  for (const id of empaquetees) {
+    await db
+      .prepare(`update ${TABLE_MEDIAS} set octets = x'' where id = ?1 and publiee_le is not null and length(octets) > 0`)
+      .bind(id)
+      .run();
+  }
+}

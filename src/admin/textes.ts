@@ -282,6 +282,19 @@ export const TEXTE_LIEN_VOIR_APERCU = 'Voir l’aperçu';
 export const TEXTE_RIEN_A_PUBLIER = 'Il n’y a rien à publier pour le moment.';
 export const TEXTE_REVENIR_A_MES_PAGES = 'Revenir à mes pages';
 export const TEXTE_BOUTON_ANNULER_PUBLIER = 'Annuler';
+/** La mise en ligne depuis le récapitulatif (change 011, ticket 15). */
+export const TEXTE_BOUTON_PUBLIER_MAINTENANT = 'Publier maintenant';
+export const TEXTE_PUBLICATION_EN_COURS = 'Publication…';
+export const TEXTE_PUBLICATION_TERMINEE =
+  "C'est publié. Votre site sera à jour dans quelques minutes. Vous pouvez continuer à travailler.";
+export const TEXTE_PUBLICATION_CHANGEMENT =
+  "Vos modifications ont changé depuis l'affichage de cette liste. Vérifiez-la à nouveau avant de publier.";
+export const TEXTE_PUBLICATION_DEJA_EN_COURS =
+  "Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez.";
+export const TEXTE_PUBLICATION_ECHEC =
+  "La publication n'a pas pu aboutir. Votre site n'a pas changé : réessayez dans un instant.";
+export const TEXTE_PUBLICATION_INACHEVEE =
+  "La publication n'est pas allée jusqu'au bout. Vos modifications sont gardées : réessayez dans quelques minutes.";
 export const LIBELLES_REGLAGES_PUBLIER: Readonly<Record<string, string>> = {
   coordonnees: TEXTE_CARTE_COORDONNEES,
   reseaux: TEXTE_CARTE_RESEAUX,

@@ -80,9 +80,9 @@ bornées, l'avancement « n sur m » et la reprise d'une publication interrompue
 la mise en ligne et la relance (ticket 18).
 
 ## Critères
-- [ ] Quand la page « Tarifs », le réglage des coordonnées et le formulaire « Devis gâteau » portent un brouillon et que l'éditrice confirme la publication, une fois le dépôt fait, ni « Tarifs », ni les coordonnées, ni « Devis gâteau » ne portent plus de marque de brouillon, et chacun présente le contenu de son ancien brouillon comme dernière version publiée   (SC-15a)
+- [x] Quand la page « Tarifs », le réglage des coordonnées et le formulaire « Devis gâteau » portent un brouillon et que l'éditrice confirme la publication, une fois le dépôt fait, ni « Tarifs », ni les coordonnées, ni « Devis gâteau » ne portent plus de marque de brouillon, et chacun présente le contenu de son ancien brouillon comme dernière version publiée   (SC-15a)
 - [ ] Quand, après l'affichage du récapitulatif, une correction de la page « Accueil » est enregistrée depuis un autre onglet puis que l'éditrice confirme, rien n'est déposé, et l'écran présente le récapitulatif à jour, « Accueil » compris   (SC-15b)
-- [ ] Quand une correction de la page « Contact » est enregistrée après la confirmation, pendant que la publication dépose, une fois le dépôt fait, « Contact » porte toujours un brouillon qui contient cette correction   (SC-15c)
-- [ ] Quand la page « Tarifs » vient d'être publiée et que le site n'est pas encore reconstruit, l'éditeur de « Tarifs » présente le contenu publié, sans marque de brouillon, et non l'ancien contenu de départ   (SC-15d)
-- [ ] Quand une publication efface une image puis qu'une publication suivante dépose, après la première l'image a quitté la bibliothèque et sa fiche le contenu déposé, et après la seconde ses octets ne sont plus sur la branche des images   (SC-15e)
+- [x] Quand une correction de la page « Contact » est enregistrée après la confirmation, pendant que la publication dépose, une fois le dépôt fait, « Contact » porte toujours un brouillon qui contient cette correction   (SC-15c)
+- [x] Quand la page « Tarifs » vient d'être publiée et que le site n'est pas encore reconstruit, l'éditeur de « Tarifs » présente le contenu publié, sans marque de brouillon, et non l'ancien contenu de départ   (SC-15d)
+- [x] Quand une publication efface une image puis qu'une publication suivante dépose, après la première l'image a quitté la bibliothèque et sa fiche le contenu déposé, et après la seconde ses octets ne sont plus sur la branche des images   (SC-15e)
 - [ ] Quand une publication dépose et qu'une seconde publication est confirmée depuis un autre onglet, la seconde est refusée, avec un message disant qu'une publication est déjà en cours   (SC-15f)

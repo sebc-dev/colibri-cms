@@ -1,27 +1,21 @@
 ---
 /**
  * L'`Écran : Publier` (change 011, ticket 10) : le récapitulatif des pages,
- * réglages et formulaires qui portent un brouillon. Il ne met rien en ligne
- * (confirmation et mise en ligne : ticket 15). Rendu serveur, garde de
- * session importée (I6, ADR-0007), aucun script ni `client:*` (I4, ADR-0006).
+ * réglages et formulaires qui portent un brouillon. Il ne met rien en ligne par lui-même
+ * (la confirmation est l'îlot `EcranPublier`, ticket 15). Rendu serveur, garde de
+ * session importée (I6, ADR-0007), aucun `client:*` : l'îlot est monté par script (I4, ADR-0006).
  * Les noms sont interpolés échappés (I5). « Annuler » ramène à l'écran
  * quitté, dont l'adresse est revérifiée (`retourSur`).
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
+import MontageEcranPublier from '../../admin/MontageEcranPublier.astro';
 import { verifierSession } from '../../platform/session/index.ts';
-import { listerPagesDeclarees } from '../../platform/contenu/pages.ts';
-import { lireFormulairesDeLaDeclaration } from '../../platform/contenu/formulaires.ts';
-import { listerSlugsAvecBrouillon } from '../../platform/brouillons/magasin.ts';
-import { obtenirBrouillonsReglages } from '../../platform/reglages/magasin.ts';
-import { obtenirBrouillonsFormulaires } from '../../platform/formulaires/magasin.ts';
-import { inscrireImagesDeDepart, listerImagesPourRecapitulatif } from '../../platform/medias/magasin.ts';
-import { lirePagesContenuCourant } from '../../platform/contenu/references-medias.ts';
-import { referencesDuContenuCourant } from '../../core/medias/references.ts';
-import { adressesOriginalesEmpaquetees, listerFichesMedias } from '../../platform/contenu/medias.ts';
-import { composerRecapitulatif, recapitulatifEstVide, retourSur } from '../../core/publication/recapitulatif.ts';
+import { calculerEtatPublication } from '../../platform/publication/publier.ts';
+import { recapitulatifEstVide, retourSur } from '../../core/publication/recapitulatif.ts';
 import { adresseDeLaPage } from '../../core/pages/declaration.ts';
 import {
   TEXTE_BOUTON_ANNULER_PUBLIER,
+  TEXTE_PUBLICATION_CHANGEMENT,
   TEXTE_INTRO_PUBLIER,
   TEXTE_LIEN_VOIR_APERCU,
   TEXTE_REVENIR_A_MES_PAGES,
@@ -44,26 +38,16 @@ if (!session) {
 
 Astro.response.headers.set('Cache-Control', 'no-store');
 
-await inscrireImagesDeDepart(env.DB, listerFichesMedias(), Date.now());
-
-const references = referencesDuContenuCourant(await lirePagesContenuCourant(env.DB));
-const recapitulatif = composerRecapitulatif({
-  images: await listerImagesPourRecapitulatif(env.DB, adressesOriginalesEmpaquetees()),
-  referencesPubliees: references.publiees,
-  referencesBrouillon: references.brouillon,
-  pagesDeclarees: listerPagesDeclarees(),
-  slugsAvecBrouillon: await listerSlugsAvecBrouillon(env.DB),
-  reglagesAvecBrouillon: new Set(Object.keys(await obtenirBrouillonsReglages(env.DB))),
-  formulairesDeclares: lireFormulairesDeLaDeclaration(),
-  formulairesAvecBrouillon: new Set((await obtenirBrouillonsFormulaires(env.DB)).keys()),
-});
+const { recapitulatif, empreinte } = await calculerEtatPublication(env.DB, Date.now());
 const rien = recapitulatifEstVide(recapitulatif);
+const changement = Astro.url.searchParams.get('message') === 'changement';
 const retour = retourSur(Astro.url.searchParams.get('retour'));
 const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border bg-card [&>li]:min-h-11 [&>li]:break-words [&>li]:px-4 [&>li]:py-3';
 ---
 
 <GabaritCadre titre="Publier — Administration">
   <h1>{TEXTE_TITRE_PUBLIER}</h1>
+  {changement && <p class="mt-4 rounded-lg border border-border bg-card p-4" role="status" data-publication-changee>{TEXTE_PUBLICATION_CHANGEMENT}</p>}
   {
     rien ? (
       <div class="mt-6 rounded-lg border border-border bg-card p-4 text-ink-muted">
@@ -118,8 +102,10 @@ const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border
             </ul>
           </section>
         )}
+        <div data-ecran-publier data-empreinte={empreinte}></div>
         <p class="mt-6"><a id="annuler-publier" href={retour} class="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-ink hover:bg-muted">{TEXTE_BOUTON_ANNULER_PUBLIER}</a></p>
       </>
     )
   }
+  <MontageEcranPublier slot="scripts" />
 </GabaritCadre>

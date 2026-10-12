@@ -21,13 +21,15 @@ declare module 'cloudflare:workers' {
   export const env: {
     DB: {
       exec(query: string): Promise<unknown>;
+      // Plusieurs instructions liées, exécutées en un seul lot atomique (ticket 15).
+      batch(instructions: readonly unknown[]): Promise<unknown[]>;
       prepare(query: string): {
         bind(...valeurs: unknown[]): {
-          run(): Promise<unknown>;
+          run(): Promise<{ meta: { changes: number } }>;
           all(): Promise<{ results: unknown[] }>;
           first<T = unknown>(column?: string): Promise<T | null>;
         };
-        run(): Promise<unknown>;
+        run(): Promise<{ meta: { changes: number } }>;
         all(): Promise<{ results: unknown[] }>;
         first<T = unknown>(column?: string): Promise<T | null>;
       };
@@ -39,6 +41,8 @@ declare module 'cloudflare:workers' {
     EXPEDITEUR_CODE_CONNEXION: {
       send(message: unknown): void | Promise<void>;
     };
+    // Liaison `ASSETS` (wrangler.jsonc) : lit les originales empaquetées (ticket 15).
+    ASSETS: { fetch(requete: Request): Promise<Response> };
   };
   // Les exports du worker principal, tels que `@cloudflare/vitest-plugin` les
   // expose aux tests d'intégration en remplacement de `SELF` (déprécié) :
