@@ -29,6 +29,7 @@ par erreur (arbitrage du 2026-10-11, exigence « Même rendu que la page publiqu
   l'adresse gardée existante `/admin/medias/<id>/octets`, et sa description courante lue en base. Elle
   passe par le **même** composant d'image que la page publique (ticket 06, I3, ADR-0024). Seule cette
   adresse diffère du publié.
+- Point de départ (ticket 06, arbitrage voie A) : la route de l'aperçu passe déjà `images: imagesPubliees()` à `composerPage`, c'est-à-dire les images empaquetées dans le Worker en service ; une image posée absente de cette table lève `ImageManquanteError`. Le ticket 09 complète cette table par toute image dont la base garde encore les octets : jamais publiée, ou publiée et pas encore portée par le site en service (entre une publication et la fin de sa reconstruction, ou durablement si la reconstruction échoue). Ces images ont pour `source` l'adresse gardée `/admin/medias/<id>/octets` et leur description lue en base, comme le veut ADR-0020 (« tant que le site en service ne porte pas une image publiée, l'administration la sert depuis D1 ») : l'aperçu ne lève jamais `ImageManquanteError` sur une image que la base possède.
 - La route ne fait que lire : aucune écriture en base, aucun brouillon touché.
 - Sous la politique de l'administration : l'image gardée est servie par la même origine, aucune
   directive à rouvrir.
