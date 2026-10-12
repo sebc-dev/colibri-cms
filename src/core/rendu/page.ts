@@ -182,13 +182,26 @@ function imageDe(mediaId: string, slug: string, images: ImagesConnues): ImageRen
   return image;
 }
 
+/** L'image posée dans un emplacement d'image : le contenu voulu, sinon la déclaration (`''` : rien de posé). */
+function mediaIdPose(emplacement: EmplacementImage, contenu: ContenuCorrige | undefined): string {
+  return contenu?.nature === 'image' ? contenu.mediaId : emplacement.mediaId;
+}
+
+/** Les images posées dans une galerie ou un carrousel, dans l'ordre : le contenu voulu, sinon la déclaration. */
+function mediaIdsPoses(
+  emplacement: EmplacementGalerie | EmplacementCarrousel,
+  contenu: ContenuCorrige | undefined,
+): readonly string[] {
+  return contenu?.nature === 'galerie' || contenu?.nature === 'carrousel' ? contenu.mediaIds : emplacement.mediaIds;
+}
+
 function composerImage(
   emplacement: EmplacementImage,
   contenu: ContenuCorrige | undefined,
   slug: string,
   images: ImagesConnues | undefined,
 ): ImageEmplacementRendu {
-  const mediaId = contenu?.nature === 'image' ? contenu.mediaId : emplacement.mediaId;
+  const mediaId = mediaIdPose(emplacement, contenu);
   return {
     id: emplacement.id,
     nature: 'image',
@@ -202,8 +215,7 @@ function composerEnsemble(
   slug: string,
   images: ImagesConnues | undefined,
 ): EnsembleImagesRendu {
-  const mediaIds =
-    contenu?.nature === 'galerie' || contenu?.nature === 'carrousel' ? contenu.mediaIds : emplacement.mediaIds;
+  const mediaIds = mediaIdsPoses(emplacement, contenu);
   return {
     id: emplacement.id,
     nature: emplacement.nature,
@@ -322,5 +334,79 @@ export function reglagesRecouvertsParLePublie(
     coordonnees: coordonneesCourantes(declares.coordonnees, valeursPubliees(publies.coordonnees)),
     reseaux: listeReseaux(publies.reseaux) ?? declares.reseaux,
     mention: typeof publies.mention === 'string' ? publies.mention : declares.mention,
+  };
+}
+
+/** La déclaration des réglages recouverte par le publié, puis par les brouillons (une seule règle de superposition). */
+export function reglagesRecouvertsParLeBrouillon(
+  declares: ReglagesDeclares,
+  publies: ReglagesPubliesBruts,
+  brouillons: ReglagesPubliesBruts,
+): ReglagesDeclares {
+  return reglagesRecouvertsParLePublie(reglagesRecouvertsParLePublie(declares, publies), brouillons);
+}
+
+/** Les images que la page pose, une fois le brouillon superposé au publié (sans doublon, dans l'ordre). */
+export function imagesPoseesParLaPage(
+  page: PageAvecEmplacements,
+  publie: Brouillon | undefined,
+  brouillon: Brouillon | undefined,
+): string[] {
+  const ids = new Set<string>();
+  for (const emplacement of page.emplacements) {
+    const contenu = contenuDe(emplacement, publie, brouillon);
+    if (emplacement.nature === 'image') {
+      const id = mediaIdPose(emplacement, contenu);
+      if (id !== '') ids.add(id);
+    } else if (emplacement.nature === 'galerie' || emplacement.nature === 'carrousel') {
+      for (const id of mediaIdsPoses(emplacement, contenu)) ids.add(id);
+    }
+  }
+  return [...ids];
+}
+
+/** Le chemin d'un lien interne (sans requête ni ancre), ou null pour un lien externe ou en `//hôte`. */
+function cheminInterne(lien: string): { chemin: string; reste: string } | null {
+  if (!lien.startsWith('/') || lien.startsWith('//')) return null;
+  const fin = lien.search(/[?#]/);
+  return fin === -1 ? { chemin: lien, reste: '' } : { chemin: lien.slice(0, fin), reste: lien.slice(fin) };
+}
+
+/**
+ * Dans l'aperçu, un lien vers une page déclarée mène à l'aperçu de cette
+ * page (requête et ancre gardées) ; tout autre lien reste identique. L'adresse
+ * est construite depuis la déclaration, jamais recopiée du contenu.
+ */
+export function lienVersLApercu(lien: string, pages: readonly PageDeclaree[]): string {
+  const interne = cheminInterne(lien);
+  if (interne === null) return lien;
+  const page = pages.find((p) => adresseDeLaPage(p.slug) === interne.chemin);
+  return page === undefined ? lien : `/admin/apercu${adresseDeLaPage(page.slug)}${interne.reste}`;
+}
+
+function noeudVersLApercu(noeud: NoeudDocument, pages: readonly PageDeclaree[]): NoeudDocument {
+  const marks = noeud.marks?.map((m) => {
+    const href = m.type === 'link' ? m.attrs?.href : undefined;
+    return typeof href === 'string' ? { ...m, attrs: { ...m.attrs, href: lienVersLApercu(href, pages) } } : m;
+  });
+  return {
+    ...noeud,
+    ...(marks !== undefined ? { marks } : {}),
+    ...(noeud.content !== undefined ? { content: noeud.content.map((n) => noeudVersLApercu(n, pages)) } : {}),
+  };
+}
+
+/** La page composée, ses liens vers les pages déclarées menant à leur aperçu (seule la route de l'aperçu l'appelle). */
+export function pageAvecLiensDeLApercu(page: PageComposee, pages: readonly PageDeclaree[]): PageComposee {
+  return {
+    ...page,
+    navigation: page.navigation.map((e) => ({ ...e, adresse: lienVersLApercu(e.adresse, pages) })),
+    emplacements: page.emplacements.map((e): EmplacementRendu => {
+      if (e.nature === 'bouton-action') {
+        return { ...e, adresse: e.adresse === null ? null : lienVersLApercu(e.adresse, pages) };
+      }
+      if (e.nature === 'texte-riche') return { ...e, document: noeudVersLApercu(e.document, pages) };
+      return e;
+    }),
   };
 }

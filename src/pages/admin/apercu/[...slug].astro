@@ -2,8 +2,9 @@
 /**
  * L'aperçu d'une page (change 011-apercu-et-publication, ticket 08) : la page
  * rendue par le même gabarit et la même composition que la page publique
- * (ADR-0024), sur le contenu courant hors brouillons — dernière version
- * publiée de la page et des réglages. Réservé à la session (I6, ADR-0007) ;
+ * (ADR-0024), sur le contenu courant avec ses brouillons (ticket 09) :
+ * déclaration, recouverte par le publié, recouverte par le brouillon, pour les
+ * emplacements comme pour les réglages. Lecture seule : aucune écriture. Réservé à la session (I6, ADR-0007) ;
  * jamais conservé par un intermédiaire (`no-store`).
  */
 import Page from '../../../site/page.astro';
@@ -12,8 +13,17 @@ import { verifierSession } from '../../../platform/session/index.ts';
 import { listerPagesDeclarees, obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { lireReglagesDeLaDeclaration } from '../../../platform/contenu/reglages.ts';
 import { imagesPubliees } from '../../../platform/contenu/medias.ts';
+import { lireImagesDeLApercu } from '../../../platform/medias/magasin.ts';
+import { obtenirBrouillon } from '../../../platform/brouillons/magasin.ts';
+import { obtenirBrouillonsReglages } from '../../../platform/reglages/magasin.ts';
 import { obtenirPublieEmplacements, obtenirPubliesReglages } from '../../../platform/publication/magasin-publie.ts';
-import { composerPage, reglagesRecouvertsParLePublie } from '../../../core/rendu/page.ts';
+import {
+  composerPage,
+  imagesPoseesParLaPage,
+  pageAvecLiensDeLApercu,
+  reglagesRecouvertsParLeBrouillon,
+  type ImageRendue,
+} from '../../../core/rendu/page.ts';
 import { adresseDeLaPage } from '../../../core/pages/declaration.ts';
 import { env } from 'cloudflare:workers';
 
@@ -37,11 +47,36 @@ if (slug === undefined || !declaree) {
 }
 
 const publie = await obtenirPublieEmplacements(env.DB, slug);
-const reglages = reglagesRecouvertsParLePublie(
+const brouillon = await obtenirBrouillon(env.DB, slug);
+const reglages = reglagesRecouvertsParLeBrouillon(
   lireReglagesDeLaDeclaration(),
   await obtenirPubliesReglages(env.DB),
+  await obtenirBrouillonsReglages(env.DB),
 );
-const page = composerPage({ slug, pages, page: declaree, reglages, publie, images: imagesPubliees() });
+
+// Images : celles du site en service, sinon la base (octets servis par la route
+// des médias) ; la description est toujours la courante, lue en base.
+const empaquetees = imagesPubliees();
+const images = new Map<string, ImageRendue>(empaquetees);
+const posees = imagesPoseesParLaPage(declaree, publie, brouillon);
+const enBase = await lireImagesDeLApercu(env.DB, posees);
+for (const id of posees) {
+  const fiche = enBase.get(id);
+  const connue = empaquetees.get(id);
+  if (fiche !== undefined) {
+    images.set(id, {
+      source: connue?.source ?? `/admin/medias/${id}/octets`,
+      largeur: fiche.largeur,
+      hauteur: fiche.hauteur,
+      description: fiche.description,
+    });
+  }
+}
+
+const page = pageAvecLiensDeLApercu(
+  composerPage({ slug, pages, page: declaree, reglages, publie, brouillon, images }),
+  pages,
+);
 ---
 
 <Page page={page}>
