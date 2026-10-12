@@ -48,3 +48,12 @@ correction des six erreurs du check `analyse` dans un test neuf du ticket.
 - `eslint --fix` sur le test : il ne corrige qu'une erreur sur six, et la retouche se fait lue.
 - Ajouter `expect(vues).toHaveLength(1)` avant les lectures : c'est une assertion neuve, qui invaliderait
   la validation des tests en cache et imposerait de relancer au lieu de reprendre.
+
+## Issue
+Retouche faite le 2026-10-12 dans le test neuf `forge-github.test.ts` : `?.` retirés lignes 35 à 39,
+`as Request` retiré ligne 40 ; `npm run analyse` sorti à 0 et les 8 cas verts avant la reprise.
+Reprise avec `rerun: "2"` : PR #230. La review a retenu deux séries de tests que le correcteur n'a
+pas le droit d'écrire, rangées « appliquées » mais absentes du diff : les méthodes de l'adaptateur
+en succès (`coverage-F-1`) et, dans SC-16c, la publication qui aboutit par l'adaptateur GitHub
+(`coverage-F-2`). Elle a aussi laissé à trancher la contradiction entre la spec et `ux.md` sur le
+message « site non raccordé » (`change-F-1`).
