@@ -61,3 +61,14 @@ Hors de cette session : commiter le travail dans le worktree, puis relancer
 ## Écarté
 - Retirer le 5e paramètre pour revenir au vert : cela annulerait `error-handling-F-2`, un défaut réel
   sur le chemin critique (les images de départ disparaîtraient du site à la première publication).
+
+## Issue
+Retouche faite le 2026-10-12 dans les tests neufs : le lecteur des originales passé aux quatre
+appels, et les tests demandés par la review écrits (panne du dépôt, échec entre les deux branches,
+finalisation rejouée, image de départ gardée, gardes 401, `/suite` en 400, 409 et 502, îlot et
+rechargement). Le lecteur des tests lit `medias/` en `?inline` : par `ASSETS`, les adresses vues
+d'un test ne mènent à rien. Test statique commité à part (`2b1aede`). Reprise avec `rerun: "2"` :
+PR #226, empilée sur la #224, empreintes des tests retouchés inchangées. La review a de nouveau
+retenu des tests que le correcteur n'a pas le droit d'écrire : empreinte du récapitulatif
+(`coverage-F-2`), vidage sélectif des octets (`coverage-F-3`), textes de publication sans terme de
+développeur (`coverage-F-8`), image reposée pendant le dépôt (`error-handling-F-1`).
