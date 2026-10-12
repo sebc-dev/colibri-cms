@@ -76,6 +76,19 @@ it("SC-11b — une image publiée sans description en ligne et sans description 
   expect(recapitulatifEstVide(recap)).toBe(true);
 });
 
+it("SC-11b — une image publiée redécrite mais posée par aucun emplacement figure seulement parmi les effacées", () => {
+  const recap = composerRecapitulatif(
+    entrees({
+      images: [image('redecrite-orpheline', { publiee: true, description: 'nouvelle', descriptionPubliee: 'ancienne' })],
+      referencesPubliees: new Set(),
+      referencesBrouillon: new Set(),
+    }),
+  );
+
+  expect(recap.imagesEffacees.map((i) => i.id)).toContain('redecrite-orpheline');
+  expect(recap.imagesRedecrites).toEqual([]);
+});
+
 it("SC-11c — une image posée seulement dans un emplacement que le brouillon remplace est effacée", () => {
   const recap = composerRecapitulatif(
     entrees({
