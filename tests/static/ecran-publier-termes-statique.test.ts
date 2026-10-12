@@ -24,6 +24,12 @@ const TERMES_DEVELOPPEUR = [
   'base de données',
   'token',
   'api',
+  'dépôt',
+  'github',
+  'push',
+  'serveur',
+  '404',
+  '422',
 ];
 
 function texteDeLEcran(): string {

@@ -138,6 +138,7 @@ it("SC-15e — une publication qui efface une image : elle quitte la bibliothèq
   await publier(db, forge);
 
   // Assert 1 : hors bibliothèque, fiche retirée du contenu déposé
+  expect(forge.chemins(REF_MEDIA), 'encore sur la branche des images à la publication qui l’efface').toContain('medias/image-a-effacer.png');
   expect(await compter(db, 'medias', 'id = ?1', 'image-a-effacer')).toBe(0);
   expect(forge.chemins()).not.toContain('content/medias/image-a-effacer.json');
 
@@ -147,6 +148,64 @@ it("SC-15e — une publication qui efface une image : elle quitte la bibliothèq
 
   // Assert 2 : les octets ne sont plus sur la branche des images
   expect(forge.chemins(REF_MEDIA)).not.toContain('medias/image-a-effacer.png');
+});
+
+it("ticket 15 — une image effacée qu'une correction pose de nouveau pendant le dépôt reste dans la bibliothèque et repart à la publication suivante (FR-037)", async () => {
+  // Arrange : l'image est publiée sur Tarifs, puis remplacée ; la publication qui l'efface est confirmée,
+  // et une correction la pose de nouveau après la confirmation
+  const db = await assurerSchema();
+  await semerImage(db, 'image-reposee', new Uint8Array([137, 80, 78, 71, 1, 2, 3]));
+  await semerBrouillonEmplacement(db, 'tarifs', 'bandeau-tarifs', { nature: 'image', mediaId: 'image-reposee' }, 1000);
+  const forge = await ForgeEnMemoire.creer({});
+  await publier(db, forge);
+  await semerBrouillonEmplacement(db, 'tarifs', 'bandeau-tarifs', { nature: 'image', mediaId: 'media-fixture-hero' }, 2000);
+  expect((await calculerEtatPublication(db, Date.now())).recapitulatif.imagesEffacees.map((i) => i.id)).toEqual([
+    'image-reposee',
+  ]);
+  const jeton = await confirmer(db);
+  await semerBrouillonEmplacement(db, 'tarifs', 'bandeau-tarifs', { nature: 'image', mediaId: 'image-reposee' }, 3000);
+
+  // Act
+  const issue = await poursuivrePublication(db, jeton, Date.now(), forge, lecteurDesOriginales());
+
+  // Assert : gardée, redevenue non publiée, toujours posée par la correction
+  expect(issue.ok).toBe(true);
+  expect(await compter(db, 'medias', 'id = ?1', 'image-reposee')).toBe(1);
+  expect(await lireLignes(db, "select publiee_le, empreinte_depot from medias where id = 'image-reposee'")).toEqual([
+    { publiee_le: null, empreinte_depot: null },
+  ]);
+  expect(await contenuDuBrouillon(db, 'tarifs', 'bandeau-tarifs')).toEqual({ nature: 'image', mediaId: 'image-reposee' });
+  // la publication suivante redépose sa fiche et ses octets
+  await publier(db, forge);
+  expect(forge.chemins()).toContain('content/medias/image-reposee.json');
+  expect(forge.chemins(REF_MEDIA)).toContain('medias/image-reposee.png');
+});
+
+it("ticket 15 — au début d'une publication, seules les images publiées que le site empaquette perdent leurs octets (ADR-0020)", async () => {
+  // Arrange : une image empaquetée, non publiée, avec octets ; une image hors paquet posée sur Tarifs
+  const db = await assurerSchema();
+  await semerImage(db, 'media-fixture-equipe', new Uint8Array([137, 80, 78, 71, 1, 2, 3]));
+  await semerImage(db, 'image-hors-paquet', new Uint8Array([137, 80, 78, 71, 4, 5, 6]));
+  await semerBrouillonEmplacement(db, 'tarifs', 'bandeau-tarifs', { nature: 'image', mediaId: 'image-hors-paquet' });
+  await semerBrouillonEmplacement(db, 'contact', 'presentation', { nature: 'texte-riche', markdown: 'Première.' });
+  const forge = await ForgeEnMemoire.creer({});
+  const longueur = async (id: string): Promise<unknown> =>
+    ((await lireLignes(db, 'select length(octets) as n from medias where id = ?1', id)) as { n: number }[])[0]?.n;
+
+  // Act 1
+  await publier(db, forge);
+
+  // Assert 1 : aucune des deux n'était publiée au début de cette publication
+  expect(await longueur('media-fixture-equipe'), 'empaquetée, pas encore publiée').toBe(7);
+  expect(await longueur('image-hors-paquet'), 'hors paquet, pas encore publiée').toBe(7);
+
+  // Act 2
+  await semerBrouillonEmplacement(db, 'contact', 'presentation', { nature: 'texte-riche', markdown: 'Seconde.' });
+  await publier(db, forge);
+
+  // Assert 2 : seule l'image publiée ET empaquetée a perdu ses octets
+  expect(await longueur('media-fixture-equipe'), 'publiée et empaquetée').toBe(0);
+  expect(await longueur('image-hors-paquet'), 'publiée, hors paquet').toBe(7);
 });
 
 it('ticket 15 — une image posée au départ reste sur la branche des images après une publication', async () => {

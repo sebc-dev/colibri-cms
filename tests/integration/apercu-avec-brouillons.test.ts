@@ -174,6 +174,19 @@ async function semerBrouillonReglage(
     .run();
 }
 
+async function semerPublieReglage(
+  db: DBLike,
+  reglage: string,
+  contenu: unknown,
+): Promise<void> {
+  await db
+    .prepare(
+      "insert into publies_reglages (reglage, contenu, publie_le) values (?1, ?2, ?3)",
+    )
+    .bind(reglage, JSON.stringify(contenu), Date.now())
+    .run();
+}
+
 /** Une image téléversée, décrite, que le site en service ne porte pas. */
 async function semerImageDecrite(
   db: DBLike,
@@ -241,6 +254,13 @@ it("SC-09b — l'aperçu de Contact présente ensemble le brouillon de la page e
   await semerBrouillonReglage(db, "coordonnees", {
     telephone: "06 11 22 33 44",
   });
+  await semerPublieReglage(db, "coordonnees", { telephone: "09 87 65 43 21" });
+  await semerPublieReglage(db, "reseaux", [
+    { nom: "Mastodon", lien: "https://mastodon.example/@publie" },
+  ]);
+  await semerBrouillonReglage(db, "reseaux", [
+    { nom: "Bluesky", lien: "https://bsky.example/brouillon" },
+  ]);
 
   const corps = await (await apercu("contact", cookie)).text();
   const pied = corps.slice(corps.indexOf("<footer"));
@@ -248,6 +268,11 @@ it("SC-09b — l'aperçu de Contact présente ensemble le brouillon de la page e
   expect(corps).toContain("Venez nous voir, brouillon de contact.");
   expect(pied).toContain("06 11 22 33 44");
   expect(corps).not.toContain("01 23 45 67 89");
+  expect(pied).toContain("Bluesky");
+  expect(pied).toContain("https://bsky.example/brouillon");
+  expect(pied).not.toContain("09 87 65 43 21");
+  expect(pied).not.toContain("Mastodon");
+  expect(pied).not.toContain("01 23 45 67 89");
 });
 
 it("SC-09c — une image téléversée, décrite et posée sans publier paraît dans l'aperçu de Tarifs avec sa description en texte de remplacement", async () => {
@@ -386,4 +411,101 @@ it("SC-09g — une image publiée, téléversée et décrite, que le site en ser
   expect(corps).not.toContain("ImageManquanteError");
   expect(image).toContain('src="/admin/medias/media-publiee-recente/octets"');
   expect(image).toContain('alt="Tarte aux fraises"');
+});
+
+it("une galerie en brouillon qui pose 60 images décrites paraît en entier dans l'aperçu d'Accueil", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  const ids = Array.from(
+    { length: 60 },
+    (_, n) => `media-lot-${String(n).padStart(2, "0")}`,
+  );
+  for (const [n, id] of ids.entries()) {
+    await semerImageDecrite(db, id, `Réalisation ${String(n)}`);
+  }
+  await semerBrouillon(db, "accueil", "galerie-realisations", {
+    nature: "galerie",
+    mediaIds: ids,
+  });
+
+  const reponse = await apercu("", cookie);
+  const corps = await reponse.text();
+
+  expect(reponse.status).toBe(200);
+  for (const [n, id] of ids.entries()) {
+    const image = balise(corps, new RegExp(`<img\\b[^>]*${id}[^>]*>`));
+    expect(image, id).toContain(`src="/admin/medias/${id}/octets"`);
+    expect(image, id).toContain(`alt="Réalisation ${String(n)}"`);
+  }
+});
+
+it("SC-09g — une image que le site en service porte déjà garde son adresse statique dans l'aperçu, avec sa description courante", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  await db
+    .prepare(
+      `insert into medias (id, nom_origine, format, largeur, hauteur, poids_octets, octets, creee_le, publiee_le, description, description_publiee)
+       values ('media-fixture-hero', 'media-fixture-hero.png', 'png', 1280, 640, 0, x'', ?1, ?2, ?3, ?4)`,
+    )
+    .bind(
+      Date.now(),
+      Date.now(),
+      "Description courante en base",
+      "Image d'accueil du site de démonstration",
+    )
+    .run();
+
+  const publiee = await (await publique("tarifs")).text();
+  const adresseStatique = /\bsrc="([^"]*)"/.exec(
+    balise(publiee, /<img\b[^>]*media-fixture-hero[^>]*>/),
+  )?.[1];
+  const reponse = await apercu("tarifs", cookie);
+  const corps = await reponse.text();
+  const image = balise(corps, /<img\b[^>]*media-fixture-hero[^>]*>/);
+
+  expect(adresseStatique, "adresse statique de la page publique").toMatch(
+    /media-fixture-hero/,
+  );
+  expect(reponse.status).toBe(200);
+  expect(image).toContain(`src="${adresseStatique ?? ""}"`);
+  expect(adresseStatique).not.toBe("/admin/medias/media-fixture-hero/octets");
+  expect(image).toContain('alt="Description courante en base"');
+});
+
+it("SC-09c — une image téléversée et décrite, posée sans publier dans une galerie, paraît dans l'aperçu avec sa description", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  await semerImageDecrite(db, "media-galerie", "Pièce montée");
+  await semerBrouillon(db, "accueil", "galerie-realisations", {
+    nature: "galerie",
+    mediaIds: ["media-galerie"],
+  });
+
+  const reponse = await apercu("", cookie);
+  const corps = await reponse.text();
+  const image = balise(corps, /<img\b[^>]*media-galerie[^>]*>/);
+
+  expect(reponse.status).toBe(200);
+  expect(corps).not.toContain("ImageManquanteError");
+  expect(image).toContain('src="/admin/medias/media-galerie/octets"');
+  expect(image).toContain('alt="Pièce montée"');
+});
+
+it("SC-09c — une image téléversée et décrite, posée sans publier dans un carrousel, paraît dans l'aperçu avec sa description", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  await semerImageDecrite(db, "media-carrousel", "Logo d'un client");
+  await semerBrouillon(db, "contact", "carrousel-clients", {
+    nature: "carrousel",
+    mediaIds: ["media-carrousel"],
+  });
+
+  const reponse = await apercu("contact", cookie);
+  const corps = await reponse.text();
+  const image = balise(corps, /<img\b[^>]*media-carrousel[^>]*>/);
+
+  expect(reponse.status).toBe(200);
+  expect(corps).not.toContain("ImageManquanteError");
+  expect(image).toContain('src="/admin/medias/media-carrousel/octets"');
+  expect(image).toContain(`alt="Logo d'un client"`);
 });

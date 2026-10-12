@@ -171,6 +171,29 @@ async function ouvrir(db: DBLike): Promise<string> {
   return main ?? '';
 }
 
+/** Le corps entier de l'écran Publier (cadre, titre, scripts compris), et pas seulement <main>. */
+async function ouvrirLeCorps(db: DBLike): Promise<string> {
+  const cookie = await semerSession(db);
+  const reponse = await exports.default.fetch(
+    new Request(PUBLIER, { headers: { cookie: `${NOM_COOKIE_SESSION}=${cookie}` } }),
+  );
+  expect(reponse.status).toBe(200);
+  return reponse.text();
+}
+
+async function viderLesTables(): Promise<void> {
+  for (const table of TABLES) {
+    await obtenirDB().prepare(`delete from ${table}`).run();
+  }
+}
+
+async function semerBrouillonReglage(db: DBLike, reglage: string): Promise<void> {
+  await db
+    .prepare('insert into brouillons_reglages (reglage, contenu, maj_le) values (?1, ?2, ?3)')
+    .bind(reglage, JSON.stringify({ texte: 'x' }), Date.now())
+    .run();
+}
+
 function section(main: string, marque: string): string | null {
   const debut = main.indexOf(marque);
   if (debut === -1) return null;
@@ -196,6 +219,52 @@ function elements(contenu: string | null): string[] {
     .map((li) => li.slice(li.indexOf('>') + 1, li.indexOf('</li>')))
     .map((interieur) => sansBalises(interieur.split('<a ')[0] ?? ''));
 }
+
+/**
+ * Le texte que l'éditrice lit : sans scripts ni styles, sans balises ni attributs, entités décodées, en minuscules.
+ * Une espace précède chaque balise : deux textes voisins (« Mes pages », « Médias ») ne se soudent pas en un mot.
+ */
+function texteVisible(corps: string): string {
+  const sansScripts = corps.replace(/<script\b[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[\s\S]*?<\/style>/gi, ' ');
+  return sansBalises(sansScripts.replaceAll('<', ' <'))
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+    .replaceAll('&amp;', '&')
+    .toLowerCase();
+}
+
+/** Même découpage que `contientLeMot` de tests/static/ecran-publier-termes-statique.test.ts. */
+function contientLeMot(texte: string, mot: string): boolean {
+  return texte.split(/[^\p{L}\p{N}]+/u).includes(mot) || (mot.includes(' ') && texte.includes(mot));
+}
+
+const TERMES_DEVELOPPEUR_RENDUS = [
+  'dépôt',
+  'github',
+  'branche',
+  'commit',
+  'build',
+  'déploiement',
+  'déployer',
+  'push',
+  'serveur',
+  '404',
+  '422',
+  'repository',
+  'endpoint',
+  'webhook',
+  'backend',
+  'framework',
+  'json',
+  'sha',
+  'blob',
+  'octets',
+  'base de données',
+  'token',
+  'api',
+];
 
 it('SC-11a — pages Contact et Tarifs, formulaire Devis gâteau en brouillon, une image non posée : cinq listes exactes, rien d’autre', async () => {
   const db = await assurerSchema();
@@ -291,4 +360,60 @@ it('SC-11e — un nom d’image contenant <, >, & ou guillemets est affiché com
   expect(main).not.toContain('<i>');
   expect(main).toContain('&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;x&quot; &lt;b&gt;gras&lt;/b&gt;');
   expect(main).toContain('&lt;i&gt;&quot;redécrite&quot;&lt;/i&gt; &amp; co');
+});
+
+it("SC-11c — une image posée au départ par l'intégrateur, que les brouillons ne posent plus nulle part, figure parmi les effacées avec sa vignette, sans passage par Médias", async () => {
+  // Arrange : aucune ligne pour media-fixture-hero ; les brouillons d'Accueil et de Tarifs la remplacent
+  const db = await assurerSchema();
+  await semerImage(db, 'img-remplacante', { nom: 'Remplaçante' });
+  await semerBrouillonImage(db, 'img-remplacante');
+  await db
+    .prepare(
+      'insert into brouillons_emplacements (page_slug, id_emplacement, nature, contenu, maj_le) values (?1, ?2, ?3, ?4, ?5)',
+    )
+    .bind('tarifs', 'bandeau-tarifs', 'image', JSON.stringify({ nature: 'image', mediaId: 'img-remplacante' }), Date.now())
+    .run();
+
+  // Act
+  const main = await ouvrir(db);
+
+  // Assert
+  const effacees = section(main, 'data-recap-images-effacees');
+  expect(elements(effacees)).toEqual(['media-fixture-hero.png']);
+  expect(effacees).toMatch(/<img[^>]*src="[^"]+"/);
+  expect(main).not.toContain('Remplaçante');
+  expect(main).not.toContain('media-fixture-equipe.png');
+  expect(section(main, 'data-recap-images-redecrites')).toBeNull();
+});
+
+it("SC-11f — aucun terme de développeur dans le HTML rendu de l'écran Publier (listes, boutons, messages)", async () => {
+  // Arrange A : les cinq listes présentes
+  const db = await assurerSchema();
+  await semerBrouillonPage(db, 'tarifs');
+  await semerBrouillonReglage(db, 'mention');
+  await semerBrouillonFormulaire(db, 'devis-gateau');
+  await semerImage(db, 'img-redecrite', {
+    nom: 'Mariage',
+    description: 'Nouvelle description',
+    publiee: { description: 'Ancienne description' },
+  });
+  await semerPublieImage(db, 'img-redecrite');
+  await semerImage(db, 'img-libre', { nom: 'Gâteau oublié' });
+
+  // Act A
+  const rendu = texteVisible(await ouvrirLeCorps(db));
+
+  // Arrange B : rien à publier
+  await viderLesTables();
+
+  // Act B
+  const vide = texteVisible(await ouvrirLeCorps(db));
+
+  // Assert
+  expect(rendu).toContain('images qui seront définitivement effacées');
+  expect(vide).toContain('rien à publier');
+  for (const terme of TERMES_DEVELOPPEUR_RENDUS) {
+    expect(contientLeMot(rendu, terme), `rendu A : ${terme}`).toBe(false);
+    expect(contientLeMot(vide, terme), `rendu B : ${terme}`).toBe(false);
+  }
 });
