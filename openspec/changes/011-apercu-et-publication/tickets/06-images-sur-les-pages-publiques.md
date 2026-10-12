@@ -47,10 +47,10 @@ rapidité mesurée (story « Site public rapide et complet ») ; le dépôt des 
 (tickets 13 et 15).
 
 ## Critères
-- [ ] Un visiteur qui demande `/` reçoit la page « Accueil », titrée « Accueil », portant le contenu de ses emplacements dans l'ordre posé   (SC-06a)
-- [ ] Un emplacement d'image publié qui pose une image dont la description est « Gâteau d'anniversaire à la fraise » paraît avec ce texte de remplacement et ses dimensions   (SC-06b)
-- [ ] Un emplacement d'image publié qui pose une image sans description la présente marquée décorative, avec un texte de remplacement vide   (SC-06c)
-- [ ] Quand une galerie publiée pose trois images et qu'un carrousel publié pose les mêmes dans l'ordre inverse, la galerie les présente dans son ordre, et le carrousel dans le sien, en une bande qui défile sans script   (SC-06d)
-- [ ] Un emplacement d'image sans image, ou une galerie qui n'en porte aucune, ne dessine rien sur la page, et aucune image manquante ne paraît   (SC-06e)
+- [x] Un visiteur qui demande `/` reçoit la page « Accueil », titrée « Accueil », portant le contenu de ses emplacements dans l'ordre posé   (SC-06a)
+- [x] Un emplacement d'image publié qui pose une image dont la description est « Gâteau d'anniversaire à la fraise » paraît avec ce texte de remplacement et ses dimensions   (SC-06b)
+- [x] Un emplacement d'image publié qui pose une image sans description la présente marquée décorative, avec un texte de remplacement vide   (SC-06c)
+- [x] Quand une galerie publiée pose trois images et qu'un carrousel publié pose les mêmes dans l'ordre inverse, la galerie les présente dans son ordre, et le carrousel dans le sien, en une bande qui défile sans script   (SC-06d)
+- [x] Un emplacement d'image sans image, ou une galerie qui n'en porte aucune, ne dessine rien sur la page, et aucune image manquante ne paraît   (SC-06e)
 - [ ] Quand la reconstruction du site trouve une page dont un emplacement pose une image absente des images publiées, elle échoue en nommant cette image et cette page, et aucun site n'est produit   (SC-06f)
-- [ ] Quand la reconstruction du site trouve, pour chaque image posée par le contenu publié, ses octets parmi les images publiées, le site est produit, et chaque page présente ses images   (SC-06g)
+- [x] Quand la reconstruction du site trouve, pour chaque image posée par le contenu publié, ses octets parmi les images publiées, le site est produit, et chaque page présente ses images   (SC-06g)

@@ -13,7 +13,9 @@ Chaque page déclarée SHALL avoir un aperçu qui la présente telle qu'elle ser
 avec son contenu courant — son brouillon s'il en porte un, sa dernière version publiée sinon —, et le pied
 de page avec les coordonnées et les réseaux sociaux courants — leur brouillon s'ils en portent un, leur
 dernière version publiée sinon. Une image posée en brouillon, même jamais publiée, DOIT y paraître avec sa
-description courante. L'aperçu montre l'état qui sera en ligne, jamais un état intermédiaire, et ne
+description courante ; de même une image publiée que le site en service ne porte pas encore — entre une
+publication et la fin de la reconstruction qui l'empaquette, ou tant qu'aucune reconstruction n'a abouti
+(ADR-0020). L'aperçu montre l'état qui sera en ligne, jamais un état intermédiaire, et ne
 touche ni aux brouillons ni au site public.
 
 #### Scenario: L'aperçu montre le brouillon de la page
@@ -26,6 +28,10 @@ touche ni aux brouillons ni au site public.
 
 #### Scenario: Une image jamais publiée paraît dans l'aperçu
 - **WHEN** l'éditrice a téléversé une image, l'a décrite et l'a posée dans un emplacement de « Tarifs », sans publier, puis demande l'aperçu de « Tarifs »
+- **THEN** l'image y paraît à sa place, avec sa description comme texte de remplacement
+
+#### Scenario: Une image publiée que le site ne porte pas encore paraît dans l'aperçu
+- **WHEN** l'éditrice a publié « Tarifs » avec une image téléversée et décrite, que le site en service ne porte pas encore cette image, puis demande l'aperçu de « Tarifs »
 - **THEN** l'image y paraît à sa place, avec sa description comme texte de remplacement
 
 #### Scenario: Une page sans brouillon s'aperçoit telle qu'elle est publiée
@@ -42,8 +48,9 @@ L'aperçu SHALL être dessiné par le **même gabarit de page et le même rendu 
 publique — un seul lieu de rendu, atteint par les deux (I3, ARCH-3). Pour un même contenu, la page de
 l'aperçu DOIT présenter les mêmes éléments, dans le même ordre, avec les mêmes textes, les mêmes liens et
 les mêmes images que la page publique ; seuls diffèrent le bandeau propre à l'aperçu, l'adresse d'où
-sont servis les octets d'une image encore en brouillon, et l'adresse des liens qui visent une page
-déclarée du site, qui mènent à l'aperçu de cette page.
+sont servis les octets d'une image que le site en service ne porte pas encore — en brouillon, ou publiée
+avant que la reconstruction ne l'empaquette —, et l'adresse des liens qui visent une page déclarée du
+site, qui mènent à l'aperçu de cette page.
 
 #### Scenario: Pour un même contenu, l'aperçu et la page publique coïncident
 - **WHEN** une page ne porte aucun brouillon, qu'aucun réglage n'en porte, et que l'on compare son aperçu à sa page publique

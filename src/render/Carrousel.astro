@@ -1,0 +1,23 @@
+---
+/** Un carrousel : les images en une bande qui défile sans script, dans l'ordre posé. Sans image, rien ne se dessine. */
+import type { ImageRendue } from '../core/rendu/page.ts';
+import Image from './Image.astro';
+
+interface Props {
+  images: readonly ImageRendue[];
+}
+
+const { images } = Astro.props;
+---
+
+{
+  images.length > 0 && (
+    <ul class="carrousel">
+      {images.map((image) => (
+        <li>
+          <Image image={image} />
+        </li>
+      ))}
+    </ul>
+  )
+}

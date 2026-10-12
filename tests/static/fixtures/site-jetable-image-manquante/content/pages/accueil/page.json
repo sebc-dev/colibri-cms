@@ -1,0 +1,7 @@
+{
+  "titre": "Accueil",
+  "rang": 0,
+  "emplacements": [
+    { "id": "image-absente", "nature": "image", "rang": 0, "mediaId": "sans-octets" }
+  ]
+}

@@ -5,3 +5,6 @@
 export { default as BoutonAction } from './BoutonAction.astro';
 export { default as LienVideo } from './LienVideo.astro';
 export { default as TexteRiche } from './markdown/TexteRiche.astro';
+export { default as Image } from './Image.astro';
+export { default as Galerie } from './Galerie.astro';
+export { default as Carrousel } from './Carrousel.astro';

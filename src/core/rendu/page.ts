@@ -14,6 +14,9 @@
 import {
   adresseDeLaPage,
   type Emplacement,
+  type EmplacementCarrousel,
+  type EmplacementGalerie,
+  type EmplacementImage,
   type PageAvecEmplacements,
   type PageDeclaree,
 } from '../pages/declaration.ts';
@@ -57,13 +60,55 @@ export interface TexteRicheRendu {
   readonly document: NoeudDocument;
 }
 
-/** Les natures que ce ticket ne dessine pas encore (images : 06). */
-export interface EmplacementNonDessine {
-  readonly id: string;
-  readonly nature: 'image' | 'galerie' | 'carrousel';
+/**
+ * Une image telle que le rendu la reçoit : `source` est l'adresse que le
+ * gabarit écrit (image empaquetée à la construction, ou adresse gardée de
+ * l'aperçu), `description` devient le texte de remplacement (vide : image
+ * décorative).
+ */
+export interface ImageRendue {
+  readonly source: string;
+  readonly largeur: number;
+  readonly hauteur: number;
+  readonly description: string;
 }
 
-export type EmplacementRendu = BoutonRendu | LienVideoRendu | TexteRicheRendu | EmplacementNonDessine;
+/** Une image connue du rendu, par identité stable. */
+export type ImagesConnues = ReadonlyMap<string, ImageRendue>;
+
+/** Un emplacement d'image : `image` est `null` quand rien n'est posé (rien ne se dessine). */
+export interface ImageEmplacementRendu {
+  readonly id: string;
+  readonly nature: 'image';
+  readonly image: ImageRendue | null;
+}
+
+/** Une galerie ou un carrousel : les images dans l'ordre posé, vide si aucune. */
+export interface EnsembleImagesRendu {
+  readonly id: string;
+  readonly nature: 'galerie' | 'carrousel';
+  readonly images: readonly ImageRendue[];
+}
+
+export type EmplacementRendu =
+  | BoutonRendu
+  | LienVideoRendu
+  | TexteRicheRendu
+  | ImageEmplacementRendu
+  | EnsembleImagesRendu;
+
+/** Une image posée par le contenu mais absente des images connues : la construction doit échouer. */
+export class ImageManquanteError extends Error {
+  readonly mediaId: string;
+  readonly page: string;
+
+  constructor(mediaId: string, page: string) {
+    super(`L'image « ${mediaId} » posée par la page « ${page} » est absente des images publiées.`);
+    this.name = 'ImageManquanteError';
+    this.mediaId = mediaId;
+    this.page = page;
+  }
+}
 
 /** Une coordonnée du pied de page. `href` est absent pour un texte ou une adresse. */
 export interface CoordonneeRendue {
@@ -104,6 +149,8 @@ export interface EntreeComposition {
   readonly publie?: Brouillon;
   /** Les brouillons voulus (aperçu), qui l'emportent sur le publié. */
   readonly brouillon?: Brouillon;
+  /** Les images connues, par identité. Absent : aucune image n'est dessinée ni vérifiée. */
+  readonly images?: ImagesConnues;
 }
 
 function contenuDe(
@@ -129,10 +176,47 @@ function sansLienRefuse(noeud: NoeudDocument): NoeudDocument {
   };
 }
 
+function imageDe(mediaId: string, slug: string, images: ImagesConnues): ImageRendue {
+  const image = images.get(mediaId);
+  if (image === undefined) throw new ImageManquanteError(mediaId, slug);
+  return image;
+}
+
+function composerImage(
+  emplacement: EmplacementImage,
+  contenu: ContenuCorrige | undefined,
+  slug: string,
+  images: ImagesConnues | undefined,
+): ImageEmplacementRendu {
+  const mediaId = contenu?.nature === 'image' ? contenu.mediaId : emplacement.mediaId;
+  return {
+    id: emplacement.id,
+    nature: 'image',
+    image: images === undefined || mediaId === '' ? null : imageDe(mediaId, slug, images),
+  };
+}
+
+function composerEnsemble(
+  emplacement: EmplacementGalerie | EmplacementCarrousel,
+  contenu: ContenuCorrige | undefined,
+  slug: string,
+  images: ImagesConnues | undefined,
+): EnsembleImagesRendu {
+  const mediaIds =
+    contenu?.nature === 'galerie' || contenu?.nature === 'carrousel' ? contenu.mediaIds : emplacement.mediaIds;
+  return {
+    id: emplacement.id,
+    nature: emplacement.nature,
+    images: images === undefined ? [] : mediaIds.map((mediaId) => imageDe(mediaId, slug, images)),
+  };
+}
+
 function composerEmplacement(
   emplacement: Emplacement,
   publie: Brouillon | undefined,
   brouillon: Brouillon | undefined,
+  slug: string,
+  images: ImagesConnues | undefined,
 ): EmplacementRendu {
   const contenu = contenuDe(emplacement, publie, brouillon);
   if (emplacement.nature === 'bouton-action') {
@@ -162,7 +246,8 @@ function composerEmplacement(
       document: sansLienRefuse(analyserMarkdownRestreint(markdown)),
     };
   }
-  return { id: emplacement.id, nature: emplacement.nature };
+  if (emplacement.nature === 'image') return composerImage(emplacement, contenu, slug, images);
+  return composerEnsemble(emplacement, contenu, slug, images);
 }
 
 function hrefDeCoordonnee(nature: NatureCoordonnee, valeur: string): string | undefined {
@@ -199,7 +284,7 @@ export function composerPage(entree: EntreeComposition): PageComposee {
       adresse: adresseDeLaPage(p.slug),
       courante: p.slug === entree.slug,
     })),
-    emplacements: entree.page.emplacements.map((e) => composerEmplacement(e, entree.publie, entree.brouillon)),
+    emplacements: entree.page.emplacements.map((e) => composerEmplacement(e, entree.publie, entree.brouillon, entree.slug, entree.images)),
     pied: composerPied(entree.reglages),
   };
 }

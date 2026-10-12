@@ -1,0 +1,25 @@
+---
+/**
+ * Une image posée : sa description devient le texte de remplacement ; sans
+ * description, l'image est décorative (texte de remplacement vide). Les
+ * dimensions déclarées réservent la place. Le même composant reçoit l'image
+ * publiée et celle de l'aperçu (I3, ADR-0024). Aucun balisage interprété.
+ */
+import type { ImageRendue } from '../core/rendu/page.ts';
+
+interface Props {
+  image: ImageRendue;
+}
+
+const { image } = Astro.props;
+---
+
+<img
+  src={image.source}
+  width={image.largeur}
+  height={image.hauteur}
+  alt={image.description}
+  role={image.description === '' ? 'presentation' : undefined}
+  loading="lazy"
+  decoding="async"
+/>

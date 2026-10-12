@@ -12,7 +12,9 @@ L'aperçu d'une page montre désormais l'état qui sera en ligne **avec tous ses
   portent un.
 
 Une image téléversée et posée en brouillon, même jamais publiée, paraît à sa place avec sa
-description courante.
+description courante. Il en va de même d'une image publiée que le site en service ne porte pas encore :
+l'aperçu ne tombe pas en erreur entre une publication et la fin de la reconstruction (arbitrage du
+2026-10-12, ADR-0020).
 
 Demander l'aperçu ne change rien : le brouillon reste tel quel avec sa marque, et le site public est
 inchangé.
@@ -29,6 +31,7 @@ par erreur (arbitrage du 2026-10-11, exigence « Même rendu que la page publiqu
   l'adresse gardée existante `/admin/medias/<id>/octets`, et sa description courante lue en base. Elle
   passe par le **même** composant d'image que la page publique (ticket 06, I3, ADR-0024). Seule cette
   adresse diffère du publié.
+- Point de départ (ticket 06, arbitrage voie A ; élargissement arbitré le 2026-10-12, SC-09g) : la route de l'aperçu passe déjà `images: imagesPubliees()` à `composerPage`, c'est-à-dire les images empaquetées dans le Worker en service ; une image posée absente de cette table lève `ImageManquanteError`. Le ticket 09 complète cette table par toute image dont la base garde encore les octets : jamais publiée, ou publiée et pas encore portée par le site en service (entre une publication et la fin de sa reconstruction, ou durablement si la reconstruction échoue). Ces images ont pour `source` l'adresse gardée `/admin/medias/<id>/octets` et leur description lue en base, comme le veut ADR-0020 (« tant que le site en service ne porte pas une image publiée, l'administration la sert depuis D1 ») : l'aperçu ne lève jamais `ImageManquanteError` sur une image que la base possède.
 - La route ne fait que lire : aucune écriture en base, aucun brouillon touché.
 - Sous la politique de l'administration : l'image gardée est servie par la même origine, aucune
   directive à rouvrir.
@@ -50,3 +53,4 @@ demande de devis », qui dessinera le formulaire dans le rendu partagé) ; le r�
 - [ ] Quand l'éditrice demande l'aperçu d'une page qui porte un brouillon, le brouillon est inchangé, la page porte toujours sa marque de brouillon, et le site public est inchangé   (SC-09d)
 - [ ] Dans l'aperçu de « Accueil », l'entrée « Tarifs » du menu, le bouton d'action qui mène à « Contact » et un lien d'un texte riche vers « Contact » mènent à l'aperçu de ces pages ; ouverts, ils présentent la page sous le bandeau, avec ses brouillons   (SC-09e)
 - [ ] Dans l'aperçu, un lien vers un réseau social, une vidéo, un numéro de téléphone, une adresse e-mail, ou une adresse du site qui n'est pas une page déclarée, est identique à celui de la page publique   (SC-09f)
+- [ ] Quand l'éditrice a publié « Tarifs » avec une image téléversée et décrite, et que le site en service ne porte pas encore cette image, l'aperçu de « Tarifs » présente l'image à sa place, avec sa description comme texte de remplacement — et non une erreur   (SC-09g)

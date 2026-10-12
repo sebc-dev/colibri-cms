@@ -12,6 +12,7 @@
  * littéraux (Vite n'accepte rien d'autre) et soustraits à la mutation, comme
  * dans `pages.ts` : un motif muté ne résout plus rien, en silence.
  */
+import type { ImagesConnues, ImageRendue } from '../../core/rendu/page.ts';
 import { lireFicheMedia, type FicheMedia } from '../../core/medias/fiche.ts';
 
 // Stryker disable all
@@ -42,4 +43,21 @@ export function adressesOriginalesEmpaquetees(): ReadonlyMap<string, string> {
     adresses.set(nom.slice(0, nom.lastIndexOf('.')), String(adresse));
   }
   return adresses;
+}
+
+/** Les images publiées que le rendu peut poser : fiche ET octets empaquetés ; une fiche sans octets n'en fait pas partie. */
+export function imagesPubliees(): ImagesConnues {
+  const adresses = adressesOriginalesEmpaquetees();
+  const images = new Map<string, ImageRendue>();
+  for (const fiche of listerFichesMedias()) {
+    const source = adresses.get(fiche.id);
+    if (source === undefined) continue;
+    images.set(fiche.id, {
+      source,
+      largeur: fiche.largeur,
+      hauteur: fiche.hauteur,
+      description: fiche.description,
+    });
+  }
+  return images;
 }
