@@ -107,3 +107,37 @@ it("SC-15b — sur un récapitulatif changé, l'écran se recharge avec message=
   expect(marque, "la marque du changement").toBeGreaterThan(-1);
   expect(rechargement, "le rechargement, après la marque").toBeGreaterThan(marque);
 });
+
+it("ticket 15 — les messages de la mise en ligne n'emploient aucun terme de développeur (FR-117)", async () => {
+  // Arrange
+  const {
+    TEXTE_BOUTON_PUBLIER_MAINTENANT,
+    TEXTE_PUBLICATION_EN_COURS,
+    TEXTE_PUBLICATION_TERMINEE,
+    TEXTE_PUBLICATION_CHANGEMENT,
+    TEXTE_PUBLICATION_DEJA_EN_COURS,
+    TEXTE_PUBLICATION_ECHEC,
+    TEXTE_PUBLICATION_INACHEVEE,
+  } = await import("../../src/admin/textes.ts");
+  const messages = [
+    TEXTE_BOUTON_PUBLIER_MAINTENANT,
+    TEXTE_PUBLICATION_EN_COURS,
+    TEXTE_PUBLICATION_TERMINEE,
+    TEXTE_PUBLICATION_CHANGEMENT,
+    TEXTE_PUBLICATION_DEJA_EN_COURS,
+    TEXTE_PUBLICATION_ECHEC,
+    TEXTE_PUBLICATION_INACHEVEE,
+  ];
+  const termes = [...TERMES_DEVELOPPEUR, "dépôt", "github", "push", "serveur", "404", "409", "422", "502", "503"];
+
+  // Act
+  const enMinuscules = messages.map((texte) => texte.toLowerCase());
+
+  // Assert
+  expect(enMinuscules.every((texte) => texte.length > 0)).toBe(true);
+  for (const texte of enMinuscules) {
+    for (const terme of termes) {
+      expect(texte, terme).not.toContain(terme);
+    }
+  }
+});
