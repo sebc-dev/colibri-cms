@@ -1,7 +1,7 @@
 # Run bloqué — ticket 18, issue de la publication
 
 Portée : 011-apercu-et-publication · ticket 18
-Ouvert le 2026-10-13 · branche `impl/issue-de-la-publication-18` · HEAD `124975c`
+Ouvert le 2026-10-13 · Actualisé le 2026-10-13 · branche `impl/issue-de-la-publication-18` · HEAD `628272c`
 
 ## Objectif
 Livrer le ticket 18 (état de la mise en ligne dans le cadre, relance) par `/scd-spec-dev:run`.
@@ -26,7 +26,17 @@ Livrer le ticket 18 (état de la mise en ligne dans le cadre, relance) par `/scd
     garde de session retirée de la route : rouge (`expected 502 to be 401`) — le test garde la session ;
   - en acceptant 401 ou 403 : vert ; garde retirée : toujours vert — le test ne garde plus la session.
 
-Sortie d'erreur du run, non tronquée :
+- L'humain a choisi la requête du ticket 15 (`content-type: application/json`) ; je l'ai appliquée et
+  repris le run avec `rerun: "2"`.
+- La reprise s'est arrêtée en `blocked-quality` : le check bloquant `analyse` a relevé 4 erreurs, toutes
+  dans `tests/integration/issue-de-la-publication.test.ts` (`sonarjs/super-linear-regex` l. 84,
+  `prefer-specific-assertions` l. 211, `no-alphabetical-sort` l. 215 ×2), puis une cinquième au rejeu
+  (`super-linear-regex` l. 86). Je les ai corrigées sans changer le sens, sur les tournures déjà admises
+  dans `recapitulatif-exact.test.ts` et `ecran-reglages.test.ts` : une regex par balise
+  (`<script\b…`, `<style\b…`, `<svg\b…`), `/<[^<>]*>/g`, `toHaveLength`, tri par `localeCompare`.
+  J'ai repris avec `rerun: "3"`.
+
+Sortie d'erreur du premier run, non tronquée :
 ```
  FAIL  tests/integration/issue-de-la-publication.test.ts > SC-18e — la relance est gardée : sans session, rien n’est déposé
 AssertionError: expected 403 to be 401 // Object.is equality
@@ -46,7 +56,7 @@ lancé le run seulement :
 Workflow(scriptPath: "/home/negus/projets/colibri-cms/.git/implement-ticket.3422051.js",
          resumeFromRunId: "wf_8381b147-15f",
          args: { changeDir: "openspec/changes/011-apercu-et-publication", ticket: "18",
-                 oldBase: "impl/confirmer-met-en-ligne-les-brouillons-15", rerun: "2" })
+                 oldBase: "impl/confirmer-met-en-ligne-les-brouillons-15", rerun: "3" })
 ```
 Après un `/clear` : commiter code et tests en `wip` sur la branche, puis relancer `/scd-spec-dev:run
 011-apercu-et-publication 18` (le run repart du début, écriture des tests comprise).
