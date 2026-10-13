@@ -28,6 +28,12 @@
  *                           l'état de stockage Playwright et imprime le cookie.
  *   sql "<requête>"         joue une requête sur la base de recette (JSON en sortie).
  *   journal                 suit les journaux du serveur (wrangler tail), jusqu'à Ctrl+C.
+ *   secret-depot            pose JETON_DEPOT (clé du dépôt de recette, tapée par l'humain
+ *                           à l'invite masquée de wrangler, dans un terminal ; jamais en
+ *                           argument ni par un tube) comme secret du Worker de recette.
+ *   chrono <url> <texte> [--bornes-min <n>]
+ *                           interroge une page publique jusqu'à ce qu'elle contienne le
+ *                           texte ; imprime la durée écoulée (SC-004 : < 5 min).
  *   adresses                imprime les adresses du serveur principal et de la branche.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -244,6 +250,70 @@ function adresses(reglages) {
   }
 }
 
+function secretDepot(reglages) {
+  if (!process.stdin.isTTY) echouer('secret-depot se joue dans un terminal interactif, par l\'humain : la clé se tape à l\'invite masquée de wrangler, jamais par un tube ni dans une conversation.');
+  ecrireConfigRecette(reglages);
+  const resultat = spawnSync('npx', ['wrangler', 'secret', 'put', 'JETON_DEPOT', '--config', configRecette()], {
+    env: { ...process.env, CLOUDFLARE_ACCOUNT_ID: reglages.RECETTE_COMPTE },
+    stdio: ['inherit', 'inherit', 'inherit'],
+  });
+  if (resultat.status !== 0) echouer(`wrangler secret put a échoué (code ${resultat.status}).`);
+  console.log('✔ JETON_DEPOT posé sur le Worker de recette (clé du compte de recette, jamais dans le dépôt produit).');
+}
+
+function decoderEntites(html) {
+  return html.replace(/&(#x[0-9a-f]+|#[0-9]+|amp|lt|gt|quot|apos);/gi, (_, e) => {
+    const m = e.toLowerCase();
+    if (m.startsWith('#x')) return String.fromCodePoint(parseInt(m.slice(2), 16));
+    if (m.startsWith('#')) return String.fromCodePoint(parseInt(m.slice(1), 10));
+    return { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" }[m];
+  });
+}
+
+async function chrono(url, texte, minutesMax) {
+  if (!url || !texte) echouer('usage : chrono <url> <texte> [--bornes-min <n>]');
+  let adresse;
+  try {
+    adresse = new URL(url);
+  } catch {
+    adresse = null;
+  }
+  if (!adresse || (adresse.protocol !== 'https:' && adresse.protocol !== 'http:')) {
+    echouer(`URL invalide « ${url} » ; usage : chrono <url> <texte> [--bornes-min <n>]`);
+  }
+  const releve = () =>
+    fetch(`${url}${url.includes('?') ? '&' : '?'}_=${Date.now()}`, { cache: 'no-store', signal: AbortSignal.timeout(15_000) });
+  try {
+    const premier = await releve();
+    if (premier.ok && decoderEntites(await premier.text()).includes(texte)) {
+      echouer(`« ${texte} » est déjà sur ${url} : choisir un texte neuf.`);
+    }
+  } catch {
+    // premier relevé impossible : on passe à la boucle
+  }
+  const debut = Date.now();
+  const limite = debut + minutesMax * 60_000;
+  let derniereCause = 'aucun relevé';
+  while (Date.now() < limite) {
+    try {
+      const reponse = await releve();
+      if (!reponse.ok) {
+        derniereCause = `HTTP ${reponse.status}`;
+      } else if (decoderEntites(await reponse.text()).includes(texte)) {
+        const secondes = Math.round((Date.now() - debut) / 1000);
+        console.log(`✔ « ${texte} » en ligne sur ${url} après ${secondes} s (${secondes < 300 ? 'sous' : 'AU-DELÀ DE'} 5 min).`);
+        return;
+      } else {
+        derniereCause = 'page servie sans le texte';
+      }
+    } catch (erreur) {
+      derniereCause = `${erreur.message}${erreur.cause?.code ? ` (${erreur.cause.code})` : ''}`;
+    }
+    await new Promise((fin) => setTimeout(fin, 5_000));
+  }
+  echouer(`« ${texte} » absent de ${url} après ${minutesMax} min — dernière cause : ${derniereCause}.`);
+}
+
 const [commande, ...args] = process.argv.slice(2);
 const reglages = lireReglages();
 
@@ -278,9 +348,15 @@ switch (commande) {
     ecrireConfigRecette(reglages);
     wrangler(reglages, ['tail', '--config', configRecette(), '--format', 'pretty']);
     break;
+  case 'secret-depot':
+    secretDepot(reglages);
+    break;
+  case 'chrono':
+    await chrono(args[0], args[1], Number(option('--bornes-min') ?? 30));
+    break;
   case 'adresses':
     adresses(reglages);
     break;
   default:
-    echouer('commande attendue : deployer | instance | semer | raz | session | sql | journal | adresses');
+    echouer('commande attendue : deployer | instance | semer | raz | session | sql | journal | secret-depot | chrono | adresses');
 }

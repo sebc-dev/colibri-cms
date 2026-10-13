@@ -16,6 +16,8 @@ $R instance [--racine <d>]  # pose domaine + expéditeur de la recette dans inst
 $R session [--hote <h>]     # ouvre une session sans e-mail → .wrangler/recette/etat-<h>.json
 $R sql "<requête>"          # lit/écrit la base de recette (remplace le `--local` du cahier)
 $R raz                      # remet à zéro (équivalent § 0.6), resème l'adresse
+$R secret-depot             # geste HUMAIN, dans son propre terminal : pose JETON_DEPOT (invite masquée)
+$R chrono <url> <texte>     # chronomètre : combien avant que la page présente le texte
 $R journal                  # journaux du serveur en direct (le terminal de `wrangler dev`)
 ```
 
@@ -126,6 +128,39 @@ remplacerait ses MX. Si un routage est nécessaire, l'activer sur le seul sous-d
 Email Routing → Settings → Subdomains). Ici, `sebc.dev` n'a plus de courrier ailleurs : depuis le
 2026-10-02, Email Routing y est activé sur la zone entière (MX Cloudflare), ce qui couvre
 `colibri.sebc.dev`. État réel : `npx wrangler email routing list`.
+
+## Publication réelle (SC-004, FR-089)
+
+Pour prouver « publié, en ligne en moins de 5 minutes » sur la vraie chaîne, trois **gestes
+humains** (compte de recette ; ces identifiants ne vont jamais dans le dépôt produit) :
+
+1. un dépôt GitHub **privé** pour le site de recette. Avant de brancher la reconstruction
+   automatique, il porte les sources du produit au commit recetté et un `instance.json` qui ajoute
+   à `domain` et `senderAddress` le champ `depotDePublication` égal à `<propriétaire>/<dépôt de
+   recette>` : sans ce champ, toute publication échoue avant le dépôt. Il porte aussi la
+   configuration wrangler du compte de recette (nom du Worker de recette, identifiant de la base D1
+   de recette, route du domaine de recette). Si des pages de ce contenu posent des images, la
+   branche `media` doit les porter avant la première reconstruction, sinon elle échoue sur l'image
+   absente (SC-06f). Ces identifiants vivent dans le dépôt de recette, jamais dans le dépôt produit ;
+2. une clé à portée fine sur ce seul dépôt (`Contents: Read and write`), posée par
+   `$R secret-depot` en secret `JETON_DEPOT` du Worker de recette. L'humain lance lui-même
+   `$R secret-depot` dans un terminal interactif et tape la clé à l'invite masquée. L'agent ne lance
+   jamais cette commande, ne demande jamais la clé dans la conversation et ne la fait jamais passer
+   par `echo … |` ni par un argument ;
+3. la reconstruction automatique (Workers Builds) branchée sur la **seule** branche principale.
+
+Une fois la reconstruction automatique branchée, ne plus lancer `$R deployer` vers le serveur
+principal (depuis `main` ou avec `--principal`) : il remplacerait le Worker bâti depuis le dépôt de
+recette par un Worker sans `depotDePublication`. Les aperçus de branche restent permis.
+
+Puis dérouler `docs/cahier-de-test.md` § 29 : `$R chrono` à la confirmation, dépôts relevés dans le
+dépôt de recette (images avant contenu, une seule reconstruction), mesures à 1 et 40 images.
+Si `$R chrono` expire (CT-29.1), ouvrir le journal de la reconstruction dans Workers Builds. S'il
+contient « Impossible de récupérer les images publiées », poser une clé à portée fine
+`Contents: Read-only` sur le dépôt de recette comme variable secrète de construction
+`COLIBRI_CLE_LECTURE_DEPOT` de Workers Builds, dans le compte de recette (jamais dans le dépôt
+produit), puis relancer la reconstruction.
+Ce que l'agent ne constate pas lui-même est remonté pour constat humain, jamais attesté.
 
 ## Ce qui reste hors d'atteinte
 
