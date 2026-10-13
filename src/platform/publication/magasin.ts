@@ -121,11 +121,11 @@ export async function lireObjetsABrouillon(db: DB): Promise<ObjetsABrouillon> {
   };
 }
 
-/** Prend le verrou si personne ne le tient ou si son bail est dépassé sans instantané en suspens ; garde l'instantané confirmé. */
+/** Prend le verrou si personne ne le tient ou si son bail est dépassé sans instantané en suspens ; garde l'instantané confirmé ; un verrou de relance n'a pas d'instantané (`null`). */
 export async function prendreVerrou(
   db: DB,
   jeton: string,
-  instantane: string,
+  instantane: string | null,
   marque: string,
   maintenant: number,
   bail: number,
@@ -293,4 +293,46 @@ export async function finaliser(db: DB, finalisation: Finalisation): Promise<voi
       .bind(finalisation.marque, maintenant, finalisation.jeton),
   );
   await db.batch(instructions);
+}
+
+/** Ce que la table garde de la dernière publication : sa marque, son instant et si le verrou est tenu. */
+export interface DerniereDepose {
+  readonly derniereMarque: string | null;
+  readonly deposeLe: number | null;
+  readonly verrouPris: boolean;
+}
+
+/** Lecture seule de la ligne unique. Un verrou au bail expiré n'est plus tenu. */
+export async function lireDerniereDepose(db: DB, maintenant: number): Promise<DerniereDepose> {
+  await assurerTablePublication(db);
+  const resultat = await db
+    .prepare('select derniere_marque, depose_le, jeton, bail_jusqu_a from publication where id = 1')
+    .bind()
+    .all();
+  const ligne = (
+    resultat.results as {
+      derniere_marque: string | null;
+      depose_le: number | null;
+      jeton: string | null;
+      bail_jusqu_a: number | null;
+    }[]
+  ).at(0);
+  return {
+    derniereMarque: ligne?.derniere_marque ?? null,
+    deposeLe: ligne?.depose_le ?? null,
+    verrouPris: ligne?.jeton != null && ligne.bail_jusqu_a != null && ligne.bail_jusqu_a > maintenant,
+  };
+}
+
+/** Enregistre la marque d'une relance déposée et libère le verrou (le contenu n'a pas changé). */
+export async function enregistrerRelance(db: DB, jeton: string, marque: string, maintenant: number): Promise<void> {
+  await assurerTablePublication(db);
+  await db
+    .prepare(
+      `update publication set derniere_marque = ?1, depose_le = ?2, jeton = null, bail_jusqu_a = null,
+         instantane = null, marque_en_cours = null
+       where id = 1 and jeton = ?3`,
+    )
+    .bind(marque, maintenant, jeton)
+    .run();
 }

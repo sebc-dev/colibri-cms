@@ -296,6 +296,20 @@ export const TEXTE_PUBLICATION_ECHEC =
   "La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes.";
 export const TEXTE_PUBLICATION_INACHEVEE =
   "La publication n'est pas allée jusqu'au bout. Vos modifications sont gardées : réessayez dans quelques minutes.";
+/** L'état de la dernière publication (change 011, ticket 18) : pastille du cadre et écran Publier (FR-090, FR-117). */
+export const TEXTE_PUBLICATION_PASTILLE_EN_COURS = 'Mise en ligne en cours…';
+export const TEXTE_PUBLICATION_PASTILLE_EN_LIGNE = 'Site à jour';
+export const TEXTE_PUBLICATION_PASTILLE_PAS_ABOUTI = "La dernière mise en ligne n'a pas abouti";
+export const TEXTE_PUBLICATION_PASTILLE_EN_TRAIN_DE_PARTIR = 'Publication en cours…';
+export const TEXTE_PUBLICATION_ETAT_EN_COURS =
+  'Mise en ligne en cours… Votre site sera à jour dans quelques minutes. Vous pouvez continuer à travailler.';
+export const TEXTE_PUBLICATION_ETAT_EN_LIGNE = 'Votre site est à jour.';
+export const TEXTE_PUBLICATION_LIEN_VOIR_MON_SITE = 'Voir mon site';
+export const TEXTE_PUBLICATION_ETAT_PAS_ABOUTI =
+  "La mise en ligne n'a pas abouti. Votre site est resté tel qu'il était, et vos modifications sont gardées.";
+export const TEXTE_PUBLICATION_BOUTON_RELANCER = 'Relancer la mise en ligne';
+export const TEXTE_PUBLICATION_RELANCE_ECHEC =
+  "La mise en ligne n'a pas pu être relancée. Votre site et vos modifications sont intacts. Réessayez dans quelques minutes.";
 export const LIBELLES_REGLAGES_PUBLIER: Readonly<Record<string, string>> = {
   coordonnees: TEXTE_CARTE_COORDONNEES,
   reseaux: TEXTE_CARTE_RESEAUX,

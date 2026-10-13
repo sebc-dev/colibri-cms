@@ -553,12 +553,14 @@ export async function listerImagesPourDepot(db: DB): Promise<ImagePourDepot[]> {
  */
 export async function viderOctetsDesPubliees(db: DB, empaquetees: Iterable<string>): Promise<void> {
   await assurerTableMedias(db);
-  for (const id of empaquetees) {
-    await db
-      .prepare(`update ${TABLE_MEDIAS} set octets = x'' where id = ?1 and publiee_le is not null and length(octets) > 0`)
-      .bind(id)
-      .run();
-  }
+  const ids = [...empaquetees];
+  if (ids.length === 0) return;
+  await db
+    .prepare(
+      `update ${TABLE_MEDIAS} set octets = x'' where id in (select value from json_each(?1)) and publiee_le is not null and length(octets) > 0`,
+    )
+    .bind(JSON.stringify(ids))
+    .run();
 }
 
 /** Ce que l'aperçu sait d'une image que la base possède : dimensions et description courante. */

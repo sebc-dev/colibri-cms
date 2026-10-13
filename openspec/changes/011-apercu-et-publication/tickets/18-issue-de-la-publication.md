@@ -63,11 +63,11 @@ construction du site.
 **Hors périmètre :** la reconstruction réelle et le chronométrage de SC-004 (ticket 19).
 
 ## Critères
-- [ ] Quand le contenu vient d'être déposé et que le site en service n'est pas encore né de cette publication, l'administration dit que la publication est en cours de mise en ligne, sur l'écran Publier comme dans le cadre   (SC-18a)
-- [ ] Quand le site en service est né de la dernière publication déposée, l'administration dit que la publication est en ligne   (SC-18b)
-- [ ] Quand le site en service n'est pas né de la dernière publication, 29 minutes et 59 secondes après son dépôt puis 30 minutes après, l'administration dit d'abord « en cours de mise en ligne », puis que la mise en ligne n'a pas abouti, que le site est resté tel qu'il était et que les modifications sont gardées   (SC-18c)
-- [ ] Quand la mise en ligne a été dite sans aboutissement puis que le site en service naît de cette publication, l'administration dit que la publication est en ligne   (SC-18d)
-- [ ] Quand la dernière mise en ligne n'a pas abouti, qu'aucun brouillon n'existe et que l'éditrice relance la mise en ligne, une nouvelle marque de publication est déposée sans changer le contenu, et l'état repasse à « en cours de mise en ligne »   (SC-18e)
-- [ ] Aucun terme de développeur ne paraît dans l'état d'une publication, en cours, en ligne, sans aboutissement ou refusée (FR-117)   (SC-18f)
-- [ ] Quand une publication a été déposée et que l'éditrice ouvre n'importe quel écran servi derrière la garde, le cadre dit si cette publication est en cours de mise en ligne, en ligne, ou si elle n'a pas abouti   (SC-18g)
-- [ ] Aucun terme de développeur ne paraît dans le menu, le geste « Publier », l'état de la dernière publication et les libellés du cadre (FR-117)   (SC-18h)
+- [x] Quand le contenu vient d'être déposé et que le site en service n'est pas encore né de cette publication, l'administration dit que la publication est en cours de mise en ligne, sur l'écran Publier comme dans le cadre   (SC-18a)
+- [x] Quand le site en service est né de la dernière publication déposée, l'administration dit que la publication est en ligne   (SC-18b)
+- [x] Quand le site en service n'est pas né de la dernière publication, 29 minutes et 59 secondes après son dépôt puis 30 minutes après, l'administration dit d'abord « en cours de mise en ligne », puis que la mise en ligne n'a pas abouti, que le site est resté tel qu'il était et que les modifications sont gardées   (SC-18c)
+- [x] Quand la mise en ligne a été dite sans aboutissement puis que le site en service naît de cette publication, l'administration dit que la publication est en ligne   (SC-18d)
+- [x] Quand la dernière mise en ligne n'a pas abouti, qu'aucun brouillon n'existe et que l'éditrice relance la mise en ligne, une nouvelle marque de publication est déposée sans changer le contenu, et l'état repasse à « en cours de mise en ligne »   (SC-18e)
+- [x] Aucun terme de développeur ne paraît dans l'état d'une publication, en cours, en ligne, sans aboutissement ou refusée (FR-117)   (SC-18f)
+- [x] Quand une publication a été déposée et que l'éditrice ouvre n'importe quel écran servi derrière la garde, le cadre dit si cette publication est en cours de mise en ligne, en ligne, ou si elle n'a pas abouti   (SC-18g)
+- [x] Aucun terme de développeur ne paraît dans le menu, le geste « Publier », l'état de la dernière publication et les libellés du cadre (FR-117)   (SC-18h)

@@ -7,10 +7,11 @@
  * Les noms sont interpolés échappés (I5). « Annuler » ramène à l'écran
  * quitté, dont l'adresse est revérifiée (`retourSur`).
  */
+import { Button } from '../../admin/composants/ui/button/index.ts';
 import GabaritCadre from '../../admin/GabaritCadre.astro';
 import MontageEcranPublier from '../../admin/MontageEcranPublier.astro';
 import { verifierSession } from '../../platform/session/index.ts';
-import { calculerEtatPublication } from '../../platform/publication/publier.ts';
+import { calculerEtatPublication, lireEtatDeLaPublication } from '../../platform/publication/publier.ts';
 import { recapitulatifEstVide, retourSur } from '../../core/publication/recapitulatif.ts';
 import { adresseDeLaPage } from '../../core/pages/declaration.ts';
 import {
@@ -27,6 +28,12 @@ import {
   TEXTE_IMAGES_EFFACEES_EXPLICATION,
   TEXTE_SECTION_REGLAGES_PUBLIER,
   TEXTE_TITRE_PUBLIER,
+  TEXTE_PUBLICATION_BOUTON_RELANCER,
+  TEXTE_PUBLICATION_ETAT_EN_COURS,
+  TEXTE_PUBLICATION_ETAT_EN_LIGNE,
+  TEXTE_PUBLICATION_ETAT_PAS_ABOUTI,
+  TEXTE_PUBLICATION_LIEN_VOIR_MON_SITE,
+  TEXTE_PUBLICATION_PASTILLE_EN_TRAIN_DE_PARTIR,
   LIBELLES_REGLAGES_PUBLIER,
 } from '../../admin/textes.ts';
 import { env } from 'cloudflare:workers';
@@ -39,6 +46,7 @@ if (!session) {
 Astro.response.headers.set('Cache-Control', 'no-store');
 
 const { recapitulatif, empreinte } = await calculerEtatPublication(env.DB, Date.now());
+const etat = await lireEtatDeLaPublication(env.DB, Date.now());
 const rien = recapitulatifEstVide(recapitulatif);
 const changement = Astro.url.searchParams.get('message') === 'changement';
 const retour = retourSur(Astro.url.searchParams.get('retour'));
@@ -47,6 +55,28 @@ const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border
 
 <GabaritCadre titre="Publier — Administration">
   <h1>{TEXTE_TITRE_PUBLIER}</h1>
+  {
+    etat === 'en-cours' && (
+      <p class="mt-4 rounded-lg border border-border bg-card p-4" role="status" data-etat-publication="en-cours">{TEXTE_PUBLICATION_ETAT_EN_COURS}</p>
+    )
+  }
+  {
+    etat === 'en-train-de-partir' && (
+      <p class="mt-4 rounded-lg border border-border bg-card p-4" role="status" data-etat-publication="en-train-de-partir">{TEXTE_PUBLICATION_PASTILLE_EN_TRAIN_DE_PARTIR}</p>
+    )
+  }
+  {
+    etat === 'en-ligne' && (
+      <p class="mt-4 rounded-lg border border-border bg-card p-4" role="status" data-etat-publication="en-ligne">
+        {TEXTE_PUBLICATION_ETAT_EN_LIGNE} <a href="/" target="_blank" rel="noopener">{TEXTE_PUBLICATION_LIEN_VOIR_MON_SITE}</a>
+      </p>
+    )
+  }
+  {
+    etat === 'pas-abouti' && (
+      <p class="mt-4 rounded-lg bg-danger-soft p-4 text-danger" role="status" data-etat-publication="pas-abouti">{TEXTE_PUBLICATION_ETAT_PAS_ABOUTI}</p>
+    )
+  }
   {changement && <p class="mt-4 rounded-lg border border-border bg-card p-4" role="status" data-publication-changee>{TEXTE_PUBLICATION_CHANGEMENT}</p>}
   {
     rien ? (
@@ -102,9 +132,18 @@ const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border
             </ul>
           </section>
         )}
-        <div data-ecran-publier data-empreinte={empreinte}></div>
+        <div data-ecran-publier data-empreinte={empreinte} data-etat={etat}>
+          {etat === 'pas-abouti' && <Button type="button" id="bouton-relancer" class="mt-6 h-auto rounded-md px-4 py-2 max-md:min-h-11">{TEXTE_PUBLICATION_BOUTON_RELANCER}</Button>}
+        </div>
         <p class="mt-6"><a id="annuler-publier" href={retour} class="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-ink hover:bg-muted">{TEXTE_BOUTON_ANNULER_PUBLIER}</a></p>
       </>
+    )
+  }
+  {
+    rien && (
+      <div data-ecran-publier data-empreinte={empreinte} data-etat={etat} data-rien>
+        {etat === 'pas-abouti' && <Button type="button" id="bouton-relancer" class="mt-6 h-auto rounded-md px-4 py-2 max-md:min-h-11">{TEXTE_PUBLICATION_BOUTON_RELANCER}</Button>}
+      </div>
     )
   }
   <MontageEcranPublier slot="scripts" />

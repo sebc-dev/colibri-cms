@@ -1,0 +1,39 @@
+---
+/**
+ * La pastille de l'état de la dernière publication (change 011, ticket 18 ; FR-090, FR-117), rendue
+ * par le serveur à côté de « Publier » dans le cadre de chaque écran. Jamais avant la première
+ * publication. Aucun `client:*` : l'état est lu à chaque rendu (ADR-0023). Quand la mise en ligne
+ * n'a pas abouti, la pastille mène à l'écran Publier.
+ */
+import { env } from 'cloudflare:workers';
+import { lireEtatDeLaPublication } from '../platform/publication/publier.ts';
+import {
+  TEXTE_PUBLICATION_PASTILLE_EN_COURS,
+  TEXTE_PUBLICATION_PASTILLE_EN_LIGNE,
+  TEXTE_PUBLICATION_PASTILLE_EN_TRAIN_DE_PARTIR,
+  TEXTE_PUBLICATION_PASTILLE_PAS_ABOUTI,
+} from './textes.ts';
+
+const etat = await lireEtatDeLaPublication(env.DB, Date.now());
+const textes = {
+  'en-cours': TEXTE_PUBLICATION_PASTILLE_EN_COURS,
+  'en-ligne': TEXTE_PUBLICATION_PASTILLE_EN_LIGNE,
+  'pas-abouti': TEXTE_PUBLICATION_PASTILLE_PAS_ABOUTI,
+  'en-train-de-partir': TEXTE_PUBLICATION_PASTILLE_EN_TRAIN_DE_PARTIR,
+} as const;
+const texte = etat === 'aucun' ? null : textes[etat];
+const classe = 'text-sm text-ink-muted';
+---
+
+{
+  texte !== null &&
+    (etat === 'pas-abouti' ? (
+      <a id="pastille-publication" data-etat-publication={etat} href="/admin/publier" class="text-sm text-danger underline">
+        {texte}
+      </a>
+    ) : (
+      <span id="pastille-publication" data-etat-publication={etat} role="status" class={classe}>
+        {texte}
+      </span>
+    ))
+}
