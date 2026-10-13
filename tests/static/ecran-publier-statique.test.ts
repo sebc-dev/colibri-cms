@@ -108,6 +108,43 @@ it("SC-15b — sur un récapitulatif changé, l'écran se recharge avec message=
   expect(rechargement, "le rechargement, après la marque").toBeGreaterThan(marque);
 });
 
+it("SC-17a — la suite relaie l'avancement tant que la publication n'est pas finie", async () => {
+  // Arrange
+  const source = (await import("../../src/pages/admin/publication/suite.ts?raw")).default;
+
+  // Act
+  const appel = source.search(/poursuivreUnePasse\(/);
+  const reponse = source.search(
+    /issue\.fini\s*\?\s*\{\s*ok:\s*true,\s*fini:\s*true\s*\}\s*:\s*\{\s*ok:\s*true,\s*fini:\s*false,\s*parties:\s*issue\.parties,\s*total:\s*issue\.total\s*\}/,
+  );
+
+  // Assert
+  expect(appel, "une passe par requête").toBeGreaterThan(-1);
+  expect(reponse, "l'avancement dans la réponse, après la passe").toBeGreaterThan(appel);
+});
+
+it("SC-17a — l'îlot enchaîne les passes sans geste et affiche l'avancement", async () => {
+  // Arrange
+  const source = (
+    await import("../../src/admin/ilots-svelte-5/EcranPublier.svelte?raw")
+  ).default;
+  const debut = source.search(/for \(;;\) \{\s*const suite = await poster\('\/admin\/publication\/suite'/);
+  const termine = source.indexOf("termine = true", debut);
+  const boucle = source.slice(debut, termine);
+
+  // Act
+  const sortie = boucle.search(/if \(suite\.json\.fini === true\) break;/);
+  const libelle = boucle.search(/avancement = libelleAvancement\(suite\.json\.parties, suite\.json\.total\)/);
+  const affichage = /\{#if enCours && avancement !== null\}\s*<p[^>]*role="status"[^>]*>\{avancement\}<\/p>/;
+
+  // Assert
+  expect(debut, "la boucle qui poste la suite").toBeGreaterThan(-1);
+  expect(termine, "« terminé », posé après la boucle").toBeGreaterThan(debut);
+  expect(sortie, "la sortie sur « fini »").toBeGreaterThan(-1);
+  expect(libelle, "l'avancement, après la sortie").toBeGreaterThan(sortie);
+  expect(source).toMatch(affichage);
+});
+
 it("ticket 15 — les messages de la mise en ligne n'emploient aucun terme de développeur (FR-117)", async () => {
   // Arrange
   const {

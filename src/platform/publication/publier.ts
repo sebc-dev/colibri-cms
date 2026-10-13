@@ -11,6 +11,7 @@ import type { Brouillon, ContenuCorrige } from '../../core/pages/brouillon.ts';
 import type { ContenuOptions } from '../../core/formulaires/options.ts';
 import { BAIL, deposerContenu, deposerImages, type ImagePubliee } from '../../core/publication/depot.ts';
 import type { Forge } from '../../core/publication/forge.ts';
+import { deposerUnePasse } from '../../core/publication/passes.ts';
 import { creerForgeGithub, depotValide, type Fetch } from './forge-github.ts';
 import {
   construirePlan,
@@ -40,11 +41,13 @@ import {
 } from '../medias/magasin.ts';
 import { obtenirPubliesReglages, obtenirPublieEmplacements, obtenirPublieFormulaire } from './magasin-publie.ts';
 import {
+  avancerPasse,
   finaliser,
   libererVerrou,
   lireObjetsABrouillon,
   lireVerrou,
   prendreVerrou,
+  reprendreVerrou,
   type DB,
   type ObjetsABrouillon,
 } from './magasin.ts';
@@ -66,6 +69,8 @@ export interface InstantaneGarde {
   readonly fichesASupprimer: readonly string[];
   readonly aDeposer: readonly { readonly id: string; readonly extension: string }[];
   readonly deposees: readonly ImagePubliee[];
+  /** Le nombre d'images à déposer au départ de la publication, pour l'avancement affiché. */
+  readonly totalADeposer: number;
 }
 
 export interface EtatPublication {
@@ -179,6 +184,7 @@ export async function calculerEtatPublication(db: DB, maintenant: number): Promi
       fichesASupprimer: enBase.filter((i) => effacees.has(i.id) && i.publiee).map((i) => i.id),
       aDeposer: selection.aDeposer,
       deposees: selection.deposees,
+      totalADeposer: selection.aDeposer.length,
     },
   };
 }
@@ -199,7 +205,8 @@ export type IssueConfirmation =
 
 /**
  * La confirmation : rien ne part si l'empreinte reçue n'est plus celle de l'état courant (SC-016) ;
- * le verrou est pris par un seul `UPDATE`, l'instantané confirmé est gardé avec lui.
+ * le verrou est pris par un seul `UPDATE`, l'instantané confirmé est gardé avec lui. Une confirmation
+ * qui trouve une publication en suspens au bail expiré la reprend et rejoue son instantané et sa marque.
  */
 export async function confirmerPublication(
   db: DB,
@@ -213,6 +220,7 @@ export async function confirmerPublication(
   }
   const jeton = enHexadecimal(aleatoire(16));
   const marque = enHexadecimal(aleatoire(16));
+  if (await reprendreVerrou(db, jeton, maintenant, BAIL)) return { ok: true, jeton };
   const pris = await prendreVerrou(db, jeton, JSON.stringify(etat.instantane), marque, maintenant, BAIL);
   return pris ? { ok: true, jeton } : { ok: false, raison: 'en-cours' };
 }
@@ -232,7 +240,8 @@ export function obtenirForge(
 }
 
 export type IssueSuite =
-  | { readonly ok: true; readonly marque: string }
+  | { readonly ok: true; readonly fini: true; readonly marque: string }
+  | { readonly ok: true; readonly fini: false; readonly parties: number; readonly total: number }
   | { readonly ok: false; readonly raison: 'verrou-perdu' | 'echec' | 'a-finaliser' };
 
 type EtatReglagesLu = ReglagesInstantane['publies'];
@@ -292,18 +301,32 @@ export function lecteurDesOriginalesEmpaquetees(assets: {
   };
 }
 
+type LireOriginale = (id: string) => Promise<Uint8Array | null>;
+
+/** Les octets d'une image à déposer : ceux de la bibliothèque, sinon l'originale empaquetée. */
+function lecteurDesOctets(db: DB, lireOriginale: LireOriginale): LireOriginale {
+  return async (id) => {
+    const media = await obtenirMediaBrouillon(db, id);
+    // Une image posée au départ est relue depuis son originale empaquetée : l'arbre des images
+    // se calcule sans lire la branche.
+    return media !== null && media.octets.length > 0 ? media.octets : lireOriginale(id);
+  };
+}
+
 /**
- * La suite, en une seule passe : branche des images, puis branche principale, puis finalisation
- * en un seul lot D1. Un échec avant le dépôt de la branche principale libère le verrou sans rien
- * écrire d'autre ; un échec de la finalisation, après ce dépôt, garde le verrou et l'instantané
- * pour que la même publication, rejouée, aboutisse.
+ * La suite, une passe à la fois (ADR-0023). Tant qu'il reste des images à déposer, une passe en
+ * dépose une part bornée, garde la progression dans l'instantané et renouvelle le bail. La passe
+ * finale bâtit la branche des images, puis la branche principale, puis finalise en un seul lot D1.
+ * Un échec avant le dépôt de la branche principale libère le verrou sans rien écrire d'autre ; un
+ * échec de la finalisation, après ce dépôt, garde le verrou et l'instantané pour que la même
+ * publication, rejouée, aboutisse.
  */
-export async function poursuivrePublication(
+export async function poursuivreUnePasse(
   db: DB,
   jeton: string,
   maintenant: number,
   forge: Forge | null,
-  lireOriginale: (id: string) => Promise<Uint8Array | null>,
+  lireOriginale: LireOriginale,
 ): Promise<IssueSuite> {
   const verrou = await lireVerrou(db, jeton);
   if (verrou === null) return { ok: false, raison: 'verrou-perdu' };
@@ -312,50 +335,84 @@ export async function poursuivrePublication(
     return { ok: false, raison: 'echec' };
   }
   const garde = lireJson(verrou.instantane) as InstantaneGarde;
-
-  let images;
-  let plan;
   try {
-    const effacees = new Set(garde.imagesEffacees);
-    await viderOctetsDesPubliees(
-      db,
-      [...adressesOriginalesEmpaquetees().keys()].filter((id) => !effacees.has(id)),
-    );
-
-    const nouvelles = [];
-    for (const image of garde.aDeposer) {
-      const media = await obtenirMediaBrouillon(db, image.id);
-      // Une image posée au départ est relue depuis son originale empaquetée : l'arbre des images
-      // se calcule sans lire la branche.
-      const octets = media !== null && media.octets.length > 0 ? media.octets : await lireOriginale(image.id);
-      if (octets === null || octets.length === 0) {
-        console.error('[publication] image à déposer sans octets :', image.id);
-        await libererVerrou(db, jeton);
-        return { ok: false, raison: 'echec' };
-      }
-      nouvelles.push({ ...image, octets });
-    }
-    images = await deposerImages(forge, { publiees: garde.deposees, nouvelles }, MESSAGE_DEPOT);
-    if (!images.aboutie) {
-      await libererVerrou(db, jeton);
-      return { ok: false, raison: 'echec' };
-    }
-
-    const instantane = await instantanePourLePlan(db, garde);
-    plan = construirePlan(instantane, () => depuisHexadecimal(verrou.marque));
-    const depot = await deposerContenu(forge, plan, MESSAGE_DEPOT);
-    if (!depot.aboutie) {
-      await libererVerrou(db, jeton);
-      return { ok: false, raison: 'echec' };
-    }
+    if (garde.aDeposer.length > 0) return await passeDeBlobs(db, jeton, maintenant, forge, garde, lireOriginale);
+    return await passeFinale(db, jeton, maintenant, forge, garde, verrou.marque);
   } catch (erreur) {
     console.error('[publication] échec avant le dépôt principal', erreur);
     await libererVerrou(db, jeton);
     return { ok: false, raison: 'echec' };
   }
+}
+
+/** Toutes les passes d'affilée, jusqu'à la fin ou au premier échec (hors route : un seul appel). */
+export async function poursuivrePublication(
+  db: DB,
+  jeton: string,
+  maintenant: number,
+  forge: Forge | null,
+  lireOriginale: LireOriginale,
+): Promise<Extract<IssueSuite, { ok: false } | { fini: true }>> {
+  for (;;) {
+    const issue = await poursuivreUnePasse(db, jeton, maintenant, forge, lireOriginale);
+    if (!issue.ok || issue.fini) return issue;
+  }
+}
+
+async function passeDeBlobs(
+  db: DB,
+  jeton: string,
+  maintenant: number,
+  forge: Forge,
+  garde: InstantaneGarde,
+  lireOriginale: LireOriginale,
+): Promise<IssueSuite> {
+  const passe = await deposerUnePasse(forge, garde.aDeposer, lecteurDesOctets(db, lireOriginale));
+  if (!passe.aboutie) {
+    if (passe.raison === 'octets-manquants') console.error('[publication] image à déposer sans octets');
+    await libererVerrou(db, jeton);
+    return { ok: false, raison: 'echec' };
+  }
+  const suivant: InstantaneGarde = {
+    ...garde,
+    aDeposer: passe.restantes,
+    deposees: [...garde.deposees, ...passe.deposees],
+  };
+  if (!(await avancerPasse(db, jeton, JSON.stringify(suivant), maintenant, BAIL))) {
+    return { ok: false, raison: 'verrou-perdu' };
+  }
+  return { ok: true, fini: false, parties: garde.totalADeposer - passe.restantes.length, total: garde.totalADeposer };
+}
+
+async function passeFinale(
+  db: DB,
+  jeton: string,
+  maintenant: number,
+  forge: Forge,
+  garde: InstantaneGarde,
+  marqueGardee: string,
+): Promise<IssueSuite> {
+  const effacees = new Set(garde.imagesEffacees);
+  await viderOctetsDesPubliees(
+    db,
+    [...adressesOriginalesEmpaquetees().keys()].filter((id) => !effacees.has(id)),
+  );
+
+  const images = await deposerImages(forge, { publiees: garde.deposees, nouvelles: [] }, MESSAGE_DEPOT);
+  if (!images.aboutie) {
+    await libererVerrou(db, jeton);
+    return { ok: false, raison: 'echec' };
+  }
+
+  const instantane = await instantanePourLePlan(db, garde);
+  const plan = construirePlan(instantane, () => depuisHexadecimal(marqueGardee));
+  const depot = await deposerContenu(forge, plan, MESSAGE_DEPOT);
+  if (!depot.aboutie) {
+    await libererVerrou(db, jeton);
+    return { ok: false, raison: 'echec' };
+  }
 
   try {
-    const inventaire = images.inventaire;
     await finaliser(db, {
       jeton,
       marque: plan.marque,
@@ -364,11 +421,11 @@ export async function poursuivrePublication(
       imagesPubliees: garde.fiches.map((fiche) => ({
         id: fiche.id,
         description: fiche.description,
-        empreinte: inventaire.find((i) => i.id === fiche.id)?.empreinte ?? null,
+        empreinte: images.inventaire.find((i) => i.id === fiche.id)?.empreinte ?? null,
       })),
       imagesEffacees: garde.imagesEffacees,
     });
-    return { ok: true, marque: plan.marque };
+    return { ok: true, fini: true, marque: plan.marque };
   } catch (erreur) {
     // Le verrou et l'instantané restent : la même publication, rejouée, est reconnue.
     console.error('[publication] finalisation non écrite après le dépôt', erreur);

@@ -45,5 +45,5 @@ en double ni contenu manquant.
 
 ## Critères
 - [ ] Quand la publication doit déposer plus d'images qu'une seule passe n'en porte, les passes s'enchaînent sans autre geste de l'éditrice, l'écran montre combien d'images sont parties sur combien, et toutes les images sont déposées   (SC-17a)
-- [ ] Quand une publication s'est interrompue après avoir déposé une partie de ses images et que 5 minutes ont passé sans signe de vie, une nouvelle publication est acceptée, et son dépôt porte toutes les images et tout le contenu attendus, sans doublon   (SC-17b)
+- [x] Quand une publication s'est interrompue après avoir déposé une partie de ses images et que 5 minutes ont passé sans signe de vie, une nouvelle publication est acceptée, et son dépôt porte toutes les images et tout le contenu attendus, sans doublon   (SC-17b)
 - [ ] Quand une publication s'est interrompue et que moins de 5 minutes ont passé depuis son dernier signe de vie, une nouvelle publication est refusée, avec un message disant qu'une publication est déjà en cours   (SC-17c)

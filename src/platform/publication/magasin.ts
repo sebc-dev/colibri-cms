@@ -121,7 +121,7 @@ export async function lireObjetsABrouillon(db: DB): Promise<ObjetsABrouillon> {
   };
 }
 
-/** Prend le verrou si personne ne le tient (ou si son bail est dépassé) ; garde l'instantané confirmé. */
+/** Prend le verrou si personne ne le tient ou si son bail est dépassé sans instantané en suspens ; garde l'instantané confirmé. */
 export async function prendreVerrou(
   db: DB,
   jeton: string,
@@ -134,9 +134,23 @@ export async function prendreVerrou(
   const resultat = await db
     .prepare(
       `update publication set jeton = ?1, bail_jusqu_a = ?2, instantane = ?3, marque_en_cours = ?4
-       where id = 1 and (bail_jusqu_a is null or bail_jusqu_a < ?5)`,
+       where id = 1 and (bail_jusqu_a is null or (bail_jusqu_a <= ?5 and instantane is null))`,
     )
     .bind(jeton, maintenant + bail, instantane, marque, maintenant)
+    .run();
+  return resultat.meta.changes === 1;
+}
+
+/** Reprend une publication en suspens dont le bail a expiré, sans toucher à son instantané ni à sa marque (ADR-0023). */
+export async function reprendreVerrou(db: DB, jeton: string, maintenant: number, bail: number): Promise<boolean> {
+  await assurerTablePublication(db);
+  const resultat = await db
+    .prepare(
+      `update publication set jeton = ?1, bail_jusqu_a = ?2
+       where id = 1 and instantane is not null and marque_en_cours is not null
+         and bail_jusqu_a is not null and bail_jusqu_a <= ?3`,
+    )
+    .bind(jeton, maintenant + bail, maintenant)
     .run();
   return resultat.meta.changes === 1;
 }
@@ -158,6 +172,25 @@ export async function lireVerrou(db: DB, jeton: string): Promise<VerrouTenu | nu
   const marque = ligne?.marque_en_cours ?? null;
   if (instantane === null || marque === null) return null;
   return { instantane, marque };
+}
+
+/**
+ * Garde la progression d'une passe et renouvelle le bail : tant que les passes avancent, la
+ * publication donne signe de vie. Sans effet si `jeton` ne tient plus le verrou.
+ */
+export async function avancerPasse(
+  db: DB,
+  jeton: string,
+  instantane: string,
+  maintenant: number,
+  bail: number,
+): Promise<boolean> {
+  await assurerTablePublication(db);
+  const resultat = await db
+    .prepare('update publication set instantane = ?1, bail_jusqu_a = ?2 where id = 1 and jeton = ?3')
+    .bind(instantane, maintenant + bail, jeton)
+    .run();
+  return resultat.meta.changes === 1;
 }
 
 const LIBERER_VERROU = `update publication set jeton = null, bail_jusqu_a = null, instantane = null, marque_en_cours = null
