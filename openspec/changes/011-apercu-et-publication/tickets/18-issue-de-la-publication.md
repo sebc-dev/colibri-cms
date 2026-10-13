@@ -48,6 +48,8 @@ construction du site.
   - « La dernière mise en ligne n'a pas abouti », qui mène à l'écran Publier ;
   - « Publication en cours… ».
 
+  Couleurs : la pastille est neutre (`text-ink-muted`), sauf « n'a pas abouti », en `text-danger`,
+  souligné ; sur l'écran Publier, le message « n'a pas abouti » est en `danger` (fond `danger-soft`).
   Jamais de pastille avant la première confirmation : pendant le dépôt de la toute première
   publication, la pastille dit déjà « Publication en cours… ».
 - **États de l'écran Publier** :
