@@ -45,6 +45,7 @@
  */
 import Gabarit from './Gabarit.astro';
 import Logo from './Logo.astro';
+import PastillePublication from './PastillePublication.astro';
 import MarqueBrouillon from './MarqueBrouillon.astro';
 import MenuRubriques, { type IdRubriqueServie } from './MenuRubriques.astro';
 import { Button } from './composants/ui/button/index.ts';
@@ -133,7 +134,10 @@ const ID_TIROIR = 'tiroir-menu';
           <Menu class="size-5" aria-hidden="true" />
         </Button>
         <Logo class="h-7 w-7 shrink-0 md:hidden" />
-        <Button id="bouton-publier" href={hrefPublier} class="ml-auto max-md:min-h-11">{TEXTE_BOUTON_PUBLIER}</Button>
+        <div class="ml-auto flex items-center gap-3">
+          <PastillePublication />
+          <Button id="bouton-publier" href={hrefPublier} class="max-md:min-h-11">{TEXTE_BOUTON_PUBLIER}</Button>
+        </div>
       </header>
       <main class="min-w-0 flex-1 p-8">
         <slot />

@@ -6,13 +6,16 @@
   `client:*` (ADR-0006).
 -->
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { Button } from '../composants/ui/button/index.ts';
   import {
     TEXTE_BOUTON_PUBLIER_MAINTENANT,
+    TEXTE_PUBLICATION_BOUTON_RELANCER,
     TEXTE_PUBLICATION_DEJA_EN_COURS,
     TEXTE_PUBLICATION_ECHEC,
     TEXTE_PUBLICATION_EN_COURS,
     TEXTE_PUBLICATION_INACHEVEE,
+    TEXTE_PUBLICATION_RELANCE_ECHEC,
     TEXTE_PUBLICATION_TERMINEE,
   } from '../textes.ts';
   import { libelleAvancement } from './libelle-avancement.ts';
@@ -20,15 +23,55 @@
 
   interface Props {
     empreinte: string;
+    etat: string;
+    rien: boolean;
     apresChangement: () => void;
   }
 
-  const { empreinte, apresChangement }: Props = $props();
+  const { empreinte, etat, rien, apresChangement }: Props = $props();
 
+  const INTERVALLE_LECTURE = 10 * 1000;
+  let relanceEnCours = $state(false);
+  let messageRelance = $state<string | null>(null);
   let enCours = $state(false);
   let termine = $state(false);
   let message = $state<string | null>(null);
   let avancement = $state<string | null>(null);
+
+  // Tant que la mise en ligne est en cours, l'état est relu ; un changement recharge l'écran.
+  onMount(() => {
+    if (etat !== 'en-cours' && etat !== 'en-train-de-partir') return undefined;
+    const minuterie = setInterval(() => {
+      void (async () => {
+        if (enCours || relanceEnCours) return;
+        try {
+          const reponse = await fetch('/admin/publication/etat');
+          if (!reponse.ok) return;
+          const lu = (await reponse.json()) as { etat?: string };
+          if (lu.etat !== undefined && lu.etat !== etat) window.location.reload();
+        } catch {
+          // Pas de réseau : la lecture suivante réessaie.
+        }
+      })();
+    }, INTERVALLE_LECTURE);
+    return () => clearInterval(minuterie);
+  });
+
+  async function relancer(): Promise<void> {
+    relanceEnCours = true;
+    messageRelance = null;
+    try {
+      const reponse = await fetch('/admin/publication/relancer', { method: 'POST' });
+      if (reponse.ok) {
+        window.location.reload();
+        return;
+      }
+      messageRelance = reponse.status === 401 ? messageErreurCorrection(401) : TEXTE_PUBLICATION_RELANCE_ECHEC;
+    } catch {
+      messageRelance = MESSAGE_RESEAU;
+    }
+    relanceEnCours = false;
+  }
 
   interface Reponse {
     readonly ok: boolean;
@@ -104,7 +147,19 @@
   }
 </script>
 
-{#if termine}
+{#if etat === 'pas-abouti'}
+  <div class="mt-6">
+    <Button type="button" id="bouton-relancer" class="h-auto rounded-md px-4 py-2 max-md:min-h-11" disabled={relanceEnCours} onclick={relancer}>
+      {TEXTE_PUBLICATION_BOUTON_RELANCER}
+    </Button>
+    {#if messageRelance !== null}
+      <p class="mt-3 text-sm text-danger" role="alert">{messageRelance}</p>
+    {/if}
+  </div>
+{/if}
+{#if rien}
+  <!-- Rien à publier : seul l'état de la mise en ligne est offert. -->
+{:else if termine}
   <p class="mt-6 rounded-lg border border-border bg-card p-4" role="status" data-publie>{TEXTE_PUBLICATION_TERMINEE}</p>
 {:else}
   <div class="mt-6">

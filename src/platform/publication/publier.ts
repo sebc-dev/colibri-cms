@@ -28,6 +28,8 @@ import {
   type ObjetEngage,
   type Recapitulatif,
 } from '../../core/publication/recapitulatif.ts';
+import { deriverEtat, type EtatDeLaPublication } from '../../core/publication/etat.ts';
+import { lireMarqueDuSite } from '../contenu/publication.ts';
 import { lireFormulaireDeLaDeclaration, lireFormulairesDeLaDeclaration } from '../contenu/formulaires.ts';
 import { adressesOriginalesEmpaquetees, listerFichesMedias } from '../contenu/medias.ts';
 import { listerPagesDeclarees, obtenirPageAvecEmplacements } from '../contenu/pages.ts';
@@ -42,7 +44,9 @@ import {
 import { obtenirPubliesReglages, obtenirPublieEmplacements, obtenirPublieFormulaire } from './magasin-publie.ts';
 import {
   avancerPasse,
+  enregistrerRelance,
   finaliser,
+  lireDerniereDepose,
   libererVerrou,
   lireObjetsABrouillon,
   lireVerrou,
@@ -430,5 +434,63 @@ async function passeFinale(
     // Le verrou et l'instantané restent : la même publication, rejouée, est reconnue.
     console.error('[publication] finalisation non écrite après le dépôt', erreur);
     return { ok: false, raison: 'a-finaliser' };
+  }
+}
+
+/**
+ * L'état de la dernière publication, dérivé à chaque lecture (ADR-0023). `marqueDuSite` vaut par
+ * défaut la marque empaquetée par ce site. Quand elle est en ligne, les octets des images publiées
+ * empaquetées par le Worker sont vidés en base (ADR-0020).
+ */
+export async function lireEtatDeLaPublication(
+  db: DB,
+  maintenant: number,
+  marqueDuSite: string | null = lireMarqueDuSite(),
+): Promise<EtatDeLaPublication> {
+  const depose = await lireDerniereDepose(db, maintenant);
+  const etat = deriverEtat({ ...depose, marqueDuSite, maintenant });
+  if (etat === 'en-ligne') await viderOctetsDesPubliees(db, adressesOriginalesEmpaquetees().keys());
+  return etat;
+}
+
+export type IssueRelance = { readonly ok: true } | { readonly ok: false; readonly raison: 'en-cours' | 'echec' };
+
+/**
+ * La relance d'une mise en ligne qui n'a pas abouti : une marque neuve, seule, déposée sur la
+ * branche principale sans changer le contenu. Le verrou est pris, puis libéré quoi qu'il arrive.
+ */
+export async function relancerLaMiseEnLigne(
+  db: DB,
+  forge: Forge | null,
+  maintenant: number,
+  aleatoire: (octets: number) => Uint8Array = (n) => crypto.getRandomValues(new Uint8Array(n)),
+): Promise<IssueRelance> {
+  const jeton = enHexadecimal(aleatoire(16));
+  const marque = enHexadecimal(aleatoire(16));
+  if (!(await prendreVerrou(db, jeton, null, marque, maintenant, BAIL))) return { ok: false, raison: 'en-cours' };
+  if (forge === null) {
+    await libererVerrou(db, jeton);
+    return { ok: false, raison: 'echec' };
+  }
+  try {
+    const depot = await deposerContenu(
+      forge,
+      {
+        ecritures: [{ chemin: 'content/publication.json', contenu: `${JSON.stringify({ publication: marque }, null, 2)}\n` }],
+        suppressions: [],
+        marque,
+      },
+      MESSAGE_DEPOT,
+    );
+    if (!depot.aboutie) {
+      await libererVerrou(db, jeton);
+      return { ok: false, raison: 'echec' };
+    }
+    await enregistrerRelance(db, jeton, marque, maintenant);
+    return { ok: true };
+  } catch (erreur) {
+    console.error('[publication] échec de la relance', erreur);
+    await libererVerrou(db, jeton);
+    return { ok: false, raison: 'echec' };
   }
 }

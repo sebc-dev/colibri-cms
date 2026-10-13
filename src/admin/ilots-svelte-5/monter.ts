@@ -619,7 +619,7 @@ export function monterEcranPublier(): void {
   const cibles = document.querySelectorAll<HTMLElement>('[data-ecran-publier]');
 
   cibles.forEach((cible) => {
-    const { empreinte } = cible.dataset;
+    const { empreinte, etat } = cible.dataset;
     if (empreinte === undefined) return;
 
     cible.innerHTML = '';
@@ -627,6 +627,8 @@ export function monterEcranPublier(): void {
       target: cible,
       props: {
         empreinte,
+        etat: etat ?? 'aucun',
+        rien: cible.dataset.rien !== undefined,
         apresChangement: () => {
           const adresse = new URL(window.location.href);
           adresse.searchParams.set('message', 'changement');
