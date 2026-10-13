@@ -10,15 +10,19 @@
 import { exports } from 'cloudflare:workers';
 import { it, expect, beforeEach, afterEach } from 'vitest';
 import { ForgeEnMemoire } from '../unit/publication/forge-en-memoire.ts';
+import { BAIL } from '../../src/core/publication/depot.ts';
 import { BORNE_MISE_EN_LIGNE } from '../../src/core/publication/etat.ts';
+import { reprendreVerrou } from '../../src/platform/publication/magasin.ts';
 import { lireEtatDeLaPublication, relancerLaMiseEnLigne } from '../../src/platform/publication/publier.ts';
 import {
   BASE,
   NOM_COOKIE_SESSION,
   assurerSchema,
+  compter,
   exigerPresent,
   lireLignes,
   nettoyer,
+  semerImage,
   semerSession,
   type DBLike,
 } from './outils-publication.ts';
@@ -338,4 +342,174 @@ it('SC-18h — aucun terme de développeur dans le menu, le geste « Publier »,
       }
     }
   }
+});
+
+// --- Tests retenus par la review du ticket 18 ---
+
+interface LignePublication {
+  derniere_marque: string | null;
+  jeton: string | null;
+  bail_jusqu_a: number | null;
+  instantane: string | null;
+  marque_en_cours: string | null;
+}
+
+async function lirePublication(db: DBLike): Promise<LignePublication> {
+  const lignes = (await lireLignes(
+    db,
+    'select derniere_marque, jeton, bail_jusqu_a, instantane, marque_en_cours from publication where id = 1',
+  )) as LignePublication[];
+  return exigerPresent(lignes[0], 'la ligne de la publication');
+}
+
+async function depotPortantLaMarque(marque: string): Promise<ForgeEnMemoire> {
+  return ForgeEnMemoire.creer({ 'content/publication.json': JSON.stringify({ publication: marque }) });
+}
+
+it("SC-18e — une relance qui échoue au dépôt n'enregistre rien et libère le verrou : la mise en ligne reste sans aboutissement", async () => {
+  const db = await assurerSchema();
+  const t0 = Date.now();
+  const pannes: [string, (forge: ForgeEnMemoire) => void][] = [
+    [
+      'dépôt injoignable',
+      (forge) => {
+        forge.tomberEnPanne('injoignable');
+      },
+    ],
+    [
+      'écritures refusées',
+      (forge) => {
+        forge.refuserLesProchainesEcritures(3);
+      },
+    ],
+  ];
+
+  for (const [cas, provoquer] of pannes) {
+    // Arrange
+    await semerDepot(db, 'marque-ancienne', t0 - 40 * MINUTE);
+    const forge = await depotPortantLaMarque('marque-ancienne');
+    provoquer(forge);
+    const commitsAvant = forge.historique().length;
+
+    // Act
+    const issue = await relancerLaMiseEnLigne(db, forge, t0);
+
+    // Assert
+    expect(issue, cas).toEqual({ ok: false, raison: 'echec' });
+    expect(forge.historique(), cas).toHaveLength(commitsAvant);
+    expect(await lirePublication(db), cas).toEqual({
+      derniere_marque: 'marque-ancienne',
+      jeton: null,
+      bail_jusqu_a: null,
+      instantane: null,
+      marque_en_cours: null,
+    });
+    expect(await lireEtatDeLaPublication(db, t0, null), cas).toBe('pas-abouti');
+  }
+});
+
+it('SC-18e — une relance demandée pendant qu’une publication tient le verrou est refusée, sans rien déposer', async () => {
+  // Arrange
+  const db = await assurerSchema();
+  const t0 = Date.now();
+  await semerDepot(db, 'marque-ancienne', t0 - 40 * MINUTE);
+  await db.prepare("update publication set jeton = 'j-tenu', bail_jusqu_a = ?1 where id = 1").bind(t0 + MINUTE).run();
+  const forge = await depotPortantLaMarque('marque-ancienne');
+  const commitsAvant = forge.historique().length;
+
+  // Act
+  const issue = await relancerLaMiseEnLigne(db, forge, t0);
+
+  // Assert
+  expect(issue).toEqual({ ok: false, raison: 'en-cours' });
+  expect(forge.historique()).toHaveLength(commitsAvant);
+  const ligne = await lirePublication(db);
+  expect(ligne.jeton).toBe('j-tenu');
+  expect(ligne.derniere_marque).toBe('marque-ancienne');
+});
+
+it('SC-18e — sur une instance sans dépôt raccordé, la route de relance échoue proprement : 502, verrou libéré, marque inchangée', async () => {
+  // Arrange
+  const db = await assurerSchema();
+  await semerDepot(db, 'marque-ancienne', Date.now() - 40 * MINUTE);
+  const session = await semerSession(db);
+
+  // Act
+  const reponse = await exports.default.fetch(
+    new Request(`${BASE}/admin/publication/relancer`, {
+      method: 'POST',
+      headers: { cookie: `${NOM_COOKIE_SESSION}=${session}`, 'content-type': 'application/json', origin: BASE },
+    }),
+  );
+
+  // Assert
+  expect(reponse.status).toBe(502);
+  expect((await lirePublication(db)).derniere_marque).toBe('marque-ancienne');
+  expect(await compter(db, 'publication', 'jeton is not null')).toBe(0);
+});
+
+it('SC-18e — une relance coupée avant de libérer le verrou ne bloque ni la relance suivante ni une publication en suspens', async () => {
+  // Arrange : toute écriture qui libère le verrou est coupée
+  const db = await assurerSchema();
+  const t0 = Date.now();
+  await semerDepot(db, 'marque-ancienne', t0 - 40 * MINUTE);
+  const coupure = (): Promise<never> => Promise.reject(new Error('coupure'));
+  const dbCoupee: DBLike = {
+    prepare: (requete) =>
+      requete.includes('jeton = null') ? { bind: () => ({ run: coupure, all: coupure }), run: coupure } : db.prepare(requete),
+    batch: (instructions) => db.batch(instructions),
+  };
+  const forgeEnPanne = await depotPortantLaMarque('marque-ancienne');
+  forgeEnPanne.tomberEnPanne('injoignable');
+
+  // Act 1
+  await expect(relancerLaMiseEnLigne(dbCoupee, forgeEnPanne, t0)).rejects.toThrow('coupure');
+
+  // Assert 1 : le verrou de la relance est resté pris, sans instantané
+  expect(await compter(db, 'publication', 'jeton is not null and instantane is null')).toBe(1);
+
+  // Act 2 : une fois le bail expiré
+  const apresLeBail = t0 + BAIL + 1;
+  const repris = await reprendreVerrou(db, 'autre', apresLeBail, BAIL);
+  const relance = await relancerLaMiseEnLigne(db, await depotPortantLaMarque('marque-ancienne'), apresLeBail);
+
+  // Assert 2 : aucune publication en suspens à reprendre ; la relance suivante aboutit et libère le verrou
+  expect(repris).toBe(false);
+  expect(relance).toEqual({ ok: true });
+  const ligne = await lirePublication(db);
+  expect(ligne.derniere_marque).not.toBe('marque-ancienne');
+  expect(ligne.jeton).toBeNull();
+  expect(ligne.instantane).toBeNull();
+  expect(ligne.marque_en_cours).toBeNull();
+});
+
+it("ticket 18 — lire l'état « en ligne » vide les octets des images publiées que le site empaquette, et seulement elles (ADR-0020)", async () => {
+  // Arrange : trois images publiées avec leurs octets, deux empaquetées par le site, une hors paquet
+  const db = await assurerSchema();
+  const t0 = Date.now();
+  await semerImage(db, 'media-fixture-equipe', new Uint8Array([137, 80, 78, 71, 1, 2, 3]));
+  await semerImage(db, 'media-fixture-hero', new Uint8Array([137, 80, 78, 71, 4, 5, 6]));
+  await semerImage(db, 'image-hors-paquet', new Uint8Array([137, 80, 78, 71, 7, 8, 9]));
+  await db.prepare('update medias set publiee_le = ?1').bind(t0).run();
+  await semerDepot(db, 'marque-neuve', t0 - 2 * MINUTE);
+  const longueur = async (id: string): Promise<unknown> =>
+    ((await lireLignes(db, 'select length(octets) as n from medias where id = ?1', id)) as { n: number }[])[0]?.n;
+
+  // Act 1 : le site n'est pas encore né de cette publication
+  const enCours = await lireEtatDeLaPublication(db, t0, 'ancienne');
+
+  // Assert 1 : rien n'est vidé
+  expect(enCours).toBe('en-cours');
+  expect(await longueur('media-fixture-equipe')).toBe(7);
+  expect(await longueur('media-fixture-hero')).toBe(7);
+  expect(await longueur('image-hors-paquet')).toBe(7);
+
+  // Act 2 : le site est né de cette publication
+  const enLigne = await lireEtatDeLaPublication(db, t0, 'marque-neuve');
+
+  // Assert 2 : seules les images publiées ET empaquetées ont perdu leurs octets
+  expect(enLigne).toBe('en-ligne');
+  expect(await longueur('media-fixture-equipe'), 'publiée et empaquetée').toBe(0);
+  expect(await longueur('media-fixture-hero'), 'publiée et empaquetée').toBe(0);
+  expect(await longueur('image-hors-paquet'), 'publiée, hors paquet').toBe(7);
 });
