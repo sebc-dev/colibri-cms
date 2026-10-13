@@ -85,8 +85,8 @@ model {
   colibri-cms.worker.routes -[sync]-> colibri-cms.worker.core 'vérifie une saisie'
   // trace : 6 imports src/admin → src/core, ex. src/admin/ilots-svelte-5/CarteReseaux.svelte:15
   colibri-cms.worker.admin -[sync]-> colibri-cms.worker.core 'partage les règles de saisie'
-  // trace : 10 imports src/admin → src/platform, types seuls, ex. src/admin/ilots-svelte-5/EcranMedias.svelte:14
-  colibri-cms.worker.admin -[sync]-> colibri-cms.worker.platform 'reprend les types des magasins'
+  // trace : 11 imports src/admin → src/platform, types des magasins, ex. src/admin/ilots-svelte-5/EcranMedias.svelte:14 ; valeur : src/admin/PastillePublication.astro:9 — lireEtatDeLaPublication au rendu du cadre
+  colibri-cms.worker.admin -[sync]-> colibri-cms.worker.platform 'reprend les types des magasins et lit l’état de la publication'
   // trace : 15 imports src/platform → src/core, ex. src/platform/reglages/magasin.ts:9
   colibri-cms.worker.platform -[sync]-> colibri-cms.worker.core 'applique une correction avant écriture'
   // trace : src/pages/[...slug].astro:9 — import Page from '../site/page.astro'

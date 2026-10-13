@@ -14,13 +14,18 @@ Publier » (large et étroit, avec ses états) et le **gabarit public** (page Ac
   - Le bouton **« Publier »** (bouton principal) est dans la barre haute du cadre, à droite, sur tous les
     écrans, visible sur téléphone tiroir fermé. Il mène à l'écran Publier ; il ne met rien en ligne
     lui-même.
-  - À côté, une **pastille d'état** quand une publication a eu lieu :
-    - *en cours* : « Mise en ligne en cours… » (couleur d'attente) ;
-    - *en ligne* : « Site à jour » (couleur de succès), discrète ;
-    - *n'a pas abouti* : « La dernière mise en ligne n'a pas abouti » (couleur d'alerte), menant à
+  - À côté, une **pastille d'état** dès la première confirmation :
+    - *en cours* : « Mise en ligne en cours… » ;
+    - *en ligne* : « Site à jour », discrète ;
+    - *n'a pas abouti* : « La dernière mise en ligne n'a pas abouti » (`danger`, souligné), menant à
       l'écran Publier ;
     - *publication en train de partir* (verrou pris) : « Publication en cours… ».
-  - Jamais de pastille avant la première publication.
+
+    La pastille est neutre (`ink-muted`) dans tous les états sauf « n'a pas abouti » : le système de
+    design n'a aucune couleur de succès, et seule une erreur se présente en `danger` (spec
+    `mise-en-page-administration`, « Couleurs d'état constantes »).
+  - Jamais de pastille avant la première confirmation : pendant le dépôt de la toute première
+    publication, la pastille dit déjà « Publication en cours… ».
 
 - **Éditeur d'une page — « Voir l'aperçu ».** Un bouton secondaire « Voir l'aperçu » en tête de
   l'éditeur, à côté du titre de la page ; il ouvre l'aperçu dans le même onglet.
@@ -42,7 +47,8 @@ Publier » (large et étroit, avec ses états) et le **gabarit public** (page Ac
     ne pourront pas être récupérées. ») ; en pied, « Publier maintenant » (bouton principal) et
     « Annuler » (bouton secondaire, retour à l'écran quitté, « Mes pages » à défaut).
   - *rien à publier* : « Rien à publier : aucune page, aucun réglage ni aucun formulaire n'a de
-    modification en attente. » ; seul « Revenir à mes pages » est offert.
+    modification en attente. » ; seul « Revenir à mes pages » est offert, plus « Relancer la mise en
+    ligne » quand la dernière mise en ligne n'a pas abouti.
   - *récapitulatif changé* (confirmation refusée, 409) : message « Vos modifications ont changé depuis
     l'affichage de cette liste. Vérifiez-la à nouveau avant de publier. » au-dessus du récapitulatif à
     jour ; rien n'est parti.
@@ -55,7 +61,8 @@ Publier » (large et étroit, avec ses états) et le **gabarit public** (page Ac
     Vous pouvez continuer à travailler. » ; l'écran se met à jour de lui-même.
   - *en ligne* : « Votre site est à jour. » avec un lien « Voir mon site » (nouvel onglet).
   - *n'a pas abouti* (mise en ligne) : « La mise en ligne n'a pas abouti. Votre site est resté tel qu'il
-    était, et vos modifications sont gardées. » et le bouton « Relancer la mise en ligne ».
+    était, et vos modifications sont gardées. » en `danger` (fond `danger-soft`), et le bouton
+    « Relancer la mise en ligne ».
   - *échec avant le dépôt* : « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos
     modifications sont intacts. Réessayez dans quelques minutes. » Le même message vaut quand le site
     n'est pas raccordé (pas de dépôt ou pas de clé), comme le veut la spec de la publication.

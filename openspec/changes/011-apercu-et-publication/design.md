@@ -242,7 +242,9 @@ absents → la publication échoue avant tout appel, sans rien changer.
 
 Chaque dépôt écrit `content/publication.json` avec une marque neuve, gardée en D1. Le build l'empaquette
 (`src/platform/contenu/publication.ts`) : le Worker qui répond sait **de quelle publication il est né**.
-`src/core/publication/etat.ts` (pur) dérive l'état : marque du site = dernière marque déposée →
+`src/core/publication/etat.ts` (pur) dérive l'état : verrou pris (une publication ou une relance
+dépose, dès la toute première) → « publication en cours », qui prime ; marque du site = dernière marque
+déposée →
 « en ligne » ; sinon, moins de `BORNE_MISE_EN_LIGNE` (30 min) depuis le dépôt → « en cours de mise en
 ligne » ; sinon « n'a pas abouti ». L'état n'est jamais stocké, il se dérive à chaque écran ; l'écran
 Publier interroge `GET /admin/publication/etat` toutes les 10 s tant que l'état est « en cours ».
@@ -332,7 +334,8 @@ déjà récupérée suffit ; sinon la construction échoue en le disant.
   `flow-publication` dans `flows.c4`.
 Descriptions à mettre à jour dans `model.c4` : `render` et `site` cessent d'être « vides » ;
 `contenu` « lu par le produit ; la publication en dépose la copie publiée » ; `d1` porte aussi l'état
-publié et l'état de la publication.
+publié et l'état de la publication ; la relation `admin -[sync]-> platform` devient « reprend les types
+des magasins et lit l’état de la publication » (la pastille du cadre lit l'état au rendu, ticket 18).
 **Relations retirées :** aucune.
 
 ## Risks / Trade-offs

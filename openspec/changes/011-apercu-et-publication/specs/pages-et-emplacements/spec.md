@@ -8,8 +8,9 @@ logo du produit et le menu des rubriques (« Mes pages », Médias, Réglages, F
 (« Médias » menant à l'`Écran : Médias`, « Réglages » à l'`Écran : Réglages`, « Formulaires » à
 l'`Écran : Formulaires`) ; Demandes situe la navigation sans mener à aucun écran. Le cadre DOIT porter
 aussi, hors du menu des rubriques et toujours visible, le geste **« Publier »**, qui mène à l'`Écran :
-Publier`, et l'**état de la dernière publication** quand une publication a eu lieu (« en cours de mise en
-ligne », « en ligne », « n'a pas abouti »). Le cadre DOIT être présent dès l'affichage de l'écran, sans
+Publier`, et l'**état de la dernière publication** dès la première confirmation (« publication en
+cours » tant qu'une publication ou une relance dépose, puis « en cours de mise en ligne », « en ligne »,
+« n'a pas abouti »). Le cadre DOIT être présent dès l'affichage de l'écran, sans
 attendre qu'un script s'exécute.
 Sur un écran large, le menu est une barre latérale qui DOIT pouvoir se replier en un rail d'icônes et
 se redéployer, l'état replié/déployé étant une préférence retenue sur l'appareil sans effet serveur ;
