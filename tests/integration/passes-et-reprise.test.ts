@@ -83,7 +83,7 @@ it("SC-17a — plus d'images qu'une passe n'en porte : les passes s'enchaînent,
   expect(deposees).toEqual(expect.arrayContaining(ids.map((id) => `medias/${id}.png`)));
 });
 
-it("SC-17a — la route de la suite, sans dépôt configuré, échoue proprement au lieu d'enchaîner les passes", async () => {
+it('ticket 17 — non-régression : sans dépôt raccordé, la suite échoue sans enchaîner de passe', async () => {
   // Arrange : la route sans dépôt configuré échoue ; on vérifie la forme de l'issue d'une passe par la plateforme
   const db = await assurerSchema();
   await semerGalerie(db);
@@ -136,6 +136,33 @@ it("SC-17b — interrompue après une partie de ses images, 5 minutes sans signe
   });
 });
 
+it("SC-17b — la reprise rejoue l'instantané interrompu : les images déjà déposées ne repartent pas", async () => {
+  // Arrange : une première passe a déposé IMAGES_PAR_PASSE blobs, puis plus rien
+  const db = await assurerSchema();
+  await semerGalerie(db);
+  const forge = await ForgeEnMemoire.creer({});
+  const t0 = Date.now();
+  const total = (await calculerEtatPublication(db, t0)).instantane.totalADeposer;
+  const ancienne = await jeton(db, t0);
+  await poursuivreUnePasse(db, ancienne, t0, forge, lecteurDesOriginales());
+  const blobsAvant = forge.appels.filter((a) => a === 'creerBlob').length;
+
+  // Act : la publication suivante, 5 minutes pile après le dernier signe de vie, va jusqu'au bout
+  const nouvelle = exigerPresent(
+    await confirmer(db, t0 + BAIL).then((c) => (c.ok ? c.jeton : null)),
+    'la reprise doit être acceptée',
+  );
+  const premiereDeLaReprise = await poursuivreUnePasse(db, nouvelle, t0 + BAIL, forge, lecteurDesOriginales());
+  let issue = premiereDeLaReprise;
+  while (issue.ok && !issue.fini) issue = await poursuivreUnePasse(db, nouvelle, t0 + BAIL, forge, lecteurDesOriginales());
+
+  // Assert : l'avancement repart de la progression gardée, et seuls les blobs restants sont créés
+  expect(blobsAvant).toBe(IMAGES_PAR_PASSE);
+  expect(premiereDeLaReprise).toEqual({ ok: true, fini: false, parties: total, total });
+  expect(issue.ok && issue.fini).toBe(true);
+  expect(forge.appels.filter((a) => a === 'creerBlob').length - blobsAvant).toBe(total - IMAGES_PAR_PASSE);
+});
+
 it("SC-17c — interrompue depuis moins de 5 minutes (4 min 59 s) : une nouvelle publication est refusée, une publication est déjà en cours", async () => {
   // Arrange
   const db = await assurerSchema();
@@ -161,4 +188,25 @@ it("SC-17c — interrompue depuis moins de 5 minutes (4 min 59 s) : une nouvelle
   expect(trop_tot).toEqual({ ok: false, raison: 'en-cours' });
   expect(route.status).toBe(409);
   expect(((await route.json()) as { raison: string }).raison).toBe('en-cours');
+});
+
+it('SC-17c — une passe renouvelle le bail : refusée 5 min après la confirmation si une passe a eu lieu entre-temps', async () => {
+  // Arrange : la galerie dépasse une passe, donc la publication reste en suspens après sa passe à t0 + 3 min
+  const db = await assurerSchema();
+  await semerGalerie(db);
+  const forge = await ForgeEnMemoire.creer({});
+  const t0 = Date.now();
+  const ancienne = await jeton(db, t0);
+  const passe = t0 + 3 * 60_000;
+  await poursuivreUnePasse(db, ancienne, passe, forge, lecteurDesOriginales());
+
+  // Act
+  const aLaBornePremiere = await confirmer(db, t0 + BAIL);
+  const justeAvant = await confirmer(db, passe + BAIL - 1000);
+  const aLaBorneRenouvelee = await confirmer(db, passe + BAIL);
+
+  // Assert
+  expect(aLaBornePremiere).toEqual({ ok: false, raison: 'en-cours' });
+  expect(justeAvant).toEqual({ ok: false, raison: 'en-cours' });
+  expect(aLaBorneRenouvelee.ok).toBe(true);
 });
