@@ -221,12 +221,18 @@ L'administration DOIT savoir de quelle publication le site en service est né sa
 tiers ni aucune adresse publique nouvelle. L'état de la dernière publication DOIT paraître dans le cadre
 sur chaque écran. Quand la dernière mise en ligne n'a pas abouti, l'éditrice DOIT pouvoir la **relancer**,
 même sans aucun brouillon : la relance dépose une nouvelle marque de publication, sans changer le contenu.
-Une mise en ligne qui arrive après la borne DOIT faire passer l'état à « en ligne ». Aucun terme de
-développeur NE DOIT paraître dans ces états (FR-117).
+Une mise en ligne qui arrive après la borne DOIT faire passer l'état à « en ligne ». Tant qu'une publication
+ou une relance dépose, dès la toute première, l'administration DOIT dire qu'une **publication est en
+cours**, sur l'écran Publier comme dans le cadre. Aucun terme de développeur NE DOIT paraître dans ces
+états (FR-117).
 
 #### Scenario: Juste après le dépôt, la mise en ligne est en cours
 - **WHEN** le contenu vient d'être déposé et que le site en service n'est pas encore né de cette publication
 - **THEN** l'administration dit que la publication est en cours de mise en ligne, sur l'écran Publier comme dans le cadre
+
+#### Scenario: Une publication qui dépose est dite en cours, dès la première
+- **WHEN** une publication ou une relance est en train de déposer, y compris la toute première publication
+- **THEN** le cadre et l'écran Publier disent qu'une publication est en cours
 
 #### Scenario: Le site né de la publication la dit en ligne
 - **WHEN** le site en service est né de la dernière publication déposée

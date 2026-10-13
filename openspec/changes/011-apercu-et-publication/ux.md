@@ -14,13 +14,14 @@ Publier » (large et étroit, avec ses états) et le **gabarit public** (page Ac
   - Le bouton **« Publier »** (bouton principal) est dans la barre haute du cadre, à droite, sur tous les
     écrans, visible sur téléphone tiroir fermé. Il mène à l'écran Publier ; il ne met rien en ligne
     lui-même.
-  - À côté, une **pastille d'état** quand une publication a eu lieu :
+  - À côté, une **pastille d'état** dès la première confirmation :
     - *en cours* : « Mise en ligne en cours… » (couleur d'attente) ;
     - *en ligne* : « Site à jour » (couleur de succès), discrète ;
     - *n'a pas abouti* : « La dernière mise en ligne n'a pas abouti » (couleur d'alerte), menant à
       l'écran Publier ;
     - *publication en train de partir* (verrou pris) : « Publication en cours… ».
-  - Jamais de pastille avant la première publication.
+  - Jamais de pastille avant la première confirmation : pendant le dépôt de la toute première
+    publication, la pastille dit déjà « Publication en cours… ».
 
 - **Éditeur d'une page — « Voir l'aperçu ».** Un bouton secondaire « Voir l'aperçu » en tête de
   l'éditeur, à côté du titre de la page ; il ouvre l'aperçu dans le même onglet.

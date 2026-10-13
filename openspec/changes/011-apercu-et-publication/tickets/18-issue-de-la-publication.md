@@ -33,7 +33,8 @@ construction du site.
   - Sinon, moins de `BORNE_MISE_EN_LIGNE` (30 minutes, constante nommée) depuis le dépôt :
     « en cours de mise en ligne ».
   - Sinon : « n'a pas abouti ».
-  - Si le verrou est pris : « publication en train de partir ».
+  - Si le verrou est pris : « publication en train de partir ». Le verrou prime, y compris pendant la
+    toute première publication.
   - Si aucune publication n'a eu lieu : aucun état.
 
   L'état n'est jamais stocké : il se dérive à chaque écran.
@@ -47,7 +48,8 @@ construction du site.
   - « La dernière mise en ligne n'a pas abouti », qui mène à l'écran Publier ;
   - « Publication en cours… ».
 
-  Jamais de pastille avant la première publication.
+  Jamais de pastille avant la première confirmation : pendant le dépôt de la toute première
+  publication, la pastille dit déjà « Publication en cours… ».
 - **États de l'écran Publier** :
   - en ligne : « Votre site est à jour. » et un lien « Voir mon site » (nouvel onglet) ;
   - n'a pas abouti : « La mise en ligne n'a pas abouti. Votre site est resté tel qu'il était, et vos

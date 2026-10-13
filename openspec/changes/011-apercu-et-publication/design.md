@@ -242,7 +242,9 @@ absents → la publication échoue avant tout appel, sans rien changer.
 
 Chaque dépôt écrit `content/publication.json` avec une marque neuve, gardée en D1. Le build l'empaquette
 (`src/platform/contenu/publication.ts`) : le Worker qui répond sait **de quelle publication il est né**.
-`src/core/publication/etat.ts` (pur) dérive l'état : marque du site = dernière marque déposée →
+`src/core/publication/etat.ts` (pur) dérive l'état : verrou pris (une publication ou une relance
+dépose, dès la toute première) → « publication en cours », qui prime ; marque du site = dernière marque
+déposée →
 « en ligne » ; sinon, moins de `BORNE_MISE_EN_LIGNE` (30 min) depuis le dépôt → « en cours de mise en
 ligne » ; sinon « n'a pas abouti ». L'état n'est jamais stocké, il se dérive à chaque écran ; l'écran
 Publier interroge `GET /admin/publication/etat` toutes les 10 s tant que l'état est « en cours ».
