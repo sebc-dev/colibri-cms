@@ -103,3 +103,45 @@ it("SC-18b — le site empaquette la marque de publication par import.meta.glob 
   expect(marquePublication).toContain('import.meta.glob');
   expect(marquePublication).toContain('content/publication.json');
 });
+
+// --- Tests retenus par la review du ticket 18 ---
+
+/** Le texte de `source` entre `debut` (inclus) et la première occurrence suivante de `fin` (exclue). */
+function entre(source: string, debut: string, fin: string): string {
+  const depart = source.indexOf(debut);
+  expect(depart, debut).toBeGreaterThan(-1);
+  const arrivee = source.indexOf(fin, depart + debut.length);
+  expect(arrivee, fin).toBeGreaterThan(depart);
+  return source.slice(depart, arrivee);
+}
+
+it("ticket 18 — la relecture de l'état ne recharge pas l'écran pendant une publication ou une relance en cours", async () => {
+  // Arrange
+  const source = (await import('../../src/admin/ilots-svelte-5/EcranPublier.svelte?raw')).default;
+
+  // Act : le corps de la relecture périodique, jusqu'au rechargement
+  const relecture = entre(source, 'setInterval(', 'window.location.reload');
+  const garde = relecture.search(/if \(enCours \|\| relanceEnCours\) return;/);
+  const lecture = relecture.indexOf("fetch('/admin/publication/etat'");
+
+  // Assert : la garde précède la lecture de l'état
+  expect(garde, 'garde « publication ou relance en cours »').toBeGreaterThan(-1);
+  expect(lecture, "lecture de l'état").toBeGreaterThan(garde);
+});
+
+it("ticket 18 — « n'a pas abouti » est présenté en danger, dans le cadre comme sur l'écran Publier", async () => {
+  // Arrange
+  const pastille = (await import('../../src/admin/PastillePublication.astro?raw')).default;
+  const publier = (await import('../../src/pages/admin/publier.astro?raw')).default;
+
+  // Act
+  const pastillePasAbouti = entre(pastille, "etat === 'pas-abouti' ? (", ') : (');
+  const pastilleAutres = entre(pastille, ') : (', '))');
+  const ecranPasAbouti = entre(publier, "etat === 'pas-abouti' && (", '</p>');
+
+  // Assert
+  expect(pastillePasAbouti).toContain('text-danger');
+  expect(pastilleAutres).not.toContain('text-danger');
+  expect(ecranPasAbouti).toContain('data-etat-publication="pas-abouti"');
+  expect(ecranPasAbouti).toContain('text-danger');
+});

@@ -64,3 +64,14 @@ Après un `/clear` : commiter code et tests en `wip` sur la branche, puis relanc
 ## Écarté
 - Toucher la route ou désactiver `checkOrigin` : le code est juste, c'est la requête du test qui ne
   ressemble pas à celle du navigateur ; `checkOrigin` protège contre les envois intersites.
+
+## Issue
+Retouche du test « la relance est gardée » choisie par l'humain (`content-type: application/json`,
+comme au ticket 15), puis cinq tournures du même test reprises pour le check `analyse` ; reprises avec
+`rerun: "2"` puis `rerun: "3"` : PR #232, fusionnée le 2026-10-13. La review y avait retenu cinq
+findings qui demandaient des tests que le correcteur n'a pas le droit d'écrire (architecture-F-1,
+securite-F-3, error-handling-F-3, change-F-4, coverage-F-2) ; je les ai écrits ensuite sur
+`test/011-tests-retenus-18`, chacun prouvé rouge par une panne volontaire du code. Restent à l'humain :
+la mitigation 7 de `security-review.md`, `ux.md` (relance offerte sans rien à publier), le libellé de
+la relation admin → platform dans `model.c4`, et l'arbitrage de « avant la première publication »
+(change-F-3).
