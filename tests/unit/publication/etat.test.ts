@@ -127,4 +127,16 @@ describe('état de la dernière publication', () => {
 
     expect(etat).toBe('en-train-de-partir');
   });
+
+  it('ticket 18 — dès la toute première publication, aucune encore déposée : le verrou pris dit la publication en train de partir', () => {
+    const etat = deriverEtat({
+      marqueDuSite: null,
+      derniereMarque: null,
+      deposeLe: null,
+      verrouPris: true,
+      maintenant: T0,
+    });
+
+    expect(etat).toBe('en-train-de-partir');
+  });
 });
