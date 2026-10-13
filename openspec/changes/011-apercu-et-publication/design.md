@@ -332,7 +332,8 @@ déjà récupérée suffit ; sinon la construction échoue en le disant.
   `flow-publication` dans `flows.c4`.
 Descriptions à mettre à jour dans `model.c4` : `render` et `site` cessent d'être « vides » ;
 `contenu` « lu par le produit ; la publication en dépose la copie publiée » ; `d1` porte aussi l'état
-publié et l'état de la publication.
+publié et l'état de la publication ; la relation `admin -[sync]-> platform` devient « reprend les types
+des magasins et lit l’état de la publication » (la pastille du cadre lit l'état au rendu, ticket 18).
 **Relations retirées :** aucune.
 
 ## Risks / Trade-offs

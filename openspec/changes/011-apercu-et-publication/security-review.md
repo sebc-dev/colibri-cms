@@ -70,8 +70,13 @@
 6. **En-têtes publics** : `public/_headers` versionné, règle `/*` ; contrôle statique que le
    `wrangler.json` produit ne pose aucun `run_worker_first` global, et que `dist/client/_headers` porte
    bien la CSP ; parcours qui vérifie la CSP sur une page publique servie par `wrangler dev`.
-7. **Anti-forgerie** : cookie `SameSite=Strict` (ADR-0011) sur toutes les écritures ; aucune écriture en
-   GET (`/admin/publication/etat` ne fait que lire et dériver).
+7. **Anti-forgerie** : cookie `SameSite=Strict` (ADR-0011) sur toutes les écritures. Une seule écriture
+   se fait en GET : à la lecture de l'état « en ligne » (`GET /admin/publication/etat`, écran Publier,
+   pastille du cadre), le vidage idempotent des octets des images publiées que le Worker en service
+   empaquette (ADR-0020). Il ne dépend que de l'état serveur (marque empaquetée égale à la dernière
+   marque déposée, liste d'images figée à la construction) : aucune valeur de la requête n'y parvient,
+   il reste derrière `verifierSession`, et le cookie `SameSite=Strict` n'est joint à aucune requête
+   venue d'un autre site, GET compris. Toutes les autres écritures restent en POST.
 8. **Session volée** : risque accepté par le candidat `medias-deux-magasins-un-par-etat` et
    `docs/security.md` (SEC-8) ; la branche principale reste en avance rapide obligatoire, donc le contenu
    textuel publié reste indestructible dans l'historique ; le rayon d'action de « Publier » est énuméré

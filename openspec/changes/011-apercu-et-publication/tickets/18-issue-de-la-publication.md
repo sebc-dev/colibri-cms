@@ -37,8 +37,9 @@ construction du site.
   - Si aucune publication n'a eu lieu : aucun état.
 
   L'état n'est jamais stocké : il se dérive à chaque écran.
-- **Lecture** : `GET /admin/publication/etat`, gardée (I6), ne fait que lire et dériver. L'écran
-  Publier l'interroge toutes les 10 secondes tant que l'état est « en cours ».
+- **Lecture** : `GET /admin/publication/etat`, gardée (I6), lit et dérive l'état ; quand il vaut
+  « en ligne », elle vide les octets des images empaquetées (§ Vidage des octets). L'écran Publier
+  l'interroge toutes les 10 secondes tant que l'état est « en cours ».
 - **Pastille du cadre** (`src/admin/PastillePublication.astro`, rendue par le serveur, à côté de
   « Publier ») :
   - « Mise en ligne en cours… » ;
@@ -59,6 +60,9 @@ construction du site.
   le Worker empaquette voient leurs octets vidés en base.
 - **Cas limites** à couvrir : 29 min 59 s et 30 min après le dépôt ; une marque ancienne après la
   borne, puis égale (mise en ligne tardive) ; aucune publication (aucune pastille).
+- **« Refusée »** (SC-18f) : les messages de refus de `src/admin/textes.ts`,
+  `TEXTE_PUBLICATION_DEJA_EN_COURS`, `TEXTE_PUBLICATION_ECHEC`, `TEXTE_PUBLICATION_INACHEVEE` et
+  `TEXTE_PUBLICATION_RELANCE_ECHEC` ; l'état dérivé n'a pas de valeur « refusée ».
 
 **Hors périmètre :** la reconstruction réelle et le chronométrage de SC-004 (ticket 19).
 

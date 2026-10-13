@@ -42,7 +42,8 @@ Publier » (large et étroit, avec ses états) et le **gabarit public** (page Ac
     ne pourront pas être récupérées. ») ; en pied, « Publier maintenant » (bouton principal) et
     « Annuler » (bouton secondaire, retour à l'écran quitté, « Mes pages » à défaut).
   - *rien à publier* : « Rien à publier : aucune page, aucun réglage ni aucun formulaire n'a de
-    modification en attente. » ; seul « Revenir à mes pages » est offert.
+    modification en attente. » ; seul « Revenir à mes pages » est offert, plus « Relancer la mise en
+    ligne » quand la dernière mise en ligne n'a pas abouti.
   - *récapitulatif changé* (confirmation refusée, 409) : message « Vos modifications ont changé depuis
     l'affichage de cette liste. Vérifiez-la à nouveau avant de publier. » au-dessus du récapitulatif à
     jour ; rien n'est parti.
