@@ -49,4 +49,18 @@ views {
     colibri-cms.worker.routes -> colibri-cms.worker.admin "rend l'écran dans le cadre"         // trace : src/pages/admin/mes-pages.astro:94
     editrice <- colibri-cms.worker.routes 'page, ou renvoi vers /admin/connexion sans session'  // trace : src/pages/admin/mes-pages.astro:104
   }
+
+  dynamic view flow-publication {
+    title "Publication d'un brouillon"
+    description "Les images partent d'abord sur leur propre branche, puis le contenu sur la branche principale ; seule celle-ci déclenche la reconstruction."
+    editrice -> colibri-cms.worker.routes 'confirme la publication'                          // trace : src/pages/admin/publication.ts:13
+    colibri-cms.worker.routes -> colibri-cms.worker.platform 'garde de session, prend le verrou de publication' // trace : src/pages/admin/publication.ts:14,25
+    colibri-cms.worker.platform -> colibri-cms.d1 'prend le verrou et garde l’instantané'    // trace : src/platform/publication/publier.ts:227-228
+    colibri-cms.worker.routes -> colibri-cms.worker.platform 'poursuit les passes jusqu’à la dernière' // trace : src/pages/admin/publication/suite.ts:39
+    colibri-cms.worker.platform -> github 'dépose les images sur la branche des images'      // trace : src/platform/publication/publier.ts:405
+    colibri-cms.worker.platform -> github 'dépose le contenu sur la branche principale'      // trace : src/platform/publication/publier.ts:413
+    github -> workers-builds 'le dépôt sur la branche principale déclenche la reconstruction' // FR-089
+    workers-builds -> colibri-cms.worker 'bâtit, récupère les images, déploie'
+    editrice <- colibri-cms.worker.routes 'dit la publication en ligne'                      // trace : src/pages/admin/publication/etat.ts:15
+  }
 }

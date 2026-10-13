@@ -604,6 +604,45 @@ Joué le 2026-10-11 sur l'adresse d'aperçu de la branche `impl/corriger-les-opt
 | CT-28.7 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | L'écran se place sur ce prix et le curseur y est ; le message en haut reste affiché | OK — après le refus, le prix de Fraise est dans la vue et a le curseur ; le message du haut reste en place, au-dessus de la première carte (hors de la vue tant qu'on ne remonte pas) |
 | CT-28.8 | Ouvrir « Devis gâteau » | Un seul bouton « Enregistrer » à l'écran, et il enregistre | OK — un seul « Enregistrer » (celui de l'îlot, `type="submit"`) ; c'est lui qui enregistre en CT-28.1 |
 
+## 29. Aperçu et publication sur la vraie chaîne — change 011 · ticket 19
+
+Prérequis (gestes humains, guidés par le skill `recette`, § Publication réelle) : dépôt privé de recette, clé `JETON_DEPOT` posée sur le Worker de recette, reconstruction automatique branchée sur la seule branche principale. Jouer CT-31.1 avant de poser `JETON_DEPOT`. Session ouverte sur `https://colibri.sebc.dev/admin/`. La colonne Résultat reste vide tant que le cas n'a pas été joué sur l'instance : un cas non constaté n'est jamais coché.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-29.1 | Modifier un texte d'une page avec un texte unique, suffixé de l'heure (« Ouvert le lundi 14h32 »), « Publier », confirmer ; lancer `$R chrono https://colibri.sebc.dev/<page> "<texte>"` au moment de la confirmation ; une fois chrono réussi, recharger un écran de l'administration puis l'écran Publier | La page publique présente le texte en moins de 5 minutes (SC-004) ; l'administration dit la publication en ligne : la pastille du cadre dit « Site à jour » et l'écran Publier dit « Votre site est à jour. » (capture à l'appui). Si le chronomètre expire, lire le journal de la reconstruction ; sur « Impossible de récupérer les images publiées », poser `COLIBRI_CLE_LECTURE_DEPOT` (clé `Contents: Read-only` sur le dépôt de recette, variable secrète de construction de Workers Builds, compte de recette), relancer, puis rejouer le cas | |
+| CT-29.2 | Publier un brouillon qui porte des images et du texte ; relever l'activité du dépôt de recette avec `gh api 'repos/<propriétaire>/<dépôt>/activity?per_page=10' --jq '.[] | [.id, .ref, .activity_type, .timestamp] | @tsv'` et garder cette sortie comme preuve | Pour cette publication, l'entrée de `refs/heads/media` (force_push, ou branch_creation à la toute première publication) précède celle de `refs/heads/main` (push), selon l'`id` croissant et pas seulement l'heure. Les images arrivent ainsi sur la branche des images avant le contenu sur la branche principale | |
+| CT-29.3 | Relever les reconstructions lancées par cette publication | Une seule, déclenchée par la branche principale ; le dépôt sur la branche des images n'en lance aucune (FR-089) | |
+| CT-29.4 | Ouvrir la page publique après reconstruction | Les images publiées s'affichent : la reconstruction a bien récupéré la branche des images | |
+| CT-29.5 | Mesurer : publication à 1 image, à 40 images, puis durée d'une reconstruction | Durées consignées ci-dessous et comparées à `BAIL` (5 min, `src/core/publication/depot.ts`) et `BORNE_MISE_EN_LIGNE` (30 min, `src/core/publication/etat.ts`) ; si infirmées, corriger ces constantes sans toucher l'ADR-0023 | |
+| CT-29.6 | À 360 px, ouvrir un gabarit public | `scrollWidth` ≤ 360, aucun défilement horizontal | |
+| CT-29.7 | À 360 px, ouvrir l'écran Publier | Lisible, boutons ≥ 44 × 44 px, aucun terme de développeur | |
+| CT-29.8 | À 360 px, tiroir fermé | « Publier » reste visible en haut de l'écran | |
+| CT-29.9 | Ouvrir l'aperçu d'une page | Le bandeau, hors de la page, dit que ce n'est pas encore en ligne ; aucun terme de développeur | |
+
+Mesures : 1 image ___ s · 40 images ___ s · reconstruction ___ s · publication → page en ligne ___ s.
+
+## 30. Plus d'images qu'une passe n'en porte — change 011 · ticket 17
+
+Constat SC-17a, reporté au ticket 19 : à jouer sur la recette raccordée (prérequis du § 29). La colonne Résultat reste vide tant que le cas n'a pas été joué.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-30.1 | Poser 45 images dans la galerie d'Accueil, ouvrir « Publier », cliquer une seule fois sur « Publier maintenant » | Sans autre geste, l'écran affiche « Envoi des images : 40 sur 45 » et monte jusqu'à « 45 sur 45 », puis « C'est publié. Votre site sera à jour dans quelques minutes. Vous pouvez continuer à travailler. ». Ensuite, la branche `media` du dépôt de recette porte les 45 images, relevé par `gh api 'repos/<propriétaire>/<dépôt>/git/trees/media?recursive=1' --jq '[.tree[] \| select(.type=="blob" and (.path \| startswith("medias/")))] \| length'` | |
+
+## 31. Publication impossible ou refusée — change 011 · ticket 16
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-31.1 | SC-16b, à jouer AVANT de poser `JETON_DEPOT` : sur la recette sans clé ni dépôt raccordé, modifier une page, ouvrir « Publier », confirmer | L'écran dit que la publication n'a pas pu se faire, sans aucun terme de développeur (dépôt, GitHub, jeton, commit, branche, build, déploiement) ; la page garde sa marque de brouillon dans « Mes pages » et dans l'éditeur ; noter le texte exact affiché | |
+| CT-31.2 | SC-16a, sur la recette raccordée : geste humain, dans son terminal, `$R secret-depot` avec une clé invalide ou en lecture seule ; modifier une page, ouvrir « Publier », confirmer | L'écran affiche « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes. » ; la page garde sa marque de brouillon ; aucun nouveau dépôt dans le dépôt de recette ; le site public est inchangé. Puis reposer la bonne clé de la même façon | |
+
+## 32. Une publication à la fois — change 011 · ticket 15
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-32.1 | SC-15f, sur la recette raccordée, au moins un brouillon : deux onglets sur « Publier ». Cliquer « Publier maintenant » dans l'onglet A puis, pendant « Publication… », dans l'onglet B | B affiche « Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez. » ; A va au bout | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
@@ -631,6 +670,10 @@ Joué le 2026-10-11 sur l'adresse d'aperçu de la branche `impl/corriger-les-opt
 | 21 Éditeur habillé | 9 | 9 | 0 | 0 |
 | 22 Emplacements d'image habillés | 12 | 12 | 0 | 0 |
 | 23 Code en recette | 5 | 4 | 0 | 1 |
-| **Total** | **176** | | | |
+| 29 Publication sur la vraie chaîne | 9 | | | |
+| 30 Images en plusieurs passes | 1 | | | |
+| 31 Publication impossible ou refusée | 2 | | | |
+| 32 Une publication à la fois | 1 | | | |
+| **Total** | **189** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
