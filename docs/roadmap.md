@@ -35,7 +35,7 @@ aucune fausse manœuvre ne casse la mise en page ni ne laisse un trou dans une p
       SC-015)
 - [x] **008 — Réglages transverses** · *livrée* (FR-041→044 · SC-017)
 - [x] **010 — Réglage des formulaires de devis** · *livrée* (FR-045→051 · SC-007)
-- [ ] Aperçu et publication (FR-080→091 · SC-004, SC-016) — a tranché, par
+- [x] **011 — Aperçu et publication** · *livrée* (FR-080→091 · SC-004, SC-016) — a tranché, par
       `docs/adr/0026-brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md`, ce que la
       publication dépose pour un champ dont les options de départ ont changé sous un brouillon
 
