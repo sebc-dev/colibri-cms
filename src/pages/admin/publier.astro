@@ -68,7 +68,7 @@ const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border
   {
     etat === 'en-ligne' && (
       <p class="mt-4 rounded-lg border border-border bg-card p-4" role="status" data-etat-publication="en-ligne">
-        {TEXTE_PUBLICATION_ETAT_EN_LIGNE} <a href="/" target="_blank" rel="noopener">{TEXTE_PUBLICATION_LIEN_VOIR_MON_SITE}</a>
+        {TEXTE_PUBLICATION_ETAT_EN_LIGNE} <a href="/" target="_blank" rel="noopener" class="inline-flex min-h-11 items-center text-plumage underline underline-offset-2">{TEXTE_PUBLICATION_LIEN_VOIR_MON_SITE}</a>
       </p>
     )
   }
@@ -82,7 +82,7 @@ const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border
     rien ? (
       <div class="mt-6 rounded-lg border border-border bg-card p-4 text-ink-muted">
         <p data-rien-a-publier>{TEXTE_RIEN_A_PUBLIER}</p>
-        <p class="mt-4"><a href="/admin/mes-pages">{TEXTE_REVENIR_A_MES_PAGES}</a></p>
+        <p class="mt-4"><a href="/admin/mes-pages" class="inline-flex min-h-11 items-center text-plumage underline underline-offset-2">{TEXTE_REVENIR_A_MES_PAGES}</a></p>
       </div>
     ) : (
       <>
@@ -92,7 +92,7 @@ const classeListe = 'mt-2 divide-y divide-border rounded-lg border border-border
             <h2>{TEXTE_SECTION_PAGES_PUBLIER}</h2>
             <ul class={classeListe}>
               {recapitulatif.pages.map((page) => (
-                <li>{page.titre} <a href={`/admin/apercu${adresseDeLaPage(page.slug)}`}>{TEXTE_LIEN_VOIR_APERCU}</a></li>
+                <li>{page.titre} <a href={`/admin/apercu${adresseDeLaPage(page.slug)}`} class="inline-flex min-h-11 items-center text-plumage underline underline-offset-2">{TEXTE_LIEN_VOIR_APERCU}</a></li>
               ))}
             </ul>
           </section>
