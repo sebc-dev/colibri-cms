@@ -157,8 +157,11 @@ produit. Trois **gestes humains** :
    Builds exige le nom du Worker connecté, et `npx wrangler deploy` suit après le build la
    configuration que l'adaptateur en dérive. Il retire `.github/` : aucune action GitHub ne tourne
    dans ce dépôt. Si le dépôt n'a pas de branche `media`, il la pose avec les images du produit,
-   sans quoi la reconstruction échoue sur l'image absente (SC-06f). Rejouer `depot` sur un clone à
-   jour (`git pull` d'abord) recompose tout, contenu du site factice compris ;
+   sans quoi la reconstruction échoue sur l'image absente (SC-06f). Le site factice n'est posé
+   qu'au premier remplissage. Rejoué sur un clone à jour (`git pull` d'abord), `depot` met à jour
+   le produit et la configuration mais garde `content/` tel que la publication l'a écrit : il porte
+   la marque de publication (`content/publication.json`), sans laquelle l'administration ne dirait
+   plus jamais le site en ligne ;
 2. une clé à portée fine sur ce seul dépôt (`Contents: Read and write`), posée par
    `$R secret-depot` en secret `JETON_DEPOT` du Worker de recette. L'humain lance lui-même
    `$R secret-depot` dans un terminal interactif et tape la clé à l'invite masquée. L'agent ne lance

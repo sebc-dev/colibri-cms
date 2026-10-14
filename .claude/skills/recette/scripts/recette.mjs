@@ -35,7 +35,8 @@
  *                           interroge une page publique jusqu'à ce qu'elle contienne le
  *                           texte ; imprime la durée écoulée (SC-004 : < 5 min).
  *   depot <clone>           compose le dépôt de recette (`RECETTE_DEPOT`) dans un clone
- *                           local : le produit au HEAD, le site factice, l'instance et la
+ *                           local : le produit au HEAD, le site factice (premier remplissage
+ *                           seulement, ensuite `content/` publié est gardé), l'instance et la
  *                           configuration wrangler du compte de recette, la branche `media`
  *                           si le dépôt n'en a pas. Commite localement ; n'envoie rien.
  *   adresses                imprime les adresses du serveur principal et de la branche.
@@ -362,8 +363,17 @@ function depot(reglages, dossier) {
   if (extraction.status !== 0) echouer(`extraction du HEAD vers ${dossier} échouée (code ${extraction.status}).`);
   // Aucune action GitHub ne tourne dans le dépôt de recette.
   rmSync(`${cible}/.github`, { recursive: true, force: true });
-  rmSync(`${cible}/content/pages`, { recursive: true, force: true });
-  cpSync('recette/site-factice/pages', `${cible}/content/pages`, { recursive: true });
+  // Le site factice n'est posé qu'au premier remplissage : ensuite, `content/` appartient à la
+  // publication (dont `content/publication.json`, sa marque) et revient tel que le dépôt le porte.
+  const dejaRempli = reussit(['-C', cible, 'rev-parse', '--verify', '--quiet', 'HEAD']);
+  if (dejaRempli) {
+    rmSync(`${cible}/content`, { recursive: true, force: true });
+    git(['-C', cible, 'restore', '--source=HEAD', '--staged', '--worktree', '--', 'content']);
+  } else {
+    rmSync(`${cible}/content/pages`, { recursive: true, force: true });
+    cpSync('recette/site-factice/pages', `${cible}/content/pages`, { recursive: true });
+  }
+  const contenu = dejaRempli ? 'contenu publié gardé' : 'site factice';
 
   RACINE = cible;
   ecrireInstance(reglages, nomDepot);
@@ -385,8 +395,8 @@ function depot(reglages, dossier) {
   if (reussit(['-C', cible, 'diff', '--cached', '--quiet'])) {
     console.log(`✔ ${dossier} déjà composé depuis ${sha} : rien à commiter.`);
   } else {
-    git(['-C', cible, 'commit', '--quiet', '-m', `recette : ColibriCMS ${sha} et site factice`]);
-    console.log(`✔ ${dossier} : ColibriCMS ${sha}, site factice, instance et configuration du compte de recette commités.`);
+    git(['-C', cible, 'commit', '--quiet', '-m', `recette : ColibriCMS ${sha}, ${contenu}`]);
+    console.log(`✔ ${dossier} : ColibriCMS ${sha}, ${contenu}, instance et configuration du compte de recette commités.`);
   }
 
   // La branche des images n'est posée qu'une fois : ensuite, c'est la publication qui l'écrit.
