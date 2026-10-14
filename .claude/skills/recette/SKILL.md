@@ -18,6 +18,7 @@ $R sql "<requête>"          # lit/écrit la base de recette (remplace le `--loc
 $R raz                      # remet à zéro (équivalent § 0.6), resème l'adresse
 $R secret-depot             # geste HUMAIN, dans son propre terminal : pose JETON_DEPOT (invite masquée)
 $R chrono <url> <texte>     # chronomètre : combien avant que la page présente le texte
+$R depot <clone>            # compose le dépôt de recette dans son clone (§ Publication réelle)
 $R journal                  # journaux du serveur en direct (le terminal de `wrangler dev`)
 ```
 
@@ -118,7 +119,8 @@ RECETTE_DOMAINE=<sous-domaine d'une zone du compte>
 RECETTE_ADRESSE=<adresse vérifiée, devient l'adresse autorisée>
 ```
 
-Optionnel : `RECETTE_EXPEDITEUR=<adresse d'expéditeur>` (défaut `code@<RECETTE_DOMAINE>`).
+Optionnel : `RECETTE_EXPEDITEUR=<adresse d'expéditeur>` (défaut `code@<RECETTE_DOMAINE>`), et
+`RECETTE_DEPOT=<propriétaire>/<dépôt>`, le dépôt de recette que lit `depot` (§ Publication réelle).
 **Activer l'acheminement d'e-mail sur le domaine de cette adresse** (dashboard → Email Routing),
 sans quoi aucun code n'arrive.
 
@@ -131,23 +133,50 @@ Email Routing → Settings → Subdomains). Ici, `sebc.dev` n'a plus de courrier
 
 ## Publication réelle (SC-004, FR-089)
 
-Pour prouver « publié, en ligne en moins de 5 minutes » sur la vraie chaîne, trois **gestes
-humains** (compte de recette ; ces identifiants ne vont jamais dans le dépôt produit) :
+Pour prouver « publié, en ligne en moins de 5 minutes » sur la vraie chaîne, le Worker de recette
+est rebâti par Workers Builds depuis un **dépôt de recette** GitHub privé (`RECETTE_DEPOT`). Ce
+dépôt est le seul à porter les identifiants du compte de recette : ils ne vont jamais dans le dépôt
+produit. Trois **gestes humains** :
 
-1. un dépôt GitHub **privé** pour le site de recette. Avant de brancher la reconstruction
-   automatique, il porte les sources du produit au commit recetté et un `instance.json` qui ajoute
-   à `domain` et `senderAddress` le champ `depotDePublication` égal à `<propriétaire>/<dépôt de
-   recette>` : sans ce champ, toute publication échoue avant le dépôt. Il porte aussi la
-   configuration wrangler du compte de recette (nom du Worker de recette, identifiant de la base D1
-   de recette, route du domaine de recette). Si des pages de ce contenu posent des images, la
-   branche `media` doit les porter avant la première reconstruction, sinon elle échoue sur l'image
-   absente (SC-06f). Ces identifiants vivent dans le dépôt de recette, jamais dans le dépôt produit ;
+1. un dépôt GitHub **privé** pour le site de recette, créé vide par l'humain. Le remplir est
+   scripté, l'agent peut le faire. Depuis le dépôt produit, sur le commit à recetter :
+
+   ```sh
+   S="node .claude/skills/site-factice/scripts/site.mjs"
+   $S deployer standard --principal       # migre la base et sème l'adresse, AVANT l'étape 3
+   git clone git@github.com:<RECETTE_DEPOT>.git ../colibri_recette
+   $R depot ../colibri_recette            # compose et commite ; n'envoie rien
+   git -C ../colibri_recette push -u origin HEAD:main    # en premier : main devient la branche par défaut
+   git -C ../colibri_recette push origin media
+   ```
+
+   `depot` recopie le produit au HEAD et remplace `content/pages/` par le site factice. Il écrit
+   `instance.json` : `domain`, `senderAddress` et `depotDePublication` = `RECETTE_DEPOT` (sans ce
+   champ, toute publication échoue avant le dépôt). Il récrit `wrangler.jsonc` et
+   `wrangler.astro.jsonc` avec le Worker, la base, l'adresse et le domaine de recette : Workers
+   Builds exige le nom du Worker connecté, et `npx wrangler deploy` suit après le build la
+   configuration que l'adaptateur en dérive. Il retire `.github/` : aucune action GitHub ne tourne
+   dans ce dépôt. Si le dépôt n'a pas de branche `media`, il la pose avec les images du produit,
+   sans quoi la reconstruction échoue sur l'image absente (SC-06f). Rejouer `depot` sur un clone à
+   jour (`git pull` d'abord) recompose tout, contenu du site factice compris ;
 2. une clé à portée fine sur ce seul dépôt (`Contents: Read and write`), posée par
    `$R secret-depot` en secret `JETON_DEPOT` du Worker de recette. L'humain lance lui-même
    `$R secret-depot` dans un terminal interactif et tape la clé à l'invite masquée. L'agent ne lance
    jamais cette commande, ne demande jamais la clé dans la conversation et ne la fait jamais passer
    par `echo … |` ni par un argument ;
-3. la reconstruction automatique (Workers Builds) branchée sur la **seule** branche principale.
+3. la reconstruction automatique (Workers Builds) branchée sur la **seule** branche principale :
+   tableau de bord → Workers & Pages → `colibri-recette` → Settings → Builds → Connect, le dépôt
+   de recette. Commande de construction `npm run build`, commande de déploiement
+   `npx wrangler deploy` (le défaut), répertoire racine vide. Dans Branch control : branche de
+   production `main`, et **Enable Preview Builds décoché**, pour qu'un dépôt sur `media` ne
+   déclenche rien (FR-089). Une reconstruction part à chaque dépôt sur `main` ; pour la première,
+   pousser un commit vide (`git -C ../colibri_recette commit --allow-empty -m "recette : première
+   reconstruction" && git -C ../colibri_recette push`).
+
+La clé que Workers Builds crée pour ses constructions n'a aucun droit sur D1 : la reconstruction
+n'applique pas les migrations. Avant de recetter une version du produit qui en ajoute une,
+l'appliquer par un aperçu (`$S deployer standard`, sans `--principal` : il migre la base partagée),
+puis rejouer `$R depot` et les envois de l'étape 1.
 
 Une fois la reconstruction automatique branchée, ne plus lancer `$R deployer` vers le serveur
 principal (depuis `main` ou avec `--principal`) : il remplacerait le Worker bâti depuis le dépôt de
