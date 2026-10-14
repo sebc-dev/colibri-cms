@@ -14,12 +14,17 @@ L'administration SHALL présenter, autour de chaque écran servi derrière la ga
 logo du produit et le menu des rubriques (« Mes pages », Médias, Réglages, Formulaires, Demandes),
 « Mes pages », « Médias », « Réglages » et « Formulaires » étant les rubriques actives et servies
 (« Médias » menant à l'`Écran : Médias`, « Réglages » à l'`Écran : Réglages`, « Formulaires » à
-l'`Écran : Formulaires`) ; Demandes situe la navigation sans mener à aucun écran. Le cadre DOIT être
-présent dès l'affichage de l'écran, sans attendre qu'un script s'exécute.
+l'`Écran : Formulaires`) ; Demandes situe la navigation sans mener à aucun écran. Le cadre DOIT porter
+aussi, hors du menu des rubriques et toujours visible, le geste **« Publier »**, qui mène à l'`Écran :
+Publier`, et l'**état de la dernière publication** dès la première confirmation (« publication en
+cours » tant qu'une publication ou une relance dépose, puis « en cours de mise en ligne », « en ligne »,
+« n'a pas abouti »). Le cadre DOIT être présent dès l'affichage de l'écran, sans
+attendre qu'un script s'exécute.
 Sur un écran large, le menu est une barre latérale qui DOIT pouvoir se replier en un rail d'icônes et
 se redéployer, l'état replié/déployé étant une préférence retenue sur l'appareil sans effet serveur ;
-sur un écran étroit, le menu DOIT devenir un tiroir, fermé par défaut, qu'un bouton ouvre. Aucun terme
-de développeur ne DOIT paraître, et le menu n'offre aucun geste de structure (FR-024/025, FR-117).
+sur un écran étroit, le menu DOIT devenir un tiroir, fermé par défaut, qu'un bouton ouvre, le geste
+« Publier » restant visible hors du tiroir. Aucun terme de développeur ne DOIT paraître, et le menu
+n'offre aucun geste de structure (FR-024/025, FR-117).
 
 #### Scenario: La barre latérale porte les cinq rubriques
 - **WHEN** l'`Écran : Cadre de l'administration` est affiché
@@ -27,8 +32,16 @@ de développeur ne DOIT paraître, et le menu n'offre aucun geste de structure (
 
 #### Scenario: Le cadre est présent dès l'affichage
 - **WHEN** un écran servi derrière la garde est demandé
-- **THEN** la réponse porte déjà le logo, le menu des cinq rubriques avec la rubrique courante marquée, et le contenu de l'écran à l'intérieur du cadre
-- **AND** ni le menu ni le contenu n'attendent l'exécution d'un script pour exister
+- **THEN** la réponse porte déjà le logo, le menu des cinq rubriques avec la rubrique courante marquée, le geste « Publier », et le contenu de l'écran à l'intérieur du cadre
+- **AND** ni le menu, ni le geste « Publier », ni le contenu n'attendent l'exécution d'un script pour exister
+
+#### Scenario: Le geste Publier mène au récapitulatif depuis tout écran
+- **WHEN** l'éditrice actionne « Publier » depuis n'importe quel écran servi derrière la garde
+- **THEN** l'`Écran : Publier` s'ouvre, portant le récapitulatif de ce qui va partir, sans que rien ne soit encore mis en ligne
+
+#### Scenario: L'état de la dernière publication paraît dans le cadre
+- **WHEN** une publication a été déposée, et que l'éditrice ouvre n'importe quel écran servi derrière la garde
+- **THEN** le cadre dit si cette publication est en cours de mise en ligne, en ligne, ou si elle n'a pas abouti
 
 #### Scenario: Replier la barre en un rail d'icônes
 - **WHEN** sur un écran large, l'éditrice actionne le bouton de repli
@@ -46,6 +59,7 @@ de développeur ne DOIT paraître, et le menu n'offre aucun geste de structure (
 - **WHEN** l'écran est affiché sur un appareil étroit
 - **THEN** le menu est fermé et le contenu occupe toute la largeur
 - **AND** un bouton de menu, toujours visible en haut de l'écran, ouvre le tiroir portant les cinq rubriques
+- **AND** le geste « Publier » reste visible en haut de l'écran, tiroir fermé
 
 #### Scenario: Le tiroir se referme de lui-même
 - **WHEN** le tiroir est ouvert et l'éditrice choisit une rubrique, touche en dehors du tiroir, ou appuie sur la touche Échap
@@ -57,7 +71,7 @@ de développeur ne DOIT paraître, et le menu n'offre aucun geste de structure (
 - **THEN** aucune rubrique autre que « Mes pages », « Médias », « Réglages » et « Formulaires » ne mène à un écran servi, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page
 
 #### Scenario: Aucun terme de développeur dans le cadre
-- **WHEN** l'éditrice lit le menu et les libellés du cadre
+- **WHEN** l'éditrice lit le menu, le geste « Publier », l'état de la dernière publication et les libellés du cadre
 - **THEN** aucun terme de développeur n'y paraît (FR-117)
 
 #### Scenario: Le cadre est servi sous CSP stricte
@@ -97,13 +111,15 @@ développeur (FR-117).
 Ouvrir une page depuis la liste SHALL présenter ses emplacements dans l'ordre posé par l'intégrateur,
 chacun présenté selon sa nature (texte riche, lien de vidéo, bouton d'action, **image, galerie,
 carrousel**) **et par son nom quand l'intégrateur lui en a donné un** (« Texte riche — Présentation »), et
-montrant son contenu courant, avec un fil de retour vers « Mes pages ». Un emplacement sans nom DOIT se
-présenter par sa nature seule, jamais par son identifiant. Cet écran porte la présentation par nature ; le
-moyen d'édition fonctionnel de chaque nature — barre de mise en forme du texte riche, champ de lien de
-vidéo, champs du bouton d'action, **sélecteur d'image pour les emplacements d'image, de galerie et de
-carrousel** — est livré par la correction de cette nature (requirements suivants), non par cet écran seul.
-L'éditeur ne DOIT offrir aucun geste d'ajout, de retrait, de déplacement ni de renommage d'un emplacement
-— **son nom compris** — (FR-024/025), ni aucun terme de développeur (FR-117).
+montrant son contenu courant — **son brouillon s'il en porte un, sa dernière version publiée sinon** —,
+avec un fil de retour vers « Mes pages » et un geste **« Voir l'aperçu »** qui ouvre l'aperçu de cette
+page. Un emplacement sans nom DOIT se présenter par sa nature seule, jamais par son identifiant. Cet écran
+porte la présentation par nature ; le moyen d'édition fonctionnel de chaque nature — barre de mise en
+forme du texte riche, champ de lien de vidéo, champs du bouton d'action, **sélecteur d'image pour les
+emplacements d'image, de galerie et de carrousel** — est livré par la correction de cette nature
+(requirements suivants), non par cet écran seul. L'éditeur ne DOIT offrir aucun geste d'ajout, de
+retrait, de déplacement ni de renommage d'un emplacement — **son nom compris** — (FR-024/025), ni aucun
+terme de développeur (FR-117).
 
 #### Scenario: Ouvrir une page depuis la liste
 - **WHEN** l'éditrice clique une page de l'`Écran : Liste des pages`
@@ -127,7 +143,15 @@ L'éditeur ne DOIT offrir aucun geste d'ajout, de retrait, de déplacement ni de
 
 #### Scenario: Chaque emplacement montre son contenu courant
 - **WHEN** l'éditeur d'une page est affiché
-- **THEN** chaque emplacement présente le contenu courant de la page
+- **THEN** chaque emplacement présente le contenu courant de la page : son brouillon s'il en porte un, sa dernière version publiée sinon
+
+#### Scenario: Hors brouillon, l'éditeur montre la dernière version publiée
+- **WHEN** l'éditeur d'une page est affiché après la publication d'une correction de son bouton d'action, la page ne portant plus de brouillon
+- **THEN** le bouton d'action présente le libellé et la destination publiés, et non ceux du contenu de départ
+
+#### Scenario: Voir l'aperçu depuis l'éditeur
+- **WHEN** l'éditrice actionne « Voir l'aperçu » depuis l'éditeur d'une page
+- **THEN** l'aperçu de cette page s'ouvre, présentant son contenu courant
 
 #### Scenario: Le fil de retour ramène à la liste
 - **WHEN** l'éditrice actionne le fil de retour
