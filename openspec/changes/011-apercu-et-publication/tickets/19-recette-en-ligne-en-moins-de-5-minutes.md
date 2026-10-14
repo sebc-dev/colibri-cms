@@ -55,5 +55,5 @@ client, la reconstruction sans le CMS, la convention de flotte pour les identifi
 (Epic D).
 
 ## Critères
-- [ ] Sur l'instance de recette, quand l'éditrice modifie un texte, publie et confirme, la page publique présente la modification moins de 5 minutes après la confirmation (SC-004), et l'administration dit la publication en ligne   (SC-19a)
-- [ ] Quand une publication dépose des images et du contenu, les images sont déposées sur la branche des images avant que le contenu ne soit déposé sur la branche principale, et seule la branche principale déclenche la reconstruction   (SC-19b)
+- [x] Sur l'instance de recette, quand l'éditrice modifie un texte, publie et confirme, la page publique présente la modification moins de 5 minutes après la confirmation (SC-004), et l'administration dit la publication en ligne   (SC-19a)
+- [x] Quand une publication dépose des images et du contenu, les images sont déposées sur la branche des images avant que le contenu ne soit déposé sur la branche principale, et seule la branche principale déclenche la reconstruction   (SC-19b)

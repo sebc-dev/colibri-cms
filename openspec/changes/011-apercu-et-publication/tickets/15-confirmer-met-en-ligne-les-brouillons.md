@@ -85,4 +85,4 @@ la mise en ligne et la relance (ticket 18).
 - [x] Quand une correction de la page « Contact » est enregistrée après la confirmation, pendant que la publication dépose, une fois le dépôt fait, « Contact » porte toujours un brouillon qui contient cette correction   (SC-15c)
 - [x] Quand la page « Tarifs » vient d'être publiée et que le site n'est pas encore reconstruit, l'éditeur de « Tarifs » présente le contenu publié, sans marque de brouillon, et non l'ancien contenu de départ   (SC-15d)
 - [x] Quand une publication efface une image puis qu'une publication suivante dépose, après la première l'image a quitté la bibliothèque et sa fiche le contenu déposé, et après la seconde ses octets ne sont plus sur la branche des images   (SC-15e)
-- [ ] Quand une publication dépose et qu'une seconde publication est confirmée depuis un autre onglet, la seconde est refusée, avec un message disant qu'une publication est déjà en cours   (SC-15f)
+- [x] Quand une publication dépose et qu'une seconde publication est confirmée depuis un autre onglet, la seconde est refusée, avec un message disant qu'une publication est déjà en cours   (SC-15f)
