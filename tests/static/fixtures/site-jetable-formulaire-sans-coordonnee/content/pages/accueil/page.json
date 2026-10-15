@@ -1,0 +1,5 @@
+{
+  "titre": "Accueil",
+  "rang": 0,
+  "emplacements": [{ "id": "formulaire-devis", "nature": "formulaire", "rang": 0, "formulaire": "devis-muet" }]
+}
