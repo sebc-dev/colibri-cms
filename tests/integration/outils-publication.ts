@@ -164,20 +164,6 @@ export async function semerBrouillonFormulaire(db: DBLike, formulaire: string, c
     .run();
 }
 
-export async function semerPublieEmplacement(
-  db: DBLike,
-  slug: string,
-  idEmplacement: string,
-  contenu: Record<string, unknown>,
-): Promise<void> {
-  await db
-    .prepare(
-      'insert into publies_emplacements (page_slug, id_emplacement, nature, contenu, publie_le) values (?1, ?2, ?3, ?4, ?5)',
-    )
-    .bind(slug, idEmplacement, String(contenu.nature), JSON.stringify(contenu), Date.now())
-    .run();
-}
-
 export async function semerImage(db: DBLike, id: string, octets: Uint8Array<ArrayBuffer>): Promise<void> {
   await db
     .prepare(
