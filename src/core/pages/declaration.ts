@@ -299,11 +299,24 @@ function construireEmplacement(
       if (!estTableauDeMediaIds(candidat.mediaIds)) return null;
       return { id, nature: 'carrousel', rang, mediaIds: candidat.mediaIds, ...avecNom };
     case 'formulaire':
-      if (typeof candidat.formulaire !== 'string' || candidat.formulaire.length === 0) return null;
-      return { id, nature: 'formulaire', rang, formulaire: candidat.formulaire, ...avecNom };
+      return construireEmplacementFormulaire(id, rang, candidat.formulaire, avecNom);
     default:
       return null;
   }
+}
+
+/**
+ * Un emplacement de formulaire (change 012, ticket 01, ADR-0027) : écarté
+ * (`null`) quand `formulaire` n'est pas un texte non vide.
+ */
+function construireEmplacementFormulaire(
+  id: string,
+  rang: number,
+  formulaire: unknown,
+  avecNom: { readonly nom?: string },
+): EmplacementFormulaire | null {
+  if (typeof formulaire !== 'string' || formulaire.length === 0) return null;
+  return { id, nature: 'formulaire', rang, formulaire, ...avecNom };
 }
 
 /**
