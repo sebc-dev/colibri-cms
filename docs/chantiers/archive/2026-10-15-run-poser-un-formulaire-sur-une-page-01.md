@@ -47,3 +47,9 @@ neufs, dérogation, cases), PR qui dit que la quality gate et la review n'ont pa
   modifiée sur un test existant, la reprise rebloquerait.
 - Dessiner la carte Formulaire sans `<CardTitle>` pour éviter le compte : ce serait plier le code au
   test, et la carte divergerait des six autres.
+
+## Issue
+L'humain a accepté la dérogation le 2026-10-15. J'ai passé SC-03c de six à sept (commit `f0f2607`),
+rejoué typecheck, build, lint et la suite, commité le travail du workflow tel quel en commits séparés,
+puis ouvert la PR #245 vers `main`, qui dit que la quality gate et la review n'ont pas tourné. Restait
+à jouer `/scd-spec-dev:review` sur la PR, puis à lancer le ticket 02 empilé sur cette branche.
