@@ -13,6 +13,7 @@ import { verifierSession } from '../../../platform/session/index.ts';
 import { listerPagesDeclarees, obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { lireReglagesDeLaDeclaration } from '../../../platform/contenu/reglages.ts';
 import { imagesPubliees } from '../../../platform/contenu/medias.ts';
+import { lireFormulairesDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
 import { lireImagesDeLApercu } from '../../../platform/medias/magasin.ts';
 import { obtenirBrouillon } from '../../../platform/brouillons/magasin.ts';
 import { obtenirBrouillonsReglages } from '../../../platform/reglages/magasin.ts';
@@ -74,7 +75,7 @@ for (const id of posees) {
 }
 
 const page = pageAvecLiensDeLApercu(
-  composerPage({ slug, pages, page: declaree, reglages, publie, brouillon, images }),
+  composerPage({ slug, pages, page: declaree, reglages, publie, brouillon, images, formulaires: lireFormulairesDeLaDeclaration(), modeEnvoi: 'actif' }),
   pages,
 );
 ---

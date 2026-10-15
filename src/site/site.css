@@ -134,3 +134,51 @@ main img {
   flex: 0 0 100%;
   scroll-snap-align: start;
 }
+
+.formulaire form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 36rem;
+}
+
+.formulaire .champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.formulaire .option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.formulaire input[type='text'],
+.formulaire input[type='email'],
+.formulaire input[type='tel'],
+.formulaire textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.5rem;
+  font: inherit;
+}
+
+.formulaire .obligatoire {
+  font-size: 0.9em;
+}
+
+.formulaire button {
+  align-self: flex-start;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+}
+
+.formulaire [hidden] {
+  display: none;
+}
