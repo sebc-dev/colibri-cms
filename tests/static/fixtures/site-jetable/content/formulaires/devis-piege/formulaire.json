@@ -1,0 +1,14 @@
+{
+  "nom": "<i>Devis</i> & \"piège\"",
+  "champs": [
+    {
+      "id": "parfum",
+      "nature": "choix-unique",
+      "libelle": "<b>Parfum</b> & \"x\"",
+      "avecPrix": true,
+      "options": [{ "id": "piege", "libelle": "<script>alert(1)</script> & \"o\"", "prix": 1050 }]
+    },
+    { "id": "nom", "nature": "texte", "libelle": "<i>Votre nom</i> > \"n\"" },
+    { "id": "courriel", "nature": "email", "libelle": "Votre adresse e-mail", "obligatoire": true }
+  ]
+}
