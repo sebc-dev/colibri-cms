@@ -57,3 +57,4 @@ visiteur.
 - [ ] Quand une origine envoie cinq demandes refusées pour un champ manquant, puis une sixième, complète, dans la même fenêtre, la sixième est refusée pour seuil atteint   (SC-12e)
 - [ ] Quand une sollicitation est comptée, la réponse ne pose aucun cookie lié au comptage   (SC-12f)
 - [ ] Quand le visiteur envoie une demande au-delà du seuil de son origine, le formulaire dit que trop de demandes ont été envoyées depuis sa connexion et l'invite à réessayer plus tard, sans rien effacer, et aucun e-mail n'est envoyé   (SC-12g)
+- [ ] Quand une sollicitation arrive et que la base refuse de la compter, la sollicitation est refusée, rien de ce qu'elle demande n'est fait, et la trace de l'échec ne porte ni son adresse IP, ni la clé de la fenêtre, ni son empreinte   (SC-12h)

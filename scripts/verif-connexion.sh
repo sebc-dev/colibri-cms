@@ -89,6 +89,11 @@ nettoyage() {
   npx wrangler d1 execute DB --local \
     --command "delete from adresses_autorisees; delete from codes_connexion; delete from sessions;" \
     >/dev/null 2>&1 || true
+  # Le seuil par origine (012) à part : si ses tables manquent, la purge
+  # ci-dessus reste faite.
+  npx wrangler d1 execute DB --local \
+    --command "delete from fenetre_seuil; delete from comptes_seuil;" \
+    >/dev/null 2>&1 || true
   rm -rf "$TMP_DIR"
 }
 trap nettoyage EXIT
@@ -157,7 +162,7 @@ fi
 rm -rf .astro .wrangler/tmp/email
 mkdir -p .wrangler/tmp/email
 
-if d1_exec "delete from adresses_autorisees; delete from codes_connexion; delete from sessions; insert into adresses_autorisees (adresse) values ('$ADRESSE_AUTORISEE');"; then
+if d1_exec "delete from adresses_autorisees; delete from codes_connexion; delete from sessions; delete from fenetre_seuil; delete from comptes_seuil; insert into adresses_autorisees (adresse) values ('$ADRESSE_AUTORISEE');"; then
   ok "adresse autorisée semée ($ADRESSE_AUTORISEE), tables vidées"
 else
   ko "le semis de l'adresse autorisée a échoué"
@@ -424,8 +429,8 @@ if [ "$DEV_STARTED" -eq 1 ]; then
     verifier_absence_termes_developpeur "le message expédié" "$(cat "$FICHIER_AUTORISEE")"
   fi
 
-  # ─── Étape 7 (c4) — deux cents soumissions hors plafond, fenêtre vidée ────
-  step "7. 200 soumissions, hors plafond, fenêtre vidée entre les salves — égalité des temps (c4)"
+  # ─── Étape 7 (c4) — deux cents soumissions hors plafond et hors seuil ──────
+  step "7. 200 soumissions, hors plafond et hors seuil, fenêtres vidées entre les salves — égalité des temps (c4)"
 
   NOMBRE_DE_SALVES=25
   PAR_BRANCHE_PAR_SALVE=4 # < PLAFOND (5), marge d'une unité contre tout résidu
@@ -438,11 +443,11 @@ if [ "$DEV_STARTED" -eq 1 ]; then
   POT_MESURE="$TMP_DIR/pot-mesure.txt"
   curl -s -c "$POT_MESURE" "$DEV_URL/admin/connexion" -o /dev/null
 
-  echo "  (${NOMBRE_DE_SALVES} salves de $((PAR_BRANCHE_PAR_SALVE * 2)) soumissions, fenêtre vidée entre chacune — patience, campagne volontairement lente)"
+  echo "  (${NOMBRE_DE_SALVES} salves de $((PAR_BRANCHE_PAR_SALVE * 2)) soumissions, fenêtres du plafond et du seuil vidées entre chacune — patience, campagne volontairement lente)"
 
   echec_campagne=0
   for _salve in $(seq 1 "$NOMBRE_DE_SALVES"); do
-    if ! d1_exec "delete from codes_connexion;"; then
+    if ! d1_exec "delete from codes_connexion; delete from fenetre_seuil; delete from comptes_seuil;"; then
       echec_campagne=1
     fi
     for _tir in $(seq 1 "$PAR_BRANCHE_PAR_SALVE"); do
@@ -457,12 +462,12 @@ if [ "$DEV_STARTED" -eq 1 ]; then
       awk -v t="$t" 'BEGIN{printf "%.3f\n", t*1000}' >>"$DUREES_QUELCONQUE"
     done
   done
-  d1_exec "delete from codes_connexion;"
+  d1_exec "delete from codes_connexion; delete from fenetre_seuil; delete from comptes_seuil;"
 
   if [ "$echec_campagne" -eq 1 ]; then
     ko "au moins une purge de fenêtre a échoué pendant la campagne des 200 soumissions"
   else
-    ok "200 soumissions conduites (${NOMBRE_DE_SALVES} salves de $((PAR_BRANCHE_PAR_SALVE * 2)), fenêtre vidée entre chacune, jamais plus de ${PAR_BRANCHE_PAR_SALVE} < ${PLAFOND} par branche et par salve)"
+    ok "200 soumissions conduites (${NOMBRE_DE_SALVES} salves de $((PAR_BRANCHE_PAR_SALVE * 2)), fenêtres du plafond et du seuil vidées entre chacune, jamais plus de ${PAR_BRANCHE_PAR_SALVE} < ${PLAFOND} par branche et par salve)"
   fi
 
   stats() {

@@ -26,7 +26,7 @@
 | Contenu et forme de l'e-mail | texte attendu écrit d'avance, ligne par ligne | `tdd` |
 | Seuils et fenêtre | compte et bascule déterministes, l'heure passée en paramètre | `tdd` |
 | Route d'envoi, connexion au-delà du seuil | statut, corps, espion sur la liaison, état de la base | `tdd` ou `test` |
-| Indiscernabilité des délais au-delà du seuil (connexion) | le patron statistique de 001 (salves, fenêtre vidée entre elles) | `test` |
+| Indiscernabilité des délais au-delà du seuil (connexion) | l'adresse n'est jamais lue au-delà du seuil : les deux réponses attendent au moins le délai plancher, médianes proches | `test` |
 | Comportement au navigateur (total sans requête, focus, double envoi) | événements observés par Playwright | `test` (parcours) |
 | Arrivée réelle de l'e-mail dans une boîte | constat sur la boîte de recette | `observé` |
 
@@ -48,7 +48,7 @@
 - **Seuil** — 5ᵉ demande acceptée, 6ᵉ refusée ; 20ᵉ tentative de connexion traitée, 21ᵉ refusée ;
   sollicitations refusées pour un autre motif qui comptent ; deux surfaces séparées ; deux origines
   séparées ; bascule de fenêtre (clé changée, empreintes effacées) ; origine absente (« inconnue ») ;
-  adresse IPv6.
+  adresse IPv6 ; erreur de la base (refus, trace sans adresse, clé ni empreinte).
 - **E-mail composé** — valeur d'une ligne portant retour chariot ou saut de ligne ; texte long dont une
   ligne commence par « Total indicatif : » ; saisie ressemblant à du HTML ou à un code de connexion ;
   champs facultatifs vides omis ; adresse autorisée absente (échec).

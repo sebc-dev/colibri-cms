@@ -363,7 +363,7 @@ it(
 );
 
 it(
-  'SC-02b — cas limite : une erreur de la base refuse la tentative, qui n’écrit aucun code, n’envoie rien, n’ouvre aucune session, et laisse une trace sans adresse IP, ni clé, ni empreinte',
+  'SC-02j — une erreur de la base refuse la tentative, qui n’écrit aucun code, n’envoie rien, n’ouvre aucune session, et laisse une trace sans adresse IP, ni clé, ni empreinte',
   async () => {
     const db = await assurerSchema();
     await semerAdresse(db, ADRESSE_AUTORISEE);

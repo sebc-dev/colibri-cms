@@ -59,8 +59,8 @@
    lecture** (I6, jamais `request.formData()`) ; les valeurs se lisent par `Object.hasOwn` contre la liste
    des champs déclarés, toute clé inconnue refusée.
 7. Le seuil de connexion se juge avant toute lecture de l'adresse ; l'annonce est un texte unique ; la
-   soumission d'adresse refusée attend le même délai plancher (D9) ; le scénario d'indiscernabilité des
-   délais reprend le patron statistique de 001.
+   soumission d'adresse refusée attend le même délai plancher (D9) ; les deux soumissions attendent le
+   même plancher, l'adresse n'étant jamais lue au-delà du seuil.
 8. Empreinte `HMAC-SHA-256` sous une clé de 32 octets tirée par le produit pour l'heure en cours ; clé et
    empreintes effacées ensemble, en une écriture indivisible, au premier comptage de l'heure suivante ;
    aucune adresse IP, clé ni empreinte dans une réponse ou un journal ; la trace d'un acheminement en
@@ -77,5 +77,10 @@
 - **Résidu à constater** — `wrangler.jsonc` active les journaux de la plateforme (`observability`) ; ce que
   la plateforme y retient des requêtes elle-même (dont, possiblement, l'adresse IP) échappe au compteur.
   À constater à la recette et à porter au cadrage de DAT-1 / DAT-3, sans changer ce change.
+- **Résidu de l'historique de la base** — D1 garde un historique restaurable, toujours actif, de 7 jours
+  sur le palier gratuit (Time Travel). Une clé et ses empreintes effacées à la bascule y restent
+  restaurables pendant 7 jours par qui détient l'accès au compte, et une empreinte avec sa clé suffit à
+  retrouver une adresse IPv4 par essai de toutes les adresses. À porter au cadrage de DAT-3, avec le
+  résidu des journaux.
 - **Aucun secret nouveau** : la clé de fenêtre est fabriquée et jetée par le produit ; aucune liaison ni
   valeur d'instance n'est ajoutée (SEC-3, I8).
