@@ -88,6 +88,8 @@ function versJson(emplacement: Emplacement): EmplacementJson {
     case 'galerie':
     case 'carrousel':
       return { ...base, mediaIds: emplacement.mediaIds };
+    case 'formulaire':
+      return { ...base, formulaire: emplacement.formulaire };
   }
 }
 

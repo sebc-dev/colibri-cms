@@ -229,7 +229,9 @@ function composerEmplacement(
   brouillon: Brouillon | undefined,
   slug: string,
   images: ImagesConnues | undefined,
-): EmplacementRendu {
+): EmplacementRendu | null {
+  // Le formulaire n'est pas encore dessiné (change 012, ticket 03).
+  if (emplacement.nature === 'formulaire') return null;
   const contenu = contenuDe(emplacement, publie, brouillon);
   if (emplacement.nature === 'bouton-action') {
     const { libelle, destination } =
@@ -296,7 +298,9 @@ export function composerPage(entree: EntreeComposition): PageComposee {
       adresse: adresseDeLaPage(p.slug),
       courante: p.slug === entree.slug,
     })),
-    emplacements: entree.page.emplacements.map((e) => composerEmplacement(e, entree.publie, entree.brouillon, entree.slug, entree.images)),
+    emplacements: entree.page.emplacements
+      .map((e) => composerEmplacement(e, entree.publie, entree.brouillon, entree.slug, entree.images))
+      .filter((e): e is EmplacementRendu => e !== null),
     pied: composerPied(entree.reglages),
   };
 }

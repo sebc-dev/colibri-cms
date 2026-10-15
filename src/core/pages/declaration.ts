@@ -50,7 +50,8 @@ export type NatureEmplacement =
   | 'bouton-action'
   | 'image'
   | 'galerie'
-  | 'carrousel';
+  | 'carrousel'
+  | 'formulaire';
 
 const NATURES_VALIDES: readonly NatureEmplacement[] = [
   'texte-riche',
@@ -59,6 +60,7 @@ const NATURES_VALIDES: readonly NatureEmplacement[] = [
   'image',
   'galerie',
   'carrousel',
+  'formulaire',
 ];
 
 /** La forme attendue d'un emplacement dans un `page.json`, avant validation. */
@@ -72,6 +74,7 @@ export interface EmplacementJson {
   readonly destination?: string;
   readonly mediaId?: string;
   readonly mediaIds?: readonly string[];
+  readonly formulaire?: string;
 }
 
 /** La forme attendue d'un `page.json` — seuls les champs lus par ce ticket. */
@@ -147,6 +150,18 @@ export interface EmplacementCarrousel {
   readonly nom?: string;
 }
 
+/**
+ * Un emplacement de formulaire (change 012, ADR-0027) : il désigne un
+ * formulaire déclaré par son identifiant ; l'éditrice le voit sans le modifier.
+ */
+export interface EmplacementFormulaire {
+  readonly id: string;
+  readonly nature: 'formulaire';
+  readonly rang: number;
+  readonly formulaire: string;
+  readonly nom?: string;
+}
+
 /** Un emplacement déclaré, présenté selon sa nature (SC-03b). */
 export type Emplacement =
   | EmplacementTexteRiche
@@ -154,7 +169,8 @@ export type Emplacement =
   | EmplacementBoutonAction
   | EmplacementImage
   | EmplacementGalerie
-  | EmplacementCarrousel;
+  | EmplacementCarrousel
+  | EmplacementFormulaire;
 
 /** Une page déclarée, avec ses emplacements dans l'ordre posé (ticket 03). */
 export interface PageAvecEmplacements {
@@ -282,6 +298,9 @@ function construireEmplacement(
     case 'carrousel':
       if (!estTableauDeMediaIds(candidat.mediaIds)) return null;
       return { id, nature: 'carrousel', rang, mediaIds: candidat.mediaIds, ...avecNom };
+    case 'formulaire':
+      if (typeof candidat.formulaire !== 'string' || candidat.formulaire.length === 0) return null;
+      return { id, nature: 'formulaire', rang, formulaire: candidat.formulaire, ...avecNom };
     default:
       return null;
   }

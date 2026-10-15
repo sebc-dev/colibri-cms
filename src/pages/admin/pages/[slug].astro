@@ -127,7 +127,12 @@ import { lirePagesContenuCourant } from '../../../platform/contenu/references-me
 import { referencesDuContenuCourant } from '../../../core/medias/references.ts';
 import { listerMediasBrouillon } from '../../../platform/medias/magasin.ts';
 import { appliquerBrouillonSurEmplacement, pagePorteUnBrouillon } from '../../../core/pages/brouillon.ts';
-import { TEXTE_BOUTON_VOIR_APERCU } from '../../../admin/textes.ts';
+import {
+  TEXTE_BOUTON_VOIR_APERCU,
+  TEXTE_LIEN_REGLER_FORMULAIRE,
+  TEXTE_PHRASE_EMPLACEMENT_FORMULAIRE,
+} from '../../../admin/textes.ts';
+import { lireFormulaireDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
 import { adresseDeLaPage } from '../../../core/pages/declaration.ts';
 import { env } from 'cloudflare:workers';
 
@@ -307,6 +312,23 @@ const page = {
                     <p class="text-ink-muted break-words">
                       {libelleCompteImages(emplacement.mediaIds.length, 'carrousel')}
                     </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {emplacement.nature === 'formulaire' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {`Formulaire — ${lireFormulaireDeLaDeclaration(emplacement.formulaire)?.nom ?? emplacement.formulaire}`}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div data-emplacement-formulaire data-id-emplacement={emplacement.id}>
+                    <p class="text-ink-muted break-words">{TEXTE_PHRASE_EMPLACEMENT_FORMULAIRE}</p>
+                    <a href={`/admin/formulaires/${emplacement.formulaire}`} class="underline">
+                      {TEXTE_LIEN_REGLER_FORMULAIRE}
+                    </a>
                   </div>
                 </CardContent>
               </Card>

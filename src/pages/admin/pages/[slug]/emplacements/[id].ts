@@ -93,6 +93,9 @@ export const POST: APIRoute = async ({ params, request }) => {
     resultat = await enregistrerCorrectionGalerie(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
   } else if (emplacementDeclare?.nature === 'carrousel') {
     resultat = await enregistrerCorrectionCarrousel(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
+  } else if (emplacementDeclare?.nature === 'formulaire') {
+    // Un formulaire posé se règle dans Formulaires, jamais ici (ADR-0027) : rien n'est écrit.
+    return Response.json({ ok: false, raison: 'nature-non-corrigible' }, { status: 400 });
   } else {
     resultat = await enregistrerCorrectionBoutonAction(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
   }
