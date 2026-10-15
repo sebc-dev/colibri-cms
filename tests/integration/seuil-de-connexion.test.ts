@@ -362,6 +362,52 @@ it(
   DELAI_TEST_MS,
 );
 
+it(
+  'SC-02b — cas limite : une erreur de la base refuse la tentative, qui n’écrit aucun code, n’envoie rien, n’ouvre aucune session, et laisse une trace sans adresse IP, ni clé, ni empreinte',
+  async () => {
+    const db = await assurerSchema();
+    await semerAdresse(db, ADRESSE_AUTORISEE);
+    const appareil = await obtenirIdentifiantAppareil();
+    // Une fenêtre et une clé en place : des secrets à chercher dans les traces.
+    await compterEtJuger(env.DB, 'connexion', ORIGINE_B, Date.now());
+    const journaux = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const espion = poserExpediteurEspion();
+    // Panne réelle de la vraie D1 (ADR-0014) : tout comptage échoue, sans base simulée.
+    await db
+      .prepare(
+        "create trigger if not exists panne_seuil_insertion before insert on comptes_seuil begin select raise(abort, 'panne'); end",
+      )
+      .run();
+    await db
+      .prepare(
+        "create trigger if not exists panne_seuil_mise_a_jour before update on comptes_seuil begin select raise(abort, 'panne'); end",
+      )
+      .run();
+
+    try {
+      const verdict = await compterEtJuger(env.DB, 'connexion', ORIGINE_A, Date.now());
+      const reponse = await soumettre(ORIGINE_A, appareil, 'adresse', ADRESSE_AUTORISEE);
+      await pause(150);
+
+      expect(verdict).toBe('refusee');
+      expect(await reponse.text()).toContain(TEXTE_ANNONCE_SEUIL);
+      expect(await compter(db, 'codes_connexion')).toBe(0);
+      expect(espion.appels).toHaveLength(0);
+      expect(extraireCookie(reponse, NOM_COOKIE_SESSION)).toBeNull();
+      expect(await compter(db, 'sessions')).toBe(0);
+      const traces = JSON.stringify(journaux.mock.calls);
+      expect(traces).toContain('[seuil] comptage impossible');
+      for (const secret of [ORIGINE_A, ...(await secretsDeLaBase(db))]) {
+        expect(traces).not.toContain(secret);
+      }
+    } finally {
+      await db.prepare('drop trigger if exists panne_seuil_insertion').run();
+      await db.prepare('drop trigger if exists panne_seuil_mise_a_jour').run();
+    }
+  },
+  DELAI_TEST_MS,
+);
+
 // --- SC-02c — adresse autorisée et adresse quelconque indiscernables ---
 
 function mediane(valeurs: number[]): number {
