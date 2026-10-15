@@ -260,4 +260,13 @@ describe('composerPage — un emplacement de formulaire', () => {
     expect(tarifs.nom).toBe(contact.nom);
     expect(tarifs.mention).toEqual(contact.mention);
   });
+
+  it('le formulaire rendu porte l’identifiant du formulaire désigné et celui de sa page, que l’envoi reprend (ticket 07)', () => {
+    const pose = { id: 'formulaire-devis', nature: 'formulaire', rang: 0, formulaire: 'devis-gateau' } as const;
+    const tarifs = composerPage(entree({ slug: 'tarifs', page: { titre: 'Tarifs', emplacements: [pose] } }));
+    const contact = composerPage(entree({ slug: 'contact', page: { titre: 'Contact', emplacements: [pose] } }));
+
+    expect(tarifs.emplacements[0]).toMatchObject({ id: 'formulaire-devis', formulaire: 'devis-gateau', page: 'tarifs' });
+    expect(contact.emplacements[0]).toMatchObject({ id: 'formulaire-devis', formulaire: 'devis-gateau', page: 'contact' });
+  });
 });

@@ -203,4 +203,34 @@ describe('la page publique présente le formulaire posé', () => {
     expect(tarifs).toContain('Vanille');
     expect(tarifs).toBe(contact);
   });
+
+  it('SC-03b — chaque prix suit son option après un tiret, comme « Fraise — 10 € » (ux.md)', async () => {
+    const parfum = texteVisible(groupe(formulaireDe(await lire('/contact')), 'Parfum'));
+
+    expect(parfum).toContain('Vanille — 8 €');
+    expect(parfum).toContain('Chocolat — 9 €');
+    expect(parfum).toContain('Fraise — 10 €');
+  });
+
+  it('le formulaire porte l’identifiant du formulaire et celui de la page d’origine, que l’envoi reprend (ticket 07)', async () => {
+    for (const [chemin, page] of [['/contact', 'contact'], ['/tarifs', 'tarifs']] as const) {
+      const ouverture = /<form\b[^>]*>/.exec(formulaireDe(await lire(chemin)))?.[0] ?? '';
+
+      expect(ouverture, chemin).toContain('data-formulaire="devis-gateau"');
+      expect(ouverture, chemin).toContain(`data-page="${page}"`);
+    }
+  });
+
+  it('les messages d’échec sont placés entre la mention d’information et le bouton d’envoi (ux.md ; tickets 09 et 11)', async () => {
+    const formulaire = formulaireDe(await lire('/contact'));
+    const mention = formulaire.indexOf('class="mention"');
+    const bouton = formulaire.indexOf('<button');
+
+    expect(mention).toBeGreaterThanOrEqual(0);
+    for (const etat of ['echec', 'limite', 'modifie']) {
+      const message = formulaire.indexOf(`data-etat="${etat}"`);
+      expect(message, etat).toBeGreaterThan(mention);
+      expect(message, etat).toBeLessThan(bouton);
+    }
+  });
 });

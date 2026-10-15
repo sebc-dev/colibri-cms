@@ -117,6 +117,9 @@ export type ModeEnvoi = 'actif' | 'desactive';
 export interface FormulaireRendu {
   readonly id: string;
   readonly nature: 'formulaire';
+  /** L'identifiant du formulaire désigné et celui de la page qui le pose, que l'envoi reprend (ticket 07). */
+  readonly formulaire: string;
+  readonly page: string;
   readonly nom: string;
   readonly champs: readonly ChampRendu[];
   /** La mention d'information réglée par l'éditrice, analysée en texte riche. */
@@ -285,19 +288,19 @@ function composerChamp(champ: ChampDeclare): ChampRendu {
 /** Le formulaire désigné, ou `null` quand il n'est pas déclaré (rien ne se dessine). */
 function composerFormulaire(
   emplacement: { readonly id: string; readonly formulaire: string },
-  formulaires: readonly FormulaireDeclare[],
-  reglages: ReglagesDeclares,
-  mode: ModeEnvoi,
+  entree: EntreeComposition,
 ): FormulaireRendu | null {
-  const declare = formulaires.find((f) => f.id === emplacement.formulaire);
+  const declare = (entree.formulaires ?? []).find((f) => f.id === emplacement.formulaire);
   if (declare === undefined) return null;
   return {
     id: emplacement.id,
     nature: 'formulaire',
+    formulaire: declare.id,
+    page: entree.slug,
     nom: declare.nom,
     champs: declare.champs.map(composerChamp),
-    mention: sansLienRefuse(analyserMarkdownRestreint(reglages.mention)),
-    mode,
+    mention: sansLienRefuse(analyserMarkdownRestreint(entree.reglages.mention)),
+    mode: entree.modeEnvoi ?? 'actif',
   };
 }
 
@@ -306,9 +309,7 @@ function composerEmplacement(
   entree: EntreeComposition,
 ): EmplacementRendu | null {
   const { publie, brouillon, slug, images } = entree;
-  if (emplacement.nature === 'formulaire') {
-    return composerFormulaire(emplacement, entree.formulaires ?? [], entree.reglages, entree.modeEnvoi ?? 'actif');
-  }
+  if (emplacement.nature === 'formulaire') return composerFormulaire(emplacement, entree);
   const contenu = contenuDe(emplacement, publie, brouillon);
   if (emplacement.nature === 'bouton-action') {
     const { libelle, destination } =

@@ -111,10 +111,10 @@ describe('le formulaire publié, depuis le contenu jetable', () => {
     expect(section).toContain('&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;o&quot;');
   });
 
-  it('SC-03b — une option publiée à 10,50 € est suivie de « 10,50 € » dans le document publié', async () => {
+  it('SC-03b — une option publiée à 10,50 € est suivie de « — 10,50 € » dans le document publié', async () => {
     const options = (await relever(sectionDuFormulaire(), ['label.option'])).get('label.option') ?? [];
 
     expect(options).toHaveLength(1);
-    expect(decoder(options[0] ?? '')).toMatch(/& "o"\W{0,4}10,50 €$/);
+    expect(decoder(options[0] ?? '')).toMatch(/& "o" — 10,50 €$/);
   });
 });

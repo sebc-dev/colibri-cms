@@ -2,10 +2,12 @@
 /**
  * Le formulaire de devis posé par un emplacement (change 012, ticket 03 ;
  * ADR-0027, ADR-0029) : tout figure dans le document, sans script — total
- * figé, bouton inactif, textes d'états masqués, message `noscript`. Libellés,
- * noms et options ne sont écrits que par interpolation (I5) ; la mention
- * d'information passe par le rendu Markdown. Les données du futur script sont
- * en attributs `data-*`. Aucun champ fichier, aucun framework.
+ * figé, bouton inactif, textes d'états masqués au-dessus du bouton (ux.md),
+ * message `noscript`. Libellés, noms et options ne sont écrits que par
+ * interpolation (I5) ; la mention d'information passe par le rendu Markdown.
+ * Les données du futur script — prix, natures, obligations, et les
+ * identifiants du formulaire et de sa page que l'envoi reprend — sont en
+ * attributs `data-*`. Aucun champ fichier, aucun framework.
  */
 import type { FormulaireRendu } from '../core/rendu/page.ts';
 import TexteRiche from './markdown/TexteRiche.astro';
@@ -20,7 +22,12 @@ const { formulaire } = Astro.props;
 
 <section class="formulaire">
   <h2>{formulaire.nom}</h2>
-  <form novalidate data-formulaire={formulaire.id} data-mode={formulaire.mode}>
+  <form
+    novalidate
+    data-formulaire={formulaire.formulaire}
+    data-page={formulaire.page}
+    data-mode={formulaire.mode}
+  >
     {
       formulaire.champs.map((champ) => {
         const aChoix = champ.nature === 'choix-unique' || champ.nature === 'choix-multiple';
@@ -46,7 +53,7 @@ const { formulaire } = Astro.props;
                   data-prix={option.prix}
                 />
                 <span>{option.libelle}</span>
-                {option.prixAffiche !== undefined && <span class="prix"> {option.prixAffiche}</span>}
+                {option.prixAffiche !== undefined && <span class="prix"> — {option.prixAffiche}</span>}
               </label>
             ))}
           </fieldset>
@@ -73,12 +80,12 @@ const { formulaire } = Astro.props;
     <p class="total">{T.totalEstime} <output data-total>{T.totalInitial}</output></p>
     <p class="estimation">{T.estimationIndicative}</p>
     <div class="mention"><TexteRiche document={formulaire.mention} /></div>
-    <button type="submit" disabled>{T.boutonEnvoi}</button>
     <p class="etat" data-etat="envoi" hidden>{T.envoiEnCours}</p>
     <p class="etat" data-etat="confirmation" hidden>{T.confirmation}</p>
     <p class="etat" data-etat="echec" hidden>{T.echecEnvoi}</p>
     <p class="etat" data-etat="limite" hidden>{T.echecLimite}</p>
     <p class="etat" data-etat="modifie" hidden>{T.echecFormulaireModifie}</p>
+    <button type="submit" disabled>{T.boutonEnvoi}</button>
     <noscript><p class="etat">{T.sansScript}</p></noscript>
   </form>
 </section>
