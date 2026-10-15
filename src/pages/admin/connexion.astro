@@ -90,7 +90,8 @@ import {
   ouvrirSessionSiCodeValide,
 } from '../../platform/auth/magasin.ts';
 import { demanderExpeditionDuCode } from '../../platform/email/index.ts';
-import { TEXTE_ANNONCE_PORTEE_CODE, texteDuRefus } from '../../admin/textes.ts';
+import { compterEtJuger } from '../../platform/frequence/index.ts';
+import { TEXTE_ANNONCE_PORTEE_CODE, TEXTE_ANNONCE_SEUIL, texteDuRefus } from '../../admin/textes.ts';
 
 await verifierSession(env.DB, Astro.request);
 
@@ -110,12 +111,28 @@ if (!identifiantAppareil && !estSoumission) {
 }
 
 let plafondAtteint = false;
+let seuilAtteint = false;
 let raisonRefusCode: RaisonRefus | null = null;
 
 if (estSoumission) {
+  const debutSoumission = Date.now();
+  // Le seuil par origine (ADR-0028) se juge en tête de toute soumission,
+  // avant de lire l'adresse ou le code : au-delà, rien n'est écrit, vérifié
+  // ni envoyé.
+  const verdictSeuil = await compterEtJuger(
+    env.DB,
+    'connexion',
+    Astro.request.headers.get('cf-connecting-ip'),
+    debutSoumission,
+  );
+  seuilAtteint = verdictSeuil === 'refusee';
   const donnees = await Astro.request.formData();
 
-  if (donnees.has('code')) {
+  if (seuilAtteint) {
+    // Même plancher que la soumission d'adresse : le délai ne trahit pas l'adresse.
+    const reste = DELAI_PLANCHER_MS - (Date.now() - debutSoumission);
+    if (reste > 0) await attendre(reste);
+  } else if (donnees.has('code')) {
     const codeSaisi = String(donnees.get('code') ?? '');
     if (identifiantAppareil) {
       const resultat = await ouvrirSessionSiCodeValide(env.DB, identifiantAppareil, codeSaisi, Date.now());
@@ -193,7 +210,11 @@ if (estSoumission) {
       </CardHeader>
       <CardContent class="flex flex-col gap-6">
         {
-          plafondAtteint ? (
+          seuilAtteint ? (
+            <Alert class="border-transparent bg-ambre-soft">
+              <AlertDescription class="text-ambre">{TEXTE_ANNONCE_SEUIL}</AlertDescription>
+            </Alert>
+          ) : plafondAtteint ? (
             <Alert class="border-transparent bg-ambre-soft">
               <AlertDescription class="text-ambre">
                 Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter

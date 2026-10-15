@@ -319,3 +319,10 @@ export const LIBELLES_REGLAGES_PUBLIER: Readonly<Record<string, string>> = {
 /** Carte d'un emplacement de formulaire dans l'éditeur de page (change 012, ADR-0027). */
 export const TEXTE_PHRASE_EMPLACEMENT_FORMULAIRE = 'Ses options et ses prix se règlent dans Formulaires.';
 export const TEXTE_LIEN_REGLER_FORMULAIRE = 'Régler ce formulaire';
+
+/**
+ * L'annonce du seuil par origine (ADR-0028, FR-007) : un texte unique, sans
+ * terme de développeur (FR-117), le même quelle que soit l'adresse soumise.
+ */
+export const TEXTE_ANNONCE_SEUIL =
+  'Trop de tentatives de connexion depuis votre accès à internet. Merci de patienter une heure avant de réessayer.';
