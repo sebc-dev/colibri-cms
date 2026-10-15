@@ -202,14 +202,14 @@ et `docs/ci.md` les portent, une copie dériverait ici.
 
 - **Langage** — TypeScript en mode strict, partout (candidat `langage-typescript-strict`).
 - **Générateur du site public et de l'aperçu** — Astro : chaque page publique est un document complet bâti à la publication (candidat `generateur-astro-7`).
-- **Îlots interactifs** — Svelte 5 dans Astro, pour le formulaire de devis public comme pour l'administration (candidat `ilots-svelte-5`). Base de composants des **îlots d'administration**, gestion du contenu comprise : **registre shadcn-svelte** — composants copiés dans le dépôt, non dépendance opaque (ADR-0009).
+- **Îlots interactifs** — Svelte 5 dans Astro, pour l'administration ; le formulaire de devis public est un document complet amélioré par un module sans framework, servi par le site (ADR-0029). Base de composants des **îlots d'administration**, gestion du contenu comprise : **registre shadcn-svelte** — composants copiés dans le dépôt, non dépendance opaque (ADR-0009).
 - **Hébergement et exécution** — un Worker Cloudflare unique sert le public et l'administration sur la **même origine**, sur le palier gratuit ; build par Workers Builds (candidat `cible-de-deploiement-worker-unique-workers-builds`).
 - **Données** — Cloudflare D1 : brouillons, état publié, demandes, sessions et médias en brouillon (candidats `magasin-d1-brouillons-etat-publie-et-demandes`, `acces-aux-donnees-api-d1-native-et-migrations-wrangler`).
 - **Contenu et médias publiés** — dépôt GitHub : contenu en fichiers, médias sur une branche dédiée ; écriture additive par l'API git data (candidats `format-du-contenu-un-repertoire-par-objet`, `medias-deux-magasins-un-par-etat`, `forge-github-api-git-data-jeton-a-portee-fine`).
 - **Ingestion et pipeline des médias** — liste blanche JPEG/PNG/WebP reconnue sur les octets, SVG refusé ; variantes d'images produites au build (candidats `ingestion-des-medias-liste-blanche-sur-octets`, `pipeline-d-images-variantes-au-build`).
 - **Texte riche** — éditeur TipTap sérialisé en Markdown restreint (candidat `texte-riche-markdown-restreint`).
 - **Authentification** — implémentation maison sur D1 : code à saisir, session opaque, moyen de reprise (ADR-0001 ; candidat `moyen-de-reprise-code-128-bits-hache`).
-- **Services Cloudflare** — Email Routing achemine chaque demande (ADR-0002) ; Turnstile et un compteur de fréquence tiennent l'anti-abus (candidat `anti-abus-turnstile-et-compteur-a-empreintes-de-fenetre`).
+- **Services Cloudflare** — Email Routing achemine chaque demande (ADR-0002) ; un compteur de fréquence par origine, en D1, tient l'anti-abus, sans Turnstile (ADR-0028).
 - **En-têtes et CSP** — deux porteurs (`_headers` pour le public, middleware pour l'administration), CSP stricte propre à l'administration (ADR-0004, ADR-0008, ADR-0010).
 - **Tests** — Vitest dans `workerd`, Playwright pour les parcours, épreuve de réversibilité scriptée (ADR-0014, remplace ADR-0003).
 - **Configuration d'instance** — quatre lieux, un par nature de valeur ; aucun secret dans le dépôt (ADR-0005).

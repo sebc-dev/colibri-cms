@@ -46,7 +46,8 @@ n'importe où sur le site est un risque **XSS same-origin** contre lui (préoccu
   qui prive une écriture forgée cross-site de la session. **Aucun jeton anti-forgerie dédié** n'est
   introduit ([ADR-0011](./adr/0011-anti-forgerie-des-ecritures-admin-samesite-strict.md)).
 - **Surfaces publiques résistantes à l'abus, sans compte visiteur.** Connexion et envoi d'une demande
-  résistent à l'abus par Turnstile et un compteur de fréquence, sans friction disproportionnée et
+  résistent à l'abus par un compteur de fréquence par origine, sans Turnstile ni script d'une autre
+  origine ([ADR-0028](./adr/0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md)), sans friction disproportionnée et
   sans consommer les quotas gratuits (préoccupation `SEC-2`). Le compteur compte par origine — une IP
   est une donnée personnelle : la protection ne doit pas créer un fichier des visiteurs (`DAT-3`).
 
