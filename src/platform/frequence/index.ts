@@ -103,8 +103,19 @@ export async function compterEtJuger(
       const rang = await incrementer(db, surface, nom, fenetre);
       if (rang !== null) return jugerSollicitation(surface, rang);
     }
+    console.error('[seuil] comptage impossible (fenêtre instable)');
     return 'refusee';
-  } catch {
+  } catch (erreur) {
+    tracerLaPanne(erreur);
     return 'refusee';
   }
+}
+
+/**
+ * Trace d'un comptage impossible, à motif fixe : le seul nom de l'erreur, jamais
+ * son message, l'origine, la clé ni l'empreinte (SC-02i, ADR-0028).
+ */
+function tracerLaPanne(erreur: unknown): void {
+  const motif = erreur instanceof Error ? erreur.name : 'inconnu';
+  console.error(`[seuil] comptage impossible (${motif})`);
 }
