@@ -70,12 +70,12 @@ chaque origine à cinq par heure) le branchera sur l'envoi des demandes.
 écartée par l'ADR-0028).
 
 ## Critères
-- [ ] Quand une même origine soumet vingt et une fois l'écran de connexion dans la même heure, adresses et codes mêlés, les vingt premières soumissions sont traitées, la vingt-et-unième est refusée et l'écran l'annonce   (SC-02a)
-- [ ] Quand, au-delà du seuil de son origine, une soumission porte l'adresse autorisée, puis une autre porte un code valide, aucun code n'est écrit, aucun message n'est envoyé, le code valide n'est ni consommé ni accepté, et aucune session ne s'ouvre   (SC-02b)
-- [ ] Quand, au-delà du seuil de son origine, une soumission porte l'adresse autorisée, et une autre une adresse quelconque, les deux réponses portent le même texte et les mêmes champs d'en-tête, et leurs délais ne se laissent pas distinguer   (SC-02c)
-- [ ] Quand une origine a atteint le seuil, et que l'éditrice soumet l'adresse autorisée depuis une autre origine dans la même heure, un code est écrit et envoyé à l'adresse autorisée, comme sans seuil   (SC-02d)
-- [ ] Quand l'écran annonce que le seuil de l'origine est atteint, aucun terme de développeur n'y paraît (FR-117)   (SC-02e)
-- [ ] Quand des sollicitations de plusieurs origines ont été comptées, aucune des adresses IP de ces origines ne figure, sous aucune forme lisible, dans la base   (SC-02f)
-- [ ] Quand une première sollicitation arrive dans une nouvelle fenêtre, alors que la base porte la clé et les empreintes de la fenêtre précédente, la clé et toutes les empreintes de la fenêtre précédente ont disparu de la base, et seules la nouvelle clé et l'empreinte de cette sollicitation y figurent   (SC-02g)
-- [ ] Quand des sollicitations d'une même origine sont comptées dans deux fenêtres successives, les deux fenêtres ont des clés différentes, et l'empreinte de cette origine diffère d'une fenêtre à l'autre   (SC-02h)
-- [ ] Quand une sollicitation est comptée, puis refusée pour seuil atteint, ni son adresse IP, ni la clé de la fenêtre, ni son empreinte ne figurent dans la réponse ni dans les journaux   (SC-02i)
+- [x] Quand une même origine soumet vingt et une fois l'écran de connexion dans la même heure, adresses et codes mêlés, les vingt premières soumissions sont traitées, la vingt-et-unième est refusée et l'écran l'annonce   (SC-02a)
+- [x] Quand, au-delà du seuil de son origine, une soumission porte l'adresse autorisée, puis une autre porte un code valide, aucun code n'est écrit, aucun message n'est envoyé, le code valide n'est ni consommé ni accepté, et aucune session ne s'ouvre   (SC-02b)
+- [x] Quand, au-delà du seuil de son origine, une soumission porte l'adresse autorisée, et une autre une adresse quelconque, les deux réponses portent le même texte et les mêmes champs d'en-tête, et leurs délais ne se laissent pas distinguer   (SC-02c)
+- [x] Quand une origine a atteint le seuil, et que l'éditrice soumet l'adresse autorisée depuis une autre origine dans la même heure, un code est écrit et envoyé à l'adresse autorisée, comme sans seuil   (SC-02d)
+- [x] Quand l'écran annonce que le seuil de l'origine est atteint, aucun terme de développeur n'y paraît (FR-117)   (SC-02e)
+- [x] Quand des sollicitations de plusieurs origines ont été comptées, aucune des adresses IP de ces origines ne figure, sous aucune forme lisible, dans la base   (SC-02f)
+- [x] Quand une première sollicitation arrive dans une nouvelle fenêtre, alors que la base porte la clé et les empreintes de la fenêtre précédente, la clé et toutes les empreintes de la fenêtre précédente ont disparu de la base, et seules la nouvelle clé et l'empreinte de cette sollicitation y figurent   (SC-02g)
+- [x] Quand des sollicitations d'une même origine sont comptées dans deux fenêtres successives, les deux fenêtres ont des clés différentes, et l'empreinte de cette origine diffère d'une fenêtre à l'autre   (SC-02h)
+- [x] Quand une sollicitation est comptée, puis refusée pour seuil atteint, ni son adresse IP, ni la clé de la fenêtre, ni son empreinte ne figurent dans la réponse ni dans les journaux   (SC-02i)

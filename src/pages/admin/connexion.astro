@@ -23,10 +23,11 @@
  * (contrat posé par le test du ticket 06, faute d'antériorité) : `adresse`
  * déclenche l'écriture d'un code (FR-005) ; `code` déclenche l'ouverture
  * d'une session. L'écran affiche les deux formulaires ensemble, toujours
- * dans le même état (hors plafond) : c'est ce qui garde intact le contrat
- * gelé par le ticket 04 (le marqueur du formulaire d'adresse reste présent
- * après toute soumission, quelle que soit l'adresse) tout en annonçant la
- * durée de validité du code (ticket 06, c7) au même endroit.
+ * dans le même état (hors plafond et hors seuil par origine) : c'est ce qui
+ * garde intact le contrat gelé par le ticket 04 (le marqueur du formulaire
+ * d'adresse reste présent après toute soumission, quelle que soit
+ * l'adresse) tout en annonçant la durée de validité du code (ticket 06, c7)
+ * au même endroit.
  *
  * Ticket 04 — égalité de réponse (`src/core/auth/
  * regles.ts`) : la réponse n'est jamais rendue avant le délai plancher
@@ -35,9 +36,13 @@
  * liaison `EXPEDITEUR_CODE_CONNEXION` qu'après, jamais avant, via
  * `Astro.locals.cfContext.waitUntil` (l'exécution différée d'un délai nul
  * garantit qu'aucun de ses effets, y compris l'appel `send` lui-même, ne se
- * produit avant que la réponse ait quitté cette route). Ce plancher ne
- * s'applique qu'à la soumission d'adresse — rien n'exige d'égalité de temps
- * de réponse entre deux soumissions de code (hors-périmètre de ce ticket).
+ * produit avant que la réponse ait quitté cette route). Sous le seuil par
+ * origine, ce plancher ne s'applique qu'à la soumission d'adresse — rien
+ * n'exige d'égalité de temps de réponse entre deux soumissions de code
+ * (hors-périmètre de ce ticket). Au-delà du seuil (ticket 02 de 012, plus
+ * bas), il s'applique à toute soumission, adresse ou code, mesuré depuis le
+ * début de la soumission : ni le texte, ni les en-têtes, ni le délai ne
+ * dépendent alors de ce qui est soumis.
  *
  * Ticket 05 — le plafond se juge **avant** de savoir si l'adresse est
  * reconnue, et rend le même verdict d'écran quelle que soit l'adresse
@@ -70,6 +75,15 @@
  * Aucun texte ni comportement n'y change : mêmes libellés, mêmes messages,
  * mêmes formulaires `method="post"`, mêmes noms de champs — seul le
  * balisage autour change.
+ *
+ * Ticket 02 (openspec/changes/012-envoi-des-demandes-de-devis/tickets/
+ * 02-seuil-de-connexion-par-origine.md, ADR-0028) — le seuil par origine
+ * (`compterEtJuger`, `src/platform/frequence/`) se juge en tête de tout POST,
+ * avant de lire l'adresse ou le code. Au-delà de vingt tentatives par heure
+ * depuis une même origine, rien n'est écrit, vérifié ni envoyé : la réponse
+ * attend le plancher et l'écran n'affiche que `TEXTE_ANNONCE_SEUIL`, dans le
+ * message d'état ambre. Une panne du compteur refuse de même. Le plafond
+ * horaire (FR-006) ne s'évalue qu'ensuite.
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import Logo from '../../admin/Logo.astro';
@@ -90,7 +104,8 @@ import {
   ouvrirSessionSiCodeValide,
 } from '../../platform/auth/magasin.ts';
 import { demanderExpeditionDuCode } from '../../platform/email/index.ts';
-import { TEXTE_ANNONCE_PORTEE_CODE, texteDuRefus } from '../../admin/textes.ts';
+import { compterEtJuger } from '../../platform/frequence/index.ts';
+import { TEXTE_ANNONCE_PORTEE_CODE, TEXTE_ANNONCE_SEUIL, texteDuRefus } from '../../admin/textes.ts';
 
 await verifierSession(env.DB, Astro.request);
 
@@ -110,12 +125,28 @@ if (!identifiantAppareil && !estSoumission) {
 }
 
 let plafondAtteint = false;
+let seuilAtteint = false;
 let raisonRefusCode: RaisonRefus | null = null;
 
 if (estSoumission) {
+  const debutSoumission = Date.now();
+  // Le seuil par origine (ADR-0028) se juge en tête de toute soumission,
+  // avant de lire l'adresse ou le code : au-delà, rien n'est écrit, vérifié
+  // ni envoyé.
+  const verdictSeuil = await compterEtJuger(
+    env.DB,
+    'connexion',
+    Astro.request.headers.get('cf-connecting-ip'),
+    debutSoumission,
+  );
+  seuilAtteint = verdictSeuil === 'refusee';
   const donnees = await Astro.request.formData();
 
-  if (donnees.has('code')) {
+  if (seuilAtteint) {
+    // Même plancher que la soumission d'adresse : le délai ne trahit pas l'adresse.
+    const reste = DELAI_PLANCHER_MS - (Date.now() - debutSoumission);
+    if (reste > 0) await attendre(reste);
+  } else if (donnees.has('code')) {
     const codeSaisi = String(donnees.get('code') ?? '');
     if (identifiantAppareil) {
       const resultat = await ouvrirSessionSiCodeValide(env.DB, identifiantAppareil, codeSaisi, Date.now());
@@ -193,7 +224,11 @@ if (estSoumission) {
       </CardHeader>
       <CardContent class="flex flex-col gap-6">
         {
-          plafondAtteint ? (
+          seuilAtteint ? (
+            <Alert class="border-transparent bg-ambre-soft">
+              <AlertDescription class="text-ambre">{TEXTE_ANNONCE_SEUIL}</AlertDescription>
+            </Alert>
+          ) : plafondAtteint ? (
             <Alert class="border-transparent bg-ambre-soft">
               <AlertDescription class="text-ambre">
                 Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter
