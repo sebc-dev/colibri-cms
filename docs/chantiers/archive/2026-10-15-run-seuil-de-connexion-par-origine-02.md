@@ -40,3 +40,11 @@ ne sera pas remise sur celle du 01 à jour.
 
 ## Écarté
 - Remplacer `await espion.premier` par une pause fixe : cela masquerait un envoi qui n'a pas lieu.
+
+## Issue
+Le diagnostic a établi que le test calait, pas le code : attendre une promesse résolue par la route
+faisait continuer le test dans le contexte de la requête. L'humain a validé la retouche de SC-02d
+(attente par sondage borné) le 2026-10-15. J'ai commité le travail du workflow, remis la branche sur
+la tête à jour du 01 (`cca7ad7`), aligné l'expression régulière de `texteVisibleDe` sur le dépôt pour
+`analyse` (`c531843`), rejoué tous les contrôles, puis ouvert la PR #246, empilée en brouillon sur la
+branche du 01. Restait à jouer `/scd-spec-dev:review` sur la PR.
