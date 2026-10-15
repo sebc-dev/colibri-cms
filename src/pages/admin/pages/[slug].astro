@@ -326,7 +326,10 @@ const page = {
                 <CardContent>
                   <div data-emplacement-formulaire data-id-emplacement={emplacement.id}>
                     <p class="text-ink-muted break-words">{TEXTE_PHRASE_EMPLACEMENT_FORMULAIRE}</p>
-                    <a href={`/admin/formulaires/${emplacement.formulaire}`} class="underline">
+                    <a
+                      href={`/admin/formulaires/${emplacement.formulaire}`}
+                      class="inline-flex min-h-11 items-center text-plumage underline underline-offset-2"
+                    >
                       {TEXTE_LIEN_REGLER_FORMULAIRE}
                     </a>
                   </div>
