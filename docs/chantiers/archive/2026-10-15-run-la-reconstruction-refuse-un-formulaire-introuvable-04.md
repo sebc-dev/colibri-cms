@@ -48,3 +48,10 @@ Hors de cette session : commiter le travail en vol, puis relancer `/scd-spec-dev
 ## Écarté
 - Assouplir la règle dans `page.ts` pour faire passer le test : ce serait trahir SC-04b.
 - Laisser l'implémenteur retoucher le test : un test existant lui est interdit, à raison.
+
+## Issue
+Retouche faite le 2026-10-15, avec l'accord de l'humain, dans le test unitaire SC-03h du ticket 03 :
+un champ `courriel` (e-mail, obligatoire) ajouté au formulaire piégé, aucune assertion changée
+(commit `3c99c39`). Reprise avec `rerun: "2"` : le run a abouti, PR #251. Aucun finding retenu ; la
+review a laissé en suspens que les tests ne fixent pas lequel des deux motifs d'échec sort
+(`coverage-F-1`), et l'en-tête de `scripts/batir-site-jetable.mjs` resté en retard d'une construction.
