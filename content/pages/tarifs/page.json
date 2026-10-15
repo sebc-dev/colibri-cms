@@ -16,6 +16,7 @@
       "rang": 2,
       "mediaId": "media-fixture-hero",
       "nom": "Bandeau des tarifs"
-    }
+    },
+    { "id": "formulaire-devis", "nature": "formulaire", "rang": 3, "formulaire": "devis-gateau" }
   ]
 }

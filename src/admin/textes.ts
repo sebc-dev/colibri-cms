@@ -315,3 +315,7 @@ export const LIBELLES_REGLAGES_PUBLIER: Readonly<Record<string, string>> = {
   reseaux: TEXTE_CARTE_RESEAUX,
   mention: TEXTE_CARTE_MENTION,
 };
+
+/** Carte d'un emplacement de formulaire dans l'éditeur de page (change 012, ADR-0027). */
+export const TEXTE_PHRASE_EMPLACEMENT_FORMULAIRE = 'Ses options et ses prix se règlent dans Formulaires.';
+export const TEXTE_LIEN_REGLER_FORMULAIRE = 'Régler ce formulaire';

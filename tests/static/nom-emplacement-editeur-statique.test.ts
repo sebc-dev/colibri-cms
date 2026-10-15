@@ -33,16 +33,18 @@ describe('SC-03c — un nom affiché avec des caractères de balisage n’est ja
     expect(source).not.toContain('{@html');
     expect(source).not.toMatch(/\.innerHTML/);
 
-    // Assert : le titre de chacune des six cartes (texte-riche, lien-video,
-    // bouton-action, image, galerie, carrousel) se compose désormais d'une
+    // Assert : le titre de chacune des sept cartes (texte-riche, lien-video,
+    // bouton-action, image, galerie, carrousel, formulaire) se compose désormais d'une
     // expression Astro (accolades), jamais d'un texte figé — condition
     // nécessaire pour que le nom, quand l'intégrateur en a déclaré un, s'y
     // interpole (et soit donc échappé par Astro), plutôt que de rester une
     // chaîne littérale qui ne pourrait jamais varier avec la déclaration.
+    // La carte formulaire (change 012, ticket 01) y interpole le nom du
+    // formulaire désigné, pas celui de l'emplacement.
     const titres = [...source.matchAll(/<CardTitle>([\s\S]*?)<\/CardTitle>/g)].map((correspondance) =>
       correspondance[1].trim(),
     );
-    expect(titres, 'six occurrences de CardTitle sont attendues (une par nature)').toHaveLength(6);
+    expect(titres, 'sept occurrences de CardTitle sont attendues (une par nature)').toHaveLength(7);
     for (const titre of titres) {
       expect(
         titre.startsWith('{') && titre.endsWith('}'),
