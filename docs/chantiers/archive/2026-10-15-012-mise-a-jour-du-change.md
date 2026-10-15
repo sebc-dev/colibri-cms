@@ -47,3 +47,12 @@ puis lancer `/opsx:update 012-envoi-des-demandes-de-devis` sur les trois points.
   code du 02 ; l'humain a choisi une PR distincte.
 - Un troisième verdict « indisponible » pour la panne : comportement non demandé, et il toucherait le
   ticket 12 (écarté au triage).
+
+## Issue
+Fait le 2026-10-15 dans la PR #247, après la fusion de #245 et de #246. Le change est mis à jour
+(`10394c6`) : MODIFIED de l'indiscernabilité de 001 (hors plafond et hors seuil), scénario de panne
+au delta `seuil-par-origine` (SC-02j coché, SC-12h), renvois au « patron statistique » remplacés
+(point 2 tranché : option A, le test SC-02c reste tel quel), résidu Time Travel de D1 consigné
+(7 jours sur le palier gratuit, vérifié dans la doc Cloudflare). Le script vide les tables du seuil
+(`07dcbcf`) ; le test de panne s'appelle SC-02j (`bfdfa7c`). Reste hors de ce chantier : l'étape 2
+du script cherche « Vous êtes connectée », disparu depuis 8e04395 — corrigé dans une PR à part.
