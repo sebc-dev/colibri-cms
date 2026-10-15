@@ -65,11 +65,11 @@ arrive au ticket 03 (la page publique présente le formulaire qu'elle pose).
 - l'échec de la reconstruction sur un formulaire introuvable (ticket 04).
 
 ## Critères
-- [ ] Quand l'éditeur d'une page est affiché, les emplacements paraissent dans l'ordre posé, chacun présenté selon sa nature — texte riche, lien de vidéo, bouton d'action, image, galerie, carrousel, formulaire   (SC-01a)
-- [ ] Quand l'éditrice ouvre l'éditeur de « Contact », dont un emplacement désigne le formulaire « Devis gâteau », cet emplacement se présente comme « Formulaire — Devis gâteau », à son rang parmi les autres, avec la phrase qui renvoie à l'écran Formulaires   (SC-01b)
-- [ ] Quand l'éditrice actionne le lien de cet emplacement, l'écran du formulaire « Devis gâteau » s'ouvre   (SC-01c)
-- [ ] Quand l'éditrice parcourt l'emplacement de formulaire dans l'éditeur de la page, aucun champ ni aucun geste n'en modifie le contenu ni ne change le formulaire désigné   (SC-01d)
-- [ ] Quand une correction parvient pour un emplacement de formulaire, elle est refusée, et aucun brouillon n'est écrit   (SC-01e)
-- [ ] Quand l'intégrateur déclare un emplacement de nature formulaire qui ne désigne aucun formulaire, cet emplacement est ignoré à la lecture, et les autres emplacements de la page paraissent normalement   (SC-01f)
-- [ ] Quand la page « Contact », qui pose le formulaire « Devis gâteau », porte un brouillon de son texte de présentation, et que l'éditrice publie, le `page.json` déposé pour « Contact » porte toujours l'emplacement qui désigne « Devis gâteau », à son rang   (SC-01g)
-- [ ] Quand seul le formulaire « Devis gâteau » porte un brouillon, et que l'éditrice publie, le dépôt réécrit le `formulaire.json` de « Devis gâteau », et ne réécrit le `page.json` d'aucune des pages qui le posent   (SC-01h)
+- [x] Quand l'éditeur d'une page est affiché, les emplacements paraissent dans l'ordre posé, chacun présenté selon sa nature — texte riche, lien de vidéo, bouton d'action, image, galerie, carrousel, formulaire   (SC-01a)
+- [x] Quand l'éditrice ouvre l'éditeur de « Contact », dont un emplacement désigne le formulaire « Devis gâteau », cet emplacement se présente comme « Formulaire — Devis gâteau », à son rang parmi les autres, avec la phrase qui renvoie à l'écran Formulaires   (SC-01b)
+- [x] Quand l'éditrice actionne le lien de cet emplacement, l'écran du formulaire « Devis gâteau » s'ouvre   (SC-01c)
+- [x] Quand l'éditrice parcourt l'emplacement de formulaire dans l'éditeur de la page, aucun champ ni aucun geste n'en modifie le contenu ni ne change le formulaire désigné   (SC-01d)
+- [x] Quand une correction parvient pour un emplacement de formulaire, elle est refusée, et aucun brouillon n'est écrit   (SC-01e)
+- [x] Quand l'intégrateur déclare un emplacement de nature formulaire qui ne désigne aucun formulaire, cet emplacement est ignoré à la lecture, et les autres emplacements de la page paraissent normalement   (SC-01f)
+- [x] Quand la page « Contact », qui pose le formulaire « Devis gâteau », porte un brouillon de son texte de présentation, et que l'éditrice publie, le `page.json` déposé pour « Contact » porte toujours l'emplacement qui désigne « Devis gâteau », à son rang   (SC-01g)
+- [x] Quand seul le formulaire « Devis gâteau » porte un brouillon, et que l'éditrice publie, le dépôt réécrit le `formulaire.json` de « Devis gâteau », et ne réécrit le `page.json` d'aucune des pages qui le posent   (SC-01h)
