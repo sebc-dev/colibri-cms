@@ -179,7 +179,9 @@ exporter sa classe, or `wrangler.astro.jsonc` documente que poser `main` détour
 graphe de pages (mesuré) ; D1 est déjà lié, ses écritures sont sérialisées, et la propriété décisive —
 clé et empreintes effacées ensemble, rien de dérivé d'une adresse au-delà de sa fenêtre — se tient à
 l'identique. Une différence s'assume : sans sollicitation, les empreintes de la dernière fenêtre restent
-jusqu'à la suivante — jamais plus d'une fenêtre, jamais une accumulation. Turnstile est retiré du
+jusqu'à la suivante — jamais plus d'une fenêtre, jamais une accumulation. Une seconde s'assume aussi :
+l'historique restaurable de D1 (Time Travel, 7 jours sur le palier gratuit) garde la clé et les
+empreintes effacées, résidu porté au security-review (§ Données). Turnstile est retiré du
 candidat (arbitrage du 2026-10-15). L'invariant candidat `I7` (`idFromName` d'une constante) perd son
 objet : l'ADR le retire, avec le candidat `objet-de-frequence-nomme-par-une-constante`.
 

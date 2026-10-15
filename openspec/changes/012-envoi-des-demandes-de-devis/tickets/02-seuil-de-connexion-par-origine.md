@@ -61,8 +61,9 @@ chaque origine à cinq par heure) le branchera sur l'envoi des demandes.
   - en intégration, la bascule de fenêtre se provoque en vieillissant la ligne de `fenetre_seuil` dans
     la vraie base, jamais en simulant l'horloge ;
   - l'origine est posée par l'en-tête `CF-Connecting-IP` des requêtes de test ;
-  - l'indiscernabilité des délais reprend le patron statistique de
-    `tests/integration/branches-indiscernables.test.ts`, par salves, la fenêtre vidée entre elles.
+  - l'indiscernabilité des délais au-delà du seuil ne demande pas de campagne statistique : l'adresse
+    n'y est jamais lue, et le test vérifie que les deux réponses attendent au moins le délai plancher et
+    que leurs médianes restent proches.
 - **Cas limites à couvrir :** la 20ᵉ tentative traitée et la 21ᵉ refusée, une origine absente, une
   adresse IPv6, la bascule de fenêtre.
 
@@ -79,3 +80,4 @@ chaque origine à cinq par heure) le branchera sur l'envoi des demandes.
 - [x] Quand une première sollicitation arrive dans une nouvelle fenêtre, alors que la base porte la clé et les empreintes de la fenêtre précédente, la clé et toutes les empreintes de la fenêtre précédente ont disparu de la base, et seules la nouvelle clé et l'empreinte de cette sollicitation y figurent   (SC-02g)
 - [x] Quand des sollicitations d'une même origine sont comptées dans deux fenêtres successives, les deux fenêtres ont des clés différentes, et l'empreinte de cette origine diffère d'une fenêtre à l'autre   (SC-02h)
 - [x] Quand une sollicitation est comptée, puis refusée pour seuil atteint, ni son adresse IP, ni la clé de la fenêtre, ni son empreinte ne figurent dans la réponse ni dans les journaux   (SC-02i)
+- [x] Quand une sollicitation arrive et que la base refuse de la compter, la sollicitation est refusée, rien de ce qu'elle demande n'est fait, et la trace de l'échec ne porte ni son adresse IP, ni la clé de la fenêtre, ni son empreinte   (SC-02j)

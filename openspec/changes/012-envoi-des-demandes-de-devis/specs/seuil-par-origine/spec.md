@@ -15,7 +15,8 @@ surfaces ont chacune leur seuil et leur compte, indépendants l'un de l'autre : 
 tentatives de connexion** par origine et par fenêtre ; la sollicitation qui dépasse le seuil de sa surface
 DOIT être refusée, et toutes les suivantes jusqu'à la fin de la fenêtre. Une nouvelle fenêtre repart de
 zéro. Le seuil d'une origine NE DOIT jamais atteindre une autre origine. Le comptage NE DOIT exiger ni
-compte, ni session, ni cookie.
+compte, ni session, ni cookie. Une sollicitation que la base ne permet pas de compter DOIT être refusée :
+la protection ne s'ouvre pas sur une panne.
 
 #### Scenario: La sixième demande d'une heure est refusée
 - **WHEN** une même origine envoie six demandes complètes dans la même fenêtre
@@ -40,6 +41,10 @@ compte, ni session, ni cookie.
 #### Scenario: Le comptage ne pose aucun cookie
 - **WHEN** une sollicitation est comptée
 - **THEN** la réponse ne pose aucun cookie lié au comptage
+
+#### Scenario: Une panne du compteur refuse la sollicitation
+- **WHEN** une sollicitation arrive et que la base refuse de la compter
+- **THEN** la sollicitation est refusée, rien de ce qu'elle demande n'est fait, et la trace de l'échec ne porte ni son adresse IP, ni la clé de la fenêtre, ni son empreinte
 
 ### Requirement: Le compteur ne garde aucune origine en clair
 
