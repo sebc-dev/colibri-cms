@@ -59,7 +59,7 @@ NOM_COOKIE_SESSION='__Host-session'
 PLAFOND=5
 ALPHABET_CODE='0123456789ABCDEFGHJKMNPQRSTVWXYZ' # Crockford, sans confusables (ADR-0001)
 MARQUEUR_ECRAN_CONNEXION='Recevoir un code'
-MARQUEUR_ACCUEIL='Vous êtes connectée'
+MARQUEUR_ACCUEIL='>Mes pages</h1>' # l'accueil renvoie vers « Mes pages » (005, ticket 01) ; le titre, quels que soient ses attributs (dev)
 # L'objet fixe : lu en source plutôt que dupliqué en dur ici — ce que ce
 # script éprouve, c'est que la valeur QUE LE PRODUIT DÉFINIT atteint bien le
 # message réellement expédié, pas une coïncidence de deux constantes tenues
@@ -292,14 +292,16 @@ if [ "$DEV_STARTED" -eq 1 ]; then
     sed 's/^/      /' "$ENTETES_C1"
   fi
 
+  # L'accueil ne rend plus rien en propre : une session valide y est renvoyée
+  # vers « Mes pages » (005, ticket 01). On suit le renvoi et on juge l'écran
+  # où il mène.
   CORPS_ACCUEIL="$TMP_DIR/accueil.html"
-  ENTETES_ACCUEIL="$TMP_DIR/accueil-entetes.txt"
-  curl -s -D "$ENTETES_ACCUEIL" -b "$POT_C1" "$DEV_URL/admin/" -o "$CORPS_ACCUEIL"
+  ARRIVEE_ACCUEIL="$(curl -s -L -b "$POT_C1" "$DEV_URL/admin/" -o "$CORPS_ACCUEIL" -w '%{http_code} %{url_effective}')"
 
-  if grep -qi "^HTTP/.* 200" "$ENTETES_ACCUEIL" && grep -qF "$MARQUEUR_ACCUEIL" "$CORPS_ACCUEIL"; then
-    ok "l'accueil est atteint avec la session ouverte — parcours complet, sans intervention manuelle"
+  if [ "$ARRIVEE_ACCUEIL" = "200 $DEV_URL/admin/mes-pages" ] && grep -qF "$MARQUEUR_ACCUEIL" "$CORPS_ACCUEIL"; then
+    ok "l'accueil mène à « Mes pages » avec la session ouverte — parcours complet, sans intervention manuelle"
   else
-    ko "l'accueil n'a pas été atteint avec la session ouverte"
+    ko "l'accueil n'a pas mené à « Mes pages » avec la session ouverte (arrivée : ${ARRIVEE_ACCUEIL})"
   fi
 
   # ─── Étape 3 (c2) — le départ est conditionné à l'adresse autorisée ───────
@@ -423,7 +425,7 @@ if [ "$DEV_STARTED" -eq 1 ]; then
   verifier_absence_termes_developpeur "l'écran du plafond atteint" "$(texte_visible <"$CORPS_PLAFOND")"
   d1_exec "delete from codes_connexion;"
 
-  verifier_absence_termes_developpeur "l'écran d'accueil" "$(texte_visible <"$CORPS_ACCUEIL")"
+  verifier_absence_termes_developpeur "l'écran « Mes pages », où mène l'accueil" "$(texte_visible <"$CORPS_ACCUEIL")"
 
   if [ -n "$FICHIER_AUTORISEE" ] && [ -f "$FICHIER_AUTORISEE" ]; then
     verifier_absence_termes_developpeur "le message expédié" "$(cat "$FICHIER_AUTORISEE")"
