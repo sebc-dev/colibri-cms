@@ -29,6 +29,8 @@ import {
 } from '../pages/texte-riche.ts';
 import type { NatureCoordonnee, ReglagesDeclares, ReseauDeclare } from '../reglages/declaration.ts';
 import { coordonneesCourantes } from '../reglages/coordonnees.ts';
+import type { ChampDeclare, FormulaireDeclare, NatureChamp } from '../formulaires/declaration.ts';
+import { formaterPrix } from '../formulaires/prix.ts';
 
 /** Une entrée de la navigation : une page déclarée, la courante marquée. */
 export interface EntreeNavigation {
@@ -90,7 +92,43 @@ export interface EnsembleImagesRendu {
   readonly images: readonly ImageRendue[];
 }
 
+/** Une option d'un champ à choix ; prix (centimes) et prix affiché seulement en champ avec prix. */
+export interface OptionRendue {
+  readonly id: string;
+  readonly libelle: string;
+  readonly prix?: number;
+  readonly prixAffiche?: string;
+}
+
+/** Un champ du formulaire rendu, dans l'ordre déclaré. */
+export interface ChampRendu {
+  readonly id: string;
+  readonly nature: NatureChamp;
+  readonly libelle: string;
+  readonly obligatoire: boolean;
+  readonly avecPrix: boolean;
+  readonly options?: readonly OptionRendue[];
+}
+
+/** Le mode d'envoi : `actif` pour un formulaire publié, `desactive` pour un brouillon (aperçu). */
+export type ModeEnvoi = 'actif' | 'desactive';
+
+/** Un formulaire posé par un emplacement, tel que le gabarit le dessine (ADR-0027). */
+export interface FormulaireRendu {
+  readonly id: string;
+  readonly nature: 'formulaire';
+  /** L'identifiant du formulaire désigné et celui de la page qui le pose, que l'envoi reprend (ticket 07). */
+  readonly formulaire: string;
+  readonly page: string;
+  readonly nom: string;
+  readonly champs: readonly ChampRendu[];
+  /** La mention d'information réglée par l'éditrice, analysée en texte riche. */
+  readonly mention: NoeudDocument;
+  readonly mode: ModeEnvoi;
+}
+
 export type EmplacementRendu =
+  | FormulaireRendu
   | BoutonRendu
   | LienVideoRendu
   | TexteRicheRendu
@@ -151,6 +189,10 @@ export interface EntreeComposition {
   readonly brouillon?: Brouillon;
   /** Les images connues, par identité. Absent : aucune image n'est dessinée ni vérifiée. */
   readonly images?: ImagesConnues;
+  /** Les formulaires déclarés, que les emplacements de formulaire désignent. */
+  readonly formulaires?: readonly FormulaireDeclare[];
+  /** Le mode d'envoi des formulaires rendus (défaut : `actif`). */
+  readonly modeEnvoi?: ModeEnvoi;
 }
 
 function contenuDe(
@@ -223,15 +265,51 @@ function composerEnsemble(
   };
 }
 
+function composerChamp(champ: ChampDeclare): ChampRendu {
+  const base = {
+    id: champ.id,
+    nature: champ.nature,
+    libelle: champ.libelle,
+    obligatoire: champ.obligatoire,
+    avecPrix: champ.avecPrix,
+  };
+  if (champ.options === undefined) return base;
+  return {
+    ...base,
+    options: champ.options.map(
+      (o): OptionRendue =>
+        champ.avecPrix && o.prix !== undefined
+          ? { id: o.id, libelle: o.libelle, prix: o.prix, prixAffiche: `${formaterPrix(o.prix)} €` }
+          : { id: o.id, libelle: o.libelle },
+    ),
+  };
+}
+
+/** Le formulaire désigné, ou `null` quand il n'est pas déclaré (rien ne se dessine). */
+function composerFormulaire(
+  emplacement: { readonly id: string; readonly formulaire: string },
+  entree: EntreeComposition,
+): FormulaireRendu | null {
+  const declare = (entree.formulaires ?? []).find((f) => f.id === emplacement.formulaire);
+  if (declare === undefined) return null;
+  return {
+    id: emplacement.id,
+    nature: 'formulaire',
+    formulaire: declare.id,
+    page: entree.slug,
+    nom: declare.nom,
+    champs: declare.champs.map(composerChamp),
+    mention: sansLienRefuse(analyserMarkdownRestreint(entree.reglages.mention)),
+    mode: entree.modeEnvoi ?? 'actif',
+  };
+}
+
 function composerEmplacement(
   emplacement: Emplacement,
-  publie: Brouillon | undefined,
-  brouillon: Brouillon | undefined,
-  slug: string,
-  images: ImagesConnues | undefined,
+  entree: EntreeComposition,
 ): EmplacementRendu | null {
-  // Le formulaire n'est pas encore dessiné (change 012, ticket 03).
-  if (emplacement.nature === 'formulaire') return null;
+  const { publie, brouillon, slug, images } = entree;
+  if (emplacement.nature === 'formulaire') return composerFormulaire(emplacement, entree);
   const contenu = contenuDe(emplacement, publie, brouillon);
   if (emplacement.nature === 'bouton-action') {
     const { libelle, destination } =
@@ -299,7 +377,7 @@ export function composerPage(entree: EntreeComposition): PageComposee {
       courante: p.slug === entree.slug,
     })),
     emplacements: entree.page.emplacements
-      .map((e) => composerEmplacement(e, entree.publie, entree.brouillon, entree.slug, entree.images))
+      .map((e) => composerEmplacement(e, entree))
       .filter((e): e is EmplacementRendu => e !== null),
     pied: composerPied(entree.reglages),
   };

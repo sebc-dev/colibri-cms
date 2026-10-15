@@ -91,13 +91,13 @@ Le document est complet mais **sans script** à ce stade :
 - l'échec de la reconstruction sur un formulaire introuvable ou sans moyen de répondre (ticket 04).
 
 ## Critères
-- [ ] Quand un visiteur demande la page « Contact », qui pose le formulaire « Devis gâteau », la page présente, à la place de cet emplacement, les champs « Parfum », « Nombre de parts », « Occasion », « Votre nom », « Votre adresse e-mail », « Votre numéro de téléphone » et « Votre message », dans cet ordre, « Parfum » et « Votre adresse e-mail » marqués obligatoires   (SC-03a)
-- [ ] Quand le formulaire « Devis gâteau » est publié avec « Vanille » à 8 €, « Chocolat » à 9 € et « Fraise » à 10,50 € dans « Parfum », la page présente ces trois options, chacune suivie de son prix — « 8 € », « 9 € », « 10,50 € » —, et les options d'« Occasion », champ sans prix, sans aucun prix   (SC-03b)
-- [ ] Quand le visiteur choisit « Vanille » puis « Chocolat » dans « Parfum », seule « Chocolat » reste choisie   (SC-03c)
-- [ ] Quand le visiteur coche « Anniversaire » puis « Mariage » dans « Occasion », les deux restent cochées   (SC-03d)
-- [ ] Quand un visiteur consulte une page qui pose un formulaire, la mention que l'estimation est indicative et non engageante paraît avec le total, et la mention d'information publiée paraît avant le bouton d'envoi   (SC-03e)
-- [ ] Quand une page qui pose un formulaire est demandée, ses champs, ses options, leurs prix et les deux mentions figurent dans la réponse elle-même, sans qu'aucun échange supplémentaire ne soit nécessaire pour les obtenir   (SC-03f)
-- [ ] Quand un visiteur parcourt le formulaire, aucun champ n'offre de joindre un fichier   (SC-03g)
-- [ ] Quand un libellé de champ ou d'option publié contient les caractères `<`, `>`, `&` ou des guillemets, la page les affiche comme du texte, et aucun balisage n'est interprété   (SC-03h)
-- [ ] Quand la page « Tarifs » pose, à la suite de son image de bandeau, un emplacement qui désigne le formulaire « Devis gâteau », la page présente le formulaire « Devis gâteau » après l'image de bandeau, et aucun autre emplacement entre les deux   (SC-03i)
-- [ ] Quand les pages « Tarifs » et « Contact » posent toutes deux le formulaire « Devis gâteau », chacune des deux pages présente ce formulaire, avec les mêmes options et les mêmes prix   (SC-03j)
+- [x] Quand un visiteur demande la page « Contact », qui pose le formulaire « Devis gâteau », la page présente, à la place de cet emplacement, les champs « Parfum », « Nombre de parts », « Occasion », « Votre nom », « Votre adresse e-mail », « Votre numéro de téléphone » et « Votre message », dans cet ordre, « Parfum » et « Votre adresse e-mail » marqués obligatoires   (SC-03a)
+- [x] Quand le formulaire « Devis gâteau » est publié avec « Vanille » à 8 €, « Chocolat » à 9 € et « Fraise » à 10,50 € dans « Parfum », la page présente ces trois options, chacune suivie de son prix — « 8 € », « 9 € », « 10,50 € » —, et les options d'« Occasion », champ sans prix, sans aucun prix   (SC-03b)
+- [x] Quand le visiteur choisit « Vanille » puis « Chocolat » dans « Parfum », seule « Chocolat » reste choisie   (SC-03c)
+- [x] Quand le visiteur coche « Anniversaire » puis « Mariage » dans « Occasion », les deux restent cochées   (SC-03d)
+- [x] Quand un visiteur consulte une page qui pose un formulaire, la mention que l'estimation est indicative et non engageante paraît avec le total, et la mention d'information publiée paraît avant le bouton d'envoi   (SC-03e)
+- [x] Quand une page qui pose un formulaire est demandée, ses champs, ses options, leurs prix et les deux mentions figurent dans la réponse elle-même, sans qu'aucun échange supplémentaire ne soit nécessaire pour les obtenir   (SC-03f)
+- [x] Quand un visiteur parcourt le formulaire, aucun champ n'offre de joindre un fichier   (SC-03g)
+- [x] Quand un libellé de champ ou d'option publié contient les caractères `<`, `>`, `&` ou des guillemets, la page les affiche comme du texte, et aucun balisage n'est interprété   (SC-03h)
+- [x] Quand la page « Tarifs » pose, à la suite de son image de bandeau, un emplacement qui désigne le formulaire « Devis gâteau », la page présente le formulaire « Devis gâteau » après l'image de bandeau, et aucun autre emplacement entre les deux   (SC-03i)
+- [x] Quand les pages « Tarifs » et « Contact » posent toutes deux le formulaire « Devis gâteau », chacune des deux pages présente ce formulaire, avec les mêmes options et les mêmes prix   (SC-03j)

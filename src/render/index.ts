@@ -8,3 +8,4 @@ export { default as TexteRiche } from './markdown/TexteRiche.astro';
 export { default as Image } from './Image.astro';
 export { default as Galerie } from './Galerie.astro';
 export { default as Carrousel } from './Carrousel.astro';
+export { default as Formulaire } from './Formulaire.astro';

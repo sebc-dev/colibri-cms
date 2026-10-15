@@ -45,6 +45,10 @@ Ce ticket ne modifie **aucun** test existant.
   par le ticket 03. Il n'écrit qu'en texte (`textContent`), jamais par `innerHTML`, et n'emploie aucun
   `eval`. Il rend visible le bloc du total, « Total estimé : 39 € », annoncé poliment aux lecteurs
   d'écran (`aria-live="polite"`). Le bouton d'envoi reste inactif : il s'active avec l'envoi (ticket 07).
+- **Sans script, le total est masqué** (état « sans script » de `ux.md`). Le ticket 03 dessine le
+  bloc du total visible, à « 0 € ». Ce ticket le pose masqué dans le document (`hidden`) : un
+  visiteur sans JavaScript ne voit que les champs, les options, les prix et le message sans script.
+  Le module le rend visible au chargement.
 - **Aucun framework.** Pas d'îlot Svelte, pas de directive `client:*` (I16).
 - **`public/_headers`.** La politique gagne `script-src 'self'` et garde `default-src 'none'`,
   `form-action 'none'` et `frame-ancestors 'none'`. Elle n'admet ni `'unsafe-inline'`, ni hôte tiers.

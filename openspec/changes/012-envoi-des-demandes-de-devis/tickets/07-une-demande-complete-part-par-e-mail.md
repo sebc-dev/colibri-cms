@@ -42,6 +42,8 @@ saisies. Aucune donnée de la demande n'est conservée en base après l'envoi.
 - **Le corps.** C'est du JSON `{ formulaire, page, valeurs, totalAffiche }` :
   - `formulaire` est l'identifiant du formulaire ;
   - `page` est l'identifiant de la page d'origine ;
+  - le module lit ces deux identifiants dans les attributs `data-formulaire` et `data-page` du
+    `<form>`, posés par le ticket 03 ;
   - `totalAffiche` est un entier en centimes ;
   - `valeurs` associe l'identifiant d'un champ à une chaîne (texte, texte long, e-mail, téléphone) ou à
     un **tableau d'identifiants d'options** (choix unique comme choix multiple).
