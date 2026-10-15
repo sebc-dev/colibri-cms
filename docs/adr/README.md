@@ -17,11 +17,11 @@ règle de lecture tient en une ligne :
 > **Un `ADR-00NN` cité DANS le corps d'un ADR promu désigne le numéro 1.x.**
 > Le numéro 2.x est celui du nom de fichier.
 
-Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, puis 0019–0025. À partir de
+Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, puis 0028–0029. À partir de
 0019, chaque renvoi à l'ancien cycle porte en plus la mention « (1.x) » dans son libellé
 (`ADR-0015 (1.x)`) : il se lit sans la règle. Dans le texte qu'un amendement ou un complément de
 promotion ajoute — les points marqués *(amendé)* ou *(ajouté)* —, un numéro sans mention est un
-numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026) citent des numéros 2.x.
+numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027) citent des numéros 2.x.
 
 ## Correspondance
 
@@ -30,9 +30,9 @@ numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026) citent des numéros 2.x.
 | [0001](./0001-auth-implementation-maison-sur-d1.md) | 0006 | Authentification maison sur D1, quatre mécanismes |
 | [0002](./0002-acheminement-email-routing-send-email.md) | 0009 | Acheminement par Email Routing, courriel inerte |
 | [0003](./0003-tests-vitest-dans-workerd.md) | 0013 | Tests — Vitest dans `workerd`, Playwright pour les parcours — **remplacé par [0014](./0014-oracle-workerd-integration-vitest-plugin.md)** |
-| [0004](./0004-en-tetes-de-reponse-deux-porteurs.md) | 0015 | En-têtes de réponse — deux porteurs |
-| [0005](./0005-configuration-d-instance-quatre-lieux.md) | 0020 | Configuration d'instance — quatre lieux |
-| [0006](./0006-administration-sans-directive-client.md) | 0024 | Administration sans directive `client:*` |
+| [0004](./0004-en-tetes-de-reponse-deux-porteurs.md) | 0015 | En-têtes de réponse — deux porteurs — **sa clause Turnstile est levée par [0028](./0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md)** |
+| [0005](./0005-configuration-d-instance-quatre-lieux.md) | 0020 | Configuration d'instance — quatre lieux — **ses deux clés Turnstile n'existent plus depuis [0028](./0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md)** |
+| [0006](./0006-administration-sans-directive-client.md) | 0024 | Administration sans directive `client:*` — **l'exception « hors Turnstile » est sans objet depuis [0028](./0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md)** |
 | [0007](./0007-garde-de-session-par-import-et-surface-publique-close.md) | 0026 | Garde de session par l'import, surface publique close |
 | [0008](./0008-en-tetes-d-administration-poses-par-un-middleware.md) | — | En-têtes d'administration posés par un middleware |
 | [0009](./0009-base-de-composants-des-ilots-shadcn-svelte.md) | — | Base de composants des îlots d'administration — shadcn-svelte |
@@ -53,6 +53,9 @@ numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026) citent des numéros 2.x.
 | [0024](./0024-rendu-partage-par-le-publie-et-l-apercu.md) | 0023 | Rendu partagé par le publié et l'aperçu — un point d'entrée unique, deux routes nommées |
 | [0025](./0025-prefixes-de-publication-en-constante-unique.md) | 0029 | Préfixes de publication dans une constante unique, sans `.github/` |
 | [0026](./0026-brouillon-d-un-champ-a-choix-porte-toute-sa-liste.md) | — | Le brouillon d'un champ à choix porte toute sa liste ; la publication la dépose telle quelle |
+| [0027](./0027-pose-d-un-formulaire-par-un-emplacement.md) | — | La pose d'un formulaire sur une page — un emplacement de nature « formulaire » qui le désigne |
+| [0028](./0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md) | 0012 | Anti-abus — compteur de fréquence en D1, à empreintes de fenêtre, sans Turnstile — **amendé** : Turnstile retiré, D1 au lieu d'un Durable Object ; retire `I7` |
+| [0029](./0029-svelte-pour-l-administration-formulaire-public-sans-framework.md) | 0011 | Îlots Svelte 5 pour l'administration ; le formulaire public, un document complet amélioré par un module du site — **amendé** : le site public n'a pas d'îlot ; crée `I16` |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -80,6 +83,18 @@ point retouché. Deux coïncidences à ne pas lire de travers : l'ADR-0017 du cy
 0023, et l'ADR-0023 du cycle 1.x est ici 0024.
 `ADR-0026` n'a pas d'antécédent 1.x : déposé en candidat le 2026-10-10 par la review du change
 `010-reglage-des-formulaires`, il a été tranché et promu par le change 011.
+`ADR-0027` non plus : décision neuve, née le 2026-10-15 de l'arbitrage humain du change
+`012-envoi-des-demandes-de-devis` — le formulaire, déclaré par ADR-0018, attendait un moyen d'être
+posé sur une page ; il étend ADR-0012 et ADR-0018.
+`ADR-0028` est promu du cycle 1.x le 2026-10-15, pour le change `012-envoi-des-demandes-de-devis`, le
+premier à écrire le compteur de fréquence. Il est **amendé** à la promotion — Turnstile retiré par
+arbitrage humain, compteur en D1 au lieu d'un Durable Object — et le dit dans une section dédiée. Il
+retire sans le promouvoir le candidat `objet-de-frequence-nomme-par-une-constante` — numéroté 0027 sous
+le cycle 1.x, sans rapport avec l'ADR-0027 ci-dessus : sans objet nommé, l'invariant `I7` qu'il fondait n'a plus de porteur. Trois ADR acceptés
+supposaient Turnstile — 0004, 0005, 0006 — : leur ligne ci-dessus renvoie à 0028, leur fichier ne change
+pas. `ADR-0029` est promu le même jour, pour le même change, le premier à charger un script sur le site
+public : **amendé** — le formulaire public n'est pas un îlot Svelte, mais un document complet amélioré par
+un module sans framework —, il crée l'invariant `I16`.
 
 ## Comment se lit un remplacement
 
@@ -95,7 +110,7 @@ avec la table sous les yeux.
 
 ## Ce qui n'est pas encore promu
 
-**19 décisions du cycle 1.x attendent encore** dans
+**16 décisions du cycle 1.x attendent encore** dans
 [`docs/adr/_candidates/`](./_candidates/). Elles restent des candidats : `CLAUDE.md` dit « ne
 pas contredire un ADR accepté », et un candidat n'en est pas un. Un renvoi vers un numéro 1.x
 absent de la table ci-dessus pointe donc vers une décision **non promue** — la lire dans

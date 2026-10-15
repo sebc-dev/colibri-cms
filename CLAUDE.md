@@ -7,8 +7,8 @@
 - Ce que le code s'interdit : `docs/architecture.md` (invariants `I1`–`I10`) — NE PAS franchir un
   invariant. Tests : `docs/test.md` — Sécurité : `docs/security.md` — Interface : `docs/design-system.md`.
 - Décisions figées : `docs/adr/` — NE PAS contredire un ADR accepté ; numérotation 2.x ; les ADR
-  promus depuis le cycle 1.x (0001–0008, 0019–0025) citent des numéros 1.x dans leur corps —
-  marqués « (1.x) » à partir de 0019 —, les ADR nés en 2.x (0009–0018, 0026 et suivants) citent des
+  promus depuis le cycle 1.x (0001–0008, 0019–0025, 0028–0029) citent des numéros 1.x dans leur corps —
+  marqués « (1.x) » à partir de 0019 —, les ADR nés en 2.x (0009–0018, 0026, 0027, et les suivants non promus) citent des
   numéros 2.x — la table de correspondance est dans
   `docs/adr/README.md`. Les décisions non encore promues sont dans `docs/adr/_candidates/` — un
   candidat n'est pas figé.
