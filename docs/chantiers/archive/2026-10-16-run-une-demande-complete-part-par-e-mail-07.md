@@ -48,3 +48,11 @@ Après le run, vérifier que le test commité porte bien `localeCompare` à la l
 
 ## Écarté
 - Laisser un agent corriger le test : aucun n'en a le droit (pas d'`applier` déclaré au projet).
+
+## Issue
+Run abouti le 2026-10-16 au second passage (`rerun: "2"`), PR #258. J'ai fait la retouche de la ligne
+158 du test à la main (option A, choisie par l'humain), indexée avant la reprise : le test commité la
+porte bien. La chaîne de qualité a corrigé seule les deux erreurs du code (`CourrielCompose`,
+`FORME_EMAIL`). La relecture a fait étiqueter les deux premières lignes de l'e-mail (`Formulaire :`,
+`Page :`) et passer l'envoi de la demande en relation synchrone dans le modèle. Laissé à la recette :
+CT-33.1 à CT-33.4, l'arrivée réelle de l'e-mail dans la boîte de recette.
