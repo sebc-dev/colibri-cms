@@ -32,7 +32,7 @@ async function verifierRefus(page: Page, libelle: RegExp, message: string): Prom
   await expect(resume).toBeFocused();
   await expect(page.getByRole("link", { name: libelle })).toBeVisible();
   await expect(page.getByText(message)).toBeVisible();
-  await expect(page.getByText("Merci, votre demande a été envoyée.")).toHaveCount(0);
+  await expect(page.getByText("Merci, votre demande a été envoyée.")).toBeHidden();
 }
 
 test.describe("la saisie désignée", () => {
@@ -50,8 +50,15 @@ test.describe("la saisie désignée", () => {
     const garde = await poserGardePolitique(contexte);
     try {
       const page = await contexte.newPage();
+      const envois: string[] = [];
+      page.on("request", (r) => {
+        if (r.method() === "POST" && new URL(r.url()).pathname === "/api/public/demandes") {
+          envois.push(r.url());
+        }
+      });
       await page.goto("/contact");
       await scenario(page);
+      expect(envois, "rien n'est envoyé").toEqual([]);
       garde.verifier();
     } finally {
       await contexte.close();
