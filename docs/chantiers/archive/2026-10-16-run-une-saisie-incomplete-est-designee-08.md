@@ -53,3 +53,14 @@ Après le run, vérifier que le test commité porte bien `Object.fromEntries` à
 
 ## Écarté
 - Laisser un agent corriger le test : aucun n'en a le droit (pas d'`applier` déclaré au projet).
+
+## Issue
+Run abouti le 2026-10-16 au second passage (`rerun: "2"`), PR #259. La retouche du test unitaire,
+indexée avant la reprise, est bien commitée (sha256 identique). La chaîne de qualité a corrigé seule
+les trois erreurs du code. La relecture a fait partager la forme de l'adresse e-mail entre `saisie.ts`
+et `demande.ts`, et aligner le texte du numéro mal formé sur le ticket. Deux corrections du parcours
+navigateur, classées appliquées par le tri, manquaient du diff (aucun agent n'a le droit de toucher un
+test) : faites à la main après le run (commit `98c1fe8`) — la confirmation cachée est vérifiée par
+`toBeHidden()`, et chaque scénario exige qu'aucun POST ne parte vers `/api/public/demandes`. Parcours
+rejoué : 5/5 ; une sonde jetable où l'envoi part échoue bien sur « rien n'est envoyé ». Restent à
+reporter au ticket 09 : la précédence entre refus « champs » et refus « refusée » (finding change-F-2).
