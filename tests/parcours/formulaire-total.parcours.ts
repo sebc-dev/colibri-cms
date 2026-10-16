@@ -109,7 +109,8 @@ test.describe("le total suit la sélection", () => {
       const politique = reponse?.headers()["content-security-policy"] ?? "";
       expect(politique).toContain("script-src 'self'");
       expect(politique).not.toMatch(/unsafe-|https?:|\*/);
-      expect(scripts).toEqual(["http://localhost:8788"]);
+      // Le module et les morceaux qu'il importe : au moins un, tous du site.
+      expect([...new Set(scripts)]).toEqual(["http://localhost:8788"]);
       await expect(
         page.locator("section.formulaire [aria-live='polite']"),
       ).toBeVisible();
