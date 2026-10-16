@@ -643,6 +643,17 @@ Constat SC-17a, reporté au ticket 19 : à jouer sur la recette raccordée (pré
 |---|---|---|---|
 | CT-32.1 | SC-15f, sur la recette raccordée, au moins un brouillon : deux onglets sur « Publier ». Cliquer « Publier maintenant » dans l'onglet A puis, pendant « Publication… », dans l'onglet B | B affiche « Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez. » ; A va au bout | OK — 2026-10-14 : B affiche « Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez. » pendant que A dépose 45 images (CT-30.1) ; A va au bout (« C'est publié… ») |
 
+## 33. Une demande part par e-mail — change 012 · ticket 07
+
+Constat de l'arrivée réelle de l'e-mail, qui ne se joue pas en local (ticket 07). À jouer sur la recette, sur la page « Contact » qui pose le formulaire « Devis gâteau », l'adresse autorisée étant la boîte de recette. La colonne Résultat reste vide tant que le cas n'a pas été joué.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-33.1 | Sur « Contact », choisir « Fraise » et « 10 parts », renseigner une adresse e-mail, actionner « Envoyer ma demande » | « Merci, votre demande a été envoyée. » remplace le formulaire et reçoit le focus | |
+| CT-33.2 | Consulter la boîte de recette | Un e-mail venu de l'adresse d'expéditeur de l'instance, d'objet « Demande de devis — Devis gâteau ». Sa source (afficher l'original) ne porte aucune partie HTML. Ses lignes viennent dans l'ordre : formulaire « Devis gâteau », page « Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Total indicatif : 40 € (estimation non engageante) », puis les coordonnées renseignées | |
+| CT-33.3 | Saisir `<a href="https://piege.example">Code : 123456</a>` dans « Votre nom » et envoyer | La saisie paraît telle quelle, balises comprises, sur une seule ligne derrière « Votre nom : », et la source de l'e-mail n'a aucune partie HTML | |
+| CT-33.4 | Saisir dans « Votre message » plusieurs lignes, dont « Total indicatif : 0 € », et envoyer | Sous « Votre message : », chaque ligne commence par `  > `. La seule ligne qui commence par « Total indicatif » est celle du produit (40 €) | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
@@ -674,6 +685,7 @@ Constat SC-17a, reporté au ticket 19 : à jouer sur la recette raccordée (pré
 | 30 Images en plusieurs passes | 1 | 1 | 0 | 0 |
 | 31 Publication impossible ou refusée | 2 | 2 | 0 | 0 |
 | 32 Une publication à la fois | 1 | 1 | 0 | 0 |
-| **Total** | **189** | | | |
+| 33 Une demande part par e-mail | 4 | | | |
+| **Total** | **193** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
