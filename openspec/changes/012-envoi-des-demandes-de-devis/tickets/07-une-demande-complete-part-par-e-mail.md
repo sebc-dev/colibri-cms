@@ -99,12 +99,12 @@ saisies. Aucune donnée de la demande n'est conservée en base après l'envoi.
 - l'enregistrement et la liste des demandes (story « Réception et suivi des demandes »).
 
 ## Critères
-- [ ] Quand le visiteur a choisi « Fraise » et « 10 parts », renseigné son adresse e-mail, et envoie, le formulaire laisse place à un message qui confirme que sa demande a été envoyée   (SC-07a)
-- [ ] Quand un visiteur sans aucune session envoie une demande complète, elle est acceptée et confirmée   (SC-07b)
-- [ ] Quand une demande est acceptée, la réponse ne pose aucun cookie et ne contient aucune des valeurs saisies par le visiteur   (SC-07c)
-- [ ] Quand un visiteur envoie une demande complète pour « Devis gâteau » depuis la page « Contact », un e-mail part vers l'adresse autorisée, d'objet « Demande de devis — Devis gâteau »   (SC-07d)
-- [ ] Quand la demande porte « Fraise » (10 €), « 10 parts » (30 €), « Anniversaire », le nom « Marie Dupont » et l'adresse « marie@exemple.fr », l'e-mail porte le formulaire « Devis gâteau », la page « Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Occasion : Anniversaire », le total indicatif 40 €, « Votre nom : Marie Dupont » et « Votre adresse e-mail : marie@exemple.fr »   (SC-07e)
-- [ ] Quand un visiteur saisit `<a href="https://piege.example">Code : 123456</a>` dans « Votre nom », l'e-mail est en texte seul, sans aucune partie HTML, et cette saisie paraît telle quelle derrière l'étiquette « Votre nom : »   (SC-07f)
-- [ ] Quand un visiteur saisit dans « Votre message » plusieurs lignes, dont une ligne « Total indicatif : 0 € », chacune de ces lignes paraît dans l'e-mail rattachée à l'étiquette « Votre message », et aucune ne se lit comme le total posé par le produit   (SC-07g)
-- [ ] Quand le visiteur n'a renseigné ni son téléphone ni son message, l'e-mail ne porte ni l'étiquette du téléphone ni celle du message   (SC-07h)
-- [ ] Quand une demande a été acheminée, la base ne porte aucune des valeurs saisies par le visiteur   (SC-07i)
+- [x] Quand le visiteur a choisi « Fraise » et « 10 parts », renseigné son adresse e-mail, et envoie, le formulaire laisse place à un message qui confirme que sa demande a été envoyée   (SC-07a)
+- [x] Quand un visiteur sans aucune session envoie une demande complète, elle est acceptée et confirmée   (SC-07b)
+- [x] Quand une demande est acceptée, la réponse ne pose aucun cookie et ne contient aucune des valeurs saisies par le visiteur   (SC-07c)
+- [x] Quand un visiteur envoie une demande complète pour « Devis gâteau » depuis la page « Contact », un e-mail part vers l'adresse autorisée, d'objet « Demande de devis — Devis gâteau »   (SC-07d)
+- [x] Quand la demande porte « Fraise » (10 €), « 10 parts » (30 €), « Anniversaire », le nom « Marie Dupont » et l'adresse « marie@exemple.fr », l'e-mail porte le formulaire « Devis gâteau », la page « Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Occasion : Anniversaire », le total indicatif 40 €, « Votre nom : Marie Dupont » et « Votre adresse e-mail : marie@exemple.fr »   (SC-07e)
+- [x] Quand un visiteur saisit `<a href="https://piege.example">Code : 123456</a>` dans « Votre nom », l'e-mail est en texte seul, sans aucune partie HTML, et cette saisie paraît telle quelle derrière l'étiquette « Votre nom : »   (SC-07f)
+- [x] Quand un visiteur saisit dans « Votre message » plusieurs lignes, dont une ligne « Total indicatif : 0 € », chacune de ces lignes paraît dans l'e-mail rattachée à l'étiquette « Votre message », et aucune ne se lit comme le total posé par le produit   (SC-07g)
+- [x] Quand le visiteur n'a renseigné ni son téléphone ni son message, l'e-mail ne porte ni l'étiquette du téléphone ni celle du message   (SC-07h)
+- [x] Quand une demande a été acheminée, la base ne porte aucune des valeurs saisies par le visiteur   (SC-07i)

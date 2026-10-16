@@ -23,8 +23,8 @@ model {
 
   email-routing = system 'Cloudflare Email Routing' {
     #external
-    description "Achemine l'e-mail portant le code de connexion vers l'adresse autorisée."
-    // trace : wrangler.astro.jsonc:12-17 — send_email EXPEDITEUR_CODE_CONNEXION ; src/platform/email/index.ts:53 — expediteur.send(...)
+    description "Achemine vers l'adresse autorisée l'e-mail portant le code de connexion et celui de chaque demande de devis."
+    // trace : wrangler.astro.jsonc:12-17 — send_email EXPEDITEUR_CODE_CONNEXION ; src/platform/email/index.ts:53 — expediteur.send(...) ; src/platform/email/index.ts — demanderAcheminementDeLaDemande
   }
 
   github = system 'GitHub' {
@@ -45,6 +45,11 @@ model {
   // trace : src/pages/admin/connexion.astro:145 — demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, …)
   colibri-cms.worker.platform -[async]-> email-routing 'expédie le code de connexion'
   email-routing -[async]-> editrice 'remet le code'
+  // trace : src/pages/api/public/demandes.ts — seul geste du visiteur à traitement serveur (FR-097)
+  visiteur -> colibri-cms.worker.routes "envoie une demande de devis"
+  // trace : src/pages/api/public/demandes.ts ; src/platform/email/index.ts — demanderAcheminementDeLaDemande
+  colibri-cms.worker.platform -[sync]-> email-routing 'achemine une demande de devis'
+  email-routing -[async]-> editrice 'remet la demande'
   colibri-cms.worker.platform -[sync]-> github 'dépose le contenu et les images publiés'
   github -[async]-> workers-builds 'déclenche la reconstruction (branche principale seule)'
   workers-builds -[async]-> colibri-cms.worker 'bâtit, récupère les images, déploie'
