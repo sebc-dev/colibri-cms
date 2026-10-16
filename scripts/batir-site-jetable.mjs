@@ -24,13 +24,20 @@
  * Idempotent : `.wrangler/site-jetable/` est vidé à chaque passe. Une
  * construction échouée sort en code non nul.
  *
- * Deux autres constructions suivent (ticket 06), chacune dans son répertoire
+ * Quatre autres constructions suivent, chacune dans son répertoire
  * `.wrangler/` vidé à chaque passe :
  * - `site-jetable-images/` (fixture `site-jetable-images/`, avec ses octets
- *   copiés en `medias/`) : attendue en SUCCÈS, sortie copiée vers `client/` ;
- * - `site-jetable-image-manquante/` : attendue en ÉCHEC (image posée sans
- *   octets, SC-06f). Elle ne fait jamais échouer le script : le code et la
- *   sortie de la construction vont dans `resultat.json`, que le test juge.
+ *   copiés en `medias/`, ticket 06) : attendue en SUCCÈS, sortie copiée vers
+ *   `client/` ;
+ * - `site-jetable-image-manquante/` (ticket 06) : attendue en ÉCHEC (image
+ *   posée sans octets, SC-06f) ;
+ * - `site-jetable-formulaire-inconnu/` et
+ *   `site-jetable-formulaire-sans-coordonnee/` (change 012, ticket 04) :
+ *   attendues en ÉCHEC (formulaire introuvable, SC-04a ; formulaire sans
+ *   e-mail ni téléphone obligatoire, SC-04b).
+ * Une construction attendue en échec ne fait jamais échouer le script : le
+ * code, la sortie et les pages produites vont dans `resultat.json`, que le
+ * test juge.
  *
  * `globalThis.process` / `globalThis.console` plutôt que les identifiants
  * nus : `eslint.config.js` ne déclare les globales Node que pour `**\/*.ts`
