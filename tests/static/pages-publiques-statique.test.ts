@@ -37,6 +37,16 @@ interface Reecrivain {
 }
 declare const HTMLRewriter: new () => Reecrivain;
 
+/**
+ * Le module du formulaire, servi par le site, vide de tout texte : le seul
+ * script qu'une page qui pose un formulaire porte (change 012, D4).
+ */
+const MODULE_DU_FORMULAIRE = /<script type="module" src="\/_astro\/[^"/]+\.js"><\/script>/g;
+
+function sansModuleDuFormulaire(corps: string): string {
+  return /<form\b/i.test(corps) ? corps.replace(MODULE_DU_FORMULAIRE, '') : corps;
+}
+
 async function lire(chemin: string): Promise<{ status: number; corps: string }> {
   const reponse = await exports.default.fetch(new Request(`https://example.com${chemin}`));
   return { status: reponse.status, corps: await reponse.text() };
@@ -128,7 +138,7 @@ describe('pages publiques bâties', () => {
     const { corps } = await lire('/contact');
 
     expect(corps).toContain('<a href="https://vimeo.com/76979871" rel="noopener noreferrer">Voir la vidéo</a>');
-    expect(corps).not.toMatch(/<(iframe|script|embed|object|video)\b/i);
+    expect(sansModuleDuFormulaire(corps)).not.toMatch(/<(iframe|script|embed|object|video)\b/i);
     expect(corps).not.toMatch(/<link[^>]+href="https?:\/\//i);
   });
 
@@ -281,11 +291,13 @@ describe('pages publiques bâties depuis le contenu jetable', () => {
     const pages = pagesJetables();
 
     // (a) Aucun élément i, b, script ni img : le gabarit n'en écrit aucun
-    // lui-même, et le contenu jetable en porte de chaque sorte.
+    // lui-même, hors le module d'une page à formulaire, et le contenu jetable
+    // en porte de chaque sorte.
     for (const { adresse, corps } of pages) {
-      const releve = await relever(corps, ['i', 'b', 'script', 'img']);
+      const sansModule = sansModuleDuFormulaire(corps);
+      const releve = await relever(sansModule, ['i', 'b', 'script', 'img']);
       expect([...releve.values()].flat(), adresse).toEqual([]);
-      expect(corps, adresse).not.toMatch(/<(?:i|b|script|img)[\s>/]/i);
+      expect(sansModule, adresse).not.toMatch(/<(?:i|b|script|img)[\s>/]/i);
     }
 
     // (b) Le texte de chaque élément, décodé, est la chaîne d'origine ; le
