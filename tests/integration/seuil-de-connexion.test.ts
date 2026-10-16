@@ -410,9 +410,25 @@ it(
 
 // --- SC-02c — adresse autorisée et adresse quelconque indiscernables ---
 
-function mediane(valeurs: number[]): number {
-  const triees = [...valeurs].sort((a, b) => a - b);
-  return triees[Math.floor(triees.length / 2)];
+/**
+ * Huit mesures par adresse. Sous la charge de la suite complète, chaque délai
+ * varie de 300 à 650 ms, mais la charge n'ajoute que du retard : le plus petit
+ * délai de chaque série mesure le coût propre de la réponse. Relevé sur huit
+ * passes de la suite (2026-10-16), à sept mesures par adresse : écart des
+ * minimums ≤ 15 ms, quand celui des médianes de quatre mesures est monté
+ * jusqu'à 207 ms et faisait rougir le test.
+ */
+const MESURES_PAR_ADRESSE = 8;
+
+interface Mesure {
+  readonly reponse: Response;
+  readonly delai: number;
+}
+
+async function mesurer(origine: string, appareil: string, adresse: string): Promise<Mesure> {
+  const debut = Date.now();
+  const reponse = await soumettre(origine, appareil, 'adresse', adresse);
+  return { reponse, delai: Date.now() - debut };
 }
 
 it(
@@ -424,21 +440,23 @@ it(
     await epuiserLeSeuil(ORIGINE_A, appareil);
     poserExpediteurEspion();
 
-    const delaisAutorisee: number[] = [];
-    const delaisQuelconque: number[] = [];
-    const reponsesAutorisee: Response[] = [];
-    const reponsesQuelconque: Response[] = [];
-    for (let i = 0; i < 4; i += 1) {
-      let debut = Date.now();
-      reponsesAutorisee.push(await soumettre(ORIGINE_A, appareil, 'adresse', ADRESSE_AUTORISEE));
-      delaisAutorisee.push(Date.now() - debut);
-      debut = Date.now();
-      reponsesQuelconque.push(await soumettre(ORIGINE_A, appareil, 'adresse', ADRESSE_QUELCONQUE));
-      delaisQuelconque.push(Date.now() - debut);
+    const autorisee: Mesure[] = [];
+    const quelconque: Mesure[] = [];
+    // L'ordre alterne d'une paire à l'autre : aucune adresse ne passe toujours la première.
+    for (let i = 0; i < MESURES_PAR_ADRESSE; i += 1) {
+      if (i % 2 === 0) {
+        autorisee.push(await mesurer(ORIGINE_A, appareil, ADRESSE_AUTORISEE));
+        quelconque.push(await mesurer(ORIGINE_A, appareil, ADRESSE_QUELCONQUE));
+      } else {
+        quelconque.push(await mesurer(ORIGINE_A, appareil, ADRESSE_QUELCONQUE));
+        autorisee.push(await mesurer(ORIGINE_A, appareil, ADRESSE_AUTORISEE));
+      }
     }
+    const delaisAutorisee = autorisee.map((m) => m.delai);
+    const delaisQuelconque = quelconque.map((m) => m.delai);
 
-    const [derniereAutorisee] = reponsesAutorisee.slice(-1);
-    const [derniereQuelconque] = reponsesQuelconque.slice(-1);
+    const [{ reponse: derniereAutorisee }] = autorisee.slice(-1);
+    const [{ reponse: derniereQuelconque }] = quelconque.slice(-1);
     const corpsAutorisee = await derniereAutorisee.text();
     const corpsQuelconque = await derniereQuelconque.text();
     expect(corpsAutorisee).toContain(TEXTE_ANNONCE_SEUIL);
@@ -446,7 +464,7 @@ it(
     expect(derniereAutorisee.status).toBe(derniereQuelconque.status);
     expect(entetesTriables(derniereAutorisee)).toEqual(entetesTriables(derniereQuelconque));
     expect(Math.min(...delaisAutorisee, ...delaisQuelconque)).toBeGreaterThanOrEqual(DELAI_PLANCHER_MS);
-    expect(Math.abs(mediane(delaisAutorisee) - mediane(delaisQuelconque))).toBeLessThan(100);
+    expect(Math.abs(Math.min(...delaisAutorisee) - Math.min(...delaisQuelconque))).toBeLessThan(100);
   },
   DELAI_TEST_MS,
 );
