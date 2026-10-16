@@ -50,6 +50,22 @@ function brancher(formulaire: HTMLFormElement): void {
   if (bloc !== null) bloc.hidden = false;
 }
 
+/** Dans l'aperçu, le bouton n'envoie rien : il montre seulement l'avis et lui donne le focus, pour qu'il soit annoncé. */
+function brancherAvis(formulaire: HTMLFormElement): void {
+  const bouton = formulaire.querySelector<HTMLButtonElement>('button[type="submit"]');
+  if (bouton !== null) bouton.disabled = false;
+  formulaire.addEventListener('submit', (evenement) => {
+    evenement.preventDefault();
+    const avis = formulaire.querySelector<HTMLElement>('[data-avis-envoi-desactive]');
+    if (avis !== null) {
+      avis.hidden = false;
+      avis.tabIndex = -1;
+      avis.focus();
+    }
+  });
+}
+
 for (const formulaire of document.querySelectorAll<HTMLFormElement>('form[data-formulaire]')) {
   brancher(formulaire);
+  if (formulaire.dataset.mode === 'desactive') brancherAvis(formulaire);
 }

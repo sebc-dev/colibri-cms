@@ -54,9 +54,9 @@ aucun test existant.
 par l'aperçu.
 
 ## Critères
-- [ ] Quand une page ne porte aucun brouillon, qu'aucun réglage ni aucun formulaire n'en porte, et que l'on compare son aperçu à sa page publique, le contenu de la page — titre, navigation, emplacements, formulaires, pied de page — est le même, élément par élément et dans le même ordre, hors le bandeau de l'aperçu et l'avis d'envoi désactivé, les liens vers une page du site étant ramenés à leur adresse publique   (SC-06a)
-- [ ] Quand l'éditrice a ajouté « Pistache » à 12 € dans « Parfum » du formulaire « Devis gâteau », sans publier, et demande l'aperçu de « Contact », qui le pose, l'aperçu présente « Pistache — 12 € » parmi les parfums, alors que la page publique « Contact » ne la présente pas   (SC-06b)
-- [ ] Quand, dans l'aperçu, l'éditrice choisit « Pistache » (12 €, en brouillon) et « 10 parts » (30 €), le total affiché est 42 €   (SC-06c)
-- [ ] Quand la mention d'information porte un brouillon, et que l'éditrice demande l'aperçu d'une page qui pose un formulaire, le formulaire de l'aperçu présente la mention du brouillon   (SC-06d)
-- [ ] Quand l'éditrice remplit le formulaire de l'aperçu et actionne le bouton d'envoi, aucune demande ne part, aucun e-mail n'est envoyé, et l'avis dit que l'envoi est désactivé dans l'aperçu   (SC-06e)
-- [ ] Quand l'éditrice lit l'avis d'envoi désactivé, aucun terme de développeur n'y paraît (FR-117)   (SC-06f)
+- [x] Quand une page ne porte aucun brouillon, qu'aucun réglage ni aucun formulaire n'en porte, et que l'on compare son aperçu à sa page publique, le contenu de la page — titre, navigation, emplacements, formulaires, pied de page — est le même, élément par élément et dans le même ordre, hors le bandeau de l'aperçu et l'avis d'envoi désactivé, les liens vers une page du site étant ramenés à leur adresse publique   (SC-06a)
+- [x] Quand l'éditrice a ajouté « Pistache » à 12 € dans « Parfum » du formulaire « Devis gâteau », sans publier, et demande l'aperçu de « Contact », qui le pose, l'aperçu présente « Pistache — 12 € » parmi les parfums, alors que la page publique « Contact » ne la présente pas   (SC-06b)
+- [x] Quand, dans l'aperçu, l'éditrice choisit « Pistache » (12 €, en brouillon) et « 10 parts » (30 €), le total affiché est 42 €   (SC-06c)
+- [x] Quand la mention d'information porte un brouillon, et que l'éditrice demande l'aperçu d'une page qui pose un formulaire, le formulaire de l'aperçu présente la mention du brouillon   (SC-06d)
+- [x] Quand l'éditrice remplit le formulaire de l'aperçu et actionne le bouton d'envoi, aucune demande ne part, aucun e-mail n'est envoyé, et l'avis dit que l'envoi est désactivé dans l'aperçu   (SC-06e)
+- [x] Quand l'éditrice lit l'avis d'envoi désactivé, aucun terme de développeur n'y paraît (FR-117)   (SC-06f)

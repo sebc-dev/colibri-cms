@@ -85,6 +85,7 @@ const { formulaire } = Astro.props;
     <p class="etat" data-etat="echec" hidden>{T.echecEnvoi}</p>
     <p class="etat" data-etat="limite" hidden>{T.echecLimite}</p>
     <p class="etat" data-etat="modifie" hidden>{T.echecFormulaireModifie}</p>
+    {formulaire.mode === 'desactive' && <p class="etat avis" data-avis-envoi-desactive hidden>{T.avisEnvoiDesactive}</p>}
     <button type="submit" disabled>{T.boutonEnvoi}</button>
     <noscript><p class="etat">{T.sansScript}</p></noscript>
   </form>
