@@ -8,6 +8,7 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { verifierDemande } from '../../../core/formulaires/demande.ts';
+import { verifierSaisie } from '../../../core/formulaires/saisie.ts';
 import { composerCourriel, totalDesValeurs } from '../../../core/formulaires/courriel.ts';
 import { lireFormulaireDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
@@ -32,6 +33,10 @@ export const POST: APIRoute = async ({ request }) => {
   const formulaire = lireFormulaireDeLaDeclaration(idFormulaire);
   const page = obtenirPageAvecEmplacements(slug);
   if (formulaire === undefined || page === null) return reponse(400, { statut: 'refusee' });
+  if (typeof valeurs === 'object' && valeurs !== null && !Array.isArray(valeurs)) {
+    const saisie = verifierSaisie(formulaire, valeurs as Record<string, unknown>);
+    if (!saisie.ok) return Response.json({ statut: 'champs', champs: saisie.champs }, { status: 400 });
+  }
   const verdict = verifierDemande(formulaire, valeurs);
   if (!verdict.ok) return reponse(400, { statut: 'refusee' });
 

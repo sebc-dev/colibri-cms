@@ -5,6 +5,9 @@
  * `textContent` seulement.
  */
 import { formaterPrix } from '../../core/formulaires/prix.ts';
+import { verifierSaisie, LONGUEUR_MAX_SAISIE, type ChampRefuse } from '../../core/formulaires/saisie.ts';
+import type { FormulaireDeclare, NatureChamp } from '../../core/formulaires/declaration.ts';
+import { TEXTES_FORMULAIRE as T } from './textes.ts';
 import {
   totalDeLaSelection,
   type FormulaireAPrix,
@@ -86,6 +89,74 @@ function valeursDu(formulaire: HTMLFormElement): Record<string, string | string[
   return valeurs;
 }
 
+function libelleDe(champ: HTMLElement): string {
+  const titre = champ.querySelector('legend, label');
+  if (titre === null) return '';
+  const copie = titre.cloneNode(true) as HTMLElement;
+  copie.querySelector('.obligatoire')?.remove();
+  return copie.textContent.trim();
+}
+
+function declarationDu(formulaire: HTMLFormElement): FormulaireDeclare {
+  const champs = [...formulaire.querySelectorAll<HTMLElement>('[data-champ]')].map((champ) => ({
+    id: champ.dataset.champ ?? '',
+    nature: (champ.dataset.nature ?? 'texte') as NatureChamp,
+    libelle: libelleDe(champ),
+    obligatoire: champ.dataset.obligatoire === 'oui',
+    avecPrix: false,
+  }));
+  return { id: formulaire.dataset.formulaire ?? '', nom: '', champs };
+}
+
+function messageDu(refus: ChampRefuse, nature: NatureChamp): string {
+  if (refus.motif === 'vide') return T.champVide;
+  if (refus.motif === 'longueur') {
+    const max = LONGUEUR_MAX_SAISIE[nature as keyof typeof LONGUEUR_MAX_SAISIE];
+    return T.texteTropLong(max);
+  }
+  return nature === 'telephone' ? T.telephoneIncomplet : T.courrielIncomplet;
+}
+
+function effacerRefus(formulaire: HTMLFormElement): void {
+  for (const e of formulaire.querySelectorAll('[data-refus]')) e.remove();
+}
+
+/** Désigne chaque champ en cause, dresse le résumé en tête et lui donne le focus. */
+function designer(formulaire: HTMLFormElement, refus: readonly ChampRefuse[]): void {
+  effacerRefus(formulaire);
+  const resume = document.createElement('div');
+  resume.dataset.refus = 'resume';
+  resume.setAttribute('role', 'alert');
+  resume.tabIndex = -1;
+  resume.append(document.createTextNode(T.resumeSaisie));
+  const liste = document.createElement('ul');
+  for (const r of refus) {
+    const champ = formulaire.querySelector<HTMLElement>(`[data-champ="${CSS.escape(r.champ)}"]`);
+    if (champ === null) continue;
+    const nature = (champ.dataset.nature ?? 'texte') as NatureChamp;
+    const message = document.createElement('p');
+    message.dataset.refus = 'message';
+    message.id = `refus-${r.champ}`;
+    message.textContent = messageDu(r, nature);
+    champ.append(message);
+    const saisie = champ.querySelector<HTMLElement>('input, textarea');
+    saisie?.setAttribute('aria-describedby', message.id);
+    const item = document.createElement('li');
+    const lien = document.createElement('a');
+    lien.href = `#${saisie?.id ?? ''}`;
+    lien.textContent = libelleDe(champ);
+    lien.addEventListener('click', (evenement) => {
+      evenement.preventDefault();
+      saisie?.focus();
+    });
+    item.append(lien);
+    liste.append(item);
+  }
+  resume.append(liste);
+  formulaire.prepend(resume);
+  resume.focus();
+}
+
 function montrerEtat(formulaire: HTMLFormElement, etat: string): void {
   for (const p of formulaire.querySelectorAll<HTMLElement>('[data-etat]')) p.hidden = p.dataset.etat !== etat;
 }
@@ -103,6 +174,12 @@ function confirmer(formulaire: HTMLFormElement): void {
 /** En mode actif, l'envoi part en JSON vers la route des demandes, et la confirmation n'arrive qu'après la remise. */
 function brancherEnvoi(formulaire: HTMLFormElement): void {
   intercepterEnvoi(formulaire, () => {
+    const verdict = verifierSaisie(declarationDu(formulaire), valeursDu(formulaire));
+    if (!verdict.ok) {
+      designer(formulaire, verdict.champs);
+      return;
+    }
+    effacerRefus(formulaire);
     const total = totalDeLaSelection(decrire(formulaire), selectionDu(formulaire));
     const corps = JSON.stringify({
       formulaire: formulaire.dataset.formulaire ?? '',
@@ -117,7 +194,17 @@ function brancherEnvoi(formulaire: HTMLFormElement): void {
     })
       .then((reponse) => {
         if (reponse.ok) confirmer(formulaire);
-        else montrerEtat(formulaire, 'echec');
+        else if (reponse.status === 400) {
+          void reponse
+            .json()
+            .then((corps: { statut?: string; champs?: ChampRefuse[] }) => {
+              if (corps.statut === 'champs' && Array.isArray(corps.champs)) designer(formulaire, corps.champs);
+              else montrerEtat(formulaire, 'echec');
+            })
+            .catch(() => {
+              montrerEtat(formulaire, 'echec');
+            });
+        } else montrerEtat(formulaire, 'echec');
       })
       .catch(() => {
         montrerEtat(formulaire, 'echec');
