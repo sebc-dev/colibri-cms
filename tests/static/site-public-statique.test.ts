@@ -1,6 +1,10 @@
 /**
- * Ticket 07 — Les pages publiques sont des documents statiques, sans script,
- * sous leurs en-têtes (openspec/changes/011-apercu-et-publication/tickets/07-*.md).
+ * Ticket 07 — Les pages publiques sont des documents statiques sous leurs
+ * en-têtes (openspec/changes/011-apercu-et-publication/tickets/07-*.md).
+ * Réécrit avant le ticket 05 du change 012, dans la forme que la nouvelle
+ * règle garde : une page sans formulaire ne porte aucun script ; une page qui
+ * en pose un ne porte que des scripts servis par le site, rien d'écrit dans la
+ * page ; la politique n'admet de script et d'échange que du site lui-même.
  *
  * Contrôles statiques sur la sortie de construction (`dist/client/`, `dist/server/`).
  * Les en-têtes effectivement servis et l'absence de cookie se prouvent au
@@ -33,6 +37,20 @@ const CHEMINS_ATTENDUS = [
 
 const pagesPubliques = Object.entries(DOCUMENTS).filter(([chemin]) => !chemin.includes('/admin/'));
 
+/** Les directives d'une politique de sécurité de contenu, par nom. */
+function directives(politique: string): Map<string, string> {
+  return new Map(
+    politique
+      .split(';')
+      .map((d) => d.trim())
+      .filter((d) => d.length > 0)
+      .map((d): [string, string] => {
+        const [nom = '', ...valeurs] = d.split(/\s+/);
+        return [nom, valeurs.join(' ')];
+      }),
+  );
+}
+
 function reglePortee(source: string, motif: string): string {
   const lignes = source.split('\n');
   const debut = lignes.findIndex((l) => l.trim() === motif);
@@ -52,13 +70,32 @@ describe('site public statique, sous ses en-têtes', () => {
 
     const regle = reglePortee(source, '/*');
 
-    expect(regle).toContain(
-      "Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
-    );
+    const entete = 'Content-Security-Policy:';
+    const ligne =
+      regle
+        .split('\n')
+        .map((l) => l.trim())
+        .find((l) => l.startsWith(entete))
+        ?.slice(entete.length) ?? '';
+    const politique = directives(ligne);
+    const autres = [...politique].filter(([nom]) => nom !== 'script-src' && nom !== 'connect-src');
+
+    expect(Object.fromEntries(autres)).toEqual({
+      'default-src': "'none'",
+      'img-src': "'self'",
+      'style-src': "'self'",
+      'font-src': "'self'",
+      'base-uri': "'none'",
+      'form-action': "'none'",
+      'frame-ancestors': "'none'",
+    });
+    // Script et échange : absents, ou le site lui-même seulement (change 012, D4).
+    for (const nom of ['script-src', 'connect-src']) {
+      expect([undefined, "'self'"], `${nom} ${politique.get(nom) ?? ''}`).toContain(politique.get(nom));
+    }
     expect(regle).toContain('X-Content-Type-Options: nosniff');
     expect(regle).toContain('Referrer-Policy: strict-origin-when-cross-origin');
     expect(regle).toContain('X-Frame-Options: DENY');
-    expect(regle).not.toMatch(/script-src/);
   });
 
   it('SC-07a — un document statique par page déclarée plus la page introuvable, et aucun run_worker_first global', () => {
@@ -73,10 +110,18 @@ describe('site public statique, sous ses en-têtes', () => {
     expect(rwf).not.toBe(true);
   });
 
-  it('SC-07b — aucune page publique ne porte de <script>, ni de gestionnaire en ligne', () => {
+  it('SC-07b — sans formulaire, une page publique ne porte aucun <script> ; avec un formulaire, seulement des scripts servis par le site ; jamais de script écrit dans la page ni de gestionnaire en ligne', () => {
     expect(pagesPubliques.length).toBeGreaterThanOrEqual(CHEMINS_ATTENDUS.length);
     for (const [chemin, html] of pagesPubliques) {
-      expect(html, `${chemin} porte un <script>`).not.toMatch(/<script[\s>]/i);
+      const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)];
+      expect(html.match(/<script[\s>]/gi)?.length ?? 0, `${chemin} porte un <script> mal fermé`).toBe(scripts.length);
+      if (!/<form\b/i.test(html)) {
+        expect(scripts, `${chemin} ne pose aucun formulaire mais porte un <script>`).toEqual([]);
+      }
+      for (const [balise, attributs = '', corps = ''] of scripts) {
+        expect(attributs, `${chemin} : ${balise}`).toMatch(/\ssrc="\/(?!\/)[^"]*"/);
+        expect(corps.trim(), `${chemin} écrit un script dans la page`).toBe('');
+      }
       expect(html, `${chemin} porte un gestionnaire en ligne`).not.toMatch(/\son[a-z]+\s*=/i);
       expect(html, `${chemin} porte un <style> en ligne`).not.toMatch(/<style[\s>]/i);
     }

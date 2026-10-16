@@ -17,10 +17,17 @@ test.describe("site public statique", () => {
       const reponse = await page.goto(chemin);
       const entetes = reponse?.headers() ?? {};
       expect(reponse?.status()).toBe(200);
-      expect(entetes["content-security-policy"]).toContain(
-        "default-src 'none'",
-      );
-      expect(entetes["content-security-policy"]).not.toContain("script-src");
+      const politique = entetes["content-security-policy"] ?? "";
+      expect(politique).toContain("default-src 'none'");
+      // Script et échange : absents, ou le site lui-même seulement (change 012, D4).
+      for (const nom of ["script-src", "connect-src"]) {
+        const directive = politique
+          .split(";")
+          .map((d) => d.trim())
+          .find((d) => d.startsWith(`${nom} `));
+        expect([undefined, `${nom} 'self'`], `${chemin} : ${directive ?? ""}`).toContain(directive);
+      }
+      expect(politique).not.toMatch(/unsafe-|https?:|\*/);
       expect(entetes["x-content-type-options"]).toBe("nosniff");
       expect(entetes["referrer-policy"]).toBe("strict-origin-when-cross-origin");
       expect(entetes["x-frame-options"]).toBe("DENY");
