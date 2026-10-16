@@ -5,7 +5,7 @@
  * page et le formulaire.
  */
 import { describe, it, expect } from 'vitest';
-import { composerPage, type EntreeComposition } from '../../../src/core/rendu/page.ts';
+import { composerPage, FormulaireMalPoseError, type EntreeComposition } from '../../../src/core/rendu/page.ts';
 import type { FormulaireDeclare, ChampDeclare } from '../../../src/core/formulaires/declaration.ts';
 
 const REGLAGES = { coordonnees: [], reseaux: [], mention: 'Mention.' };
@@ -16,6 +16,17 @@ function champ(id: string, nature: ChampDeclare['nature'], obligatoire: boolean)
 
 function formulaire(id: string, champs: readonly ChampDeclare[]): FormulaireDeclare {
   return { id, nom: `Nom de ${id}`, champs };
+}
+
+/** L'erreur levée par la composition, qui doit être un formulaire mal posé. */
+function erreurDe(composer: () => unknown): FormulaireMalPoseError {
+  try {
+    composer();
+  } catch (erreur) {
+    if (erreur instanceof FormulaireMalPoseError) return erreur;
+    throw erreur;
+  }
+  throw new Error('la composition n’a levé aucune erreur');
 }
 
 function entree(designe: string, formulaires: readonly FormulaireDeclare[]): EntreeComposition {
@@ -38,6 +49,8 @@ describe('composerPage — un formulaire mal posé', () => {
 
     expect(composer).toThrow(/« contact »/);
     expect(composer).toThrow(/« devis-fantome »/);
+    expect(composer).toThrow(/n'est pas parmi les formulaires publiés/);
+    expect(erreurDe(composer)).toMatchObject({ page: 'contact', formulaire: 'devis-fantome' });
   });
 
   it('SC-04b — un formulaire sans e-mail ni téléphone obligatoire fait échouer la composition en nommant la page et le formulaire', () => {
@@ -50,6 +63,8 @@ describe('composerPage — un formulaire mal posé', () => {
 
     expect(composer).toThrow(/« contact »/);
     expect(composer).toThrow(/« devis-muet »/);
+    expect(composer).toThrow(/n'a aucun champ d'e-mail ou de téléphone obligatoire/);
+    expect(erreurDe(composer)).toMatchObject({ page: 'contact', formulaire: 'devis-muet' });
   });
 
   it('SC-04c — un formulaire publié avec un e-mail obligatoire, ou un téléphone obligatoire, est présenté', () => {
