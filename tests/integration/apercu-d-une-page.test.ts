@@ -171,10 +171,18 @@ function versAdressesPubliques(html: string): string {
   return html.replaceAll('href="/admin/apercu/', 'href="/');
 }
 
+// Propres à l'aperçu (change 012, tickets 05 et 06) : le module du formulaire,
+// empaqueté par lot comme la feuille de style ; l'avis « envoi désactivé » ; le
+// mode d'envoi du formulaire, désactivé dans l'aperçu.
+const AVIS_ENVOI_DESACTIVE = /<([a-z]+)\b[^>]*\bdata-avis-envoi-desactive\b[^>]*>[\s\S]*?<\/\1>/g;
+
 function sansBandeau(html: string): string {
   return html
     .replace(BANDEAU, "")
     .replace(/<link rel="stylesheet" href="[^"]*">/g, "")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, "")
+    .replace(AVIS_ENVOI_DESACTIVE, "")
+    .replaceAll('data-mode="desactive"', 'data-mode="actif"')
     .replace(/>\s+</g, "><")
     .replace(/\s+/g, " ")
     .trim();
