@@ -63,4 +63,4 @@ inconnus, total faux (ticket 09) ; les refus d'origine, de format et de taille (
 - [ ] Quand le visiteur n'a saisi que des espaces dans « Votre adresse e-mail » et envoie, rien n'est envoyé, et le formulaire désigne ce champ comme champ à renseigner   (SC-08c)
 - [ ] Quand le visiteur saisit « marie.exemple.fr » dans « Votre adresse e-mail » et envoie, rien n'est envoyé, et le formulaire désigne ce champ en disant que l'adresse n'a pas la forme d'une adresse e-mail   (SC-08d)
 - [ ] Quand le visiteur saisit 2 001 caractères dans « Votre message » et envoie, rien n'est envoyé, et le formulaire désigne ce champ en disant sa longueur maximale   (SC-08e)
-- [ ] Quand une demande parvient au serveur sans valeur pour un champ obligatoire, sans passer par le formulaire de la page, elle est refusée en désignant ce champ, et aucun e-mail n'est envoyé   (SC-08f)
+- [x] Quand une demande parvient au serveur sans valeur pour un champ obligatoire, sans passer par le formulaire de la page, elle est refusée en désignant ce champ, et aucun e-mail n'est envoyé   (SC-08f)

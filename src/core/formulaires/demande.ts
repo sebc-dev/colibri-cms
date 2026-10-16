@@ -4,6 +4,7 @@
  * aux seuls champs déclarés — chaîne pour un texte, identifiants d'options pour un choix.
  */
 import type { ChampDeclare, FormulaireDeclare } from './declaration.ts';
+import { LONGUEUR_MAX_SAISIE, aLaFormeDUnCourriel, longueurEnCaracteres } from './saisie.ts';
 
 /** Ce que le visiteur a saisi, champ par champ. */
 export type ValeursDemande = Readonly<Record<string, string | readonly string[]>>;
@@ -12,10 +13,6 @@ export type VerdictDemande =
   | { readonly ok: true; readonly valeurs: ValeursDemande }
   | { readonly ok: false };
 
-/** Longueur maximale (caractères) d'un texte court, d'un texte long, d'une adresse e-mail, d'un téléphone. */
-const LONGUEUR_MAX = { texte: 200, 'texte-long': 5000, email: 254, telephone: 40 } as const;
-
-const FORME_EMAIL = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 function lireChoix(champ: ChampDeclare, brut: unknown): readonly string[] | undefined {
   if (brut === undefined) return [];
@@ -36,8 +33,8 @@ function lireTexte(champ: ChampDeclare, brut: unknown): string | undefined {
   if (typeof brut !== 'string') return undefined;
   const texte = brut.trim();
   if (champ.nature === 'choix-unique' || champ.nature === 'choix-multiple') return undefined;
-  if (texte.length > LONGUEUR_MAX[champ.nature]) return undefined;
-  if (champ.nature === 'email' && texte !== '' && !FORME_EMAIL.test(texte)) return undefined;
+  if (longueurEnCaracteres(texte) > LONGUEUR_MAX_SAISIE[champ.nature]) return undefined;
+  if (champ.nature === 'email' && texte !== '' && !aLaFormeDUnCourriel(texte)) return undefined;
   return texte;
 }
 

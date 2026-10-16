@@ -16,6 +16,11 @@ export const TEXTES_FORMULAIRE = {
     'Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure.',
   echecFormulaireModifie:
     "Ce formulaire vient d'être mis à jour. Rechargez la page pour voir les prix à jour, puis refaites votre demande.",
+  resumeSaisie: "Votre demande n'est pas partie : vérifiez les champs ci-dessous.",
+  champVide: 'Ce champ est à renseigner.',
+  courrielIncomplet: 'Cette adresse e-mail semble incomplète (exemple : nom@domaine.fr).',
+  telephoneIncomplet: 'Ce numéro ne semble pas valide (exemple : 06 12 34 56 78).',
+  texteTropLong: (n: number): string => `Ce texte dépasse ${String(n)} caractères.`,
   avisEnvoiDesactive: "Dans l'aperçu, l'envoi est désactivé : rien ne part d'ici.",
   sansScript:
     "Le total et l'envoi de ce formulaire ont besoin de JavaScript, désactivé dans votre navigateur. Vous pouvez nous écrire avec les coordonnées en bas de page.",
