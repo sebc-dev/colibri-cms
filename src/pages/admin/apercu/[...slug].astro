@@ -15,9 +15,10 @@ import { lireReglagesDeLaDeclaration } from '../../../platform/contenu/reglages.
 import { imagesPubliees } from '../../../platform/contenu/medias.ts';
 import { lireFormulairesDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
 import { lireImagesDeLApercu } from '../../../platform/medias/magasin.ts';
+import { obtenirBrouillonFormulaire } from '../../../platform/formulaires/magasin.ts';
 import { obtenirBrouillon } from '../../../platform/brouillons/magasin.ts';
 import { obtenirBrouillonsReglages } from '../../../platform/reglages/magasin.ts';
-import { obtenirPublieEmplacements, obtenirPubliesReglages } from '../../../platform/publication/magasin-publie.ts';
+import { obtenirPublieEmplacements, obtenirPublieFormulaire, obtenirPubliesReglages } from '../../../platform/publication/magasin-publie.ts';
 import {
   composerPage,
   imagesPoseesParLaPage,
@@ -25,6 +26,7 @@ import {
   reglagesRecouvertsParLeBrouillon,
   type ImageRendue,
 } from '../../../core/rendu/page.ts';
+import { optionsCourantes } from '../../../core/formulaires/brouillon.ts';
 import { adresseDeLaPage } from '../../../core/pages/declaration.ts';
 import { env } from 'cloudflare:workers';
 
@@ -55,6 +57,24 @@ const reglages = reglagesRecouvertsParLeBrouillon(
   await obtenirBrouillonsReglages(env.DB),
 );
 
+// Formulaires : options du brouillon, sinon dernière version publiée, sinon déclaration.
+const formulaires = await Promise.all(
+  lireFormulairesDeLaDeclaration().map(async (declare) => {
+    const courantes = optionsCourantes(
+      declare,
+      await obtenirBrouillonFormulaire(env.DB, declare.id),
+      await obtenirPublieFormulaire(env.DB, declare.id),
+    );
+    return {
+      ...declare,
+      champs: declare.champs.map((champ) => {
+        const options = courantes.get(champ.id);
+        return options === undefined ? champ : { ...champ, options };
+      }),
+    };
+  }),
+);
+
 // Images : celles du site en service, sinon la base (octets servis par la route
 // des médias) ; la description est toujours la courante, lue en base.
 const empaquetees = imagesPubliees();
@@ -75,7 +95,7 @@ for (const id of posees) {
 }
 
 const page = pageAvecLiensDeLApercu(
-  composerPage({ slug, pages, page: declaree, reglages, publie, brouillon, images, formulaires: lireFormulairesDeLaDeclaration(), modeEnvoi: 'actif' }),
+  composerPage({ slug, pages, page: declaree, reglages, publie, brouillon, images, formulaires, modeEnvoi: 'desactive' }),
   pages,
 );
 ---
