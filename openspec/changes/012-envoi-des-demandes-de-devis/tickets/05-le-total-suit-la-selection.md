@@ -77,5 +77,5 @@ Ce ticket ne modifie **aucun** test existant.
 - [x] Quand le visiteur ouvre la page sans avoir rien choisi, le total affiché est 0 €   (SC-05e)
 - [x] Quand le visiteur choisit une option à 10,50 € et une option à 0,20 €, le total affiché est 10,70 €   (SC-05f)
 - [x] Quand une page publique qui ne pose aucun formulaire est servie, elle ne porte aucun script, et chacune de ses ressources — feuille de style, images — est servie par le site lui-même   (SC-05g)
-- [ ] Quand une page publique qui pose un formulaire est servie, son seul script est le module du formulaire, chargé depuis le site lui-même, aucun script n'est écrit dans la page, et aucune de ses ressources ne vient d'une autre origine   (SC-05h)
+- [x] Quand une page publique qui pose un formulaire est servie, son seul script est le module du formulaire, chargé depuis le site lui-même, aucun script n'est écrit dans la page, et aucune de ses ressources ne vient d'une autre origine   (SC-05h)
 - [x] Quand une page publique est servie, sa politique de sécurité de contenu n'admet de script, de ressource et d'échange que du site lui-même, et n'admet aucun script écrit dans la page   (SC-05i)
