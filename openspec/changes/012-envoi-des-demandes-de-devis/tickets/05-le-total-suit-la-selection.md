@@ -70,12 +70,12 @@ Ce ticket ne modifie **aucun** test existant.
 - le brouillon dans l'aperçu (ticket 06).
 
 ## Critères
-- [ ] Quand le visiteur choisit « Chocolat » (9 €) dans « Parfum » et « 10 parts » (30 €) dans « Nombre de parts », le total affiché est 39 €   (SC-05a)
-- [ ] Quand le visiteur, après avoir obtenu un total de 39 €, remplace « Chocolat » par « Fraise » (10 €), le total affiché devient 40 €, sans action de sa part ni rechargement de la page   (SC-05b)
-- [ ] Quand le visiteur change sa sélection plusieurs fois, aucune requête ne part de son appareil vers le serveur   (SC-05c)
-- [ ] Quand le visiteur coche « Mariage » dans « Occasion », champ sans prix, le total affiché est inchangé   (SC-05d)
-- [ ] Quand le visiteur ouvre la page sans avoir rien choisi, le total affiché est 0 €   (SC-05e)
-- [ ] Quand le visiteur choisit une option à 10,50 € et une option à 0,20 €, le total affiché est 10,70 €   (SC-05f)
-- [ ] Quand une page publique qui ne pose aucun formulaire est servie, elle ne porte aucun script, et chacune de ses ressources — feuille de style, images — est servie par le site lui-même   (SC-05g)
-- [ ] Quand une page publique qui pose un formulaire est servie, son seul script est le module du formulaire, chargé depuis le site lui-même, aucun script n'est écrit dans la page, et aucune de ses ressources ne vient d'une autre origine   (SC-05h)
-- [ ] Quand une page publique est servie, sa politique de sécurité de contenu n'admet de script, de ressource et d'échange que du site lui-même, et n'admet aucun script écrit dans la page   (SC-05i)
+- [x] Quand le visiteur choisit « Chocolat » (9 €) dans « Parfum » et « 10 parts » (30 €) dans « Nombre de parts », le total affiché est 39 €   (SC-05a)
+- [x] Quand le visiteur, après avoir obtenu un total de 39 €, remplace « Chocolat » par « Fraise » (10 €), le total affiché devient 40 €, sans action de sa part ni rechargement de la page   (SC-05b)
+- [x] Quand le visiteur change sa sélection plusieurs fois, aucune requête ne part de son appareil vers le serveur   (SC-05c)
+- [x] Quand le visiteur coche « Mariage » dans « Occasion », champ sans prix, le total affiché est inchangé   (SC-05d)
+- [x] Quand le visiteur ouvre la page sans avoir rien choisi, le total affiché est 0 €   (SC-05e)
+- [x] Quand le visiteur choisit une option à 10,50 € et une option à 0,20 €, le total affiché est 10,70 €   (SC-05f)
+- [x] Quand une page publique qui ne pose aucun formulaire est servie, elle ne porte aucun script, et chacune de ses ressources — feuille de style, images — est servie par le site lui-même   (SC-05g)
+- [x] Quand une page publique qui pose un formulaire est servie, son seul script est le module du formulaire, chargé depuis le site lui-même, aucun script n'est écrit dans la page, et aucune de ses ressources ne vient d'une autre origine   (SC-05h)
+- [x] Quand une page publique est servie, sa politique de sécurité de contenu n'admet de script, de ressource et d'échange que du site lui-même, et n'admet aucun script écrit dans la page   (SC-05i)
