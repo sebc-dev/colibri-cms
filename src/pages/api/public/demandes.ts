@@ -7,7 +7,12 @@
  */
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
-import { verifierDemande } from '../../../core/formulaires/demande.ts';
+import {
+  clesToutesDeclarees,
+  pagePoseLeFormulaire,
+  totalAnnonceAccorde,
+  verifierDemande,
+} from '../../../core/formulaires/demande.ts';
 import { verifierSaisie } from '../../../core/formulaires/saisie.ts';
 import { composerCourriel, totalDesValeurs } from '../../../core/formulaires/courriel.ts';
 import { lireFormulaireDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
@@ -27,18 +32,25 @@ export const POST: APIRoute = async ({ request }) => {
   if (!corps.ok) return reponse(corps.statut, { statut: 'refusee' });
   const recu = corps.json;
   if (typeof recu !== 'object' || recu === null) return reponse(400, { statut: 'refusee' });
-  const { formulaire: idFormulaire, page: slug, valeurs } = recu as Record<string, unknown>;
+  const { formulaire: idFormulaire, page: slug, valeurs, totalAffiche } = recu as Record<string, unknown>;
   if (typeof idFormulaire !== 'string' || typeof slug !== 'string') return reponse(400, { statut: 'refusee' });
 
   const formulaire = lireFormulaireDeLaDeclaration(idFormulaire);
   const page = obtenirPageAvecEmplacements(slug);
-  if (formulaire === undefined || page === null) return reponse(400, { statut: 'refusee' });
+  if (formulaire === undefined || page === null || !pagePoseLeFormulaire(page.emplacements, idFormulaire)) {
+    return reponse(409, { statut: 'formulaire-change' });
+  }
   if (typeof valeurs === 'object' && valeurs !== null && !Array.isArray(valeurs)) {
+    if (!clesToutesDeclarees(formulaire, valeurs as Record<string, unknown>)) {
+      return reponse(409, { statut: 'formulaire-change' });
+    }
     const saisie = verifierSaisie(formulaire, valeurs as Record<string, unknown>);
     if (!saisie.ok) return Response.json({ statut: 'champs', champs: saisie.champs }, { status: 400 });
   }
   const verdict = verifierDemande(formulaire, valeurs);
-  if (!verdict.ok) return reponse(400, { statut: 'refusee' });
+  if (!verdict.ok || !totalAnnonceAccorde(formulaire, verdict.valeurs, totalAffiche)) {
+    return reponse(409, { statut: 'formulaire-change' });
+  }
 
   const destinataire = await lireAdresseAutorisee(env.DB);
   if (destinataire === null) return reponse(503, { statut: 'echec' });

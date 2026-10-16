@@ -194,6 +194,7 @@ function brancherEnvoi(formulaire: HTMLFormElement): void {
     })
       .then((reponse) => {
         if (reponse.ok) confirmer(formulaire);
+        else if (reponse.status === 409) montrerEtat(formulaire, 'modifie');
         else if (reponse.status === 400) {
           void reponse
             .json()
