@@ -73,3 +73,13 @@ Hors de cette session : commiter le travail en vol, puis relancer `/scd-spec-dev
   module à part (configuration hors des fichiers du ticket).
 - Relancer au lieu de reprendre : en `tdd`, les tests réécrits sur un code déjà là ne rougiraient pas.
 - Retirer SC-04d et SC-04f du contrôle des scripts : un script de l'hébergeur passerait.
+
+## Issue
+Run abouti le 2026-10-16 au troisième passage (`rerun: "3"`), PR #256. L'humain a retenu la lecture 1
+de SC-05h : la page ne porte qu'un script, le module, et tout ce qu'il charge vient du site.
+`aria-live="polite"` est entré avec le run. La retouche du test navigateur, non indexée, a été prise
+par l'implémenteur rejoué pour une modification interdite et annulée ; je l'ai remise à la main
+(`4343bed`) et les 9 parcours du ticket et du site public sont passés. La relecture a fait appeler
+`totalDeLaSelection` par le module (architecture-F-1). Laissé au change : inscrire la lecture 1 dans
+le delta `site-public` avant l'archivage (change-F-2), et le cas « sans script » de la mention
+« Estimation indicative » (change-F-3).
