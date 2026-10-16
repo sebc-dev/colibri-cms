@@ -324,3 +324,10 @@ export async function ouvrirSessionSiCodeValide(
     .run();
   return { reussi: true, jeton };
 }
+
+/** L'adresse autorisée enregistrée en base, ou `null` si aucune (destinataire des demandes, change 012 ticket 07). */
+export async function lireAdresseAutorisee(db: DB): Promise<string | null> {
+  const resultat = await db.prepare(`select adresse from ${TABLE_ADRESSES} limit 1`).all();
+  const ligne = resultat.results[0] as { adresse?: unknown } | undefined;
+  return typeof ligne?.adresse === 'string' ? ligne.adresse : null;
+}

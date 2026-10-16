@@ -60,3 +60,14 @@ export async function demanderExpeditionDuCode(
     text: `Code : ${code}`,
   });
 }
+
+/**
+ * Remet la demande de devis à la plateforme et attend sa remise (ticket 07, ADR-0002) : l'appelant ne
+ * répond qu'une fois l'envoi accepté. `from` et `to` viennent de l'instance et de la base, jamais du visiteur.
+ */
+export async function demanderAcheminementDeLaDemande(
+  expediteur: ExpediteurEmail,
+  message: MessageEmail,
+): Promise<void> {
+  await expediteur.send({ from: message.from, to: message.to, subject: message.subject, text: message.text });
+}
