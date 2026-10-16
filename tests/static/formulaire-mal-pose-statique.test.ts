@@ -42,6 +42,7 @@ describe('reconstruction avec un formulaire mal posé', () => {
     expect(resultat.code).not.toBe(0);
     expect(resultat.sortie).toContain('« accueil »');
     expect(resultat.sortie).toContain('« devis-fantome »');
+    expect(resultat.sortie).toContain("FormulaireMalPoseError: Le formulaire « devis-fantome » posé par la page « accueil » n'est pas parmi les formulaires publiés.");
     expect(resultat.pagesProduites, 'aucune page ne doit sortir de la construction').toEqual([]);
   });
 
@@ -51,6 +52,7 @@ describe('reconstruction avec un formulaire mal posé', () => {
     expect(resultat.code).not.toBe(0);
     expect(resultat.sortie).toContain('« accueil »');
     expect(resultat.sortie).toContain('« devis-muet »');
+    expect(resultat.sortie).toContain("FormulaireMalPoseError: Le formulaire « devis-muet » posé par la page « accueil » n'a aucun champ d'e-mail ou de téléphone obligatoire.");
     expect(resultat.pagesProduites, 'aucune page ne doit sortir de la construction').toEqual([]);
   });
 
