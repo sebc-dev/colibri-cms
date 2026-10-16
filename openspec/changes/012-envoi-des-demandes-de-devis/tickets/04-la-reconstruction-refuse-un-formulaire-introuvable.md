@@ -31,6 +31,6 @@ et chaque page présente ses formulaires.
 moment où l'intégrateur pose le formulaire.
 
 ## Critères
-- [ ] Quand la reconstruction du site trouve une page dont un emplacement désigne un formulaire qu'aucun formulaire publié ne porte, la reconstruction échoue en nommant cette page et ce formulaire, et aucun site n'est produit   (SC-04a)
-- [ ] Quand la reconstruction du site trouve une page qui pose un formulaire dont aucun champ d'e-mail ni de téléphone n'est obligatoire, la reconstruction échoue en nommant cette page et ce formulaire, et aucun site n'est produit   (SC-04b)
-- [ ] Quand chaque emplacement de formulaire désigne un formulaire publié qui porte un champ d'e-mail ou de téléphone obligatoire, le site est produit, et chaque page présente ses formulaires   (SC-04c)
+- [x] Quand la reconstruction du site trouve une page dont un emplacement désigne un formulaire qu'aucun formulaire publié ne porte, la reconstruction échoue en nommant cette page et ce formulaire, et aucun site n'est produit   (SC-04a)
+- [x] Quand la reconstruction du site trouve une page qui pose un formulaire dont aucun champ d'e-mail ni de téléphone n'est obligatoire, la reconstruction échoue en nommant cette page et ce formulaire, et aucun site n'est produit   (SC-04b)
+- [x] Quand chaque emplacement de formulaire désigne un formulaire publié qui porte un champ d'e-mail ou de téléphone obligatoire, le site est produit, et chaque page présente ses formulaires   (SC-04c)

@@ -285,13 +285,36 @@ function composerChamp(champ: ChampDeclare): ChampRendu {
   };
 }
 
-/** Le formulaire désigné, ou `null` quand il n'est pas déclaré (rien ne se dessine). */
+/** Un formulaire posé introuvable, ou sans e-mail ni téléphone obligatoire : la construction doit échouer. */
+export class FormulaireMalPoseError extends Error {
+  readonly formulaire: string;
+  readonly page: string;
+
+  constructor(formulaire: string, page: string, motif: 'introuvable' | 'sans-coordonnee') {
+    super(
+      motif === 'introuvable'
+        ? `Le formulaire « ${formulaire} » posé par la page « ${page} » n'est pas parmi les formulaires publiés.`
+        : `Le formulaire « ${formulaire} » posé par la page « ${page} » n'a aucun champ d'e-mail ou de téléphone obligatoire.`,
+    );
+    this.name = 'FormulaireMalPoseError';
+    this.formulaire = formulaire;
+    this.page = page;
+  }
+}
+
+/** Le formulaire désigné ; lève s'il est introuvable ou sans moyen de répondre. */
 function composerFormulaire(
   emplacement: { readonly id: string; readonly formulaire: string },
   entree: EntreeComposition,
-): FormulaireRendu | null {
+): FormulaireRendu {
   const declare = (entree.formulaires ?? []).find((f) => f.id === emplacement.formulaire);
-  if (declare === undefined) return null;
+  if (declare === undefined) {
+    throw new FormulaireMalPoseError(emplacement.formulaire, entree.slug, 'introuvable');
+  }
+  const joignable = declare.champs.some(
+    (c) => c.obligatoire && (c.nature === 'email' || c.nature === 'telephone'),
+  );
+  if (!joignable) throw new FormulaireMalPoseError(declare.id, entree.slug, 'sans-coordonnee');
   return {
     id: emplacement.id,
     nature: 'formulaire',

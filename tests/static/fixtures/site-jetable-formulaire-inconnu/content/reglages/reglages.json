@@ -1,0 +1,10 @@
+{
+  "coordonnees": [
+    { "id": "telephone", "nature": "telephone", "nom": "Téléphone", "valeur": "01 23 45 67 89" },
+    { "id": "courriel", "nature": "email", "nom": "Courriel", "valeur": "atelier&co\"x@example.org" },
+    { "id": "adresse", "nature": "adresse", "nom": "Adresse", "valeur": "12 rue des Tilleuls\n75000 Paris" },
+    { "id": "horaires", "nature": "texte", "nom": "Horaires", "valeur": "<script>alert(1)</script> & \"q\"" },
+    { "id": "jours", "nature": "texte", "nom": "<img src=x onerror=alert(1)>", "valeur": "Ouvert le samedi" }
+  ],
+  "reseaux": []
+}

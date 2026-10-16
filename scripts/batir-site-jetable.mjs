@@ -168,3 +168,9 @@ batirEnEchec(
   IMAGE_MANQUANTE,
 );
 globalThis.console.log(`✔ construction à image manquante consignée dans ${resolve(IMAGE_MANQUANTE, 'resultat.json')}`);
+
+for (const cas of ['formulaire-inconnu', 'formulaire-sans-coordonnee']) {
+  const dossier = resolve(RACINE, `.wrangler/site-jetable-${cas}`);
+  batirEnEchec(preparerArbre(resolve(RACINE, `tests/static/fixtures/site-jetable-${cas}`), dossier), dossier);
+  globalThis.console.log(`✔ construction « ${cas} » consignée dans ${resolve(dossier, 'resultat.json')}`);
+}

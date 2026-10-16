@@ -1,0 +1,8 @@
+{
+  "nom": "Devis muet",
+  "champs": [
+    { "id": "nom", "nature": "texte", "libelle": "Votre nom", "obligatoire": true },
+    { "id": "courriel", "nature": "email", "libelle": "Votre adresse e-mail" },
+    { "id": "telephone", "nature": "telephone", "libelle": "Votre numéro de téléphone" }
+  ]
+}

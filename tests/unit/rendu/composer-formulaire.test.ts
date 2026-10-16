@@ -216,6 +216,7 @@ describe('composerPage — un emplacement de formulaire', () => {
           avecPrix: false,
           options: [{ id: 'o', libelle: `<script>alert(1)</script> & "o"` }],
         },
+        { id: 'courriel', nature: 'email', libelle: 'Votre adresse e-mail', obligatoire: true, avecPrix: false },
       ],
     };
 
