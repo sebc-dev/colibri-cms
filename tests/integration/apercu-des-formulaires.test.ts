@@ -149,6 +149,22 @@ async function semerBrouillonMention(db: DBLike, texte: string): Promise<void> {
     .run();
 }
 
+async function semerPublieFormulaire(
+  db: DBLike,
+  parfums: readonly { id: string; libelle: string; prix: number }[],
+): Promise<void> {
+  await db
+    .prepare(
+      "insert into publies_formulaires (formulaire, contenu, publie_le) values (?1, ?2, ?3)",
+    )
+    .bind(
+      "devis-gateau",
+      JSON.stringify({ champs: { parfum: parfums }, derniersNumeros: {} }),
+      Date.now(),
+    )
+    .run();
+}
+
 async function compter(db: DBLike, table: string): Promise<string> {
   const resultat = await db.prepare(`select * from ${table}`).bind().all();
   return JSON.stringify(resultat.results);
@@ -320,4 +336,45 @@ it("SC-06f — l'avis d'envoi désactivé ne contient aucun terme de développeu
   for (const terme of TERMES_DE_DEVELOPPEUR) {
     expect(texte, `terme « ${terme} »`).not.toMatch(new RegExp(`\\b${terme}\\b`, "i"));
   }
+});
+
+it("SC-06a — sans brouillon, l'aperçu présente la dernière version publiée du formulaire", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  await semerPublieFormulaire(db, PARFUMS_DU_BROUILLON);
+
+  const parfum = groupe(formulaireDe(await (await apercu("contact", cookie)).text()), "Parfum");
+
+  expect(texteVisible(parfum)).toMatch(/Pistache\W{0,6}12 €/);
+  const pistache = [...parfum.matchAll(/<input\b[^>]*>/g)]
+    .map((m) => m[0])
+    .find((i) => i.includes('value="pistache"'));
+  expect(pistache, "option pistache absente").toBeDefined();
+  expect(pistache).toContain('data-prix="1200"');
+});
+
+it("SC-06b — le brouillon du formulaire passe avant sa dernière version publiée", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirSession(db);
+  await semerPublieFormulaire(db, PARFUMS_DU_BROUILLON);
+  const parfumsA15 = PARFUMS_DU_BROUILLON.map((p) =>
+    p.id === "pistache" ? { ...p, prix: 1500 } : p,
+  );
+  await db
+    .prepare(
+      "insert into brouillons_formulaires (formulaire, contenu, maj_le) values (?1, ?2, ?3)",
+    )
+    .bind(
+      "devis-gateau",
+      JSON.stringify({ champs: { parfum: parfumsA15 }, derniersNumeros: {} }),
+      Date.now(),
+    )
+    .run();
+
+  const parfum = texteVisible(
+    groupe(formulaireDe(await (await apercu("contact", cookie)).text()), "Parfum"),
+  );
+
+  expect(parfum).toMatch(/Pistache\W{0,6}15 €/);
+  expect(parfum).not.toMatch(/Pistache\W{0,6}12 €/);
 });
