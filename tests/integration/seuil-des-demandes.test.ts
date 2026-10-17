@@ -337,8 +337,8 @@ it(
       const reponse = await envoyer(ORIGINE_A);
       const corps = await reponse.text();
 
-      expect(reponse.status).toBe(429);
-      expect(JSON.parse(corps)).toEqual({ statut: 'seuil' });
+      expect(reponse.status).toBe(503);
+      expect(JSON.parse(corps)).toEqual({ statut: 'indisponible' });
       expect(messages).toHaveLength(0);
       const traces = JSON.stringify(journaux.flatMap((espion) => espion.mock.calls));
       expect(traces).toContain('[seuil] comptage impossible');

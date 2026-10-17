@@ -20,6 +20,7 @@ import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts'
 import { lireAdresseAutorisee } from '../../../platform/auth/magasin.ts';
 import { demanderAcheminementDeLaDemande } from '../../../platform/email/index.ts';
 import { compterEtJuger } from '../../../platform/frequence/index.ts';
+import type { Verdict } from '../../../core/frequence/regles.ts';
 import { lireCorpsJsonBorne, type LectureCorps } from '../../../platform/reglages/corps.ts';
 
 export const prerender = false;
@@ -59,10 +60,21 @@ function lireIdentifiants(recu: unknown): Envoi | null {
   return { idFormulaire: formulaire, slug: page, valeurs, totalAffiche };
 }
 
+/**
+ * Le refus à rendre selon le verdict du seuil par origine : 503 quand le compteur est en panne
+ * (échec passager), 429 au-delà du seuil ; `null` quand la sollicitation est traitée.
+ */
+function refusDuSeuil(seuil: Verdict): Response | null {
+  if (seuil === 'indisponible') return reponse(503, { statut: 'indisponible' });
+  if (seuil !== 'traitee') return reponse(429, { statut: 'seuil' });
+  return null;
+}
+
 export const POST: APIRoute = async ({ request, url }) => {
   // Le seuil par origine (FR-062, ADR-0028) se juge en tête : toute sollicitation compte, même refusée ensuite.
   const seuil = await compterEtJuger(env.DB, 'demande', request.headers.get('cf-connecting-ip'), Date.now());
-  if (seuil === 'refusee') return reponse(429, { statut: 'seuil' });
+  const refus = refusDuSeuil(seuil);
+  if (refus !== null) return refus;
   const corps = await lireEnvoiDuSite(request, url.origin);
   if (!corps.ok) return reponse(corps.statut, { statut: 'refusee' });
   const envoi = lireIdentifiants(corps.json);

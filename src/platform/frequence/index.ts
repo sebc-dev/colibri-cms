@@ -2,7 +2,7 @@
  * Le compteur par origine (ADR-0028) : une empreinte HMAC-SHA-256 de
  * l'adresse d'origine, avec une clé aléatoire valable une heure. Aucune
  * adresse IP n'est jamais écrite ni journalisée. Toute erreur refuse la
- * sollicitation (fail-closed).
+ * sollicitation (fail-closed), en verdict « indisponible » (jamais « refusée »).
  */
 import { env } from 'cloudflare:workers';
 import {
@@ -104,10 +104,10 @@ export async function compterEtJuger(
       if (rang !== null) return jugerSollicitation(surface, rang);
     }
     console.error('[seuil] comptage impossible (fenêtre instable)');
-    return 'refusee';
+    return 'indisponible';
   } catch (erreur) {
     tracerLaPanne(erreur);
-    return 'refusee';
+    return 'indisponible';
   }
 }
 

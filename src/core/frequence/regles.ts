@@ -4,7 +4,7 @@
  */
 
 export type Surface = 'demande' | 'connexion';
-export type Verdict = 'traitee' | 'refusee';
+export type Verdict = 'traitee' | 'refusee' | 'indisponible';
 
 /** Sollicitations tolérées par heure et par origine, surface par surface. */
 export const SEUIL_PAR_SURFACE: Readonly<Record<Surface, number>> = {
