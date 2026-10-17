@@ -654,6 +654,17 @@ Constat de l'arrivée réelle de l'e-mail, qui ne se joue pas en local (ticket 0
 | CT-33.3 | Saisir `<a href="https://piege.example">Code : 123456</a>` dans « Votre nom » et envoyer | La saisie paraît telle quelle, balises comprises, sur une seule ligne derrière « Votre nom : », et la source de l'e-mail n'a aucune partie HTML | |
 | CT-33.4 | Saisir dans « Votre message » plusieurs lignes, dont « Total indicatif : 0 € », et envoyer | Sous « Votre message : », chaque ligne commence par `  > `. La seule ligne qui commence par « Total indicatif » est celle du produit (40 €) | |
 
+## 34. Le seuil des demandes par origine — change 012 · ticket 12
+
+Constat de l'origine que Cloudflare attribue réellement à chaque envoi, qui ne se voit pas en local : sans l'en-tête `CF-Connecting-IP`, tous les envois locaux comptent sous une même origine (ticket 12, FR-062). À jouer sur la recette, sur la page « Contact » qui pose le formulaire « Devis gâteau », l'adresse autorisée étant la boîte de recette, depuis un même appareil et une même connexion à internet. La fenêtre est une heure d'horloge (de 14 h 00 à 15 h 00, par exemple) : jouer CT-34.1 à CT-34.3 dans la même heure, en commençant au moins 15 minutes avant sa fin, sans autre envoi depuis cette connexion dans l'heure, § 33 compris (tout envoi compte, même refusé). La colonne Résultat reste vide tant que le cas n'a pas été joué.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-34.1 | Envoyer cinq demandes complètes sur « Contact » (« Fraise », « 10 parts », une adresse e-mail), en rechargeant la page entre deux envois | Chaque envoi affiche « Merci, votre demande a été envoyée. » ; cinq e-mails arrivent dans la boîte de recette | |
+| CT-34.2 | Dans la même heure, depuis le même appareil, envoyer une sixième demande complète | « Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure. » paraît et reçoit le focus ; « Fraise », « 10 parts » et l'adresse restent saisis ; le bouton « Envoyer ma demande » est de nouveau actif ; aucun sixième e-mail n'arrive. Dans les outils de développement, onglet Réseau, la réponse de `/api/public/demandes` est un 429 sans en-tête `Set-Cookie` (SC-12f, SC-12g) | |
+| CT-34.3 | Dans la même heure, depuis le même appareil, dans un autre onglet, soumettre l'adresse autorisée sur `/admin/connexion` | L'écran ne dit pas « Trop de tentatives de connexion… » et le code arrive dans la boîte de recette : la connexion a son propre seuil (SC-12d) | |
+| CT-34.4 | Après le début de l'heure suivante, revenir à l'onglet de CT-34.2 et, sans recharger, actionner de nouveau « Envoyer ma demande » | « Merci, votre demande a été envoyée. » ; l'e-mail arrive (SC-12c) | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
@@ -686,6 +697,7 @@ Constat de l'arrivée réelle de l'e-mail, qui ne se joue pas en local (ticket 0
 | 31 Publication impossible ou refusée | 2 | 2 | 0 | 0 |
 | 32 Une publication à la fois | 1 | 1 | 0 | 0 |
 | 33 Une demande part par e-mail | 4 | | | |
-| **Total** | **193** | | | |
+| 34 Seuil des demandes par origine | 4 | | | |
+| **Total** | **197** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
