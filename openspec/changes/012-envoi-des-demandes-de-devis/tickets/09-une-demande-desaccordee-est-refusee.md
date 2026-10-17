@@ -50,9 +50,9 @@ redevient actif, et toute sa saisie reste.
 d'origine, de format et de taille (ticket 10).
 
 ## Critères
-- [ ] Quand le visiteur a ouvert la page quand « Fraise » valait 10 €, que l'éditrice a depuis publié « Fraise » à 11 €, que le site a été reconstruit, et que le visiteur envoie sa demande avec « Fraise », la demande est refusée, aucun e-mail n'est envoyé, et le formulaire l'invite à recharger la page, sa saisie gardée   (SC-09a)
-- [ ] Quand une demande désigne dans « Parfum » une option que le formulaire publié ne porte pas, elle est refusée, et aucun e-mail n'est envoyé   (SC-09b)
-- [ ] Quand une demande porte deux options dans « Parfum », champ à choix unique, elle est refusée, et aucun e-mail n'est envoyé   (SC-09c)
-- [ ] Quand une demande porte une valeur pour un champ que le formulaire publié ne déclare pas, elle est refusée, et aucun e-mail n'est envoyé   (SC-09d)
-- [ ] Quand une demande désigne le formulaire « Devis gâteau » et une page d'origine qui ne le pose pas, elle est refusée, et aucun e-mail n'est envoyé   (SC-09e)
-- [ ] Quand une demande annonce un total de 1 € pour « Fraise » (10 €) et « 10 parts » (30 €), elle est refusée, et aucun e-mail n'est envoyé   (SC-09f)
+- [x] Quand le visiteur a ouvert la page quand « Fraise » valait 10 €, que l'éditrice a depuis publié « Fraise » à 11 €, que le site a été reconstruit, et que le visiteur envoie sa demande avec « Fraise », la demande est refusée, aucun e-mail n'est envoyé, et le formulaire l'invite à recharger la page, sa saisie gardée   (SC-09a)
+- [x] Quand une demande désigne dans « Parfum » une option que le formulaire publié ne porte pas, elle est refusée, et aucun e-mail n'est envoyé   (SC-09b)
+- [x] Quand une demande porte deux options dans « Parfum », champ à choix unique, elle est refusée, et aucun e-mail n'est envoyé   (SC-09c)
+- [x] Quand une demande porte une valeur pour un champ que le formulaire publié ne déclare pas, elle est refusée, et aucun e-mail n'est envoyé   (SC-09d)
+- [x] Quand une demande désigne le formulaire « Devis gâteau » et une page d'origine qui ne le pose pas, elle est refusée, et aucun e-mail n'est envoyé   (SC-09e)
+- [x] Quand une demande annonce un total de 1 € pour « Fraise » (10 €) et « 10 parts » (30 €), elle est refusée, et aucun e-mail n'est envoyé   (SC-09f)
