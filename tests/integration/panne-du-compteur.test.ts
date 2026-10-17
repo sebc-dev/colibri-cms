@@ -253,6 +253,36 @@ it(
 );
 
 it(
+  'SC-13a — cas limite : la fenêtre reste instable après la reprise, le verdict est « indisponible » et non « refusée »',
+  async () => {
+    const db = await assurerSchema();
+    for (const methode of ['log', 'info', 'warn', 'debug'] as const) {
+      vi.spyOn(console, methode).mockImplementation(() => undefined);
+    }
+    const erreurs = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    // L'insertion est abandonnée sans erreur : le comptage ne rend aucune ligne, aux deux essais.
+    await db
+      .prepare('create trigger if not exists panne_compteur_ignore before insert on comptes_seuil begin select raise(ignore); end')
+      .run();
+
+    try {
+      const verdict = await compterEtJuger(env.DB, 'demande', ORIGINE_A, Date.now());
+      const reponse = await envoyer(ORIGINE_A);
+
+      expect(verdict).toBe('indisponible');
+      expect(reponse.status).toBe(503);
+      expect(JSON.parse(await reponse.text())).toEqual({ statut: 'indisponible' });
+      expect(messages).toHaveLength(0);
+      expect(erreurs.mock.calls).toContainEqual(['[seuil] comptage impossible (fenêtre instable)']);
+      expect(JSON.stringify(erreurs.mock.calls)).not.toContain(ORIGINE_A);
+    } finally {
+      await db.prepare('drop trigger if exists panne_compteur_ignore').run();
+    }
+  },
+  DELAI_TEST_MS,
+);
+
+it(
   'SC-13b — demande complète et base qui refuse de compter : 503 « indisponible », aucun e-mail envoyé, aucune demande retenue',
   async () => {
     const db = await assurerSchema();
