@@ -123,9 +123,10 @@ Le serveur DOIT appliquer les mêmes règles à toute demande reçue.
 
 Une fois les champs obligatoires renseignés, le visiteur SHALL pouvoir envoyer sa demande (FR-057), sans
 compte ni inscription. Pendant l'envoi, le formulaire DOIT dire que l'envoi est en cours et ne DOIT pas
-permettre un second envoi. Une demande acceptée DOIT être confirmée au visiteur (FR-059) : le formulaire
-laisse place à un message qui dit que sa demande a été envoyée. La confirmation NE DOIT paraître qu'une
-fois l'e-mail de la demande remis à la plateforme d'acheminement.
+permettre un second envoi. Dès que l'envoi s'achève sans confirmation — refus du serveur ou échec —, le
+bouton d'envoi DOIT redevenir actif, la saisie gardée. Une demande acceptée DOIT être confirmée au
+visiteur (FR-059) : le formulaire laisse place à un message qui dit que sa demande a été envoyée. La
+confirmation NE DOIT paraître qu'une fois l'e-mail de la demande remis à la plateforme d'acheminement.
 
 #### Scenario: Une demande complète est confirmée
 - **WHEN** le visiteur a choisi « Fraise » et « 10 parts », renseigné son adresse e-mail, et envoie
@@ -138,6 +139,10 @@ fois l'e-mail de la demande remis à la plateforme d'acheminement.
 #### Scenario: L'envoi en cours se voit
 - **WHEN** le visiteur a envoyé sa demande et que la réponse n'est pas encore revenue
 - **THEN** le formulaire dit que l'envoi est en cours, et le bouton d'envoi est inactif
+
+#### Scenario: Après un refus du serveur, le visiteur peut renvoyer
+- **WHEN** le visiteur a envoyé sa demande et que le serveur la refuse, en désignant un champ ou parce que le formulaire a changé
+- **THEN** le formulaire n'est plus en cours d'envoi, le bouton d'envoi est de nouveau actif, et toute la saisie est gardée
 
 ### Requirement: Échec de l'envoi sans perte de la saisie
 
