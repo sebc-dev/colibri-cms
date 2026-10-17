@@ -119,6 +119,7 @@ test.describe("l'envoi en cours et l'échec", () => {
       await page.getByRole("button", { name: "Envoyer ma demande" }).click();
 
       await expect(page.getByText(MESSAGE_ECHEC)).toBeVisible();
+      await expect(page.getByText(MESSAGE_ECHEC)).toBeFocused();
       await expect(page.getByRole("button", { name: "Envoyer ma demande" })).toBeEnabled();
       await verifierSaisieGardee(page);
       await expect(page.getByText("Merci, votre demande a été envoyée.")).toBeHidden();
@@ -140,6 +141,7 @@ test.describe("l'envoi en cours et l'échec", () => {
       await page.getByRole("button", { name: "Envoyer ma demande" }).click();
 
       await expect(page.getByText(MESSAGE_ECHEC)).toBeVisible();
+      await expect(page.getByText(MESSAGE_ECHEC)).toBeFocused();
       await expect(page.getByRole("button", { name: "Envoyer ma demande" })).toBeEnabled();
       await verifierSaisieGardee(page);
       garde.verifier();
