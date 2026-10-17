@@ -105,7 +105,7 @@ import {
 } from '../../platform/auth/magasin.ts';
 import { demanderExpeditionDuCode } from '../../platform/email/index.ts';
 import { compterEtJuger } from '../../platform/frequence/index.ts';
-import { TEXTE_ANNONCE_PORTEE_CODE, TEXTE_ANNONCE_SEUIL, texteDuRefus } from '../../admin/textes.ts';
+import { TEXTE_ANNONCE_PORTEE_CODE, TEXTE_ANNONCE_PANNE, TEXTE_ANNONCE_SEUIL, texteDuRefus } from '../../admin/textes.ts';
 
 await verifierSession(env.DB, Astro.request);
 
@@ -126,6 +126,7 @@ if (!identifiantAppareil && !estSoumission) {
 
 let plafondAtteint = false;
 let seuilAtteint = false;
+let compteurIndisponible = false;
 let raisonRefusCode: RaisonRefus | null = null;
 
 if (estSoumission) {
@@ -139,10 +140,12 @@ if (estSoumission) {
     Astro.request.headers.get('cf-connecting-ip'),
     debutSoumission,
   );
+  const soumissionRefusee = verdictSeuil !== 'traitee';
   seuilAtteint = verdictSeuil === 'refusee';
+  compteurIndisponible = soumissionRefusee && !seuilAtteint;
   const donnees = await Astro.request.formData();
 
-  if (seuilAtteint) {
+  if (soumissionRefusee) {
     // Même plancher que la soumission d'adresse : le délai ne trahit pas l'adresse.
     const reste = DELAI_PLANCHER_MS - (Date.now() - debutSoumission);
     if (reste > 0) await attendre(reste);
@@ -224,7 +227,11 @@ if (estSoumission) {
       </CardHeader>
       <CardContent class="flex flex-col gap-6">
         {
-          seuilAtteint ? (
+          compteurIndisponible ? (
+            <Alert class="border-transparent bg-ambre-soft">
+              <AlertDescription class="text-ambre">{TEXTE_ANNONCE_PANNE}</AlertDescription>
+            </Alert>
+          ) : seuilAtteint ? (
             <Alert class="border-transparent bg-ambre-soft">
               <AlertDescription class="text-ambre">{TEXTE_ANNONCE_SEUIL}</AlertDescription>
             </Alert>

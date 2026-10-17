@@ -326,3 +326,6 @@ export const TEXTE_LIEN_REGLER_FORMULAIRE = 'Régler ce formulaire';
  */
 export const TEXTE_ANNONCE_SEUIL =
   'Trop de tentatives de connexion depuis votre accès à internet. Merci de patienter une heure avant de réessayer.';
+
+/** L'annonce d'une panne du compteur : un échec passager, jamais un seuil atteint. */
+export const TEXTE_ANNONCE_PANNE = "La connexion n'a pas pu se faire. Réessayez dans quelques instants.";

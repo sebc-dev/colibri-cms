@@ -389,8 +389,8 @@ it(
       const reponse = await soumettre(ORIGINE_A, appareil, 'adresse', ADRESSE_AUTORISEE);
       await pause(150);
 
-      expect(verdict).toBe('refusee');
-      expect(await reponse.text()).toContain(TEXTE_ANNONCE_SEUIL);
+      expect(verdict).toBe('indisponible');
+      expect(await reponse.text()).toContain('Réessayez dans quelques instants.');
       expect(await compter(db, 'codes_connexion')).toBe(0);
       expect(espion.appels).toHaveLength(0);
       expect(extraireCookie(reponse, NOM_COOKIE_SESSION)).toBeNull();
