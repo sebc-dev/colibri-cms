@@ -44,8 +44,9 @@ aucune fausse manœuvre ne casse la mise en page ni ne laisse un trou dans une p
 Le site vitrine devient un outil qui rapporte : pages rapides, devis chiffré, demandes reçues et
 pilotées. Le site public reste statique — un seul traitement serveur, l'envoi d'une demande.
 
-- [ ] Composer et envoyer une demande de devis (FR-007, FR-052→062 · SC-007) — porte FR-007, le
-      seuil par origine que 001 a déclaré hors-périmètre et lui délègue
+- [x] **012 — Composer et envoyer une demande de devis** · *livrée* (FR-007, FR-052→062 · SC-007) —
+      porte FR-007, le seuil par origine que 001 a déclaré hors-périmètre et lui délègue ; a tiré en
+      avant FR-063 et FR-064 (l'acheminement par e-mail et son contenu)
 - [ ] Réception et suivi des demandes (FR-063→079 · SC-007, SC-019)
 - [ ] Site public rapide et complet (FR-095→097 · SC-005)
 

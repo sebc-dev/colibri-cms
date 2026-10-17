@@ -139,7 +139,7 @@ Sur une soumission donnée, l'écran de connexion SHALL rendre la même réponse
 - **THEN** la réponse reste la même — l'écran ne se comporte pas autrement
 
 #### Scenario: Les temps de réponse ne distinguent pas les branches
-- **WHEN** deux cents soumissions sont conduites hors plafond, la fenêtre vidée entre les salves, sur l'adresse autorisée et sur d'autres adresses
+- **WHEN** deux cents soumissions sont conduites hors plafond et hors seuil, les fenêtres du plafond et du seuil vidées entre les salves, sur l'adresse autorisée et sur d'autres adresses
 - **THEN** les deux branches ne se laissent pas distinguer par leur temps de réponse
 
 ### Requirement: Le plafond de cinq messages par heure glissante
@@ -265,3 +265,47 @@ Une session SHALL se fermer après sept jours sans usage, et après trente jours
 #### Scenario: Les sessions simultanées coexistent
 - **WHEN** plusieurs sessions sont ouvertes en même temps
 - **THEN** elles coexistent sans que rien ne les compte ni ne les ferme
+
+### Requirement: Le seuil de vingt tentatives par origine
+
+Au-delà de **20 tentatives de connexion par heure** depuis une même origine (FR-007, seuil et fenêtre de
+la capacité `seuil-par-origine`), l'écran de connexion SHALL refuser la tentative. Toute soumission compte
+comme une tentative : celle d'une adresse comme celle d'un code. Une tentative refusée NE DOIT écrire aucun
+code, n'en vérifier aucun, n'ouvrir aucune session et n'envoyer aucun message. Le refus DOIT s'annoncer à
+l'écran, sans terme de développeur, **identiquement quelle que soit l'adresse ou le code soumis** — ni le
+texte, ni les champs d'en-tête, ni le délai de la réponse ne dépendent de ce qui a été soumis : la
+soumission d'une adresse refusée respecte le même délai plancher que toute soumission d'adresse. Le seuil
+d'une origine NE DOIT pas toucher les autres origines, et le plafond de cinq messages par heure reste
+inchangé. Une tentative que la base ne permet pas de compter DOIT être refusée de même : aucun code écrit
+ni vérifié, aucune session, aucun message. Elle s'annonce par son propre message, sans terme de
+développeur, qui dit que la connexion n'a pas pu se faire et invite à réessayer dans quelques instants —
+jamais par l'annonce du seuil ni par une attente d'une heure —, lui aussi identiquement quelle que soit
+l'adresse ou le code soumis, au terme du même délai plancher.
+
+#### Scenario: La vingt-et-unième tentative est refusée
+- **WHEN** une même origine soumet vingt et une fois l'écran de connexion dans la même heure, adresses et codes mêlés
+- **THEN** les vingt premières soumissions sont traitées, la vingt-et-unième est refusée et l'écran l'annonce
+
+#### Scenario: Une tentative refusée n'écrit rien et n'ouvre rien
+- **WHEN** au-delà du seuil de son origine, une soumission porte l'adresse autorisée, puis une autre porte un code valide
+- **THEN** aucun code n'est écrit, aucun message n'est envoyé, le code valide n'est ni consommé ni accepté, et aucune session ne s'ouvre
+
+#### Scenario: Le refus s'annonce identiquement pour toute adresse
+- **WHEN** au-delà du seuil de son origine, une soumission porte l'adresse autorisée, et une autre une adresse quelconque
+- **THEN** les deux réponses portent le même texte et les mêmes champs d'en-tête, et leurs délais ne se laissent pas distinguer
+
+#### Scenario: Une autre origine se connecte normalement
+- **WHEN** une origine a atteint le seuil, et que l'éditrice soumet l'adresse autorisée depuis une autre origine dans la même heure
+- **THEN** un code est écrit et envoyé à l'adresse autorisée, comme sans seuil
+
+#### Scenario: Aucun terme de développeur dans l'annonce
+- **WHEN** l'écran annonce que le seuil de l'origine est atteint
+- **THEN** aucun terme de développeur n'y paraît (FR-117)
+
+#### Scenario: Une panne du comptage refuse sans annoncer le seuil
+- **WHEN** la base refuse de compter une soumission portant l'adresse autorisée, puis une autre portant un code valide
+- **THEN** aucun code n'est écrit, aucun message n'est envoyé, le code valide n'est ni consommé ni accepté, aucune session ne s'ouvre, et l'écran dit que la connexion n'a pas pu se faire, sans annoncer le seuil
+
+#### Scenario: La panne s'annonce identiquement pour toute adresse
+- **WHEN** la base refuse de compter une soumission portant l'adresse autorisée, et une autre portant une adresse quelconque
+- **THEN** les deux réponses portent le même texte et les mêmes champs d'en-tête, et toutes deux attendent le délai plancher
