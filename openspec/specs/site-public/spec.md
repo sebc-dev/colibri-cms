@@ -47,19 +47,30 @@ ne montre le contenu d'aucune autre page. Tout texte venu du contenu — titre, 
 ### Requirement: Aucun traitement serveur à la consultation
 
 Une page publique SHALL être servie comme un document statique, produit à la reconstruction du site : sa
-consultation NE DOIT exécuter aucun code propre au site (FR-096), ne lire aucune base, et ne poser aucun
-cookie. Elle DOIT être servie avec les en-têtes de sécurité du site public : une politique de sécurité de
-contenu qui n'admet aucun script et ne charge que des ressources du site lui-même, `X-Content-Type-Options:
-nosniff`, une politique de référent et le refus d'être affichée dans le cadre d'un autre site. Une page
-publique NE DOIT charger aucune ressource d'une autre origine.
+consultation NE DOIT exécuter aucun code propre au site sur le serveur (FR-096), ne lire aucune base, et ne
+poser aucun cookie. Elle DOIT être servie avec les en-têtes de sécurité du site public : une politique de
+sécurité de contenu qui n'admet que les scripts servis par le site lui-même, jamais un script écrit dans la
+page, et n'admet d'échange qu'avec le site lui-même ; qui ne charge que des ressources du site lui-même ;
+`X-Content-Type-Options: nosniff`, une politique de référent et le refus d'être affichée dans le cadre d'un
+autre site. Une page publique NE DOIT charger aucune ressource d'une autre origine. Une page qui ne pose
+aucun formulaire NE DOIT porter aucun script ; une page qui en pose un NE DOIT porter que le module du
+formulaire, servi par le site lui-même (capacité `demande-de-devis`), et aucun script écrit dans la page.
 
 #### Scenario: Une page publique est servie comme document statique
 - **WHEN** une page publique est demandée
 - **THEN** la réponse porte les en-têtes de sécurité du site public, posés sur les documents statiques du site, ce qui atteste qu'elle n'a pas traversé le code du site
 
 #### Scenario: Aucun script et aucune ressource d'une autre origine
-- **WHEN** une page publique est servie
+- **WHEN** une page publique qui ne pose aucun formulaire est servie
 - **THEN** elle ne porte aucun script, et chacune de ses ressources — feuille de style, images — est servie par le site lui-même
+
+#### Scenario: Avec un formulaire, le seul script est le module du site
+- **WHEN** une page publique qui pose un formulaire est servie
+- **THEN** son seul script est le module du formulaire, chargé depuis le site lui-même, aucun script n'est écrit dans la page, et aucune de ses ressources ne vient d'une autre origine
+
+#### Scenario: La politique du site public n'admet que le site lui-même
+- **WHEN** une page publique est servie
+- **THEN** sa politique de sécurité de contenu n'admet de script, de ressource et d'échange que du site lui-même, et n'admet aucun script écrit dans la page
 
 #### Scenario: La consultation ne pose aucun cookie
 - **WHEN** un visiteur, avec ou sans session d'administration ouverte, demande une page publique
@@ -80,7 +91,9 @@ dessiner chaque nature ainsi :
   script ;
 - **bouton d'action** : un lien portant le libellé et menant à la destination de l'emplacement ;
 - **lien de vidéo** : un lien « Voir la vidéo » qui mène à la vidéo à son adresse, sans lecteur intégré ni
-  aucune ressource de l'hébergeur de la vidéo chargée par la page.
+  aucune ressource de l'hébergeur de la vidéo chargée par la page ;
+- **formulaire** : le formulaire publié que l'emplacement désigne, avec ses deux mentions, dessiné selon la
+  capacité `demande-de-devis`.
 Un emplacement d'image sans image, ou une galerie ou un carrousel sans image, NE DOIT rien dessiner —
 jamais une image manquante.
 
@@ -120,6 +133,14 @@ jamais une image manquante.
 - **WHEN** un emplacement de lien de vidéo publié porte l'adresse d'une vidéo
 - **THEN** la page présente un lien « Voir la vidéo » vers cette adresse, et ne charge rien de l'hébergeur de la vidéo
 
+#### Scenario: Le formulaire paraît à son rang
+- **WHEN** la page « Tarifs » pose, à la suite de son image de bandeau, un emplacement qui désigne le formulaire « Devis gâteau »
+- **THEN** la page présente le formulaire « Devis gâteau » après l'image de bandeau, et aucun autre emplacement entre les deux
+
+#### Scenario: Un même formulaire sur deux pages
+- **WHEN** les pages « Tarifs » et « Contact » posent toutes deux le formulaire « Devis gâteau »
+- **THEN** chacune des deux pages présente ce formulaire, avec les mêmes options et les mêmes prix
+
 ### Requirement: Coordonnées et réseaux sociaux sur chaque page
 
 Chaque page publique SHALL porter, en pied de page, les coordonnées publiées dans l'ordre de leur
@@ -155,3 +176,23 @@ manquante.
 #### Scenario: Toutes les images posées sont présentes
 - **WHEN** la reconstruction du site trouve, pour chaque image posée par le contenu publié, ses octets parmi les images publiées
 - **THEN** le site est produit, et chaque page présente ses images
+
+### Requirement: Une page publiée ne pose jamais un formulaire introuvable ou sans réponse possible
+
+La reconstruction du site SHALL échouer, en nommant la page et le formulaire en cause, quand une page pose
+un emplacement de formulaire qui désigne un formulaire absent des formulaires publiés, ou un formulaire qui
+ne porte aucun champ d'e-mail ni de téléphone obligatoire — l'éditrice ne pourrait pas répondre au
+visiteur. Le site en service DOIT alors rester tel qu'il était (FR-091). Une page publique NE DOIT jamais
+être servie avec un formulaire manquant.
+
+#### Scenario: Un formulaire inconnu fait échouer la reconstruction
+- **WHEN** la reconstruction du site trouve une page dont un emplacement désigne un formulaire qu'aucun formulaire publié ne porte
+- **THEN** la reconstruction échoue en nommant cette page et ce formulaire, et aucun site n'est produit
+
+#### Scenario: Un formulaire sans coordonnée obligatoire fait échouer la reconstruction
+- **WHEN** la reconstruction du site trouve une page qui pose un formulaire dont aucun champ d'e-mail ni de téléphone n'est obligatoire
+- **THEN** la reconstruction échoue en nommant cette page et ce formulaire, et aucun site n'est produit
+
+#### Scenario: Des formulaires bien posés laissent la reconstruction aboutir
+- **WHEN** chaque emplacement de formulaire désigne un formulaire publié qui porte un champ d'e-mail ou de téléphone obligatoire
+- **THEN** le site est produit, et chaque page présente ses formulaires
