@@ -61,7 +61,7 @@ malgré la dérogation, la retouche est reprise à la main.
 changer le message d'échec du formulaire ; le plafond horaire des codes ; toute vérification anti-robot.
 
 ## Critères
-- [ ] Quand une sollicitation arrive et que la base refuse de la compter, la réponse ne porte pas le refus pour seuil atteint, et invite à réessayer dans quelques instants   (SC-13a)
-- [ ] Quand le visiteur envoie une demande complète et que la base refuse de compter la sollicitation, le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer dans quelques instants, sans parler de seuil ni rien effacer, et aucun e-mail n'est envoyé   (SC-13b)
-- [ ] Quand la base refuse de compter une soumission portant l'adresse autorisée, puis une autre portant un code valide, aucun code n'est écrit, aucun message n'est envoyé, le code valide n'est ni consommé ni accepté, aucune session ne s'ouvre, et l'écran dit que la connexion n'a pas pu se faire, sans annoncer le seuil   (SC-13c)
-- [ ] Quand la base refuse de compter une soumission portant l'adresse autorisée, et une autre portant une adresse quelconque, les deux réponses portent le même texte et les mêmes champs d'en-tête, et toutes deux attendent le délai plancher   (SC-13d)
+- [x] Quand une sollicitation arrive et que la base refuse de la compter, la réponse ne porte pas le refus pour seuil atteint, et invite à réessayer dans quelques instants   (SC-13a)
+- [x] Quand le visiteur envoie une demande complète et que la base refuse de compter la sollicitation, le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer dans quelques instants, sans parler de seuil ni rien effacer, et aucun e-mail n'est envoyé   (SC-13b)
+- [x] Quand la base refuse de compter une soumission portant l'adresse autorisée, puis une autre portant un code valide, aucun code n'est écrit, aucun message n'est envoyé, le code valide n'est ni consommé ni accepté, aucune session ne s'ouvre, et l'écran dit que la connexion n'a pas pu se faire, sans annoncer le seuil   (SC-13c)
+- [x] Quand la base refuse de compter une soumission portant l'adresse autorisée, et une autre portant une adresse quelconque, les deux réponses portent le même texte et les mêmes champs d'en-tête, et toutes deux attendent le délai plancher   (SC-13d)
