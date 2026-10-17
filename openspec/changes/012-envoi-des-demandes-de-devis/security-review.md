@@ -45,7 +45,9 @@
    `send_email` n'écrit qu'à sa destination vérifiée (FR-005 tenu par la plateforme).
 3. Seuil par origine de 5 demandes par heure (D8), compté **avant** la lecture du corps ; refus des
    méthodes, origines, formats et tailles hors contrat avant tout travail coûteux (D6) ; un compteur en
-   panne refuse (fermé sur panne). Résidu : la rotation d'adresses IP — Turnstile se rouvre par une
+   panne refuse (fermé sur panne), par un verdict distinct qui ne se présente pas comme un seuil atteint ;
+   chaque appelant refuse sur tout verdict autre que `traitee`, pour qu'un verdict ajouté ne puisse ouvrir
+   une surface. Résidu : la rotation d'adresses IP — Turnstile se rouvre par une
    décision séparée si le spam paraît.
 4. `Origin` exigée et égale à l'origine du site (403 sinon) ; seul `application/json` est accepté, ce qui
    impose au navigateur une requête préalable qu'aucun en-tête d'autorisation croisée ne satisfait ; la

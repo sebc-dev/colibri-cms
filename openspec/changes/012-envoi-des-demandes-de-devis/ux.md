@@ -33,7 +33,7 @@ Textes du visiteur (`src/render/formulaire/textes.ts`) :
 | Résumé d'un refus de saisie | « Votre demande n'est pas partie : vérifiez les champs ci-dessous. » suivi de la liste des libellés en cause |
 | Envoi en cours | « Envoi en cours… » |
 | Confirmation | « Merci, votre demande a été envoyée. » |
-| Acheminement en échec, site injoignable | « Votre demande n'a pas pu être envoyée. Votre saisie est conservée : réessayez dans quelques instants. » |
+| Acheminement en échec, site injoignable, comptage en panne | « Votre demande n'a pas pu être envoyée. Votre saisie est conservée : réessayez dans quelques instants. » |
 | Seuil atteint | « Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure. » |
 | Formulaire changé | « Ce formulaire vient d'être mis à jour. Rechargez la page pour voir les prix à jour, puis refaites votre demande. » |
 | Sans script (`<noscript>`) | « Le total et l'envoi de ce formulaire ont besoin de JavaScript, désactivé dans votre navigateur. Vous pouvez nous écrire avec les coordonnées en bas de page. » |
@@ -48,7 +48,7 @@ Textes du visiteur (`src/render/formulaire/textes.ts`) :
   quand ce refus vient du serveur après l'envoi, le bouton redevient « Envoyer ma demande », actif ;
 - **envoi en cours** — le bouton devient « Envoi en cours… », inactif, jusqu'à la réponse ;
 - **envoyée** — le formulaire laisse place à la confirmation, qui reçoit le focus ;
-- **échec** (acheminement, site injoignable, seuil, formulaire changé) — le message paraît au-dessus du
+- **échec** (acheminement, site injoignable, comptage en panne, seuil, formulaire changé) — le message paraît au-dessus du
   bouton, le bouton redevient actif, toute la saisie reste.
 
 ### Formulaire de devis — aperçu
@@ -68,6 +68,11 @@ formulaire. Aucun champ, aucun bouton d'enregistrement.
 Le message d'état ambre de l'écran de connexion, déjà employé pour le plafond horaire : « Trop de
 tentatives de connexion depuis votre accès à internet. Merci de patienter une heure avant de
 réessayer. » Le même texte quelle que soit l'adresse saisie.
+
+### Connexion — comptage en panne
+
+Le même message d'état ambre : « La connexion n'a pas pu se faire. Réessayez dans quelques instants. » Le
+même texte quelle que soit l'adresse saisie ; jamais l'annonce du seuil.
 
 ## Critères d'acceptation UX
 

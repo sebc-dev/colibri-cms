@@ -10,7 +10,11 @@ l'écran, sans terme de développeur, **identiquement quelle que soit l'adresse 
 texte, ni les champs d'en-tête, ni le délai de la réponse ne dépendent de ce qui a été soumis : la
 soumission d'une adresse refusée respecte le même délai plancher que toute soumission d'adresse. Le seuil
 d'une origine NE DOIT pas toucher les autres origines, et le plafond de cinq messages par heure reste
-inchangé.
+inchangé. Une tentative que la base ne permet pas de compter DOIT être refusée de même : aucun code écrit
+ni vérifié, aucune session, aucun message. Elle s'annonce par son propre message, sans terme de
+développeur, qui dit que la connexion n'a pas pu se faire et invite à réessayer dans quelques instants —
+jamais par l'annonce du seuil ni par une attente d'une heure —, lui aussi identiquement quelle que soit
+l'adresse ou le code soumis, au terme du même délai plancher.
 
 #### Scenario: La vingt-et-unième tentative est refusée
 - **WHEN** une même origine soumet vingt et une fois l'écran de connexion dans la même heure, adresses et codes mêlés
@@ -31,6 +35,14 @@ inchangé.
 #### Scenario: Aucun terme de développeur dans l'annonce
 - **WHEN** l'écran annonce que le seuil de l'origine est atteint
 - **THEN** aucun terme de développeur n'y paraît (FR-117)
+
+#### Scenario: Une panne du comptage refuse sans annoncer le seuil
+- **WHEN** la base refuse de compter une soumission portant l'adresse autorisée, puis une autre portant un code valide
+- **THEN** aucun code n'est écrit, aucun message n'est envoyé, le code valide n'est ni consommé ni accepté, aucune session ne s'ouvre, et l'écran dit que la connexion n'a pas pu se faire, sans annoncer le seuil
+
+#### Scenario: La panne s'annonce identiquement pour toute adresse
+- **WHEN** la base refuse de compter une soumission portant l'adresse autorisée, et une autre portant une adresse quelconque
+- **THEN** les deux réponses portent le même texte et les mêmes champs d'en-tête, et toutes deux attendent le délai plancher
 
 ## MODIFIED Requirements
 

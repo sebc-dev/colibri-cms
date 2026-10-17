@@ -148,7 +148,8 @@ confirmation NE DOIT paraître qu'une fois l'e-mail de la demande remis à la pl
 
 Quand l'envoi n'aboutit pas, le visiteur SHALL en être informé (FR-060), sans perdre aucune de ses
 saisies ni de ses sélections, et DOIT pouvoir réessayer. Le message DOIT dire, sans terme technique, ce qui
-s'est passé et quoi faire : réessayer plus tard quand l'acheminement a échoué ou que le site ne répond pas ;
+s'est passé et quoi faire : réessayer plus tard quand l'acheminement a échoué, que le site ne répond pas ou
+que le comptage des demandes est en panne ;
 patienter quand le seuil des demandes est atteint (FR-062) ; recharger la page quand le formulaire a
 changé depuis son ouverture. Aucun échec NE DOIT être présenté comme une demande envoyée.
 
@@ -167,6 +168,10 @@ changé depuis son ouverture. Aucun échec NE DOIT être présenté comme une de
 #### Scenario: Le seuil atteint est annoncé, la saisie gardée
 - **WHEN** le visiteur envoie une demande au-delà du seuil de son origine
 - **THEN** le formulaire dit que trop de demandes ont été envoyées depuis sa connexion et l'invite à réessayer plus tard, sans rien effacer, et aucun e-mail n'est envoyé
+
+#### Scenario: Une panne du comptage est annoncée comme un échec, la saisie gardée
+- **WHEN** le visiteur envoie une demande complète et que la base refuse de compter la sollicitation
+- **THEN** le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer dans quelques instants, sans parler de seuil ni rien effacer, et aucun e-mail n'est envoyé
 
 ### Requirement: La demande reçue s'accorde au formulaire publié
 

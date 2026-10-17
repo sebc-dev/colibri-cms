@@ -16,7 +16,9 @@ tentatives de connexion** par origine et par fenêtre ; la sollicitation qui dé
 DOIT être refusée, et toutes les suivantes jusqu'à la fin de la fenêtre. Une nouvelle fenêtre repart de
 zéro. Le seuil d'une origine NE DOIT jamais atteindre une autre origine. Le comptage NE DOIT exiger ni
 compte, ni session, ni cookie. Une sollicitation que la base ne permet pas de compter DOIT être refusée :
-la protection ne s'ouvre pas sur une panne.
+la protection ne s'ouvre pas sur une panne. Ce refus NE DOIT pas se présenter comme un seuil atteint :
+chaque surface l'annonce comme un échec passager, à réessayer dans quelques instants (capacités
+`demande-de-devis` et `connexion-par-code`).
 
 #### Scenario: La sixième demande d'une heure est refusée
 - **WHEN** une même origine envoie six demandes complètes dans la même fenêtre
@@ -45,6 +47,10 @@ la protection ne s'ouvre pas sur une panne.
 #### Scenario: Une panne du compteur refuse la sollicitation
 - **WHEN** une sollicitation arrive et que la base refuse de la compter
 - **THEN** la sollicitation est refusée, rien de ce qu'elle demande n'est fait, et la trace de l'échec ne porte ni son adresse IP, ni la clé de la fenêtre, ni son empreinte
+
+#### Scenario: Une panne ne se dit pas comme un seuil atteint
+- **WHEN** une sollicitation arrive et que la base refuse de la compter
+- **THEN** la réponse ne porte pas le refus pour seuil atteint, et invite à réessayer dans quelques instants
 
 ### Requirement: Le compteur ne garde aucune origine en clair
 

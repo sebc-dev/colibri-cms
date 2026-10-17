@@ -126,7 +126,8 @@ même fonction ; l'affichage passe par `formaterPrix` (`src/core/formulaires/pri
 au plus cher :
 1. méthode `POST`, sinon 405 ;
 2. **comptage** de l'origine sur la surface `demande` (D8) — toute sollicitation reçue compte, qu'elle
-   aboutisse ou non (spec `seuil-par-origine`) ; au-delà du seuil, 429 ; puis en-tête `Origin` présent et
+   aboutisse ou non (spec `seuil-par-origine`) ; au-delà du seuil, 429 `seuil` ; comptage impossible, 503
+   `indisponible`, que le formulaire présente comme tout échec passager ; puis en-tête `Origin` présent et
    égal à l'origine du site, sinon 403 ; `Content-Type: application/json`, sinon 415 — un corps
    `multipart` est refusé **sans être lu** (I6) ;
 3. lecture bornée du corps (16 Kio), sinon 413 ; JSON `{ formulaire, page, valeurs, totalAffiche }` ;
@@ -172,7 +173,12 @@ clé de 32 octets) et une table `comptes_seuil` (`surface`, `empreinte`, `nombre
   rien n'est compté sous l'ancienne clé, et le comptage reprend une fois ;
 - l'origine est l'en-tête `CF-Connecting-IP` ; absent (outillage local), une origine commune
   « inconnue » ;
-- une erreur de la base refuse la sollicitation (la protection ne s'ouvre pas sur une panne).
+- une erreur de la base, ou une fenêtre qui bascule encore après la reprise, rend un verdict propre,
+  `indisponible`, distinct de `refusee` : la sollicitation est refusée (la protection ne s'ouvre pas sur
+  une panne), mais ne s'annonce pas comme un seuil atteint (arbitrage du 2026-10-17, relecture du
+  ticket 12). `Verdict` devient `'traitee' | 'refusee' | 'indisponible'` ; chaque appelant refuse sur
+  tout verdict autre que `traitee` (`verdict !== 'traitee'`), jamais sur `=== 'refusee'`, pour qu'un
+  verdict ajouté ne puisse ouvrir une surface.
 
 Pourquoi pas le Durable Object du candidat : il exige un point d'entrée de Worker propre au produit pour
 exporter sa classe, or `wrangler.astro.jsonc` documente que poser `main` détourne le build d'Astro de son
@@ -190,8 +196,10 @@ objet : l'ADR le retire, avec le candidat `objet-de-frequence-nomme-par-une-cons
 `src/pages/admin/connexion.astro` appelle `compterEtJuger(…, 'connexion', …)` en tête de **tout** `POST`,
 avant de lire l'adresse ou le code. Au-delà du seuil : rien n'est écrit ni vérifié, la soumission
 d'adresse attend quand même le délai plancher (`DELAI_PLANCHER_MS`), et l'écran affiche l'annonce du
-seuil, un texte de `src/admin/textes.ts` identique pour toute adresse. Le plafond horaire de FR-006 est
-inchangé et s'évalue après.
+seuil, un texte de `src/admin/textes.ts` identique pour toute adresse. Sur `indisponible`, même
+traitement — rien n'est écrit ni vérifié, le délai plancher est attendu —, mais l'écran affiche l'annonce
+de panne, un second texte de `src/admin/textes.ts`, lui aussi identique pour toute adresse. Le plafond
+horaire de FR-006 est inchangé et s'évalue après.
 
 ### D10 — L'aperçu dessine le formulaire, sans envoi
 
@@ -253,7 +261,10 @@ sous `api/public/`, sans garde, sans `multipart`) ; I8/I10 (aucune valeur d'inst
   fait échouer toute violation de la politique.
 - [Le quota d'écritures D1 du palier gratuit, sous attaque] → une sollicitation coûte une ou deux écritures
   de ligne ; un quota épuisé refuse les sollicitations (fermé sur panne), ce qui protège la boîte de
-  l'éditrice au prix des demandes légitimes pendant la panne.
+  l'éditrice au prix des demandes légitimes pendant la panne. Ce refus s'annonce comme un échec passager
+  (« réessayez dans quelques instants ») : un quota quotidien épuisé peut durer jusqu'à sa remise à zéro,
+  plus longtemps que ce que le message laisse entendre — résidu assumé, préférable à un faux « trop de
+  demandes ».
 - [Les empreintes de la dernière fenêtre restent tant qu'aucune sollicitation ne vient] → jamais plus d'une
   fenêtre ; assumé dans l'ADR de D8.
 - [Poser le formulaire sur « Tarifs » et « Contact » peut casser un test existant qui fige leur structure]
