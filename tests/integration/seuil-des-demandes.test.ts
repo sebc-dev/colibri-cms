@@ -79,7 +79,7 @@ beforeEach(async () => {
     },
   };
   const db = await assurerSchema();
-  for (const table of ['comptes_seuil', 'fenetre_seuil', 'adresses_autorisees']) {
+  for (const table of ['comptes_seuil', 'fenetre_seuil', 'codes_connexion', 'adresses_autorisees']) {
     await db.prepare(`delete from ${table}`).run();
   }
   await db.prepare('insert into adresses_autorisees (adresse) values (?1)').bind(ADRESSE_AUTORISEE).run();
@@ -89,7 +89,7 @@ afterEach(async () => {
   vi.restoreAllMocks();
   (env as unknown as Record<string, unknown>)[CLE_LIAISON] = precedente;
   const db = obtenirDB();
-  for (const table of ['comptes_seuil', 'fenetre_seuil', 'adresses_autorisees']) {
+  for (const table of ['comptes_seuil', 'fenetre_seuil', 'codes_connexion', 'adresses_autorisees']) {
     await db.prepare(`delete from ${table}`).run();
   }
 });
@@ -109,6 +109,37 @@ function envoyer(origine: string, valeurs: Record<string, unknown> = COMPLETE): 
       body: JSON.stringify({ formulaire: 'devis-gateau', page: 'contact', valeurs, totalAffiche: 4000 }),
     }),
   );
+}
+
+/** L'identifiant d'appareil que l'écran de connexion pose à l'affichage, sous forme `nom=valeur`. */
+async function cookieAppareil(): Promise<string> {
+  const page = await exports.default.fetch(new Request(`${ORIGINE_SITE}/admin/connexion`));
+  const cookie = page.headers
+    .getSetCookie()
+    .map((entete) => entete.split(';')[0].trim())
+    .find((paire) => paire.startsWith(`${NOM_COOKIE_APPAREIL}=`));
+  expect(cookie).toBeDefined();
+  return cookie ?? '';
+}
+
+function soumettreConnexion(origine: string, cookie: string, corps: string): Promise<Response> {
+  return exports.default.fetch(
+    new Request(`${ORIGINE_SITE}/admin/connexion`, {
+      method: 'POST',
+      redirect: 'manual',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        origin: ORIGINE_SITE,
+        cookie,
+        'cf-connecting-ip': origine,
+      },
+      body: corps,
+    }),
+  );
+}
+
+function pause(ms: number): Promise<void> {
+  return new Promise((resoudre) => setTimeout(resoudre, ms));
 }
 
 async function epuiser(origine: string): Promise<void> {
@@ -191,28 +222,42 @@ it(
   async () => {
     await epuiser(ORIGINE_A);
     expect((await envoyer(ORIGINE_A)).status).toBe(429);
-    const page = await exports.default.fetch(new Request(`${ORIGINE_SITE}/admin/connexion`));
-    const cookie = page.headers
-      .getSetCookie()
-      .map((entete) => entete.split(';')[0].trim())
-      .find((paire) => paire.startsWith(`${NOM_COOKIE_APPAREIL}=`));
-    expect(cookie).toBeDefined();
+    const cookie = await cookieAppareil();
 
-    const reponse = await exports.default.fetch(
-      new Request(`${ORIGINE_SITE}/admin/connexion`, {
-        method: 'POST',
-        redirect: 'manual',
-        headers: {
-          'content-type': 'application/x-www-form-urlencoded',
-          origin: ORIGINE_SITE,
-          cookie: cookie ?? '',
-          'cf-connecting-ip': ORIGINE_A,
-        },
-        body: `adresse=${encodeURIComponent('quelquun@example.com')}`,
-      }),
+    const reponse = await soumettreConnexion(
+      ORIGINE_A,
+      cookie,
+      `adresse=${encodeURIComponent(ADRESSE_AUTORISEE)}`,
     );
 
+    expect(reponse.status).toBe(200);
     expect(await reponse.text()).not.toContain(TEXTE_ANNONCE_CONNEXION);
+    // Le code s'écrit avant la réponse : sa présence prouve que la soumission a été traitée.
+    const { results } = await obtenirDB().prepare('select count(*) as n from codes_connexion').all();
+    expect(results[0].n).toBe(1);
+    // L'expédition part après la réponse : l'attendre ici, avant que l'espion ne soit retiré.
+    for (let i = 0; i < 500 && messages.length === SEUIL; i += 1) await pause(10);
+    expect(messages).toHaveLength(SEUIL + 1);
+    expect(messages[SEUIL].to).toBe(ADRESSE_AUTORISEE);
+  },
+  DELAI_TEST_MS,
+);
+
+it(
+  'SC-12d — cas limite : cinq tentatives de connexion n’entament pas le seuil des demandes de la même origine',
+  async () => {
+    const cookie = await cookieAppareil();
+    for (let i = 0; i < SEUIL; i += 1) {
+      const tentative = await soumettreConnexion(ORIGINE_A, cookie, `code=faux-${String(i)}`);
+      expect(await tentative.text()).not.toContain(TEXTE_ANNONCE_CONNEXION);
+    }
+
+    // Avec un compte partagé, cette demande serait la sixième sollicitation de l'origine.
+    const demande = await envoyer(ORIGINE_A);
+
+    expect(demande.status).toBe(200);
+    expect(await demande.json()).toEqual({ statut: 'envoyee' });
+    expect(messages).toHaveLength(1);
   },
   DELAI_TEST_MS,
 );

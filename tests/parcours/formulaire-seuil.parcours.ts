@@ -49,6 +49,7 @@ test.describe("le seuil des demandes", () => {
       await page.getByRole("button", { name: "Envoyer ma demande" }).click();
 
       await expect(page.getByText(MESSAGE_LIMITE)).toBeVisible();
+      await expect(page.getByText(MESSAGE_LIMITE)).toBeFocused();
       await expect(page.getByText(MESSAGE_ECHEC)).toBeHidden();
       await expect(page.getByText("Merci, votre demande a été envoyée.")).toBeHidden();
       await expect(page.getByRole("button", { name: "Envoyer ma demande" })).toBeEnabled();
