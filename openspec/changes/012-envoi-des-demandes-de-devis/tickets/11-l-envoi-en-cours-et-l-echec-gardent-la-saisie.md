@@ -53,10 +53,10 @@ l'enregistrement de la demande avant l'e-mail (story « Réception et suivi des 
 story, une demande dont l'e-mail échoue est perdue, et le visiteur en est averti.
 
 ## Critères
-- [ ] Quand le visiteur actionne deux fois de suite le bouton d'envoi, une seule demande part, et un seul e-mail parvient à l'adresse autorisée   (SC-11a)
-- [ ] Quand le visiteur a envoyé sa demande et que la réponse n'est pas encore revenue, le formulaire dit que l'envoi est en cours, et le bouton d'envoi est inactif   (SC-11b)
-- [ ] Quand le visiteur envoie une demande complète et que la plateforme d'acheminement refuse l'e-mail, le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer, et toutes ses saisies et sélections sont toujours là   (SC-11c)
-- [ ] Quand le visiteur envoie sa demande alors que son appareil n'atteint pas le site, le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer, sans rien effacer   (SC-11d)
-- [ ] Quand, après un échec d'envoi, le visiteur renvoie sa demande et que l'acheminement aboutit, la demande est confirmée, et un seul e-mail parvient pour ce nouvel envoi   (SC-11e)
-- [ ] Quand aucune adresse autorisée n'est enregistrée et qu'un visiteur envoie une demande complète, aucun e-mail ne part, et le formulaire dit que la demande n'a pas pu être envoyée, la saisie gardée   (SC-11f)
-- [ ] Quand le visiteur a envoyé sa demande et que le serveur la refuse, en désignant un champ ou parce que le formulaire a changé, le formulaire n'est plus en cours d'envoi, le bouton d'envoi est de nouveau actif, et toute la saisie est gardée   (SC-11g)
+- [x] Quand le visiteur actionne deux fois de suite le bouton d'envoi, une seule demande part, et un seul e-mail parvient à l'adresse autorisée   (SC-11a)
+- [x] Quand le visiteur a envoyé sa demande et que la réponse n'est pas encore revenue, le formulaire dit que l'envoi est en cours, et le bouton d'envoi est inactif   (SC-11b)
+- [x] Quand le visiteur envoie une demande complète et que la plateforme d'acheminement refuse l'e-mail, le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer, et toutes ses saisies et sélections sont toujours là   (SC-11c)
+- [x] Quand le visiteur envoie sa demande alors que son appareil n'atteint pas le site, le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer, sans rien effacer   (SC-11d)
+- [x] Quand, après un échec d'envoi, le visiteur renvoie sa demande et que l'acheminement aboutit, la demande est confirmée, et un seul e-mail parvient pour ce nouvel envoi   (SC-11e)
+- [x] Quand aucune adresse autorisée n'est enregistrée et qu'un visiteur envoie une demande complète, aucun e-mail ne part, et le formulaire dit que la demande n'a pas pu être envoyée, la saisie gardée   (SC-11f)
+- [x] Quand le visiteur a envoyé sa demande et que le serveur la refuse, en désignant un champ ou parce que le formulaire a changé, le formulaire n'est plus en cours d'envoi, le bouton d'envoi est de nouveau actif, et toute la saisie est gardée   (SC-11g)
