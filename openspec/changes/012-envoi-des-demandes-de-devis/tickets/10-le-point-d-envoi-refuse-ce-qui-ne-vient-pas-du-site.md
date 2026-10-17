@@ -43,6 +43,6 @@ requêtes venues d'un autre site.
 (ticket 09).
 
 ## Critères
-- [ ] Quand une demande parvient au point d'envoi avec une origine qui n'est pas celle du site, elle est refusée, et aucun e-mail n'est envoyé   (SC-10a)
-- [ ] Quand un envoi parvient au point d'envoi sous la forme d'un formulaire à pièces jointes, il est refusé sans que son corps soit lu, et aucun e-mail n'est envoyé   (SC-10b)
-- [ ] Quand un envoi parvient au point d'envoi avec un corps plus grand que la taille d'une demande, il est refusé, et aucun e-mail n'est envoyé   (SC-10c)
+- [x] Quand une demande parvient au point d'envoi avec une origine qui n'est pas celle du site, elle est refusée, et aucun e-mail n'est envoyé   (SC-10a)
+- [x] Quand un envoi parvient au point d'envoi sous la forme d'un formulaire à pièces jointes, il est refusé sans que son corps soit lu, et aucun e-mail n'est envoyé   (SC-10b)
+- [x] Quand un envoi parvient au point d'envoi avec un corps plus grand que la taille d'une demande, il est refusé, et aucun e-mail n'est envoyé   (SC-10c)
