@@ -129,10 +129,18 @@ it('SC-09b — une option de « Parfum » que le formulaire publié ne porte pas
   await verifierRefusDesaccord(await envoyer({ valeurs: { ...COMPLETE, parfum: ['pistache'] }, totalAffiche: 3000 }));
 });
 
+it('SC-09b — une option envoyée pour un champ de texte (« Votre nom ») : refus 409, aucun e-mail', async () => {
+  await verifierRefusDesaccord(await envoyer({ valeurs: { ...COMPLETE, nom: ['fraise'] } }));
+});
+
 it('SC-09c — deux options dans « Parfum » (choix unique) : refus 409, aucun e-mail', async () => {
   await verifierRefusDesaccord(
     await envoyer({ valeurs: { ...COMPLETE, parfum: ['fraise', 'vanille'] }, totalAffiche: 4800 }),
   );
+});
+
+it('SC-09c — la même option deux fois dans « Occasion » (choix multiple) : refus 409, aucun e-mail', async () => {
+  await verifierRefusDesaccord(await envoyer({ valeurs: { ...COMPLETE, occasion: ['mariage', 'mariage'] } }));
 });
 
 it('SC-09d — une valeur pour un champ non déclaré par le formulaire publié : refus 409, aucun e-mail', async () => {
@@ -151,8 +159,24 @@ it('SC-09d — la clé « __proto__ » n’est pas un champ déclaré : refus 40
   await verifierRefusDesaccord(reponse);
 });
 
+it('SC-09d — un champ non déclaré alors qu’un champ obligatoire manque (page ouverte avant un renommage) : refus 409, aucun e-mail', async () => {
+  await verifierRefusDesaccord(
+    await envoyer({
+      valeurs: { parfum: ['fraise'], 'nombre-de-parts': ['dix-parts'], 'ancien-courriel': 'marie@exemple.fr' },
+    }),
+  );
+});
+
 it('SC-09e — « Devis gâteau » avec une page d’origine qui ne le pose pas : refus 409, aucun e-mail', async () => {
   await verifierRefusDesaccord(await envoyer({ page: 'accueil' }));
+});
+
+it('SC-09e — un formulaire que la déclaration publiée ne porte pas : refus 409, aucun e-mail', async () => {
+  await verifierRefusDesaccord(await envoyer({ formulaire: 'devis-inexistant' }));
+});
+
+it('SC-09e — une page d’origine que le site publié ne porte pas : refus 409, aucun e-mail', async () => {
+  await verifierRefusDesaccord(await envoyer({ page: 'page-inexistante' }));
 });
 
 it('SC-09f — total annoncé de 1 € pour « Fraise » (10 €) et « 10 parts » (30 €) : refus 409, aucun e-mail', async () => {
