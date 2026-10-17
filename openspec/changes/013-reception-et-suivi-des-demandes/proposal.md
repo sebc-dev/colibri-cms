@@ -82,8 +82,8 @@ Hors-périmètre :
 - **Données** : une migration D1 pour la table des demandes. Elle porte pour la première fois des
   données personnelles de visiteurs.
 - **Configuration** : aucune nouvelle liaison, aucun nouveau secret.
-- **Décisions** : un ADR nouveau — ce qu'une demande retirée garde, et ce qu'un retrait indésirable
-  efface — voir design.md.
+- **Décisions** : ADR-0030 — ce qu'une demande retirée garde, et ce qu'un retrait indésirable efface,
+  tenu par la base elle-même ; il crée l'invariant `I17` — voir design.md.
 - **Modèle d'architecture** : la description de la base et la vue `flow-demande` disent que la demande
   est gardée ; un flux du suivi par l'éditrice s'ajoute.
 - **Recette** : la migration s'applique à la recette ; le cahier de recette gagne les cas de la liste,
