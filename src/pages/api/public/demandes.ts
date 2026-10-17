@@ -53,7 +53,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const destinataire = await lireAdresseAutorisee(env.DB);
-  if (destinataire === null) return reponse(503, { statut: 'echec' });
+  if (destinataire === null) return reponse(503, { statut: 'acheminement' });
 
   const total = totalDesValeurs(formulaire, verdict.valeurs);
   const { objet, texte } = composerCourriel(formulaire, page.titre, verdict.valeurs, total);
@@ -64,8 +64,11 @@ export const POST: APIRoute = async ({ request }) => {
       subject: objet,
       text: texte,
     });
-  } catch {
-    return reponse(502, { statut: 'echec' });
+  } catch (erreur: unknown) {
+    // Trace pour l'exploitation : le seul motif rendu par la plateforme, jamais une donnée du visiteur.
+    const motif = erreur instanceof Error ? erreur.message : 'inconnu';
+    console.error(`[demande] acheminement refusé (${motif})`);
+    return reponse(503, { statut: 'acheminement' });
   }
   return reponse(200, { statut: 'envoyee' });
 };

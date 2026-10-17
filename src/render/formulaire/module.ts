@@ -161,6 +161,15 @@ function montrerEtat(formulaire: HTMLFormElement, etat: string): void {
   for (const p of formulaire.querySelectorAll<HTMLElement>('[data-etat]')) p.hidden = p.dataset.etat !== etat;
 }
 
+/** Le message d'échec paraît et reçoit le focus, pour être annoncé aux lecteurs d'écran (D6). */
+function montrerEchec(formulaire: HTMLFormElement): void {
+  montrerEtat(formulaire, 'echec');
+  const message = formulaire.querySelector<HTMLElement>('[data-etat="echec"]');
+  if (message === null) return;
+  message.tabIndex = -1;
+  message.focus();
+}
+
 /** Le formulaire laisse place à la confirmation, qui reçoit le focus pour être annoncée. */
 function confirmer(formulaire: HTMLFormElement): void {
   const confirmation = formulaire.querySelector<HTMLElement>('[data-etat="confirmation"]');
@@ -173,13 +182,33 @@ function confirmer(formulaire: HTMLFormElement): void {
 
 /** En mode actif, l'envoi part en JSON vers la route des demandes, et la confirmation n'arrive qu'après la remise. */
 function brancherEnvoi(formulaire: HTMLFormElement): void {
+  const bouton = formulaire.querySelector<HTMLButtonElement>('button[type="submit"]');
+  let enCours = false;
+  const quitterEnvoi = (): void => {
+    enCours = false;
+    if (bouton !== null) {
+      bouton.disabled = false;
+      bouton.textContent = T.boutonEnvoi;
+    }
+  };
+  const echec = (): void => {
+    quitterEnvoi();
+    montrerEchec(formulaire);
+  };
   intercepterEnvoi(formulaire, () => {
+    if (enCours) return;
     const verdict = verifierSaisie(declarationDu(formulaire), valeursDu(formulaire));
     if (!verdict.ok) {
       designer(formulaire, verdict.champs);
       return;
     }
     effacerRefus(formulaire);
+    enCours = true;
+    montrerEtat(formulaire, 'envoi');
+    if (bouton !== null) {
+      bouton.disabled = true;
+      bouton.textContent = T.envoiEnCours;
+    }
     const total = totalDeLaSelection(decrire(formulaire), selectionDu(formulaire));
     const corps = JSON.stringify({
       formulaire: formulaire.dataset.formulaire ?? '',
@@ -193,23 +222,27 @@ function brancherEnvoi(formulaire: HTMLFormElement): void {
       body: corps,
     })
       .then((reponse) => {
-        if (reponse.ok) confirmer(formulaire);
-        else if (reponse.status === 409) montrerEtat(formulaire, 'modifie');
+        if (reponse.ok) {
+          confirmer(formulaire);
+          return;
+        }
+        quitterEnvoi();
+        if (reponse.status === 409) montrerEtat(formulaire, 'modifie');
         else if (reponse.status === 400) {
           void reponse
             .json()
             .then((corps: { statut?: string; champs?: ChampRefuse[] }) => {
-              if (corps.statut === 'champs' && Array.isArray(corps.champs)) designer(formulaire, corps.champs);
-              else montrerEtat(formulaire, 'echec');
+              if (corps.statut === 'champs' && Array.isArray(corps.champs)) {
+                montrerEtat(formulaire, '');
+                designer(formulaire, corps.champs);
+              } else montrerEchec(formulaire);
             })
             .catch(() => {
-              montrerEtat(formulaire, 'echec');
+              montrerEchec(formulaire);
             });
-        } else montrerEtat(formulaire, 'echec');
+        } else montrerEchec(formulaire);
       })
-      .catch(() => {
-        montrerEtat(formulaire, 'echec');
-      });
+      .catch(echec);
   });
 }
 
