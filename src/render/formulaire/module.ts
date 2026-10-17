@@ -161,13 +161,17 @@ function montrerEtat(formulaire: HTMLFormElement, etat: string): void {
   for (const p of formulaire.querySelectorAll<HTMLElement>('[data-etat]')) p.hidden = p.dataset.etat !== etat;
 }
 
-/** Le message d'échec paraît et reçoit le focus, pour être annoncé aux lecteurs d'écran (D6). */
-function montrerEchec(formulaire: HTMLFormElement): void {
-  montrerEtat(formulaire, 'echec');
-  const message = formulaire.querySelector<HTMLElement>('[data-etat="echec"]');
+/** Le message d'état paraît et reçoit le focus, pour être annoncé aux lecteurs d'écran (D6). */
+function montrerMessage(formulaire: HTMLFormElement, etat: string): void {
+  montrerEtat(formulaire, etat);
+  const message = formulaire.querySelector<HTMLElement>(`[data-etat="${etat}"]`);
   if (message === null) return;
   message.tabIndex = -1;
   message.focus();
+}
+
+function montrerEchec(formulaire: HTMLFormElement): void {
+  montrerMessage(formulaire, 'echec');
 }
 
 /** Le formulaire laisse place à la confirmation, qui reçoit le focus pour être annoncée. */
@@ -228,6 +232,7 @@ function brancherEnvoi(formulaire: HTMLFormElement): void {
         }
         quitterEnvoi();
         if (reponse.status === 409) montrerEtat(formulaire, 'modifie');
+        else if (reponse.status === 429) montrerMessage(formulaire, 'limite');
         else if (reponse.status === 400) {
           void reponse
             .json()

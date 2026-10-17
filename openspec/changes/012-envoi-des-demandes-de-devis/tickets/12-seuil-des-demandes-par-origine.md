@@ -50,11 +50,11 @@ envoyé.
 visiteur.
 
 ## Critères
-- [ ] Quand une même origine envoie six demandes complètes dans la même fenêtre, les cinq premières sont acceptées, la sixième est refusée   (SC-12a)
-- [ ] Quand une origine a atteint le seuil des demandes, et qu'une autre origine envoie une demande complète dans la même fenêtre, la demande de l'autre origine est acceptée   (SC-12b)
-- [ ] Quand une origine a été refusée pour seuil atteint, et qu'elle envoie une demande complète dans la fenêtre suivante, la demande est acceptée   (SC-12c)
-- [ ] Quand une origine a atteint le seuil des demandes, puis soumet une adresse à l'écran de connexion dans la même fenêtre, la soumission de connexion est traitée comme sous son propre seuil   (SC-12d)
-- [ ] Quand une origine envoie cinq demandes refusées pour un champ manquant, puis une sixième, complète, dans la même fenêtre, la sixième est refusée pour seuil atteint   (SC-12e)
-- [ ] Quand une sollicitation est comptée, la réponse ne pose aucun cookie lié au comptage   (SC-12f)
-- [ ] Quand le visiteur envoie une demande au-delà du seuil de son origine, le formulaire dit que trop de demandes ont été envoyées depuis sa connexion et l'invite à réessayer plus tard, sans rien effacer, et aucun e-mail n'est envoyé   (SC-12g)
-- [ ] Quand une sollicitation arrive et que la base refuse de la compter, la sollicitation est refusée, rien de ce qu'elle demande n'est fait, et la trace de l'échec ne porte ni son adresse IP, ni la clé de la fenêtre, ni son empreinte   (SC-12h)
+- [x] Quand une même origine envoie six demandes complètes dans la même fenêtre, les cinq premières sont acceptées, la sixième est refusée   (SC-12a)
+- [x] Quand une origine a atteint le seuil des demandes, et qu'une autre origine envoie une demande complète dans la même fenêtre, la demande de l'autre origine est acceptée   (SC-12b)
+- [x] Quand une origine a été refusée pour seuil atteint, et qu'elle envoie une demande complète dans la fenêtre suivante, la demande est acceptée   (SC-12c)
+- [x] Quand une origine a atteint le seuil des demandes, puis soumet une adresse à l'écran de connexion dans la même fenêtre, la soumission de connexion est traitée comme sous son propre seuil   (SC-12d)
+- [x] Quand une origine envoie cinq demandes refusées pour un champ manquant, puis une sixième, complète, dans la même fenêtre, la sixième est refusée pour seuil atteint   (SC-12e)
+- [x] Quand une sollicitation est comptée, la réponse ne pose aucun cookie lié au comptage   (SC-12f)
+- [x] Quand le visiteur envoie une demande au-delà du seuil de son origine, le formulaire dit que trop de demandes ont été envoyées depuis sa connexion et l'invite à réessayer plus tard, sans rien effacer, et aucun e-mail n'est envoyé   (SC-12g)
+- [x] Quand une sollicitation arrive et que la base refuse de la compter, la sollicitation est refusée, rien de ce qu'elle demande n'est fait, et la trace de l'échec ne porte ni son adresse IP, ni la clé de la fenêtre, ni son empreinte   (SC-12h)

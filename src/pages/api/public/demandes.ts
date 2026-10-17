@@ -19,6 +19,7 @@ import { lireFormulaireDeLaDeclaration } from '../../../platform/contenu/formula
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { lireAdresseAutorisee } from '../../../platform/auth/magasin.ts';
 import { demanderAcheminementDeLaDemande } from '../../../platform/email/index.ts';
+import { compterEtJuger } from '../../../platform/frequence/index.ts';
 import { lireCorpsJsonBorne, type LectureCorps } from '../../../platform/reglages/corps.ts';
 
 export const prerender = false;
@@ -43,13 +44,30 @@ async function lireEnvoiDuSite(request: Request, origineDuSite: string): Promise
   return await lireCorpsJsonBorne(request, TAILLE_DEMANDE_MAX);
 }
 
+interface Envoi {
+  readonly idFormulaire: string;
+  readonly slug: string;
+  readonly valeurs: unknown;
+  readonly totalAffiche: unknown;
+}
+
+/** Les identifiants exigés du JSON reçu (formulaire, page) ; `null` si le corps n'en porte pas. */
+function lireIdentifiants(recu: unknown): Envoi | null {
+  if (typeof recu !== 'object' || recu === null) return null;
+  const { formulaire, page, valeurs, totalAffiche } = recu as Record<string, unknown>;
+  if (typeof formulaire !== 'string' || typeof page !== 'string') return null;
+  return { idFormulaire: formulaire, slug: page, valeurs, totalAffiche };
+}
+
 export const POST: APIRoute = async ({ request, url }) => {
+  // Le seuil par origine (FR-062, ADR-0028) se juge en tête : toute sollicitation compte, même refusée ensuite.
+  const seuil = await compterEtJuger(env.DB, 'demande', request.headers.get('cf-connecting-ip'), Date.now());
+  if (seuil === 'refusee') return reponse(429, { statut: 'seuil' });
   const corps = await lireEnvoiDuSite(request, url.origin);
   if (!corps.ok) return reponse(corps.statut, { statut: 'refusee' });
-  const recu = corps.json;
-  if (typeof recu !== 'object' || recu === null) return reponse(400, { statut: 'refusee' });
-  const { formulaire: idFormulaire, page: slug, valeurs, totalAffiche } = recu as Record<string, unknown>;
-  if (typeof idFormulaire !== 'string' || typeof slug !== 'string') return reponse(400, { statut: 'refusee' });
+  const envoi = lireIdentifiants(corps.json);
+  if (envoi === null) return reponse(400, { statut: 'refusee' });
+  const { idFormulaire, slug, valeurs, totalAffiche } = envoi;
 
   const formulaire = lireFormulaireDeLaDeclaration(idFormulaire);
   const page = obtenirPageAvecEmplacements(slug);

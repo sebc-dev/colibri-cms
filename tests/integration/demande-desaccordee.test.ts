@@ -68,6 +68,12 @@ beforeEach(async () => {
   };
   const db = await assurerSchema();
   await db.prepare('delete from adresses_autorisees').run();
+  await db
+    .prepare(
+      'create table if not exists comptes_seuil (surface text not null, empreinte blob not null, nombre integer not null, primary key (surface, empreinte))',
+    )
+    .run();
+  await db.prepare('delete from comptes_seuil').run();
   await db.prepare('insert into adresses_autorisees (adresse) values (?1)').bind(ADRESSE_AUTORISEE).run();
 });
 
