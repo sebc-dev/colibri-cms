@@ -48,7 +48,8 @@
 - **Seuil** — 5ᵉ demande acceptée, 6ᵉ refusée ; 20ᵉ tentative de connexion traitée, 21ᵉ refusée ;
   sollicitations refusées pour un autre motif qui comptent ; deux surfaces séparées ; deux origines
   séparées ; bascule de fenêtre (clé changée, empreintes effacées) ; origine absente (« inconnue ») ;
-  adresse IPv6 ; erreur de la base (refus, trace sans adresse, clé ni empreinte).
+  adresse IPv6 ; erreur de la base (refus, trace sans adresse, clé ni empreinte ; annoncée comme une
+  panne et non comme un seuil, sur les deux surfaces ; la connexion reste fermée, quoi qu'on soumette).
 - **E-mail composé** — valeur d'une ligne portant retour chariot ou saut de ligne ; texte long dont une
   ligne commence par « Total indicatif : » ; saisie ressemblant à du HTML ou à un code de connexion ;
   champs facultatifs vides omis ; adresse autorisée absente (échec).

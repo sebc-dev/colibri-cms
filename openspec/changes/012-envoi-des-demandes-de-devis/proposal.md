@@ -38,9 +38,10 @@ déléguée au jour où le formulaire serait dessiné dans le rendu partagé.
 - **Un seuil par origine, pour les demandes et pour la connexion.** Au-delà de 5 demandes par heure depuis
   une même adresse IP, l'envoi est refusé, sans compte visiteur (FR-062). Au-delà de 20 tentatives de
   connexion par heure depuis une même adresse IP, l'écran de connexion refuse la tentative et l'annonce
-  identiquement quelle que soit l'adresse saisie (FR-007). Le compteur ne garde jamais une adresse IP en
-  clair : chaque origine y entre sous une empreinte calculée avec une clé tirée au hasard pour la seule
-  heure en cours, et clé et empreintes sont effacées ensemble à l'heure suivante.
+  identiquement quelle que soit l'adresse saisie (FR-007). Un compteur en panne refuse aussi, sur les deux
+  surfaces, en l'annonçant comme un échec passager plutôt que comme un seuil atteint. Le compteur ne garde
+  jamais une adresse IP en clair : chaque origine y entre sous une empreinte calculée avec une clé tirée
+  au hasard pour la seule heure en cours, et clé et empreintes sont effacées ensemble à l'heure suivante.
 - **L'aperçu montre le formulaire avec son brouillon** — options, libellés et prix courants — au même
   rendu que la page publique ; depuis l'aperçu, le bouton d'envoi n'envoie rien.
 - **Sans script, rien ne casse.** Le formulaire s'affiche, mais sans total ni envoi ; un message invite
