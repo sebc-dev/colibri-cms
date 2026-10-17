@@ -45,7 +45,8 @@ Textes du visiteur (`src/render/formulaire/textes.ts`) :
 - **en saisie** — le total suit chaque sélection, annoncé poliment aux lecteurs d'écran ;
 - **refus de saisie** — chaque champ en cause porte son message sous lui ; le résumé paraît en tête du
   formulaire, chaque libellé y est un lien vers son champ, et le focus va au résumé ; rien n'est effacé ;
-- **envoi en cours** — le bouton devient « Envoi en cours… », inactif ;
+  quand ce refus vient du serveur après l'envoi, le bouton redevient « Envoyer ma demande », actif ;
+- **envoi en cours** — le bouton devient « Envoi en cours… », inactif, jusqu'à la réponse ;
 - **envoyée** — le formulaire laisse place à la confirmation, qui reçoit le focus ;
 - **échec** (acheminement, site injoignable, seuil, formulaire changé) — le message paraît au-dessus du
   bouton, le bouton redevient actif, toute la saisie reste.
