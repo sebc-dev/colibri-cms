@@ -19,7 +19,7 @@ import { lireFormulaireDeLaDeclaration } from '../../../platform/contenu/formula
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { lireAdresseAutorisee } from '../../../platform/auth/magasin.ts';
 import { demanderAcheminementDeLaDemande } from '../../../platform/email/index.ts';
-import { lireCorpsJsonBorne } from '../../../platform/reglages/corps.ts';
+import { lireCorpsJsonBorne, type LectureCorps } from '../../../platform/reglages/corps.ts';
 
 export const prerender = false;
 
@@ -27,8 +27,24 @@ function reponse(statut: number, corps: Record<string, string>): Response {
   return Response.json(corps, { status: statut });
 }
 
-export const POST: APIRoute = async ({ request }) => {
-  const corps = await lireCorpsJsonBorne(request);
+/** Taille maximale d'une demande : 16 Kio. */
+const TAILLE_DEMANDE_MAX = 16 * 1024;
+
+type LectureEnvoi = LectureCorps | { readonly ok: false; readonly statut: 403 | 415 };
+
+/**
+ * Contrôles avant toute lecture du corps : origine du site, puis format JSON (jamais de multipart),
+ * puis lecture bornée à la taille d'une demande.
+ */
+async function lireEnvoiDuSite(request: Request, origineDuSite: string): Promise<LectureEnvoi> {
+  if (request.headers.get('origin') !== origineDuSite) return { ok: false, statut: 403 };
+  const format = (request.headers.get('content-type') ?? '').split(';')[0]?.trim().toLowerCase();
+  if (format !== 'application/json') return { ok: false, statut: 415 };
+  return await lireCorpsJsonBorne(request, TAILLE_DEMANDE_MAX);
+}
+
+export const POST: APIRoute = async ({ request, url }) => {
+  const corps = await lireEnvoiDuSite(request, url.origin);
   if (!corps.ok) return reponse(corps.statut, { statut: 'refusee' });
   const recu = corps.json;
   if (typeof recu !== 'object' || recu === null) return reponse(400, { statut: 'refusee' });
@@ -72,3 +88,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
   return reponse(200, { statut: 'envoyee' });
 };
+
+/** Toute autre méthode que POST est refusée (405), sans lire le corps ni rien envoyer. */
+export const ALL: APIRoute = () =>
+  Response.json({ statut: 'refusee' }, { status: 405, headers: { Allow: 'POST' } });

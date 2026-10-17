@@ -10,9 +10,9 @@ export type LectureCorps =
   | { readonly ok: true; readonly json: unknown }
   | { readonly ok: false; readonly statut: 400 | 413 };
 
-export async function lireCorpsJsonBorne(request: Request): Promise<LectureCorps> {
+export async function lireCorpsJsonBorne(request: Request, tailleMax: number = CORPS_TAILLE_MAX): Promise<LectureCorps> {
   const annonce = Number(request.headers.get('content-length'));
-  if (Number.isFinite(annonce) && annonce > CORPS_TAILLE_MAX) return { ok: false, statut: 413 };
+  if (Number.isFinite(annonce) && annonce > tailleMax) return { ok: false, statut: 413 };
 
   const flux = request.body;
   if (!flux) return { ok: false, statut: 400 };
@@ -24,7 +24,7 @@ export async function lireCorpsJsonBorne(request: Request): Promise<LectureCorps
       const { done, value } = await lecteur.read();
       if (done) break;
       total += value.byteLength;
-      if (total > CORPS_TAILLE_MAX) {
+      if (total > tailleMax) {
         await lecteur.cancel();
         return { ok: false, statut: 413 };
       }
