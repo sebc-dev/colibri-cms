@@ -114,6 +114,17 @@ it('SC-10a — sans en-tête Origin, la demande est refusée (403), sans e-mail'
   expectRefusSansRien(reponse, 403);
 });
 
+it('une autre méthode que POST est refusée (405), sans e-mail', async () => {
+  for (const methode of ['GET', 'PUT', 'DELETE']) {
+    const init: RequestInit = { method: methode, headers: { Origin: ORIGINE, 'Content-Type': 'application/json' } };
+    if (methode !== 'GET') init.body = JSON.stringify(CORPS_UTILE);
+    const reponse = await exports.default.fetch(new Request(`${ORIGINE}/api/public/demandes`, init));
+    expectRefusSansRien(reponse, 405);
+    expect(reponse.headers.get('allow')).toBe('POST');
+    expect(await reponse.text()).not.toContain('Marie');
+  }
+});
+
 it('SC-10b — un formulaire à pièces jointes est refusé (415) sans e-mail', async () => {
   const frontiere = 'frontiere-de-test';
   const multipart =
@@ -130,12 +141,59 @@ it('SC-10b — un corps qui n’est pas du JSON (texte brut) est refusé (415) s
   expectRefusSansRien(reponse, 415);
 });
 
+it('SC-10b — un formulaire à pièces jointes au corps sans fin est refusé (415) sans être lu, sans e-mail', async () => {
+  // Le corps ne se termine jamais : une route qui le lirait n'aurait jamais de réponse à rendre.
+  let premier = true;
+  const flux = new ReadableStream<Uint8Array>({
+    async pull(controleur) {
+      if (premier) {
+        premier = false;
+        controleur.enqueue(
+          new TextEncoder().encode('--frontiere\r\nContent-Disposition: form-data; name="nom"\r\n\r\nMarie'),
+        );
+        return;
+      }
+      await new Promise<void>(() => undefined);
+    },
+  });
+  const envoi = exports.default.fetch(
+    new Request(`${ORIGINE}/api/public/demandes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'multipart/form-data; boundary=frontiere', Origin: ORIGINE },
+      body: flux,
+      duplex: 'half',
+    } as RequestInit),
+  );
+  let minuterie: ReturnType<typeof setTimeout> | undefined;
+  const delai = new Promise<never>((_resoudre, rejeter) => {
+    minuterie = setTimeout(() => {
+      rejeter(new Error('aucune réponse en 3 s : la route attend la fin du corps'));
+    }, 3000);
+  });
+  try {
+    const reponse = await Promise.race([envoi, delai]);
+    expectRefusSansRien(reponse, 415);
+  } finally {
+    clearTimeout(minuterie);
+  }
+});
+
 it('SC-10c — un corps de 16 Kio + 1 octet est refusé (413) sans e-mail', async () => {
   const base = JSON.stringify({ ...CORPS_UTILE, remplissage: '' });
   const corps = JSON.stringify({ ...CORPS_UTILE, remplissage: 'x'.repeat(TAILLE_DEMANDE + 1 - base.length) });
   expect(new TextEncoder().encode(corps).byteLength).toBe(TAILLE_DEMANDE + 1);
   const reponse = await poster(corps, { 'Content-Type': 'application/json', Origin: ORIGINE });
   expectRefusSansRien(reponse, 413);
+});
+
+it('SC-10c — un corps de 16 Kio exactement est accepté, et l’e-mail part', async () => {
+  const base = JSON.stringify({ ...CORPS_UTILE, remplissage: '' });
+  const corps = JSON.stringify({ ...CORPS_UTILE, remplissage: 'x'.repeat(TAILLE_DEMANDE - base.length) });
+  expect(new TextEncoder().encode(corps).byteLength).toBe(TAILLE_DEMANDE);
+  const reponse = await poster(corps, { 'Content-Type': 'application/json', Origin: ORIGINE });
+  expect(reponse.status).toBe(200);
+  expect(await reponse.json()).toEqual({ statut: 'envoyee' });
+  expect(messages).toHaveLength(1);
 });
 
 it('SC-10c — un corps très grand, sans taille annoncée, est refusé (413) sans e-mail', async () => {
@@ -157,4 +215,10 @@ it('SC-10c — un corps très grand, sans taille annoncée, est refusé (413) sa
     } as RequestInit),
   );
   expectRefusSansRien(reponse, 413);
+});
+
+it('un JSON invalide est refusé (400), sans e-mail', async () => {
+  const reponse = await poster('{"formulaire":', { 'Content-Type': 'application/json', Origin: ORIGINE });
+  expectRefusSansRien(reponse, 400);
+  expect(await reponse.json()).toEqual({ statut: 'refusee' });
 });
