@@ -43,3 +43,12 @@ n'existe plus : commiter le test retouché et le code, puis relancer `/scd-spec-
 - Reprise nue, sans jeton `rerun` : elle resservirait la même erreur depuis le cache.
 - Relancer le run depuis le début : il réécrirait les tests et l'implémentation pour une seule
   ligne, au prix de plus d'une heure de run.
+
+## Issue
+Run abouti le 2026-10-18 au second passage (`rerun: "2"`), PR #278, fusionnée. La retouche du test,
+indexée avant la reprise, a bien été commitée (sha256 identique). La relecture a fait passer la
+pastille « E-mail non parti » par le composant `Badge`. Sept corrections de couverture, classées
+appliquées par le tri, manquaient du diff (aucun agent n'a le droit d'écrire un test) : je les ai
+écrites après la fusion, sur la branche `test/013-tests-retenus-03`, avec le test unitaire de la date
+prévu au ticket. Neuf pannes volontaires ont rougi chacune le test visé. Le même passage a corrigé
+CT-4.3, CT-4.1 et le bilan du cahier de recette, que le ticket avait laissés en l'état d'avant.
