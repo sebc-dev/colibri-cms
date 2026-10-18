@@ -11,10 +11,8 @@
  * instance — chaque rendu porte son propre marquage, dérivé de la même
  * prop `rubrique`.
  *
- * Seules « Mes pages » et « Médias » mènent à un écran servi (`href`) :
- * elles seules SC-03c. Les trois autres (Réglages, Formulaires, Demandes)
- * situent la navigation sans lien ni bouton — rien qui « offre » un geste
- * vers un écran qui n'existe pas encore, et rien qui ressemble à un geste
+ * Les cinq rubriques mènent chacune à leur écran servi (`href`), Demandes
+ * comprise (change 013, ticket 03) ; rien qui ressemble à un geste
  * d'ajout, de retrait, de déplacement ou de renommage de rubrique ou de
  * page.
  *
@@ -44,8 +42,8 @@ import Settings from '@lucide/svelte/icons/settings';
 import ClipboardList from '@lucide/svelte/icons/clipboard-list';
 import Mail from '@lucide/svelte/icons/mail';
 
-export type IdRubriqueServie = 'mes-pages' | 'medias' | 'reglages' | 'formulaires';
-type IdRubrique = IdRubriqueServie | 'demandes';
+export type IdRubriqueServie = 'mes-pages' | 'medias' | 'reglages' | 'formulaires' | 'demandes';
+type IdRubrique = IdRubriqueServie;
 
 interface Props {
   rubrique: IdRubriqueServie;
@@ -67,7 +65,7 @@ const RUBRIQUES: ReadonlyArray<{ readonly id: IdRubrique; readonly libelle: stri
     { id: 'medias', libelle: 'Médias', href: '/admin/medias' },
     { id: 'reglages', libelle: 'Réglages', href: '/admin/reglages' },
     { id: 'formulaires', libelle: 'Formulaires', href: '/admin/formulaires' },
-    { id: 'demandes', libelle: 'Demandes', href: null },
+    { id: 'demandes', libelle: 'Demandes', href: '/admin/demandes' },
   ];
 ---
 

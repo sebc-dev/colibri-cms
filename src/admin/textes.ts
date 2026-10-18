@@ -329,3 +329,15 @@ export const TEXTE_ANNONCE_SEUIL =
 
 /** L'annonce d'une panne du compteur : un échec passager, jamais un seuil atteint. */
 export const TEXTE_ANNONCE_PANNE = "La connexion n'a pas pu se faire. Réessayez dans quelques instants.";
+
+/** L'écran « Demandes » : titre, état vide, suites, pastille (FR-117). */
+export const TEXTE_TITRE_DEMANDES = 'Demandes';
+export const TEXTE_AUCUNE_DEMANDE =
+  'Aucune demande n’est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici.';
+export const TEXTES_SUITE_DEMANDE: Readonly<Record<string, string>> = {
+  'a-renseigner': 'À renseigner',
+  'sans-suite': 'Sans suite',
+  'devis-envoye': 'Devis envoyé',
+  commande: 'Commande',
+};
+export const TEXTE_EMAIL_NON_PARTI = 'E-mail non parti';

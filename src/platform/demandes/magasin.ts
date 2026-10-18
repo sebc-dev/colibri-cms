@@ -67,3 +67,50 @@ export async function marquerCourrielParti(db: Base, id: string): Promise<void> 
   await assurerSchema(db);
   await db.prepare("update demandes set courriel = 'parti' where id = ?1").bind(id).run();
 }
+
+export interface LigneDemande {
+  readonly id: string;
+  readonly recueLe: number;
+  readonly formulaireNom: string;
+  readonly pageTitre: string;
+  readonly contact: string;
+  readonly total: number | null;
+  readonly suite: 'a-renseigner' | 'sans-suite' | 'devis-envoye' | 'commande';
+  readonly courriel: 'parti' | 'non-parti' | null;
+}
+
+const LIMITE_LISTE = 50;
+
+interface LigneBrute {
+  id: string;
+  recue_le: number;
+  formulaire_nom: string;
+  page_titre: string | null;
+  contact: string | null;
+  total: number | null;
+  suite: LigneDemande['suite'];
+  courriel: LigneDemande['courriel'];
+}
+
+/** Les demandes présentes, la plus récente d'abord, 50 au plus (ordre stable à la milliseconde). */
+export async function listerDemandes(db: Base): Promise<LigneDemande[]> {
+  await assurerSchema(db);
+  const resultat = await db
+    .prepare(
+      `select id, recue_le, formulaire_nom, page_titre, contact, total, suite, courriel
+       from demandes where etat = 'presente' order by recue_le desc, rowid desc limit ?1`,
+    )
+    .bind(LIMITE_LISTE)
+    .all();
+  const lignes = resultat.results as LigneBrute[];
+  return lignes.map((r) => ({
+    id: r.id,
+    recueLe: r.recue_le,
+    formulaireNom: r.formulaire_nom,
+    pageTitre: r.page_titre ?? '',
+    contact: r.contact ?? '',
+    total: r.total,
+    suite: r.suite,
+    courriel: r.courriel,
+  }));
+}
