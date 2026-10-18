@@ -65,7 +65,7 @@ model {
     // trace : wrangler.astro.jsonc:6-11 — d1_databases DB "colibri", migrations_dir "migrations"
     d1 = store 'Base D1' {
       technology 'Cloudflare D1 (SQLite)'
-      description "Adresse autorisée, codes de connexion, sessions, brouillons des pages, des médias, des réglages et des formulaires, l'état publié et l'état de la publication."
+      description "Adresse autorisée, codes de connexion, sessions, brouillons des pages, des médias, des réglages et des formulaires, l'état publié, l'état de la publication, les demandes de devis et leur suite."
       metadata { sourceDir 'migrations' }
     }
 

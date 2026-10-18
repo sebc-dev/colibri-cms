@@ -2,8 +2,9 @@
  * L'envoi d'une demande de devis (change 012, ticket 07 ; FR-057, FR-063/064, FR-097) — seul geste
  * du visiteur à traitement serveur. Sans garde de session, sans cookie lu ni posé, jamais
  * `request.formData()` (I6) : un JSON `{ formulaire, page, valeurs, totalAffiche }`. La demande est
- * vérifiée contre la déclaration empaquetée, composée en texte seul, remise à l'adresse autorisée,
- * puis confirmée — rien n'est conservé en base.
+ * vérifiée contre la déclaration empaquetée, gardée dans la liste des demandes (change 013,
+ * ADR-0030) avant tout envoi, composée en texte seul, remise à l'adresse autorisée, puis confirmée.
+ * Une demande refusée n'est pas gardée ; aucune valeur saisie n'est journalisée.
  */
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
@@ -12,13 +13,17 @@ import {
   pagePoseLeFormulaire,
   totalAnnonceAccorde,
   verifierDemande,
+  type ValeursDemande,
 } from '../../../core/formulaires/demande.ts';
 import { verifierSaisie } from '../../../core/formulaires/saisie.ts';
+import type { FormulaireDeclare } from '../../../core/formulaires/declaration.ts';
 import { composerCourriel, totalDesValeurs } from '../../../core/formulaires/courriel.ts';
 import { lireFormulaireDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
 import { obtenirPageAvecEmplacements } from '../../../platform/contenu/pages.ts';
 import { lireAdresseAutorisee } from '../../../platform/auth/magasin.ts';
 import { demanderAcheminementDeLaDemande } from '../../../platform/email/index.ts';
+import { composerDetail, contactDeReponse, totalAGarder } from '../../../core/demandes/detail.ts';
+import { garderDemande, marquerCourrielParti, type DemandeAGarder } from '../../../platform/demandes/magasin.ts';
 import { compterEtJuger } from '../../../platform/frequence/index.ts';
 import type { Verdict } from '../../../core/frequence/regles.ts';
 import { lireCorpsJsonBorne, type LectureCorps } from '../../../platform/reglages/corps.ts';
@@ -70,6 +75,38 @@ function refusDuSeuil(seuil: Verdict): Response | null {
   return null;
 }
 
+/**
+ * La demande à garder, telle qu'envoyée : noms du formulaire et de la page à l'envoi, total quand le
+ * formulaire porte un prix, coordonnée de réponse et détail copié de la déclaration (ADR-0030).
+ */
+function demandeAGarder(
+  formulaire: FormulaireDeclare,
+  pageTitre: string,
+  valeurs: ValeursDemande,
+  total: number,
+): DemandeAGarder {
+  return {
+    formulaireId: formulaire.id,
+    formulaireNom: formulaire.nom,
+    pageTitre,
+    total: totalAGarder(formulaire, total),
+    contact: contactDeReponse(formulaire, valeurs),
+    detail: JSON.stringify(composerDetail(formulaire, valeurs)),
+  };
+}
+
+/**
+ * L'e-mail est parti : la demande gardée perd sa mention « non parti ». Un échec est consigné sans
+ * donnée du visiteur ni identifiant, et laisse la mention.
+ */
+async function noterCourrielParti(idDemande: string): Promise<void> {
+  try {
+    await marquerCourrielParti(env.DB, idDemande);
+  } catch (erreur: unknown) {
+    console.error(`[demande] marque de remise impossible (${erreur instanceof Error ? erreur.name : 'inconnu'})`);
+  }
+}
+
 export const POST: APIRoute = async ({ request, url }) => {
   // Le seuil par origine (FR-062, ADR-0028) se juge en tête : toute sollicitation compte, même refusée ensuite.
   const seuil = await compterEtJuger(env.DB, 'demande', request.headers.get('cf-connecting-ip'), Date.now());
@@ -98,10 +135,12 @@ export const POST: APIRoute = async ({ request, url }) => {
     return reponse(409, { statut: 'formulaire-change' });
   }
 
+  const total = totalDesValeurs(formulaire, verdict.valeurs);
+  const idDemande = await garderDemande(env.DB, demandeAGarder(formulaire, page.titre, verdict.valeurs, total), Date.now());
+
   const destinataire = await lireAdresseAutorisee(env.DB);
   if (destinataire === null) return reponse(503, { statut: 'acheminement' });
 
-  const total = totalDesValeurs(formulaire, verdict.valeurs);
   const { objet, texte } = composerCourriel(formulaire, page.titre, verdict.valeurs, total);
   try {
     await demanderAcheminementDeLaDemande(env.EXPEDITEUR_CODE_CONNEXION, {
@@ -116,6 +155,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     console.error(`[demande] acheminement refusé (${motif})`);
     return reponse(503, { statut: 'acheminement' });
   }
+  await noterCourrielParti(idDemande);
   return reponse(200, { statut: 'envoyee' });
 };
 

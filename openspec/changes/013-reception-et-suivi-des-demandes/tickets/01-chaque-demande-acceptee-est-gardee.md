@@ -118,12 +118,12 @@ ne modifie **aucun** test existant.
 - toute durée de conservation ou tout effacement d'office : il n'y en a aucun (FR-079).
 
 ## Critères
-- [ ] Quand un visiteur envoie, depuis la page « Contact », une demande complète pour « Devis gâteau » avec « Fraise » (10 €) et « 10 parts » (30 €), la liste des demandes porte une demande de « Devis gâteau », venue de la page « Contact », avec sa date et son heure de réception et un total de 40 €   (SC-01a)
-- [ ] Quand la plateforme d'acheminement refuse l'e-mail d'une demande complète, la demande figure dans la liste avec tout son détail, et porte la mention que son e-mail n'a pas pu partir   (SC-01b)
-- [ ] Quand aucune adresse autorisée n'est enregistrée et qu'un visiteur envoie une demande complète, la demande figure dans la liste, et porte la mention que son e-mail n'a pas pu partir   (SC-01c)
-- [ ] Quand une demande complète est gardée et que son e-mail est remis à la plateforme d'acheminement, la demande figure dans la liste sans la mention que son e-mail n'a pas pu partir   (SC-01d)
-- [ ] Quand une demande a été gardée avec « Fraise » à 10 €, puis que l'éditrice publie « Fraise » renommée « Fraise des bois » à 11 €, la demande gardée porte toujours « Fraise » à 10 € et un total de 40 €   (SC-01e)
-- [ ] Quand une demande est refusée parce qu'un champ obligatoire manque, parce que son total ne s'accorde pas au formulaire publié, ou parce que le seuil de son origine est atteint, la liste n'en porte aucune trace   (SC-01f)
-- [ ] Quand une demande vient d'arriver, sa suite est « à renseigner »   (SC-01g)
-- [ ] Quand le visiteur actionne deux fois de suite le bouton d'envoi, une seule demande part, une seule demande paraît dans la liste des demandes, et un seul e-mail parvient à l'adresse autorisée   (SC-01h)
-- [ ] Quand une demande a été gardée, puis que la plateforme d'acheminement a refusé son e-mail, les valeurs saisies par le visiteur ne figurent que dans la demande gardée : ni ailleurs dans la base, ni dans les journaux, ni dans la réponse   (SC-01i)
+- [x] Quand un visiteur envoie, depuis la page « Contact », une demande complète pour « Devis gâteau » avec « Fraise » (10 €) et « 10 parts » (30 €), la liste des demandes porte une demande de « Devis gâteau », venue de la page « Contact », avec sa date et son heure de réception et un total de 40 €   (SC-01a)
+- [x] Quand la plateforme d'acheminement refuse l'e-mail d'une demande complète, la demande figure dans la liste avec tout son détail, et porte la mention que son e-mail n'a pas pu partir   (SC-01b)
+- [x] Quand aucune adresse autorisée n'est enregistrée et qu'un visiteur envoie une demande complète, la demande figure dans la liste, et porte la mention que son e-mail n'a pas pu partir   (SC-01c)
+- [x] Quand une demande complète est gardée et que son e-mail est remis à la plateforme d'acheminement, la demande figure dans la liste sans la mention que son e-mail n'a pas pu partir   (SC-01d)
+- [x] Quand une demande a été gardée avec « Fraise » à 10 €, puis que l'éditrice publie « Fraise » renommée « Fraise des bois » à 11 €, la demande gardée porte toujours « Fraise » à 10 € et un total de 40 €   (SC-01e)
+- [x] Quand une demande est refusée parce qu'un champ obligatoire manque, parce que son total ne s'accorde pas au formulaire publié, ou parce que le seuil de son origine est atteint, la liste n'en porte aucune trace   (SC-01f)
+- [x] Quand une demande vient d'arriver, sa suite est « à renseigner »   (SC-01g)
+- [x] Quand le visiteur actionne deux fois de suite le bouton d'envoi, une seule demande part, une seule demande paraît dans la liste des demandes, et un seul e-mail parvient à l'adresse autorisée   (SC-01h)
+- [x] Quand une demande a été gardée, puis que la plateforme d'acheminement a refusé son e-mail, les valeurs saisies par le visiteur ne figurent que dans la demande gardée : ni ailleurs dans la base, ni dans les journaux, ni dans la réponse   (SC-01i)
