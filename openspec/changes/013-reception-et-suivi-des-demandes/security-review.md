@@ -44,8 +44,10 @@
 - **Effacement borné** — 1 à 50 identifiants distincts par retrait ; mise à jour ou suppression conditionnée
   à `id in (…) and etat = 'presente'` ; une seule transaction (`db.batch`), tout ou rien.
 - **Effacement complet** — la contrainte `check` de la table refuse toute ligne `retiree` qui porte une
-  colonne du visiteur non nulle (design D1) : un oubli dans le code échoue à l'écriture au lieu de garder
-  une donnée en silence.
+  colonne du visiteur non nulle (design D1, ADR-0030) : un oubli dans le code échoue à l'écriture au lieu
+  de garder une donnée en silence. Une colonne ajoutée plus tard porte sa propre clause, et le test de la
+  liste fermée des colonnes gardées fait échouer celle qui l'oublierait ; aucun fichier de `src/` ni de
+  `migrations/` ne coupe la vérification des contraintes (`I17`).
 - **Journaux** — les traces d'échec ne portent que le motif rendu par la base ou la plateforme, jamais une
   valeur saisie, un identifiant de demande ni une adresse ; un scénario de la spec `demande-de-devis` le
   vérifie.
@@ -69,6 +71,6 @@
 - **Après un retrait ordinaire** — ne restent que le formulaire d'origine (identifiant et nom) et la suite :
   aucune donnée personnelle. **Après un retrait indésirable** — rien.
 - **Résidu** — l'historique restaurable de D1 (Time Travel, 7 jours sur le palier gratuit) garde une demande
-  effacée pendant cette durée ; résidu borné, consigné dans l'ADR du retrait.
+  effacée pendant cette durée ; résidu borné, consigné dans ADR-0030.
 - **Second support** — la copie e-mail dans la boîte de l'éditrice échappe au produit ; le dialogue de
   retrait le rappelle.

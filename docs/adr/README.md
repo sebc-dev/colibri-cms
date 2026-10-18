@@ -21,7 +21,7 @@ Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, p
 0019, chaque renvoi à l'ancien cycle porte en plus la mention « (1.x) » dans son libellé
 (`ADR-0015 (1.x)`) : il se lit sans la règle. Dans le texte qu'un amendement ou un complément de
 promotion ajoute — les points marqués *(amendé)* ou *(ajouté)* —, un numéro sans mention est un
-numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027) citent des numéros 2.x.
+numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030) citent des numéros 2.x.
 
 ## Correspondance
 
@@ -56,6 +56,7 @@ numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027) citent des numéros 2
 | [0027](./0027-pose-d-un-formulaire-par-un-emplacement.md) | — | La pose d'un formulaire sur une page — un emplacement de nature « formulaire » qui le désigne |
 | [0028](./0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md) | 0012 | Anti-abus — compteur de fréquence en D1, à empreintes de fenêtre, sans Turnstile — **amendé** : Turnstile retiré, D1 au lieu d'un Durable Object ; retire `I7` |
 | [0029](./0029-svelte-pour-l-administration-formulaire-public-sans-framework.md) | 0011 | Îlots Svelte 5 pour l'administration ; le formulaire public, un document complet amélioré par un module du site — **amendé** : le site public n'a pas d'îlot ; crée `I16` |
+| [0030](./0030-retrait-d-une-demande-temoin-tenu-par-la-base.md) | — | Le retrait d'une demande — un témoin réduit à son formulaire et à sa suite, tenu par la base ; aucun effacement d'office ; crée `I17` |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -95,6 +96,10 @@ supposaient Turnstile — 0004, 0005, 0006 — : leur ligne ci-dessus renvoie à
 pas. `ADR-0029` est promu le même jour, pour le même change, le premier à charger un script sur le site
 public : **amendé** — le formulaire public n'est pas un îlot Svelte, mais un document complet amélioré par
 un module sans framework —, il crée l'invariant `I16`.
+`ADR-0030` n'a pas d'antécédent 1.x : décision neuve, née le 2026-10-17 de l'arbitrage humain du change
+`013-reception-et-suivi-des-demandes`, le premier à garder une demande en base — ce qu'une demande
+retirée garde, tenu par la base, et l'absence de tout effacement d'office ; il complète ADR-0019 et crée
+l'invariant `I17`.
 
 ## Comment se lit un remplacement
 

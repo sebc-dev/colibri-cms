@@ -1,7 +1,7 @@
 # ColibriCMS — Architecture
 
 Le cap durable de la **structure** du code : les cinq zones, le sens des dépendances, et les
-invariants `I1`–`I16` que le code s'interdit de franchir. C'est une synthèse de ce qu'un contrôle
+invariants `I1`–`I17` que le code s'interdit de franchir. C'est une synthèse de ce qu'un contrôle
 pourrait prendre en défaut, pas un design — aucun schéma de table, aucune signature. La structure
 elle-même — conteneurs, composants, relations — est le modèle LikeC4 de
 [`architecture/`](./architecture/README.md).
@@ -84,6 +84,7 @@ src/core/     → aucune
 | I14 | Aucune valeur de couleur littérale (`#…`, `rgb(…)`, `oklch(…)`) dans un fichier de `src/admin/` hors `src/admin/admin.css`, seul porteur des tokens de l'administration ; cette feuille n'importe aucune URL d'une autre origine | colibri-cms.worker.admin | 5 placement | 0015 |
 | I15 | La directive `font-src` de la politique d'administration vaut `'self'` seul — jamais un hôte tiers, jamais `data:` | colibri-cms.worker.platform | 9 usages prohibés | 0016 |
 | I16 | Aucun fichier sous `src/site/` ni `src/render/` n'est un composant `.svelte` ni ne porte de directive `client:*` : le site public n'a pas d'îlot, son seul script est un module externe servi par le site | colibri-cms.worker.site, colibri-cms.worker.render | 9 usages prohibés | 0029 |
+| I17 | Aucun fichier de `src/` ni de `migrations/` ne contient `ignore_check_constraints` : la base vérifie toujours ses contraintes, dont celle qui refuse qu'une demande retirée garde une donnée du visiteur | colibri-cms.worker, colibri-cms.d1 | 9 usages prohibés | 0030 |
 
 La colonne **ADR** suit la grille du plugin `scd-spec-dev` : un numéro rend l'invariant **opposable**
 (une violation dans un diff est bloquante en review, sauf dérogation déclarée au ticket) ; `—` en fait un
@@ -111,6 +112,7 @@ La colonne **ADR** suit la grille du plugin `scd-spec-dev` : un numéro rend l'i
 | I14 | l'occurrence de la valeur, hors de `src/admin/admin.css` ; un `@import` d'une URL absolue dans `src/admin/admin.css` | ADR-0015 |
 | I15 | la valeur de `POLITIQUE_DE_SECURITE`, dans `src/platform/entetes/middleware.ts` | ADR-0016 |
 | I16 | un fichier `.svelte`, ou la chaîne `client:` dans un gabarit, sous `src/site/` ou `src/render/` | ADR-0029 |
+| I17 | l'occurrence de `ignore_check_constraints`, sous `src/` ou `migrations/` | ADR-0030 |
 
 Cinq invariants (`I1`, `I2`, `I5`, `I8`, `I10`) reposent sur des décisions encore
 candidates (`docs/adr/_candidates/`) : ils restent tenus par la CI (`boundaries`, `analyse`), mais la

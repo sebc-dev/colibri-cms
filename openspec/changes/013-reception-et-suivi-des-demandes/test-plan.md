@@ -8,7 +8,9 @@
 - **Intégration** (`tests/integration/`, `workerd`) — par `exports.default.fetch` contre le Worker bâti et
   la vraie D1 : la route d'envoi (demande gardée, mention d'e-mail, règle de confirmation sur les quatre
   combinaisons garde × acheminement, rien hors de la table), la contrainte de la table (une ligne retirée
-  ne peut pas porter de donnée du visiteur), les deux écrans (HTML rendu : ordre, filtre, pages, nombres,
+  ne peut pas porter de donnée du visiteur) et la liste fermée des colonnes gardées (ADR-0030 : chaque
+  colonne lue par `PRAGMA table_info`, hors les cinq gardées, est refusée non nulle sur une ligne
+  retirée), les deux écrans (HTML rendu : ordre, filtre, pages, nombres,
   détail, texte jamais interprété, garde), les deux écritures (suite, retrait : garde, corps, tout ou
   rien, demande déjà retirée), le menu du cadre.
 - **Parcours** (`tests/parcours/`, Playwright) — ce qui n'existe que dans un navigateur : choisir une suite
@@ -25,6 +27,7 @@
 | Règles de la suite et du retrait | valeurs admises et bornes des specs | `tdd` |
 | Route d'envoi : garde, mention, confirmation | statut, état de la table, espion sur la liaison | `tdd` |
 | Effacement au retrait, contrainte de la table | colonnes du visiteur nulles, insertion refusée par la base | `tdd` |
+| Liste fermée des colonnes gardées (ADR-0030) | colonnes lues dans la base par `PRAGMA table_info` ; chacune hors des cinq gardées refusée non nulle sur une ligne retirée | `tdd` |
 | Écrans : ordre, filtre, pages, détail, garde | HTML rendu par le Worker, sur une table semée | `tdd` ou `test` |
 | Gestes dans le navigateur (suite, dialogue, focus) | événements et état observés par Playwright | `test` (parcours) |
 | Lisibilité au téléphone, annonce au lecteur d'écran | constat humain | `observé` |
@@ -56,6 +59,10 @@
   connus ; motif inconnu ; demande déjà retirée dans la sélection (laissée, comptée une fois) ; panne de la
   base au milieu (aucune retirée) ; sans session (401) ; après retrait ordinaire, toutes les colonnes du
   visiteur nulles ; après retrait indésirable, aucune ligne.
+- **Colonnes gardées** (ADR-0030) — pour chaque colonne lue par `PRAGMA table_info` hors `id`,
+  `formulaire_id`, `formulaire_nom`, `suite`, `etat` : une valeur non nulle sur une ligne `retiree` est
+  refusée par la base ; le test échoue si la lecture ne rend aucune colonne hors des cinq, pour ne jamais
+  passer sans rien vérifier.
 - **Aucun effacement d'office** — une demande reçue il y a plus d'un an reste, avec son détail, après une
   nouvelle demande, une lecture des écrans et une publication.
 
@@ -79,4 +86,4 @@
 - **SC-007 de bout en bout** — l'e-mail reçu dans une vraie boîte puis la suite notée dans la liste, sur la
   recette (`colibri.sebc.dev`), en mode `observé`.
 - **L'effacement dans l'historique restaurable de D1** — hors de portée de `workerd` ; résidu de 7 jours
-  consigné par l'ADR et le security-review, pas testé.
+  consigné par ADR-0030 et le security-review, pas testé.

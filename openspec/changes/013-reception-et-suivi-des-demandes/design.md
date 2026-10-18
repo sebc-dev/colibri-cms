@@ -45,7 +45,7 @@ Voir `proposal.md` — Why. L'état de départ, relevé dans le dépôt le 2026-
 
 ## Decisions
 
-### D1 — Une table `demandes`, dont la base refuse qu'une ligne retirée garde une donnée du visiteur → **ADR nouveau**
+### D1 — Une table `demandes`, dont la base refuse qu'une ligne retirée garde une donnée du visiteur → **ADR-0030**
 
 Migration `0013_demandes.sql`, additive :
 
@@ -58,8 +58,13 @@ Migration `0013_demandes.sql`, additive :
 | `recue_le` (millisecondes), `page_titre`, `total` (centimes, nul sans prix), `contact`, `detail` (JSON), `courriel` — `parti` \| `non-parti` | ✓ | **nuls** |
 
 Une contrainte `check` impose qu'une ligne `retiree` porte des nuls dans toutes les colonnes du visiteur :
-le code qui retire ne peut pas oublier un champ, et un champ ajouté plus tard à la table devra entrer dans
-la contrainte pour qu'une migration passe. Un retrait indésirable **supprime** la ligne. Un index
+le code qui retire ne peut pas oublier un champ. Une contrainte posée sur la table ne protège pas une
+colonne ajoutée plus tard par `alter table … add column` (essai SQLite du 2026-10-17, ADR-0030) : une
+colonne nouvelle s'ajoute donc avec sa propre clause `check (etat = 'presente' or <colonne> is null)`,
+sans reconstruire la table. Un test d'intégration lit les colonnes de la table par `PRAGMA table_info` et
+vérifie que chacune, hors la liste fermée des cinq gardées (`id`, `formulaire_id`, `formulaire_nom`,
+`suite`, `etat`), est refusée non nulle sur une ligne `retiree` : une colonne ajoutée sans sa clause le fait
+échouer. Un retrait indésirable **supprime** la ligne. Un index
 `(etat, recue_le desc)` sert la liste ; les nombres se lisent par un `group by formulaire_id`.
 
 L'identifiant tiré au hasard sert l'adresse du détail (`/admin/demandes/<id>`) : il ne dit ni l'ordre ni le
@@ -72,8 +77,9 @@ retrait — deux écritures à garder cohérentes, et un écart impossible à r�
 
 La décision — ce qu'un retrait ordinaire garde (formulaire et suite), ce qu'un retrait indésirable efface
 (tout), et l'absence de tout effacement d'office — est durable et touche aux données personnelles :
-elle s'écrit en ADR (`/scd-spec-dev:adr`) **avant** le ticket qui pose la table. Elle complète ADR-0019 sans
-le contredire.
+elle est figée par ADR-0030, qui complète ADR-0019 sans le contredire. ADR-0030 crée aussi `I17` : aucun
+fichier de `src/` ni de `migrations/` ne contient `ignore_check_constraints`, le réglage de D1 qui
+couperait la vérification de la contrainte.
 
 ### D2 — Le détail gardé : une composition pure, figée à la réception
 
@@ -173,7 +179,8 @@ retirée par un autre écran entre-temps est laissée telle quelle — jamais co
 nombres.
 
 Le dialogue dit, avant toute écriture, le nombre de demandes, l'effacement définitif de ce que leurs
-visiteurs ont envoyé, et, pour le motif indésirable, qu'elles ne compteront plus nulle part ; « Retirer » et
+visiteurs ont envoyé, que chaque demande reste dans la boîte e-mail si elle y est arrivée (texte exact :
+`ux.md`), et, pour le motif indésirable, qu'elles ne compteront plus nulle part ; « Retirer » et
 « Annuler », le focus d'ouverture sur « Annuler ».
 
 ### D9 — La rubrique « Demandes » devient servie
@@ -220,14 +227,13 @@ vues dans `flows.c4`, faites par les tickets qui posent le code, puis
 **Invariants vérifiés** : I1 (aucune arête nouvelle), I2 (`core/demandes/` sans framework ni plateforme),
 I4 (îlots montés par `monter.ts`), I5 (aucun HTML composé : le texte long se rend ligne à ligne), I6 (les
 quatre routes d'administration importent le garde ; la route publique ne lit toujours aucun `multipart`),
-I11–I13 (en-têtes et cookie inchangés), I14 (couleurs par tokens seulement).
+I11–I13 (en-têtes et cookie inchangés), I14 (couleurs par tokens seulement), I17 (ni la migration ni le
+magasin ne coupent la vérification des contraintes).
 
-**ADR contraignants** : ADR-0019 (D1 porte les demandes), ADR-0002 (e-mail inchangé), ADR-0007 (garde),
-ADR-0011 (anti-forgerie par le cookie), ADR-0028 (le comptage reste en tête), ADR-0009 (registre
-shadcn-svelte), ADR-0006 (aucune directive `client:*`), ADR-0014 (tests dans `workerd`).
-
-**ADR à écrire avant le ticket qu'il couvre** (`/scd-spec-dev:adr`, numéro pris dans `docs/adr/` au moment
-de l'écrire) : ce qu'une demande retirée garde et ce qu'un retrait indésirable efface (D1).
+**ADR contraignants** : ADR-0030 (ce qu'une demande retirée garde, tenu par la base ; aucun effacement
+d'office), ADR-0019 (D1 porte les demandes), ADR-0002 (e-mail inchangé), ADR-0007 (garde), ADR-0011
+(anti-forgerie par le cookie), ADR-0028 (le comptage reste en tête), ADR-0009 (registre shadcn-svelte),
+ADR-0006 (aucune directive `client:*`), ADR-0014 (tests dans `workerd`).
 
 ## Risks / Trade-offs
 
@@ -235,7 +241,7 @@ de l'écrire) : ce qu'une demande retirée garde et ce qu'un retrait indésirabl
   des charges (aucun effacement d'office, effacement praticable) ; DAT-1 reste ouvert et doit être cadré
   avant la première mise en ligne — le security-review le porte.
 - [L'historique restaurable de D1 (Time Travel, 7 jours) garde un contenu effacé par un retrait] → résidu
-  borné, déjà assumé pour le compteur (012) ; consigné dans l'ADR et le security-review.
+  borné, déjà assumé pour le compteur (012) ; consigné dans ADR-0030 et le security-review.
 - [Une session volée lit toutes les demandes et peut les retirer] → même garde que tout geste de
   l'éditrice (SEC-8) ; chaque demande existe aussi dans la boîte e-mail ; aucun export n'élargit la fuite.
 - [Le fuseau « Europe/Paris » est écrit dans le code] → vrai pour toute la flotte prévue ; le jour où une
