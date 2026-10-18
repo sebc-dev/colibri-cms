@@ -68,10 +68,10 @@ ni que quatre rubriques seulement ont un lien. Ce ticket ne modifie **aucun** te
 - tout geste — suite, sélection, retrait (tickets 07 à 09).
 
 ## Critères
-- [ ] Quand trois demandes sont arrivées lundi, mardi et mercredi, la liste présente celle de mercredi, puis celle de mardi, puis celle de lundi   (SC-03a)
-- [ ] Quand l'éditrice ouvre la liste après la demande de Marie Dupont, venue de la page « Contact » pour « Devis gâteau », d'un total de 40 €, avec l'adresse « marie@exemple.fr », la ligne de cette demande porte sa date de réception, « Devis gâteau », « Contact », « marie@exemple.fr », 40 € et la suite « à renseigner », et mène au détail de la demande   (SC-03b)
-- [ ] Quand aucune demande n'est présente, l'écran dit qu'aucune demande n'est arrivée, sans terme de développeur   (SC-03c)
-- [ ] Quand une demande porte, dans son adresse e-mail, des caractères `<`, `>`, `&` ou des guillemets, la liste les affiche comme du texte, et aucun balisage n'est interprété   (SC-03d)
-- [ ] Quand l'éditrice actionne « Demandes » dans le menu du cadre, en barre ou en tiroir, l'`Écran : Demandes` s'ouvre, la rubrique « Demandes » marquée active   (SC-03e)
-- [ ] Quand l'éditrice parcourt le menu du cadre, en barre ou en tiroir, chacune des cinq rubriques mène à son écran, aucune autre entrée du menu ne mène à un écran, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page   (SC-03f)
-- [ ] Quand l'`Écran : Demandes` est demandé sans session ouverte, l'écran de connexion s'ouvre, et la réponse ne porte aucune donnée de demande   (SC-03g)
+- [x] Quand trois demandes sont arrivées lundi, mardi et mercredi, la liste présente celle de mercredi, puis celle de mardi, puis celle de lundi   (SC-03a)
+- [x] Quand l'éditrice ouvre la liste après la demande de Marie Dupont, venue de la page « Contact » pour « Devis gâteau », d'un total de 40 €, avec l'adresse « marie@exemple.fr », la ligne de cette demande porte sa date de réception, « Devis gâteau », « Contact », « marie@exemple.fr », 40 € et la suite « à renseigner », et mène au détail de la demande   (SC-03b)
+- [x] Quand aucune demande n'est présente, l'écran dit qu'aucune demande n'est arrivée, sans terme de développeur   (SC-03c)
+- [x] Quand une demande porte, dans son adresse e-mail, des caractères `<`, `>`, `&` ou des guillemets, la liste les affiche comme du texte, et aucun balisage n'est interprété   (SC-03d)
+- [x] Quand l'éditrice actionne « Demandes » dans le menu du cadre, en barre ou en tiroir, l'`Écran : Demandes` s'ouvre, la rubrique « Demandes » marquée active   (SC-03e)
+- [x] Quand l'éditrice parcourt le menu du cadre, en barre ou en tiroir, chacune des cinq rubriques mène à son écran, aucune autre entrée du menu ne mène à un écran, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page   (SC-03f)
+- [x] Quand l'`Écran : Demandes` est demandé sans session ouverte, l'écran de connexion s'ouvre, et la réponse ne porte aucune donnée de demande   (SC-03g)

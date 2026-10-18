@@ -1,0 +1,56 @@
+---
+/**
+ * L'`Écran : Demandes` (change 013, ticket 03) : la liste des demandes, la plus récente
+ * d'abord, 50 au plus. Rendu serveur, garde de session importée (ADR-0007), aucun îlot ni
+ * script. Texte de demande interpolé échappé seulement, jamais de `set:html` (I5).
+ */
+import GabaritCadre from '../../admin/GabaritCadre.astro';
+import { Badge } from '../../admin/composants/ui/badge/index.ts';
+import { verifierSession } from '../../platform/session/index.ts';
+import { listerDemandes } from '../../platform/demandes/magasin.ts';
+import { formaterReception } from '../../core/demandes/date.ts';
+import { formaterPrix } from '../../core/formulaires/prix.ts';
+import {
+  TEXTE_TITRE_DEMANDES,
+  TEXTE_AUCUNE_DEMANDE,
+  TEXTES_SUITE_DEMANDE,
+  TEXTE_EMAIL_NON_PARTI,
+} from '../../admin/textes.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const demandes = await listerDemandes(env.DB);
+---
+
+<GabaritCadre titre="Demandes — Administration" rubrique="demandes">
+  <h1>{TEXTE_TITRE_DEMANDES}</h1>
+  {
+    demandes.length === 0 ? (
+      <div class="mt-6 rounded-lg border border-border bg-card p-4 text-ink-muted">
+        <p>{TEXTE_AUCUNE_DEMANDE}</p>
+      </div>
+    ) : (
+      <ul class="mt-6 divide-y divide-border rounded-lg border border-border bg-card">
+        {demandes.map((d) => (
+          <li class="flex flex-col gap-1 px-4 py-3 md:flex-row md:items-center md:gap-4">
+            <a href={`/admin/demandes/${d.id}`} class="min-h-11 break-words font-medium md:min-h-0">
+              {formaterReception(d.recueLe)}
+            </a>
+            <span class="break-words">{d.formulaireNom}</span>
+            <span class="break-words text-ink-muted">{d.pageTitre}</span>
+            <span class="break-all">{d.contact}</span>
+            {d.total !== null && <span>{`${formaterPrix(d.total)} €`}</span>}
+            <span>{TEXTES_SUITE_DEMANDE[d.suite] ?? ''}</span>
+            {d.courriel === 'non-parti' && (
+              <Badge variant="outline">{TEXTE_EMAIL_NON_PARTI}</Badge>
+            )}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</GabaritCadre>

@@ -665,6 +665,14 @@ Constat de l'origine que Cloudflare attribue réellement à chaque envoi, qui ne
 | CT-34.3 | Dans la même heure, depuis le même appareil, dans un autre onglet, soumettre l'adresse autorisée sur `/admin/connexion` | L'écran ne dit pas « Trop de tentatives de connexion… » et le code arrive dans la boîte de recette : la connexion a son propre seuil (SC-12d) | |
 | CT-34.4 | Après le début de l'heure suivante, revenir à l'onglet de CT-34.2 et, sans recharger, actionner de nouveau « Envoyer ma demande » | « Merci, votre demande a été envoyée. » ; l'e-mail arrive (SC-12c) | |
 
+## 35. La liste des demandes — change 013 · ticket 03
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-35.1 | Ouvrir « Demandes » depuis le menu, au téléphone (tiroir) | La liste s'ouvre, « Demandes » est marquée active ; chaque demande se lit en carte empilée : date, formulaire, page, coordonnée, total, suite | |
+| CT-35.2 | Envoyer une demande dont l'e-mail ne peut pas partir, puis ouvrir la liste | La ligne porte la pastille « E-mail non parti » | |
+| CT-35.3 | Ouvrir la liste sans aucune demande | « Aucune demande n'est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici. » | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
