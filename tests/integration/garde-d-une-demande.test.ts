@@ -7,6 +7,9 @@
  * (aucun écran à ce ticket). Doubles : la liaison d'expédition (`EXPEDITEUR_CODE_CONNEXION`,
  * ADR-0002), `adresses_autorisees` vidée, et un déclencheur `raise(abort)` posé puis retiré. La part
  * navigateur du double actionnement se joue dans `tests/parcours/formulaire-echec.parcours.ts`.
+ *
+ * Ce que le visiteur lit quand sa demande est gardée sans que son e-mail parte relève du ticket 02 :
+ * SC-01b et SC-01c n'attendent pas ici un statut de réponse.
  */
 import { env, exports } from 'cloudflare:workers';
 import { it, expect, afterEach, beforeEach, vi } from 'vitest';
@@ -207,10 +210,9 @@ it(
     refuser = true;
     silencerLesTraces();
 
-    const reponse = await envoyer();
+    await envoyer();
     const liste = await lesDemandes(db);
 
-    expect(reponse.status).toBe(503);
     expect(tentatives).toBe(1);
     expect(liste).toHaveLength(1);
     expect(liste[0].courriel).toBe('non-parti');
@@ -231,10 +233,9 @@ it(
     const db = await assurerSchema();
     await db.prepare('delete from adresses_autorisees').run();
 
-    const reponse = await envoyer();
+    await envoyer();
     const liste = await lesDemandes(db);
 
-    expect(reponse.status).toBe(503);
     expect(tentatives).toBe(0);
     expect(liste).toHaveLength(1);
     expect(liste[0].courriel).toBe('non-parti');
