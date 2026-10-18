@@ -1,12 +1,13 @@
 /**
  * Ticket 01 du change 013 — la composition pure du détail d'une demande gardée et de sa coordonnée
- * de réponse (ADR-0030, I2). Couture : `composerDetail(formulaire, valeurs)` et
- * `contactDeReponse(formulaire, valeurs)` de `src/core/demandes/detail.ts`. Les libellés, options et
- * prix sont copiés de la déclaration vérifiée ; le total est en centimes.
+ * de réponse (ADR-0030, I2). Couture : `composerDetail(formulaire, valeurs)`,
+ * `contactDeReponse(formulaire, valeurs)` et `totalAGarder(formulaire, total)` de
+ * `src/core/demandes/detail.ts`. Les libellés, options et prix sont copiés de la déclaration
+ * vérifiée ; le total est en centimes.
  */
 import { describe, it, expect } from 'vitest';
 import type { FormulaireDeclare } from '../../../src/core/formulaires/declaration.ts';
-import { composerDetail, contactDeReponse } from '../../../src/core/demandes/detail.ts';
+import { composerDetail, contactDeReponse, totalAGarder } from '../../../src/core/demandes/detail.ts';
 
 const DEVIS_GATEAU: FormulaireDeclare = {
   id: 'devis-gateau',
@@ -148,5 +149,15 @@ describe('la coordonnée de réponse', () => {
     expect(contactDeReponse(DEVIS_GATEAU, { parfum: ['fraise'], courriel: '', telephone: '06 12 34 56 78' })).toBe(
       '06 12 34 56 78',
     );
+  });
+});
+
+describe('le total gardé', () => {
+  it('SC-01a — cas limite : un formulaire sans prix garde un total nul', () => {
+    expect(totalAGarder(SANS_PRIX, 0)).toBeNull();
+  });
+
+  it('SC-01a — un formulaire qui porte des prix garde le total affiché', () => {
+    expect(totalAGarder(DEVIS_GATEAU, 4000)).toBe(4000);
   });
 });
