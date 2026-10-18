@@ -39,7 +39,8 @@ ne modifie **aucun** test existant.
 
 **Décisions à respecter (ADR-0030, ADR-0019, I2, I17 ; D1 à D3 de l'approche) :**
 - **La table.** `migrations/0013_demandes.sql`, additive : une table `demandes` et un index
-  `(etat, recue_le desc)`. Les colonnes :
+  `(etat, recue_le desc)`, posés par `create table if not exists` et `create index if not exists`. Les
+  colonnes :
   - **gardées après un retrait** — une liste fermée de cinq : `id` (texte tiré au hasard,
     `crypto.randomUUID`), `formulaire_id`, `formulaire_nom`, `suite` (`a-renseigner` | `sans-suite` |
     `devis-envoye` | `commande`), `etat` (`presente` | `retiree`) ;
@@ -48,10 +49,19 @@ ne modifie **aucun** test existant.
 - **La base tient la règle.** Une contrainte `check` refuse toute ligne `retiree` dont une colonne hors des
   cinq gardées est non nulle. Aucun fichier de `src/` ni de `migrations/` ne contient
   `ignore_check_constraints` (I17).
+- **Le magasin rejoue la définition de la table**, comme le compteur rejoue la migration 0012
+  (`assurerSchema` de `src/platform/frequence/index.ts`) et les sessions la migration 0003. Toute lecture
+  ou écriture de `src/platform/demandes/magasin.ts` passe d'abord par cette assurance, mémorisée, sans
+  effet quand la table existe. La définition rejouée est **identique** à celle de la migration,
+  contrainte `check` comprise. C'est ce qui garde verts, sans les modifier, les tests existants qui ne
+  montent que leurs propres migrations et postent une demande acceptée (`envoi-d-une-demande`,
+  `acheminement-en-echec`, `point-d-envoi-ferme`, `demande-desaccordee`, `saisie-refusee`,
+  `seuil-des-demandes`, `panne-du-compteur`).
 - **Le test des colonnes gardées (ADR-0030, point 6).** `tests/integration/colonnes-gardees-au-retrait.test.ts`
   lit les colonnes de la table dans la base (`PRAGMA table_info`). Pour chacune hors des cinq gardées, une
   valeur non nulle sur une ligne `retiree` est refusée par la base. Le test échoue si la lecture ne rend
-  aucune colonne hors des cinq, pour ne jamais passer sans rien vérifier. Les lignes s'y écrivent
+  aucune colonne hors des cinq, pour ne jamais passer sans rien vérifier. Il s'exerce **deux fois** : sur
+  la table créée par la migration, et sur la table créée par le magasin seul. Les lignes s'y écrivent
   directement en SQL : le retrait n'existe pas encore (ticket 08).
 - **Le détail, composition pure.** `src/core/demandes/detail.ts`, sans import de framework ni de
   plateforme (I2). `composerDetail(formulaire, valeurs)` rend une suite de lignes étiquetées, dans l'ordre

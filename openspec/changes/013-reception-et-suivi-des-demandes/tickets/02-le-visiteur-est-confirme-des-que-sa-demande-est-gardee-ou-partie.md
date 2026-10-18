@@ -24,12 +24,14 @@ réessayer, saisie et sélections gardées : les parcours du change 012 le prouv
 prouvent donc sur la réponse de la route, l'état de la base, les journaux et l'espion de la liaison
 d'expédition.
 
-**Préalable.** La PR de retouche des tests, fusionnée **avant** le ticket 01, a retiré de
-`tests/integration/acheminement-en-echec.test.ts` les trois cas qui attendaient un échec quand la demande
-est gardée : le premier SC-11c (503 sur un e-mail refusé), SC-11e (premier envoi en 503) et SC-11f (503 sans
-adresse autorisée). Leurs formes nouvelles sont les critères de ce ticket. Le second SC-11c — la trace ne
-porte que le motif de la plateforme — reste, et doit rester vert. Ce ticket ne modifie **aucun** test
-existant.
+**Préalable.** La PR de retouche des tests, fusionnée **avant** le ticket 01, a réduit trois cas de
+`tests/integration/acheminement-en-echec.test.ts` qui attendaient un échec (503) même quand la demande est
+gardée. Le premier SC-11c ne vérifie plus qu'une seule tentative et aucune donnée du visiteur dans la
+réponse. SC-11e ne vérifie plus que la confirmation du renvoi et l'unique e-mail. SC-11f ne vérifie plus
+que l'absence d'e-mail et de donnée du visiteur dans la réponse. La règle nouvelle est portée par les
+critères de ce ticket. Le second SC-11c — la trace ne porte que le motif de la plateforme — n'a pas changé ;
+sur un e-mail refusé d'une demande gardée, il attend toujours une seule trace. Ce ticket ne modifie
+**aucun** test existant.
 
 **Décisions à respecter (D3 de l'approche ; ADR-0028, I6) :**
 - **L'ordre de la route**, après la vérification inchangée :
