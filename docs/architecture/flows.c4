@@ -66,9 +66,11 @@ views {
 
   dynamic view flow-demande {
     title "Envoi d'une demande de devis"
-    description "Le visiteur envoie sa demande sans session ; elle est vérifiée, composée en texte seul et remise à l'adresse autorisée. Rien n'est conservé en base."
+    description "Le visiteur envoie sa demande sans session ; elle est vérifiée, gardée dans la liste des demandes, composée en texte seul et remise à l'adresse autorisée."
     visiteur -> colibri-cms.worker.routes 'POST /api/public/demandes'                          // trace : src/pages/api/public/demandes.ts
     colibri-cms.worker.routes -> colibri-cms.worker.core 'vérifie la demande, compose le texte' // trace : src/core/formulaires/demande.ts ; src/core/formulaires/courriel.ts
+    colibri-cms.worker.routes -> colibri-cms.worker.platform 'garde la demande'                  // trace : src/pages/api/public/demandes.ts ; src/platform/demandes/magasin.ts
+    colibri-cms.worker.platform -> colibri-cms.d1 'garde la demande'
     colibri-cms.worker.routes -> colibri-cms.worker.platform "lit l'adresse autorisée"          // trace : src/platform/auth/magasin.ts
     colibri-cms.worker.platform -> colibri-cms.d1 "lit l'adresse autorisée"
     colibri-cms.worker.platform -> email-routing 'remet la demande et attend la remise'         // trace : src/platform/email/index.ts
