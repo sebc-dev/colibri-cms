@@ -1,7 +1,10 @@
 /**
  * Ticket 11 du change 012 — l'acheminement en échec : refus de la plateforme ou adresse autorisée
- * absente. Le serveur répond 503 « acheminement », rien n'est présenté comme envoyé, la trace de
- * journal ne porte que le motif de la plateforme, et un renvoi qui aboutit expédie un seul e-mail.
+ * absente. La réponse ne porte aucune donnée du visiteur, la trace de journal ne porte que le motif
+ * de la plateforme, et un renvoi qui aboutit expédie un seul e-mail.
+ *
+ * Ce que le visiteur lit selon le sort de sa demande (gardée dans la liste ou non) relève du
+ * change 013 : ces cas n'attendent plus ici un statut de réponse.
  *
  * Couture : requêtes HTTP réelles (`exports.default.fetch`) dans `workerd` contre
  * `POST /api/public/demandes` et la vraie D1 locale. Seule la liaison d'expédition
@@ -108,7 +111,7 @@ function sortieConsole(espion: { mock: { calls: unknown[][] } }): string {
     .join('\n');
 }
 
-it('SC-11c — la plateforme refuse l’e-mail : 503 « acheminement », rien présenté comme envoyé, aucune donnée du visiteur renvoyée', async () => {
+it('SC-11c — la plateforme refuse l’e-mail : une seule tentative, aucune donnée du visiteur renvoyée', async () => {
   refuser = true;
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
@@ -116,10 +119,7 @@ it('SC-11c — la plateforme refuse l’e-mail : 503 « acheminement », rien pr
   const corps = await reponse.text();
 
   expect(tentatives).toBe(1);
-  expect(reponse.status).toBe(503);
-  expect(JSON.parse(corps)).toEqual({ statut: 'acheminement' });
   expect(corps).not.toContain('marie@exemple.fr');
-  expect(corps).not.toContain('envoyee');
 });
 
 it('SC-11c — la trace de journal ne porte que le motif de la plateforme, aucune donnée du visiteur', async () => {
@@ -139,8 +139,7 @@ it('SC-11c — la trace de journal ne porte que le motif de la plateforme, aucun
 it('SC-11e — après un refus, un renvoi qui aboutit est confirmé (200) et un seul e-mail parvient', async () => {
   refuser = true;
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
-  const premiere = await envoyer();
-  expect(premiere.status).toBe(503);
+  await envoyer();
   expect(messages).toHaveLength(0);
 
   refuser = false;
@@ -152,14 +151,12 @@ it('SC-11e — après un refus, un renvoi qui aboutit est confirmé (200) et un 
   expect(messages[0]?.to).toBe(ADRESSE_AUTORISEE);
 });
 
-it('SC-11f — aucune adresse autorisée enregistrée : 503 « acheminement », aucun e-mail', async () => {
+it('SC-11f — aucune adresse autorisée enregistrée : aucun e-mail, aucune donnée du visiteur renvoyée', async () => {
   await obtenirDB().prepare('delete from adresses_autorisees').run();
 
   const reponse = await envoyer();
   const corps = await reponse.text();
 
-  expect(reponse.status).toBe(503);
-  expect(JSON.parse(corps)).toEqual({ statut: 'acheminement' });
   expect(corps).not.toContain('marie@exemple.fr');
   expect(tentatives).toBe(0);
   expect(messages).toHaveLength(0);
