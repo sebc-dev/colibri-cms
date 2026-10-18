@@ -61,10 +61,10 @@ sur un e-mail refusé d'une demande gardée, il attend toujours une seule trace.
 - tout écran d'administration.
 
 ## Critères
-- [ ] Quand le visiteur envoie une demande complète, qu'elle est gardée dans la liste des demandes, et que la plateforme d'acheminement refuse l'e-mail, le formulaire laisse place au message qui confirme que sa demande a été envoyée   (SC-02a)
-- [ ] Quand le visiteur envoie une demande complète, que la base refuse de la garder, et que son e-mail est remis à la plateforme d'acheminement, le formulaire laisse place au message qui confirme que sa demande a été envoyée   (SC-02b)
-- [ ] Quand le visiteur envoie une demande complète, que la base refuse de la garder, et que la plateforme d'acheminement refuse l'e-mail, le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer, et toutes ses saisies et sélections sont toujours là   (SC-02c)
-- [ ] Quand, après un échec d'envoi, le visiteur renvoie sa demande et qu'elle est gardée et acheminée, la demande est confirmée, une seule demande paraît dans la liste des demandes, et un seul e-mail parvient pour ce nouvel envoi   (SC-02d)
-- [ ] Quand aucune adresse autorisée n'est enregistrée et qu'un visiteur envoie une demande complète, aucun e-mail ne part, la demande est gardée dans la liste des demandes, et le formulaire confirme qu'elle a été envoyée   (SC-02e)
-- [ ] Quand aucune adresse autorisée n'est enregistrée, qu'un visiteur envoie une demande complète, et que la base refuse de la garder, aucun e-mail ne part, et le formulaire dit que la demande n'a pas pu être envoyée, la saisie gardée   (SC-02f)
-- [ ] Quand une demande a été acheminée alors que la base avait refusé de la garder, la base ne porte aucune des valeurs saisies par le visiteur, et les journaux non plus   (SC-02g)
+- [x] Quand le visiteur envoie une demande complète, qu'elle est gardée dans la liste des demandes, et que la plateforme d'acheminement refuse l'e-mail, le formulaire laisse place au message qui confirme que sa demande a été envoyée   (SC-02a)
+- [x] Quand le visiteur envoie une demande complète, que la base refuse de la garder, et que son e-mail est remis à la plateforme d'acheminement, le formulaire laisse place au message qui confirme que sa demande a été envoyée   (SC-02b)
+- [x] Quand le visiteur envoie une demande complète, que la base refuse de la garder, et que la plateforme d'acheminement refuse l'e-mail, le formulaire dit que la demande n'a pas pu être envoyée et invite à réessayer, et toutes ses saisies et sélections sont toujours là   (SC-02c)
+- [x] Quand, après un échec d'envoi, le visiteur renvoie sa demande et qu'elle est gardée et acheminée, la demande est confirmée, une seule demande paraît dans la liste des demandes, et un seul e-mail parvient pour ce nouvel envoi   (SC-02d)
+- [x] Quand aucune adresse autorisée n'est enregistrée et qu'un visiteur envoie une demande complète, aucun e-mail ne part, la demande est gardée dans la liste des demandes, et le formulaire confirme qu'elle a été envoyée   (SC-02e)
+- [x] Quand aucune adresse autorisée n'est enregistrée, qu'un visiteur envoie une demande complète, et que la base refuse de la garder, aucun e-mail ne part, et le formulaire dit que la demande n'a pas pu être envoyée, la saisie gardée   (SC-02f)
+- [x] Quand une demande a été acheminée alors que la base avait refusé de la garder, la base ne porte aucune des valeurs saisies par le visiteur, et les journaux non plus   (SC-02g)
