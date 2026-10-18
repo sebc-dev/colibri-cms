@@ -288,18 +288,12 @@ it("SC-04e — deux champs dans l’ordre, « Téléphone de l’atelier » puis
 // --- SC-04g ---
 
 // « Formulaires » n'y figure plus : le change 010 la sert (ticket 02), et la
-// vérifie dans ses propres tests.
+// vérifie dans ses propres tests. « Demandes » non plus : le change 013 la sert
+// (ticket 03), et la vérifie dans ses propres tests.
 
-it("SC-04g — « Mes pages », « Médias » et « Réglages » mènent à leur écran, « Demandes » à aucun, et l’écran n’offre aucun geste de structure", async () => {
+it("SC-04g — « Mes pages », « Médias » et « Réglages » mènent à leur écran, et l’écran n’offre aucun geste de structure", async () => {
   const db = await assurerSchema();
   const cookie = await semerSessionValide(db);
-
-  for (const route of ["/admin/demandes"]) {
-    const reponse = await accederA(route, cookie);
-    expect(reponse.status, `${route} ne devrait mener à aucun écran`).not.toBe(
-      200,
-    );
-  }
 
   const corps = await (await accederA("/admin/reglages", cookie)).text();
   const menu = extraireMenu(corps);
@@ -311,7 +305,6 @@ it("SC-04g — « Mes pages », « Médias » et « Réglages » mènent à leur
       "/admin/reglages",
     ]),
   );
-  expect(liens).not.toContain("/admin/demandes");
   expect(menu).not.toMatch(/<(form|button|input)[\s>]/i);
 
   const visible = (

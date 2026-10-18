@@ -187,7 +187,9 @@ it('SC-07h — sans téléphone ni message renseignés, l’e-mail ne porte ni l
   expect(texte).not.toContain('Votre message');
 });
 
-it('SC-07i — une fois la demande acheminée, aucune table de la base ne porte les valeurs saisies', async () => {
+// Le change 013 garde chaque demande dans la table `demandes` : elle seule peut porter les valeurs
+// saisies. Ce qu'elle porte, et rien ailleurs, se vérifie dans les tests de ce change.
+it('SC-07i — une fois la demande acheminée, aucune table hors de la liste des demandes ne porte les valeurs saisies', async () => {
   const reponse = await envoyer();
   expect(reponse.status).toBe(200);
   expect(messages).toHaveLength(1);
@@ -195,7 +197,9 @@ it('SC-07i — une fois la demande acheminée, aucune table de la base ne porte 
   const db = obtenirDB();
   const tables = (
     await db
-      .prepare("select name from sqlite_master where type = 'table' and name not like 'sqlite_%' and name not like '_cf_%'")
+      .prepare(
+        "select name from sqlite_master where type = 'table' and name not like 'sqlite_%' and name not like '_cf_%' and name <> 'demandes'",
+      )
       .all()
   ).results as { name: string }[];
   expect(tables.length).toBeGreaterThan(0);

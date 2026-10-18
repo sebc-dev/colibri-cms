@@ -175,17 +175,21 @@ it('SC-02d — la barre latérale montre les cinq rubriques, « Formulaires » s
   );
 });
 
-it('SC-02e — seules quatre rubriques mènent à un écran servi, et aucun geste d’ajout, retrait, renommage ni déplacement n’est offert', async () => {
+// « Demandes » n'est plus vérifiée ici : le change 013 la sert (ticket 03), et vérifie
+// dans ses propres tests que chacune des cinq rubriques mène à son écran, et aucune autre entrée.
+it('SC-02e — les quatre premières rubriques mènent à leur écran servi, et aucun geste d’ajout, retrait, renommage ni déplacement n’est offert', async () => {
   const corps = await ouvrirEnSession();
   const nav = menu(corps);
 
   const hrefs = [...nav.matchAll(/<a[^>]*href="([^"]+)"/g)].map((m) => m[1]);
-  expect(hrefs).toEqual([
-    '/admin/mes-pages',
-    '/admin/medias',
-    '/admin/reglages',
-    '/admin/formulaires',
-  ]);
+  expect(hrefs).toEqual(
+    expect.arrayContaining([
+      '/admin/mes-pages',
+      '/admin/medias',
+      '/admin/reglages',
+      '/admin/formulaires',
+    ]),
+  );
   expect(nav).toContain('Demandes');
 
   const principal = contenuPrincipal(corps);

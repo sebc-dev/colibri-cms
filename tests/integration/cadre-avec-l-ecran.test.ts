@@ -215,10 +215,6 @@ const RUBRIQUES_DU_MENU = [
   "Formulaires",
   "Demandes",
 ];
-// « Formulaires » n'y figure plus : le change 010 la sert (ticket 02), et la
-// vérifie dans ses propres tests.
-const RUBRIQUES_SANS_ECRAN = ["Demandes"];
-
 const REGEX_ASIDE =
   /<aside[^>]*aria-label="Menu de l'administration"[^>]*>([\s\S]*?)<\/aside>/;
 
@@ -331,35 +327,19 @@ it("SC-03b — la réponse du serveur porte déjà le logo, le menu marqué et l
   }
 });
 
-// --- SC-03c — « Demandes » ne mène à aucun écran, sans geste de structure ---
+// --- SC-03c — le menu n'offre aucun geste de structure ---
+// « Demandes » n'est plus vérifiée ici comme rubrique sans écran : le change 013
+// la sert (ticket 03), et vérifie dans ses propres tests que chacune des cinq
+// rubriques mène à son écran.
 
-it("SC-03c — « Demandes » ne mène à aucun écran, et le menu n’offre aucun geste de structure", async () => {
+it("SC-03c — le menu n’offre aucun geste de structure", async () => {
   const db = await assurerSchema();
   const cookieSession = await semerSessionValide(db);
-
-  // La rubrique sans écran ne mène à aucun écran.
-  for (const route of ["/admin/demandes"]) {
-    const reponse = await accederA(route, cookieSession);
-    expect(reponse.status, `${route} ne devrait mener à aucun écran`).not.toBe(
-      200,
-    );
-  }
 
   for (const ecran of await obtenirEcrans(db)) {
     const reponse = await accederA(ecran.route, cookieSession);
     const corps = await reponse.text();
     const menu = extraireMenu(corps);
-
-    // La rubrique sans écran ne porte aucun lien.
-    for (const libelle of RUBRIQUES_SANS_ECRAN) {
-      const correspondance = new RegExp(
-        `<a[^>]*>\\s*(?:<[^>]+>\\s*)*${libelle}`,
-      ).exec(menu);
-      expect(
-        correspondance,
-        `${ecran.nom} : « ${libelle} » ne devrait porter aucun lien`,
-      ).toBeNull();
-    }
 
     // Aucun geste d'ajout, de retrait, de déplacement ni de renommage.
     expect(
