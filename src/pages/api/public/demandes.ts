@@ -136,28 +136,49 @@ export const POST: APIRoute = async ({ request, url }) => {
   }
 
   const total = totalDesValeurs(formulaire, verdict.valeurs);
-  const idDemande = await garderDemande(env.DB, demandeAGarder(formulaire, page.titre, verdict.valeurs, total), Date.now());
-
-  const destinataire = await lireAdresseAutorisee(env.DB);
-  if (destinataire === null) return reponse(503, { statut: 'acheminement' });
-
+  const idDemande = await garderSansBloquer(demandeAGarder(formulaire, page.titre, verdict.valeurs, total));
   const { objet, texte } = composerCourriel(formulaire, page.titre, verdict.valeurs, total);
+  const parti = await acheminerSiPossible({ objet, texte });
+  if (idDemande !== null && parti) await noterCourrielParti(idDemande);
+  // Confirmée dès que la demande est gardée ou que son e-mail est parti (FR-066).
+  return idDemande !== null || parti ? reponse(200, { statut: 'envoyee' }) : reponse(503, { statut: 'acheminement' });
+};
+
+/** Garde la demande ; un refus de la base est consigné (motif seul) et la route continue. */
+async function garderSansBloquer(demande: DemandeAGarder): Promise<string | null> {
+  try {
+    return await garderDemande(env.DB, demande, Date.now());
+  } catch (erreur: unknown) {
+    const motif = erreur instanceof Error ? erreur.message : 'inconnu';
+    console.error(`[demande] garde refusée (${motif})`);
+    return null;
+  }
+}
+
+/** Remet l'e-mail à l'adresse autorisée ; `false` sans adresse lisible ou si la plateforme refuse. */
+async function acheminerSiPossible(courriel: { readonly objet: string; readonly texte: string }): Promise<boolean> {
+  let destinataire: string | null;
+  try {
+    destinataire = await lireAdresseAutorisee(env.DB);
+  } catch {
+    return false;
+  }
+  if (destinataire === null) return false;
   try {
     await demanderAcheminementDeLaDemande(env.EXPEDITEUR_CODE_CONNEXION, {
       from: __ADRESSE_EXPEDITEUR__,
       to: destinataire,
-      subject: objet,
-      text: texte,
+      subject: courriel.objet,
+      text: courriel.texte,
     });
+    return true;
   } catch (erreur: unknown) {
     // Trace pour l'exploitation : le seul motif rendu par la plateforme, jamais une donnée du visiteur.
     const motif = erreur instanceof Error ? erreur.message : 'inconnu';
     console.error(`[demande] acheminement refusé (${motif})`);
-    return reponse(503, { statut: 'acheminement' });
+    return false;
   }
-  await noterCourrielParti(idDemande);
-  return reponse(200, { statut: 'envoyee' });
-};
+}
 
 /** Toute autre méthode que POST est refusée (405), sans lire le corps ni rien envoyer. */
 export const ALL: APIRoute = () =>
