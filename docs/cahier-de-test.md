@@ -11,7 +11,7 @@ Ce cahier complète les tests automatiques (`docs/test.md`), il ne les remplace 
 qu'un test dans `workerd` ne voit pas — le rendu au navigateur, la CSP réellement appliquée (voir
 `docs/test.md`, la CSP est invisible aux tests), les textes lus par l'éditrice, les gestes.
 
-**Hors périmètre** (pas encore livré, ne pas tester) : Demandes, Aperçu et
+**Hors périmètre** (pas encore livré, ne pas tester) : Aperçu et
 publication, le rendu des images sur le site public, l'effacement réel des images orphelines à la
 publication. Le site public n'a pas encore de page rendue : tout ce qui parle d'« état publié intact »
 n'est observable qu'en base (§ 0.5) ou par les tests automatiques.
@@ -197,9 +197,9 @@ Session ouverte. Ouvrir `/admin/mes-pages`.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-4.1 | Lire la barre latérale | Cinq rubriques : **Mes pages**, **Médias**, **Réglages**, **Formulaires**, Demandes ; « Mes pages » marquée active | |
+| CT-4.1 | Lire la barre latérale | Cinq rubriques : **Mes pages**, **Médias**, **Réglages**, **Formulaires**, **Demandes** ; « Mes pages » marquée active | |
 | CT-4.2 | Cliquer « Médias » | L'écran Médias s'ouvre, « Médias » devient la rubrique active | |
-| CT-4.3 | Cliquer Demandes | Aucun écran ne s'ouvre (la rubrique situe, elle ne mène nulle part) ; pas d'erreur | |
+| CT-4.3 | Cliquer « Demandes » | L'écran Demandes s'ouvre, « Demandes » devient la rubrique active | |
 | CT-4.4 | Actionner « Replier le menu » | La barre devient un rail d'icônes seules ; la rubrique active reste marquée ; la zone de contenu s'élargit | |
 | CT-4.5 | Actionner « Déplier le menu » | Les libellés reparaissent à côté des icônes | |
 | CT-4.6 | Replier, puis **recharger** la page ; onglet Réseau pendant le repli | L'état replié est conservé ; **aucune** requête serveur n'a été émise par le repli | |
@@ -706,6 +706,7 @@ Constat de l'origine que Cloudflare attribue réellement à chaque envoi, qui ne
 | 32 Une publication à la fois | 1 | 1 | 0 | 0 |
 | 33 Une demande part par e-mail | 4 | | | |
 | 34 Seuil des demandes par origine | 4 | | | |
-| **Total** | **197** | | | |
+| 35 Liste des demandes | 3 | | | |
+| **Total** | **200** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
