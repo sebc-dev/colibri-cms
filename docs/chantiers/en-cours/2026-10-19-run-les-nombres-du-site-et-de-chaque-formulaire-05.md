@@ -1,7 +1,7 @@
 # Run bloqué : les nombres du site et de chaque formulaire
 
 Portée : 013-reception-et-suivi-des-demandes · ticket 05
-Ouvert le 2026-10-19 · branche `impl/les-nombres-du-site-et-de-chaque-formulaire-05` · HEAD `4c482a1`
+Ouvert le 2026-10-19 · Actualisé le 2026-10-19 · branche `impl/les-nombres-du-site-et-de-chaque-formulaire-05` · HEAD `75fa34e`
 
 ## Objectif
 Mener le ticket 05 jusqu'à sa PR après l'arrêt du run `wf_8d2a9e0d-3b1` en `blocked-verify`.
@@ -32,12 +32,20 @@ Mener le ticket 05 jusqu'à sa PR après l'arrêt du run `wf_8d2a9e0d-3b1` en `b
   > restreindre cette assertion de test (modifier un test existant, donc une dérogation à arbitrer par un
   > humain), soit changer le code.
 - SC-05a et SC-05c portaient chacun un constat humain au téléphone (recette CT-37.1 à CT-37.3).
+- L'humain avait choisi l'option A : l'assertion du ticket 03 se restreignait à la liste `<ul>`, commitée
+  seule (`75fa34e`). La reprise `rerun: "2"` avait passé la ceinture, puis s'était arrêtée en
+  `blocked-quality` sur `analyse`, sortie telle quelle :
+  > 96:119 and 239:47/70/94 error Invalid type "number" of template literal expression
+  > @typescript-eslint/restrict-template-expressions; 4 problems (4 errors, 0 warnings)
+  Les quatre erreurs tombaient dans le test neuf `tests/integration/nombres-des-demandes.test.ts`. J'avais
+  enveloppé les quatre nombres dans `String(…)`, sans toucher aux valeurs ni aux assertions, puis indexé
+  les deux tests neufs du ticket avant la reprise.
 
 ## Prochaine étape
-J'allais faire trancher l'humain sur la retouche du test du ticket 03 (restreindre l'assertion à la liste
-`<ul>`, recommandé), la commiter seule sur la branche, puis reprendre — dans la session du lancement seulement :
-`Workflow(scriptPath: "/home/negus/projets/colibri-cms/.git/implement-ticket.375012.js", resumeFromRunId: "wf_8d2a9e0d-3b1", args: { changeDir: "openspec/changes/013-reception-et-suivi-des-demandes", ticket: "05", oldBase: "impl/filtrer-et-parcourir-la-liste-04", rerun: "2" })`
-Hors de cette session : commiter la retouche, puis relancer `/scd-spec-dev:run 013-reception-et-suivi-des-demandes 05`.
+J'allais reprendre — dans la session du lancement seulement :
+`Workflow(scriptPath: "/home/negus/projets/colibri-cms/.git/implement-ticket.375012.js", resumeFromRunId: "wf_8d2a9e0d-3b1", args: { changeDir: "openspec/changes/013-reception-et-suivi-des-demandes", ticket: "05", oldBase: "impl/filtrer-et-parcourir-la-liste-04", rerun: "3" })`
+puis vérifier que le test commité portait encore les `String(…)`.
+Hors de cette session : commiter les retouches, puis relancer `/scd-spec-dev:run 013-reception-et-suivi-des-demandes 05`.
 
 ## Écarté
 - Cacher le formulaire du tableau : le ticket exige qu'un formulaire qui n'a plus que des retirées y paraisse.
