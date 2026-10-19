@@ -48,7 +48,7 @@ Avec 120 demandes, la première page présente les 50 plus récentes, et la troi
 - un filtre par date, une recherche, un export : écartés par le cahier des charges.
 
 ## Critères
-- [ ] Quand la liste porte des demandes de « Devis gâteau » et de « Devis atelier », et que l'éditrice choisit « Devis atelier » dans le filtre, seules les demandes de « Devis atelier » paraissent, de la plus récente à la plus ancienne   (SC-04a)
-- [ ] Quand la liste est filtrée sur « Devis atelier », et que l'éditrice choisit de revoir toutes les demandes, les demandes de tous les formulaires paraissent de nouveau   (SC-04b)
-- [ ] Quand 120 demandes sont présentes, l'écran présente les 50 plus récentes et un moyen d'atteindre les suivantes, et la troisième page présente les 20 plus anciennes   (SC-04c)
-- [ ] Quand l'intégrateur a retiré du site un formulaire dont des demandes sont présentes, ces demandes restent dans la liste sous le nom de ce formulaire, et le filtre le propose toujours   (SC-04d)
+- [x] Quand la liste porte des demandes de « Devis gâteau » et de « Devis atelier », et que l'éditrice choisit « Devis atelier » dans le filtre, seules les demandes de « Devis atelier » paraissent, de la plus récente à la plus ancienne   (SC-04a)
+- [x] Quand la liste est filtrée sur « Devis atelier », et que l'éditrice choisit de revoir toutes les demandes, les demandes de tous les formulaires paraissent de nouveau   (SC-04b)
+- [x] Quand 120 demandes sont présentes, l'écran présente les 50 plus récentes et un moyen d'atteindre les suivantes, et la troisième page présente les 20 plus anciennes   (SC-04c)
+- [x] Quand l'intégrateur a retiré du site un formulaire dont des demandes sont présentes, ces demandes restent dans la liste sous le nom de ce formulaire, et le filtre le propose toujours   (SC-04d)

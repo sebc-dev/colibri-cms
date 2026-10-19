@@ -341,3 +341,10 @@ export const TEXTES_SUITE_DEMANDE: Readonly<Record<string, string>> = {
   commande: 'Commande',
 };
 export const TEXTE_EMAIL_NON_PARTI = 'E-mail non parti';
+
+/** Le filtre et les pages de la liste des demandes (FR-070, FR-117). */
+export const TEXTE_FILTRE_FORMULAIRE = 'Formulaire :';
+export const TEXTE_FILTRE_TOUS = 'Tous';
+export const TEXTE_DEMANDES_PLUS_RECENTES = 'Demandes plus récentes';
+export const TEXTE_DEMANDES_PLUS_ANCIENNES = 'Demandes plus anciennes';
+export const texteNumeroDePage = (page: number, total: number): string => `Page ${String(page)} sur ${String(total)}`;

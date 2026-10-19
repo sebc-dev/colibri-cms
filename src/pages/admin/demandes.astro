@@ -7,14 +7,25 @@
 import GabaritCadre from '../../admin/GabaritCadre.astro';
 import { Badge } from '../../admin/composants/ui/badge/index.ts';
 import { verifierSession } from '../../platform/session/index.ts';
-import { listerDemandes } from '../../platform/demandes/magasin.ts';
+import {
+  listerDemandes,
+  compterDemandes,
+  listerFormulairesDeDemandes,
+} from '../../platform/demandes/magasin.ts';
 import { formaterReception } from '../../core/demandes/date.ts';
+import { bornerPage, choisirFormulaire, nombreDePages, nomDuFormulaire } from '../../core/demandes/liste.ts';
+import { lireFormulairesDeLaDeclaration } from '../../platform/contenu/formulaires.ts';
 import { formaterPrix } from '../../core/formulaires/prix.ts';
 import {
   TEXTE_TITRE_DEMANDES,
   TEXTE_AUCUNE_DEMANDE,
   TEXTES_SUITE_DEMANDE,
   TEXTE_EMAIL_NON_PARTI,
+  TEXTE_FILTRE_FORMULAIRE,
+  TEXTE_FILTRE_TOUS,
+  TEXTE_DEMANDES_PLUS_RECENTES,
+  TEXTE_DEMANDES_PLUS_ANCIENNES,
+  texteNumeroDePage,
 } from '../../admin/textes.ts';
 import { env } from 'cloudflare:workers';
 
@@ -23,11 +34,44 @@ if (!session) {
   return Astro.redirect('/admin/connexion');
 }
 
-const demandes = await listerDemandes(env.DB);
+const declares = lireFormulairesDeLaDeclaration();
+const presents = (await listerFormulairesDeDemandes(env.DB)).map((f) => ({
+  id: f.id,
+  nom: nomDuFormulaire(f.id, declares, [{ nom: f.nom, recueLe: 0 }]),
+}));
+const formulaire = choisirFormulaire(Astro.url.searchParams.get('formulaire'), presents);
+const total = await compterDemandes(env.DB, formulaire);
+const pages = nombreDePages(total);
+const page = bornerPage(Astro.url.searchParams.get('page'), pages);
+const demandes = await listerDemandes(env.DB, page, formulaire);
+
+function adresse(f: string | null, p: number): string {
+  const requete = new URLSearchParams();
+  if (f !== null) requete.set('formulaire', f);
+  if (p > 1) requete.set('page', String(p));
+  const texte = requete.toString();
+  return texte === '' ? '/admin/demandes' : `/admin/demandes?${texte}`;
+}
+const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
 ---
 
 <GabaritCadre titre="Demandes — Administration" rubrique="demandes">
   <h1>{TEXTE_TITRE_DEMANDES}</h1>
+  {
+    presents.length > 0 && (
+      <nav aria-label={TEXTE_FILTRE_FORMULAIRE} class="mt-6 flex flex-wrap items-center gap-2">
+        <span>{TEXTE_FILTRE_FORMULAIRE}</span>
+        <a href={adresse(null, 1)} aria-current={formulaire === null ? 'true' : undefined} class="min-h-11 underline md:min-h-0">
+          {TEXTE_FILTRE_TOUS}
+        </a>
+        {presents.map((f) => (
+          <a href={adresse(f.id, 1)} aria-current={formulaire === f.id ? 'true' : undefined} class="min-h-11 underline md:min-h-0">
+            {f.nom}
+          </a>
+        ))}
+      </nav>
+    )
+  }
   {
     demandes.length === 0 ? (
       <div class="mt-6 rounded-lg border border-border bg-card p-4 text-ink-muted">
@@ -40,7 +84,7 @@ const demandes = await listerDemandes(env.DB);
             <a href={`/admin/demandes/${d.id}`} class="min-h-11 break-words font-medium md:min-h-0">
               {formaterReception(d.recueLe)}
             </a>
-            <span class="break-words">{d.formulaireNom}</span>
+            <span class="break-words">{nomsParId.get(d.formulaireId) ?? d.formulaireNom}</span>
             <span class="break-words text-ink-muted">{d.pageTitre}</span>
             <span class="break-all">{d.contact}</span>
             {d.total !== null && <span>{`${formaterPrix(d.total)} €`}</span>}
@@ -51,6 +95,23 @@ const demandes = await listerDemandes(env.DB);
           </li>
         ))}
       </ul>
+    )
+  }
+  {
+    pages > 1 && (
+      <nav class="mt-6 flex flex-wrap items-center gap-4">
+        {page > 1 && (
+          <a href={adresse(formulaire, page - 1)} class="min-h-11 underline md:min-h-0">
+            {TEXTE_DEMANDES_PLUS_RECENTES}
+          </a>
+        )}
+        <span>{texteNumeroDePage(page, pages)}</span>
+        {page < pages && (
+          <a href={adresse(formulaire, page + 1)} class="min-h-11 underline md:min-h-0">
+            {TEXTE_DEMANDES_PLUS_ANCIENNES}
+          </a>
+        )}
+      </nav>
     )
   }
 </GabaritCadre>

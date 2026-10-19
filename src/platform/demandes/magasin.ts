@@ -3,6 +3,7 @@
  * La table se rejoue à l'identique de la migration 0013, comme `assurerSchema` du compteur.
  */
 import { env } from 'cloudflare:workers';
+import { DEMANDES_PAR_PAGE } from '../../core/demandes/liste.ts';
 
 type Base = typeof env.DB;
 
@@ -71,6 +72,7 @@ export async function marquerCourrielParti(db: Base, id: string): Promise<void> 
 export interface LigneDemande {
   readonly id: string;
   readonly recueLe: number;
+  readonly formulaireId: string;
   readonly formulaireNom: string;
   readonly pageTitre: string;
   readonly contact: string;
@@ -79,11 +81,11 @@ export interface LigneDemande {
   readonly courriel: 'parti' | 'non-parti' | null;
 }
 
-const LIMITE_LISTE = 50;
 
 interface LigneBrute {
   id: string;
   recue_le: number;
+  formulaire_id: string;
   formulaire_nom: string;
   page_titre: string | null;
   contact: string | null;
@@ -92,25 +94,66 @@ interface LigneBrute {
   courriel: LigneDemande['courriel'];
 }
 
-/** Les demandes présentes, la plus récente d'abord, 50 au plus (ordre stable à la milliseconde). */
-export async function listerDemandes(db: Base): Promise<LigneDemande[]> {
+/**
+ * Une page de 50 demandes présentes, la plus récente d'abord (ordre stable à la milliseconde),
+ * filtrée par formulaire si `formulaireId` est donné. `page` commence à 1.
+ */
+export async function listerDemandes(db: Base, page = 1, formulaireId: string | null = null): Promise<LigneDemande[]> {
   await assurerSchema(db);
-  const resultat = await db
-    .prepare(
-      `select id, recue_le, formulaire_nom, page_titre, contact, total, suite, courriel
-       from demandes where etat = 'presente' order by recue_le desc, rowid desc limit ?1`,
-    )
-    .bind(LIMITE_LISTE)
-    .all();
+  const decalage = (Math.max(1, page) - 1) * DEMANDES_PAR_PAGE;
+  const colonnes = 'id, recue_le, formulaire_id, formulaire_nom, page_titre, contact, total, suite, courriel';
+  const instruction =
+    formulaireId === null
+      ? db
+          .prepare(
+            `select ${colonnes} from demandes where etat = 'presente' order by recue_le desc, rowid desc limit ?1 offset ?2`,
+          )
+          .bind(DEMANDES_PAR_PAGE, decalage)
+      : db
+          .prepare(
+            `select ${colonnes} from demandes where etat = 'presente' and formulaire_id = ?3 order by recue_le desc, rowid desc limit ?1 offset ?2`,
+          )
+          .bind(DEMANDES_PAR_PAGE, decalage, formulaireId);
+  const resultat = await instruction.all();
   const lignes = resultat.results as LigneBrute[];
   return lignes.map((r) => ({
     id: r.id,
     recueLe: r.recue_le,
+    formulaireId: r.formulaire_id,
     formulaireNom: r.formulaire_nom,
     pageTitre: r.page_titre ?? '',
     contact: r.contact ?? '',
     total: r.total,
     suite: r.suite,
     courriel: r.courriel,
+  }));
+}
+
+/** Le nombre de demandes présentes, filtrées par formulaire ou non. */
+export async function compterDemandes(db: Base, formulaireId: string | null = null): Promise<number> {
+  await assurerSchema(db);
+  const instruction =
+    formulaireId === null
+      ? db.prepare("select count(*) as n from demandes where etat = 'presente'")
+      : db.prepare("select count(*) as n from demandes where etat = 'presente' and formulaire_id = ?1").bind(formulaireId);
+  const ligne = await instruction.first<{ n: number }>();
+  return ligne?.n ?? 0;
+}
+
+/** Les formulaires dont une demande est présente, avec le nom gardé sur la demande la plus récente. */
+export async function listerFormulairesDeDemandes(db: Base): Promise<{ id: string; nom: string }[]> {
+  await assurerSchema(db);
+  const resultat = await db
+    .prepare(
+      `select formulaire_id, formulaire_nom from demandes d
+       where etat = 'presente'
+         and rowid = (select rowid from demandes e where e.etat = 'presente' and e.formulaire_id = d.formulaire_id
+                      order by e.recue_le desc, e.rowid desc limit 1)
+       order by formulaire_nom`,
+    )
+    .all();
+  return (resultat.results as { formulaire_id: string; formulaire_nom: string }[]).map((r) => ({
+    id: r.formulaire_id,
+    nom: r.formulaire_nom,
   }));
 }
