@@ -723,6 +723,26 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | CT-37.3 | Les demandes du préalable semées, toucher « Devis gâteau » dans la rangée « Formulaire : » puis « Demandes plus anciennes » | Les nombres du haut et du tableau ne changent pas | |
 | CT-37.4 | Les témoins retirés du préalable semés en plus, ouvrir « Demandes » au téléphone | « · 2 retirées » suit les nombres du haut ; le tableau porte la colonne Retirées ; il se lit sans défiler de côté | |
 
+## 38. Le détail d'une demande — change 013 · ticket 06
+
+Le retrait n'existe pas encore et l'envoi est borné par le seuil par origine (§ 34) : la demande se sème en base, sur la base locale du § 0.2 :
+
+```sh
+npx wrangler d1 execute DB --local --command "insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) values ('recette-38-message', 'devis-gateau', 'Devis gâteau', 'a-renseigner', 'presente', 1767225600000, 'Contact', null, 'marie@exemple.fr', '[{\"etiquette\":\"Votre nom\",\"valeur\":\"Marie Dupont\"},{\"etiquette\":\"Votre message\",\"lignes\":[\"Bonjour,\",\"\",\"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm\",\"Merci\"]}]', 'non-parti');"
+```
+
+Après les cas, l'effacer :
+
+```sh
+npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-38-%';"
+```
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-38.1 | La demande semée, ouvrir « Demandes » au téléphone puis toucher sa date | Sous « Votre message » : « Bonjour, », une ligne vide qui garde sa place, le mot long, « Merci », l'un sous l'autre | |
+| CT-38.2 | Même écran, au téléphone (360 px) | Le mot de 80 caractères passe à la ligne, aucun défilement de côté | |
+| CT-38.3 | Même écran | La pastille « E-mail non parti » et sa mention sous le titre, « Demandes » marquée active dans le menu, et le lien « ← Toutes les demandes » ramène à la liste | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
