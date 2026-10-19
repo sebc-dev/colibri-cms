@@ -673,6 +673,28 @@ Constat de l'origine que Cloudflare attribue réellement à chaque envoi, qui ne
 | CT-35.2 | Envoyer une demande dont l'e-mail ne peut pas partir, puis ouvrir la liste | La ligne porte la pastille « E-mail non parti » | |
 | CT-35.3 | Ouvrir la liste sans aucune demande | « Aucune demande n'est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici. » | |
 
+## 36. Filtrer et parcourir les demandes — change 013 · ticket 04
+
+CT-36.3 et CT-36.4 partent de demandes semées en base : le seuil par origine (cinq envois par heure, § 34) empêche d'en réunir plus de 50 par le formulaire, et un formulaire retiré du site ne s'obtient qu'en semant un `formulaire_id` absent de `content/formulaires/`. Sur la base locale du § 0.2, `wrangler dev` arrêté ou en marche, semer 55 demandes de « Devis gâteau », une par minute, puis 2 demandes du formulaire « Ancien devis », que le site ne déclare pas :
+
+```sh
+npx wrangler d1 execute DB --local --command "with recursive n(i) as (select 1 union all select i + 1 from n where i < 55) insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) select 'recette-36-' || i, 'devis-gateau', 'Devis gâteau', 'a-renseigner', 'presente', 1767225600000 + i * 60000, 'Contact', null, 'c-' || i || '@exemple.fr', '[]', 'parti' from n;"
+npx wrangler d1 execute DB --local --command "insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) values ('recette-36-ancien-1', 'ancien-devis', 'Ancien devis', 'a-renseigner', 'presente', 1767400000000, 'Contact', null, 'ancien-1@exemple.fr', '[]', 'parti'), ('recette-36-ancien-2', 'ancien-devis', 'Ancien devis', 'a-renseigner', 'presente', 1767400060000, 'Contact', null, 'ancien-2@exemple.fr', '[]', 'parti');"
+```
+
+Après les cas, les effacer :
+
+```sh
+npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-36-%';"
+```
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-36.1 | Avec des demandes de deux formulaires, ouvrir « Demandes » au téléphone et toucher le nom d'un formulaire dans la rangée « Formulaire : » | Seules les demandes de ce formulaire restent, la plus récente d'abord ; son nom est marqué comme courant | |
+| CT-36.2 | Depuis ce filtre, toucher « Tous » | Les demandes de tous les formulaires reparaissent | |
+| CT-36.3 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, toucher « Demandes plus anciennes » puis « Demandes plus récentes » ; refaire le parcours après avoir touché « Devis gâteau » dans la rangée « Formulaire : » | « Page 2 sur N » paraît puis on revient à la première page ; le filtre choisi est gardé d'une page à l'autre | |
+| CT-36.4 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, repérer « Ancien devis » dans la rangée « Formulaire : » et le toucher | Elles restent listées sous son nom et le filtre le propose toujours | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
@@ -707,6 +729,7 @@ Constat de l'origine que Cloudflare attribue réellement à chaque envoi, qui ne
 | 33 Une demande part par e-mail | 4 | | | |
 | 34 Seuil des demandes par origine | 4 | | | |
 | 35 Liste des demandes | 3 | | | |
-| **Total** | **200** | | | |
+| 36 Filtre et pages des demandes | 4 | | | |
+| **Total** | **204** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
