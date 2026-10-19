@@ -50,3 +50,13 @@ Hors de cette session : commiter les retouches, puis relancer `/scd-spec-dev:run
 ## Écarté
 - Cacher le formulaire du tableau : le ticket exige qu'un formulaire qui n'a plus que des retirées y paraisse.
 - Reprise nue sans retouche : elle aurait resservi le même échec depuis le cache.
+
+## Issue
+Run abouti le 2026-10-19 au troisième passage (`rerun: "3"`), PR #282. Les `String(…)` du test neuf,
+indexés avant la reprise, sont bien dans le commit du ticket. La ceinture finale n'a posé aucun constat
+humain : les trois critères sont cochés, et CT-37.1 à CT-37.4 restent à jouer en recette. La relecture a
+réécrit le § 37 du cahier (coverage-F-5). Le test de coverage-F-1, classé appliqué par le tri, manque du
+diff (aucun agent n'a le droit d'écrire un test) : le nom gardé le plus récent d'un formulaire que le site
+ne déclare plus n'est fixé par aucun test. Change-F-1, rejeté comme hors périmètre, est à porter au
+cadrage du ticket 08 : sans demande présente mais avec des retirées, l'écran afficherait à la fois les
+nombres, le tableau et « Aucune demande n'est encore arrivée ».
