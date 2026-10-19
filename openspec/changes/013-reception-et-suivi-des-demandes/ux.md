@@ -22,7 +22,7 @@ De haut en bas, dans le cadre (rubrique « Demandes » active) :
 3. **Le filtre** — « Formulaire : » suivi d'une rangée de liens : « Tous », puis un lien par formulaire de
    demande présente ; le lien courant est marqué (`aria-current`).
 4. **La liste** — sur écran large, une ligne par demande : case à cocher ; date et heure (« 17 octobre
-   2026 à 14:05 ») ; formulaire ; page ; coordonnée de réponse ; total (« 40 € », absent si le formulaire
+   2026 à 14:05 ») ; formulaire, sous le même nom que dans le filtre ; page ; coordonnée de réponse ; total (« 40 € », absent si le formulaire
    n'a pas de prix) ; liste déroulante de la suite ; pastille « E-mail non parti » le cas échéant. La date
    est le lien vers le détail. Sur écran étroit, chaque ligne devient une carte empilée dans le même ordre,
    case à cocher et liste déroulante à 44 px au moins.
@@ -76,7 +76,8 @@ Dans le cadre (rubrique « Demandes » active) :
 1. Lien « ← Toutes les demandes ».
 2. Titre « Demande du 17 octobre 2026 à 14:05 », pastille « E-mail non parti » le cas échéant, avec, en
    dessous, « L'e-mail de cette demande n'a pas pu partir : elle n'est connue que d'ici. »
-3. **Origine** — « Formulaire : Devis gâteau », « Page : Contact ».
+3. **Origine** — « Formulaire : Devis gâteau », « Page : Contact » ; le formulaire sous le même nom que
+   dans la liste.
 4. **Choix** — une ligne par champ à choix renseigné : « Parfum : Fraise (10 €) » ; puis « Total
    indicatif : 40 € (estimation non engageante) ».
 5. **Coordonnées et message** — une ligne par champ renseigné, « Votre nom : Marie Dupont » ; un message

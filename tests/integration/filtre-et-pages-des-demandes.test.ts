@@ -228,9 +228,11 @@ it('SC-04c — 120 demandes : 50 plus récentes en page 1, des liens vers la sui
   const page2 = await ouvrir('?page=2');
   expect(contactsListes(page2)[0]).toBe('c-069@exemple.fr');
   expect(sansBalises(page2)).toContain('Page 2 sur 3');
-  expect(href(lienDe(page2, 'Demandes plus récentes'))).not.toContain('page=2');
+  expect(href(lienDe(page2, 'Demandes plus récentes'))).toBe('/admin/demandes');
+  expect(href(lienDe(page2, 'Demandes plus anciennes'))).toBe('/admin/demandes?page=3');
 
   const page3 = await ouvrir('?page=3');
+  expect(href(lienDe(page3, 'Demandes plus récentes'))).toBe('/admin/demandes?page=2');
   const contacts3 = contactsListes(page3);
   expect(contacts3).toHaveLength(20);
   expect(contacts3[0]).toBe('c-019@exemple.fr');
@@ -336,7 +338,7 @@ it('SC-04c — cas limite : filtre et page ensemble, le comptage suit le filtre 
 
   const page2 = await ouvrir('?formulaire=devis-atelier&page=2');
   expect(liensVersLeDetail(page2)).toHaveLength(10);
-  expect(href(lienDe(page2, 'Demandes plus récentes'))).toContain('formulaire=devis-atelier');
+  expect(href(lienDe(page2, 'Demandes plus récentes'))).toBe('/admin/demandes?formulaire=devis-atelier');
 
   const audela = await ouvrir('?formulaire=devis-atelier&page=99');
   expect(liensVersLeDetail(audela)).toHaveLength(10);
@@ -369,4 +371,20 @@ it('SC-04d — le nom d’un formulaire déclaré vient de la déclaration, celu
   expect(liens(principal).some((l) => l.libelle === 'Atelier (ancien nom)')).toBe(false);
   expect(href(lienDe(principal, 'Ancien devis'))).toContain('formulaire=ancien-devis');
   expect(liens(principal).some((l) => l.libelle === 'Ancien devis v1')).toBe(false);
+});
+
+it('SC-04d — cas limite : sur chaque ligne, un formulaire se lit sous le même nom que dans le filtre', async () => {
+  const db = await assurerSchema();
+  await semer(db, { formulaireId: 'devis-atelier', formulaireNom: 'Atelier (ancien nom)', recueLe: Date.UTC(2026, 2, 1, 10), contact: 'c-001@exemple.fr' });
+  await semer(db, { formulaireId: 'ancien-devis', formulaireNom: 'Ancien devis v1', recueLe: Date.UTC(2026, 2, 2, 10), contact: 'c-002@exemple.fr' });
+  await semer(db, { formulaireId: 'ancien-devis', formulaireNom: 'Ancien devis', recueLe: Date.UTC(2026, 2, 3, 10), contact: 'c-003@exemple.fr' });
+
+  const principal = await ouvrir();
+
+  const declare = sansBalises(ligneDe(principal, 'c-001@exemple.fr'));
+  expect(declare).toContain('Devis atelier');
+  expect(declare).not.toContain('Atelier (ancien nom)');
+  const retire = sansBalises(ligneDe(principal, 'c-002@exemple.fr'));
+  expect(retire).toContain('Ancien devis');
+  expect(retire).not.toContain('Ancien devis v1');
 });

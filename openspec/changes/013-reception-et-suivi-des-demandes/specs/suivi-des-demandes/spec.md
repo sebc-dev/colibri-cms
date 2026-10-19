@@ -54,8 +54,11 @@ coordonnée qui permet de répondre au visiteur — son adresse e-mail, ou à d�
 affiché quand le formulaire porte des prix, la suite, et, le cas échéant, la mention que l'e-mail n'a pas pu
 partir ; chaque ligne DOIT mener à l'`Écran : Demande` de cette demande. L'éditrice DOIT pouvoir filtrer la
 liste par formulaire d'origine (FR-070) : le filtre propose chaque formulaire dont au moins une demande est
-présente — y compris un formulaire que le site ne porte plus — et le retour à toutes les demandes. Sans
-aucune demande présente, l'écran le dit. Tout texte venu d'une demande DOIT être affiché tel quel, sans
+présente — y compris un formulaire que le site ne porte plus — et le retour à toutes les demandes. Sur
+chaque ligne comme dans le filtre, un formulaire DOIT se lire sous son nom courant : celui que le site
+déclare, ou, pour un formulaire que le site ne porte plus, le nom gardé sur sa demande présente la plus
+récente ; le nom gardé au moment de l'envoi, lui, ne change pas. Sans aucune demande présente, l'écran le
+dit. Tout texte venu d'une demande DOIT être affiché tel quel, sans
 qu'aucun balisage n'y soit interprété. Aucun terme de développeur NE DOIT paraître (FR-117).
 
 #### Scenario: Les plus récentes d'abord
@@ -93,7 +96,7 @@ qu'aucun balisage n'y soit interprété. Aucun terme de développeur NE DOIT par
 ### Requirement: Le détail d'une demande
 
 L'`Écran : Demande` SHALL présenter tout ce qu'une demande présente porte : sa date et son heure de
-réception, le formulaire et la page d'origine, chaque champ à choix renseigné avec ses options choisies et,
+réception, le formulaire d'origine sous le même nom que dans la liste, la page d'origine, chaque champ à choix renseigné avec ses options choisies et,
 dans un champ avec prix, le prix de chacune, le total qui était affiché au visiteur avec la mention qu'il
 était indicatif, chaque coordonnée et chaque texte renseignés sous le libellé de leur champ — un texte sur
 plusieurs lignes gardant ses lignes —, la suite, et le cas échéant la mention que l'e-mail n'a pas pu

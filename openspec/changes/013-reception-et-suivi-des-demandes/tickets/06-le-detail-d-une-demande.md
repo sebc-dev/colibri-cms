@@ -12,7 +12,9 @@ la rubrique « Demandes » marquée active. L'écran présente tout ce que la de
 2. le titre « Demande du 17 octobre 2026 à 14:05 » ; quand l'e-mail de la demande n'a pas pu partir, la
    pastille « E-mail non parti » et, dessous, « L'e-mail de cette demande n'a pas pu partir : elle n'est
    connue que d'ici. » ;
-3. l'origine : « Formulaire : Devis gâteau », « Page : Contact » ;
+3. l'origine : « Formulaire : Devis gâteau », « Page : Contact » ; le formulaire sous le même nom que dans
+   la liste — celui de la déclaration tant que le site le déclare, sinon le nom gardé sur sa demande
+   présente la plus récente ;
 4. les choix : une ligne par champ à choix renseigné, par exemple « Parfum : Fraise (10 €) », puis, pour un
    formulaire avec prix, « Total indicatif : 40 € (estimation non engageante) » ;
 5. les coordonnées et le message : une ligne par champ renseigné, par exemple « Votre nom : Marie Dupont » ;
@@ -45,6 +47,9 @@ développeur ne paraît (FR-117).
   s'affiche vide, jamais comme une erreur.
 - **Aucun HTML composé (I5).** Un texte long se rend ligne par ligne, un élément par ligne, en nœuds de
   texte ; interpolation échappée d'Astro seulement ; aucun `set:html`.
+- **Le nom du formulaire.** Résolu par `nomDuFormulaire` (`src/core/demandes/liste.ts`, ticket 04), à
+  partir de la déclaration (`lireFormulairesDeLaDeclaration`) et des noms gardés, comme sur l'`Écran :
+  Demandes` ; `formulaire_nom` reste inchangé en base.
 - **Les prix.** `formaterPrix` (`src/core/formulaires/prix.ts`) suivi de « € » ; date par
   `src/core/demandes/date.ts` (ticket 03).
 - **Les textes** vivent dans `src/admin/textes.ts` : titre, lien de retour, mention d'e-mail, « Total
@@ -55,7 +60,8 @@ développeur ne paraît (FR-117).
 - **Le cahier de recette.** `docs/cahier-de-test.md` gagne une section pour ce ticket : un message de
   plusieurs lignes se lit ligne à ligne au téléphone, sans défilement horizontal.
 - **Cas limites à couvrir :** `detail` corrompu en base (JSON illisible, forme inattendue) affiché vide ;
-  formulaire sans prix (pas de ligne de total) ; choix multiple à plusieurs options ; texte long avec une
+  formulaire sans prix (pas de ligne de total) ; formulaire déclaré renommé depuis l'envoi (le nom courant
+  paraît) ; formulaire que le site ne porte plus (le nom gardé le plus récent paraît) ; choix multiple à plusieurs options ; texte long avec une
   ligne vide au milieu ; identifiant inconnu ; identifiant d'une demande retirée.
 
 **Hors périmètre :**
