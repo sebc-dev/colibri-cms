@@ -4,6 +4,7 @@
  */
 import { env } from 'cloudflare:workers';
 import { DEMANDES_PAR_PAGE } from '../../core/demandes/liste.ts';
+import type { ComptesFormulaire } from '../../core/demandes/nombres.ts';
 
 type Base = typeof env.DB;
 
@@ -155,5 +156,33 @@ export async function listerFormulairesDeDemandes(db: Base): Promise<{ id: strin
   return (resultat.results as { formulaire_id: string; formulaire_nom: string }[]).map((r) => ({
     id: r.formulaire_id,
     nom: r.formulaire_nom,
+  }));
+}
+
+/**
+ * Les comptes de toutes les demandes, une ligne par formulaire, en une seule requête groupée :
+ * présentes, commandes (présentes ou retirées) et retirées, avec le nom gardé le plus récent.
+ */
+export async function compterParFormulaire(db: Base): Promise<ComptesFormulaire[]> {
+  await assurerSchema(db);
+  const resultat = await db
+    .prepare(
+      `select formulaire_id,
+              (select e.formulaire_nom from demandes e where e.formulaire_id = d.formulaire_id
+                 order by e.recue_le desc, e.rowid desc limit 1) as nom,
+              sum(etat = 'presente') as presentes,
+              sum(suite = 'commande') as commandes,
+              sum(etat = 'retiree') as retirees
+       from demandes d group by formulaire_id`,
+    )
+    .all();
+  return (
+    resultat.results as { formulaire_id: string; nom: string; presentes: number; commandes: number; retirees: number }[]
+  ).map((r) => ({
+    formulaireId: r.formulaire_id,
+    nom: r.nom,
+    presentes: r.presentes,
+    commandes: r.commandes,
+    retirees: r.retirees,
   }));
 }

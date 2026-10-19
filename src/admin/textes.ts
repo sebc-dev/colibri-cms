@@ -348,3 +348,18 @@ export const TEXTE_FILTRE_TOUS = 'Tous';
 export const TEXTE_DEMANDES_PLUS_RECENTES = 'Demandes plus récentes';
 export const TEXTE_DEMANDES_PLUS_ANCIENNES = 'Demandes plus anciennes';
 export const texteNumeroDePage = (page: number, total: number): string => `Page ${String(page)} sur ${String(total)}`;
+
+/** Les nombres du site et de chaque formulaire, en haut de l'écran Demandes (FR-075 à FR-078, FR-117). */
+const accord = (n: number, singulier: string, pluriel: string): string =>
+  `${String(n)} ${n > 1 ? pluriel : singulier}`;
+export const texteNombresDuSite = (demandes: number, commandes: number, retirees: number): string =>
+  [
+    accord(demandes, 'demande', 'demandes'),
+    accord(commandes, 'commande', 'commandes'),
+    ...(retirees > 0 ? [accord(retirees, 'retirée', 'retirées')] : []),
+  ].join(' · ');
+export const TEXTE_COLONNE_FORMULAIRE = 'Formulaire';
+export const TEXTE_COLONNE_DEMANDES = 'Demandes';
+export const TEXTE_COLONNE_COMMANDES = 'Commandes';
+export const TEXTE_COLONNE_RETIREES = 'Retirées';
+export const TEXTE_NOMBRES_PAR_FORMULAIRE = 'Nombres par formulaire';

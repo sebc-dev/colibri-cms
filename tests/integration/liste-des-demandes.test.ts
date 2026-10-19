@@ -173,6 +173,13 @@ function ligneDe(principal: string, contact: string): string {
   return sansBalises(ligne ?? '').replace(/\s+/g, ' ');
 }
 
+/** La liste des demandes (`<ul>`) — hors des nombres et du filtre, qui nomment aussi les formulaires. */
+function listeDesDemandes(principal: string): string {
+  const liste = /<ul[^>]*>([\s\S]*?)<\/ul>/.exec(principal)?.[1];
+  expect(liste, 'la liste des demandes (<ul>) devrait être présente').toBeDefined();
+  return liste ?? '';
+}
+
 it('SC-03a — trois demandes arrivées lundi, mardi, mercredi : mercredi, puis mardi, puis lundi', async () => {
   const db = await assurerSchema();
   await semerDemande(db, { recueLe: Date.UTC(2026, 2, 2, 10, 0), contact: 'lundi@exemple.fr' });
@@ -312,7 +319,7 @@ it('SC-03a — cas limite : une demande retirée n’apparaît pas dans la liste
   const principal = contenuPrincipal(await ouvrirEnSession());
 
   expect(principal).toContain('presente@exemple.fr');
-  expect(principal).not.toContain('Devis atelier');
+  expect(listeDesDemandes(principal)).not.toContain('Devis atelier');
   expect(principal).not.toContain('href="/admin/demandes/demande-retiree"');
   expect(liensVersLeDetail(principal)).toHaveLength(1);
 });

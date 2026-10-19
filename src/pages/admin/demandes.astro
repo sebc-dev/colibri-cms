@@ -11,7 +11,9 @@ import {
   listerDemandes,
   compterDemandes,
   listerFormulairesDeDemandes,
+  compterParFormulaire,
 } from '../../platform/demandes/magasin.ts';
+import { composerNombres } from '../../core/demandes/nombres.ts';
 import { formaterReception } from '../../core/demandes/date.ts';
 import { bornerPage, choisirFormulaire, nombreDePages, nomDuFormulaire } from '../../core/demandes/liste.ts';
 import { lireFormulairesDeLaDeclaration } from '../../platform/contenu/formulaires.ts';
@@ -26,6 +28,12 @@ import {
   TEXTE_DEMANDES_PLUS_RECENTES,
   TEXTE_DEMANDES_PLUS_ANCIENNES,
   texteNumeroDePage,
+  texteNombresDuSite,
+  TEXTE_COLONNE_FORMULAIRE,
+  TEXTE_COLONNE_DEMANDES,
+  TEXTE_COLONNE_COMMANDES,
+  TEXTE_COLONNE_RETIREES,
+  TEXTE_NOMBRES_PAR_FORMULAIRE,
 } from '../../admin/textes.ts';
 import { env } from 'cloudflare:workers';
 
@@ -45,6 +53,8 @@ const pages = nombreDePages(total);
 const page = bornerPage(Astro.url.searchParams.get('page'), pages);
 const demandes = await listerDemandes(env.DB, page, formulaire);
 
+const nombres = composerNombres(await compterParFormulaire(env.DB), declares);
+
 function adresse(f: string | null, p: number): string {
   const requete = new URLSearchParams();
   if (f !== null) requete.set('formulaire', f);
@@ -57,6 +67,33 @@ const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
 
 <GabaritCadre titre="Demandes — Administration" rubrique="demandes">
   <h1>{TEXTE_TITRE_DEMANDES}</h1>
+  <p class="mt-4 font-medium">
+    {texteNombresDuSite(nombres.site.demandes, nombres.site.commandes, nombres.site.retirees)}
+  </p>
+  {
+    nombres.formulaires.length > 0 && (
+      <table class="mt-4 w-full text-left" aria-label={TEXTE_NOMBRES_PAR_FORMULAIRE}>
+        <thead>
+          <tr>
+            <th scope="col">{TEXTE_COLONNE_FORMULAIRE}</th>
+            <th scope="col">{TEXTE_COLONNE_DEMANDES}</th>
+            <th scope="col">{TEXTE_COLONNE_COMMANDES}</th>
+            {nombres.montrerRetirees && <th scope="col">{TEXTE_COLONNE_RETIREES}</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {nombres.formulaires.map((f) => (
+            <tr>
+              <th scope="row" class="break-words font-normal">{f.nom}</th>
+              <td>{f.demandes}</td>
+              <td>{f.commandes}</td>
+              {nombres.montrerRetirees && <td>{f.retirees}</td>}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  }
   {
     presents.length > 0 && (
       <nav aria-label={TEXTE_FILTRE_FORMULAIRE} class="mt-6 flex flex-wrap items-center gap-2">
