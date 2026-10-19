@@ -59,6 +59,6 @@ nulles ; un retrait indésirable ne laisse aucune ligne.
 - toute ventilation par date ou par période.
 
 ## Critères
-- [ ] Quand la liste porte onze demandes de « Devis gâteau », dont trois de suite « commande », et trois demandes de « Devis atelier », sans aucune commande, et qu'aucune n'a été retirée, l'écran affiche 14 demandes et 3 commandes pour le site, 11 demandes et 3 commandes pour « Devis gâteau », 3 demandes et 0 commande pour « Devis atelier », et aucun nombre de retirées   (SC-05a)
-- [ ] Quand, sur un jeu de demandes connu mêlant plusieurs formulaires, des retraits ordinaires et des retraits indésirables, l'écran affiche les nombres, pour les demandes, les commandes et les retirées, la somme des nombres des formulaires égale le nombre du site   (SC-05b)
-- [ ] Quand l'éditrice filtre la liste sur « Devis atelier », ou passe à la page suivante, les nombres du site et de chaque formulaire restent ceux de toutes les demandes   (SC-05c)
+- [x] Quand la liste porte onze demandes de « Devis gâteau », dont trois de suite « commande », et trois demandes de « Devis atelier », sans aucune commande, et qu'aucune n'a été retirée, l'écran affiche 14 demandes et 3 commandes pour le site, 11 demandes et 3 commandes pour « Devis gâteau », 3 demandes et 0 commande pour « Devis atelier », et aucun nombre de retirées   (SC-05a)
+- [x] Quand, sur un jeu de demandes connu mêlant plusieurs formulaires, des retraits ordinaires et des retraits indésirables, l'écran affiche les nombres, pour les demandes, les commandes et les retirées, la somme des nombres des formulaires égale le nombre du site   (SC-05b)
+- [x] Quand l'éditrice filtre la liste sur « Devis atelier », ou passe à la page suivante, les nombres du site et de chaque formulaire restent ceux de toutes les demandes   (SC-05c)

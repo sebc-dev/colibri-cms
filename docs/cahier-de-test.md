@@ -695,6 +695,34 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | CT-36.3 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, toucher « Demandes plus anciennes » puis « Demandes plus récentes » ; refaire le parcours après avoir touché « Devis gâteau » dans la rangée « Formulaire : » | « Page 2 sur N » paraît puis on revient à la première page ; le filtre choisi est gardé d'une page à l'autre | |
 | CT-36.4 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, repérer « Ancien devis » dans la rangée « Formulaire : » et le toucher | Elles restent listées sous son nom et le filtre le propose toujours | |
 
+## 37. Les nombres du site et de chaque formulaire — change 013 · ticket 05
+
+La suite « Commande » ne se choisit pas encore depuis l'administration, le seuil par origine (§ 34) empêche de réunir plus de 50 demandes par le formulaire et le retrait n'existe pas encore : les cas partent de demandes semées en base. Sur la base locale du § 0.2, `wrangler dev` arrêté ou en marche, semer 55 demandes de « Devis gâteau », une par minute, dont les 3 premières de suite « Commande », puis 3 demandes de « Devis atelier » :
+
+```sh
+npx wrangler d1 execute DB --local --command "with recursive n(i) as (select 1 union all select i + 1 from n where i < 55) insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) select 'recette-37-' || i, 'devis-gateau', 'Devis gâteau', case when i <= 3 then 'commande' else 'a-renseigner' end, 'presente', 1767225600000 + i * 60000, 'Contact', null, 'c-' || i || '@exemple.fr', '[]', 'parti' from n;"
+npx wrangler d1 execute DB --local --command "insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) values ('recette-37-atelier-1', 'devis-atelier', 'Devis atelier', 'a-renseigner', 'presente', 1767400000000, 'Contact', null, 'atelier-1@exemple.fr', '[]', 'parti'), ('recette-37-atelier-2', 'devis-atelier', 'Devis atelier', 'a-renseigner', 'presente', 1767400060000, 'Contact', null, 'atelier-2@exemple.fr', '[]', 'parti'), ('recette-37-atelier-3', 'devis-atelier', 'Devis atelier', 'a-renseigner', 'presente', 1767400120000, 'Contact', null, 'atelier-3@exemple.fr', '[]', 'parti');"
+```
+
+À semer seulement pour CT-37.4, deux témoins de retrait ordinaire de « Devis gâteau », l'un de suite « Commande », l'autre « Sans suite » :
+
+```sh
+npx wrangler d1 execute DB --local --command "insert into demandes (id, formulaire_id, formulaire_nom, suite, etat) values ('recette-37-retiree-1', 'devis-gateau', 'Devis gâteau', 'commande', 'retiree'), ('recette-37-retiree-2', 'devis-gateau', 'Devis gâteau', 'sans-suite', 'retiree');"
+```
+
+Après les cas, les effacer :
+
+```sh
+npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-37-%';"
+```
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-37.1 | Les demandes du préalable semées, sans les témoins retirés, ouvrir « Demandes » au téléphone | En haut, « N demandes · N commandes » puis un tableau Formulaire / Demandes / Commandes, formulaires par nom, lisible sans défiler de côté | |
+| CT-37.2 | Sans aucune demande, ouvrir « Demandes » | « 0 demande · 0 commande », aucun tableau | |
+| CT-37.3 | Les demandes du préalable semées, toucher « Devis gâteau » dans la rangée « Formulaire : » puis « Demandes plus anciennes » | Les nombres du haut et du tableau ne changent pas | |
+| CT-37.4 | Les témoins retirés du préalable semés en plus, ouvrir « Demandes » au téléphone | « · 2 retirées » suit les nombres du haut ; le tableau porte la colonne Retirées ; il se lit sans défiler de côté | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
@@ -730,6 +758,7 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | 34 Seuil des demandes par origine | 4 | | | |
 | 35 Liste des demandes | 3 | | | |
 | 36 Filtre et pages des demandes | 4 | | | |
-| **Total** | **204** | | | |
+| 37 Nombres des demandes | 4 | | | |
+| **Total** | **208** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
