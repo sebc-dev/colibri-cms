@@ -42,13 +42,16 @@
   étrangère : aucune ligne dans la table.
 - **Détail** — champ facultatif vide omis ; texte long de 1 et de 3 lignes, ligne vide au milieu ;
   caractères `<`, `>`, `&`, guillemets, émojis ; formulaire sans prix (total absent) ; choix multiple à
-  plusieurs options ; formulaire renommé et option re-prixée après la garde (la demande ne bouge pas) ;
+  plusieurs options ; option renommée et re-prixée après la garde (la demande ne bouge pas) ; formulaire
+  déclaré renommé après la garde (le détail le nomme sous son nom courant, comme la liste ; le nom gardé
+  ne change pas) ;
   `detail` corrompu en base (affiché vide, jamais d'erreur).
 - **Coordonnée de réponse** — e-mail seul ; téléphone seul ; les deux (l'e-mail l'emporte) ; e-mail
   facultatif vide et téléphone renseigné.
 - **Liste** — 0, 1, 50, 51 et 120 demandes (pages de 50, dernière page de 20) ; `?page=0`, `?page=-1`,
   `?page=abc`, page au-delà de la dernière (bornée) ; égalité de date de réception (ordre stable) ;
-  `?formulaire=` inconnu (ignoré) ; formulaire de demande présente qui n'est plus déclaré.
+  `?formulaire=` inconnu (ignoré) ; formulaire de demande présente qui n'est plus déclaré ; formulaire
+  déclaré renommé depuis l'envoi (la ligne et le filtre portent son nom courant).
 - **Nombres** — le jeu de SC-019 et de l'ancien US10 : 11 « Devis gâteau » dont 3 commandes, 3 « Devis
   atelier » ; deux retraits ordinaires sans suite ; quarante indésirables (52 puis 12) ; une commande
   retirée ordinairement (commandes inchangé) ; une commande retirée en indésirable (commandes −1) ; aucune

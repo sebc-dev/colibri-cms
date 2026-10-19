@@ -126,11 +126,13 @@ de plus que dans 012 (insertion, marque), dans le quota du palier gratuit.
 formulaire de demande présente) et `?page=<n>` (borné à la dernière page), puis rend dans le cadre
 (`rubrique="demandes"`) :
 - **les nombres** du site et de chaque formulaire (D6), en haut, indépendants du filtre et de la page ;
-- **le filtre** — un lien par formulaire de demande présente, plus « Toutes les demandes » ; le nom affiché
-  est celui de la déclaration quand le formulaire est encore déclaré, sinon le nom gardé sur sa demande la
-  plus récente ;
+- **le filtre** — un lien par formulaire de demande présente, plus « Tous » ; le nom affiché est celui de
+  la déclaration quand le formulaire est encore déclaré, sinon le nom gardé sur sa demande la plus récente
+  (`nomDuFormulaire`, `src/core/demandes/liste.ts`) ;
 - **la liste** — 50 lignes au plus, `order by recue_le desc, rowid desc` ; chaque ligne : date et heure,
-  formulaire, page, coordonnée de réponse, total, suite, mention d'e-mail, lien vers le détail ;
+  formulaire (sous le même nom que dans le filtre ; `formulaire_nom`, le nom gardé à l'envoi, n'est que le
+  repli et ne change jamais en base), page, coordonnée de réponse, total, suite, mention d'e-mail, lien vers
+  le détail ;
 - **la pagination** — « Demandes plus récentes » / « Demandes plus anciennes », liens qui gardent le filtre.
 
 L'îlot `EcranDemandes.svelte` monte sur la liste (présentation statique vidée au montage, données en
@@ -147,7 +149,9 @@ timeStyle: 'short' })`, le fuseau étant une constante de `src/core/demandes/` (
 `src/pages/admin/demandes/[id].astro`, derrière la garde : une demande présente se rend en entier (D2), un
 texte long ligne par ligne (une ligne de texte par élément, jamais de HTML composé, I5) ; une demande
 retirée ou inconnue rend 404 avec le texte « Cette demande n'est plus dans la liste » et le lien de retour,
-sans lire autre chose que son existence. L'îlot `EcranDemande.svelte` y porte la liste déroulante de suite
+sans lire autre chose que son existence. Le formulaire s'y nomme comme dans la liste (D4) : la
+déclaration d'abord, sinon le nom gardé sur la demande présente la plus récente de ce formulaire
+(`nomDuFormulaire`). L'îlot `EcranDemande.svelte` y porte la liste déroulante de suite
 et le geste « Retirer cette demande » (même dialogue que D8, sélection d'une seule demande) ; après un
 retrait, l'écran mène à la liste.
 
