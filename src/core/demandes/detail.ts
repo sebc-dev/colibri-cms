@@ -3,6 +3,7 @@
  * Fonctions pures (I2) : libellés, options et prix sont copiés de la déclaration vérifiée, tels
  * qu'au moment de l'envoi.
  */
+import { PRIX_CENTIMES_MAX } from '../formulaires/declaration.ts';
 import type { ChampDeclare, FormulaireDeclare } from '../formulaires/declaration.ts';
 
 type Valeurs = Readonly<Record<string, string | readonly string[]>>;
@@ -68,4 +69,42 @@ export function contactDeReponse(formulaire: FormulaireDeclare, valeurs: Valeurs
 /** Le total affiché n'est gardé que pour un formulaire qui porte des prix (FR-068). */
 export function totalAGarder(formulaire: FormulaireDeclare, total: number): number | null {
   return formulaire.champs.some((c) => c.avecPrix) ? total : null;
+}
+
+function estObjet(valeur: unknown): valeur is Record<string, unknown> {
+  return typeof valeur === 'object' && valeur !== null && !Array.isArray(valeur);
+}
+
+function relireOption(brut: unknown): OptionGardee | null {
+  if (!estObjet(brut) || typeof brut.libelle !== 'string') return null;
+  if (brut.prix === undefined) return { libelle: brut.libelle };
+  if (typeof brut.prix !== 'number' || !Number.isInteger(brut.prix) || brut.prix < 0 || brut.prix > PRIX_CENTIMES_MAX) return null;
+  return { libelle: brut.libelle, prix: brut.prix };
+}
+
+function relireLigne(brut: unknown): LigneDeDetail | null {
+  if (!estObjet(brut) || typeof brut.etiquette !== 'string') return null;
+  const { etiquette, valeur, lignes, options } = brut;
+  const presentes = [valeur, lignes, options].filter((v) => v !== undefined).length;
+  if (presentes !== 1) return null;
+  if (typeof valeur === 'string') return { etiquette, valeur };
+  if (Array.isArray(lignes)) {
+    return lignes.every((l) => typeof l === 'string') ? { etiquette, lignes } : null;
+  }
+  if (!Array.isArray(options)) return null;
+  const relues = options.map(relireOption);
+  return relues.every((o) => o !== null) ? { etiquette, options: relues } : null;
+}
+
+/** Relit le détail gardé ; toute autre forme que celle de `composerDetail` rend un détail vide. */
+export function relireDetail(json: string): LigneDeDetail[] {
+  let brut: unknown;
+  try {
+    brut = JSON.parse(json);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(brut)) return [];
+  const relues = brut.map(relireLigne);
+  return relues.every((l) => l !== null) ? relues : [];
 }

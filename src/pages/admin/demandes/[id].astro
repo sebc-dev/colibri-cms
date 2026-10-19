@@ -1,0 +1,114 @@
+---
+/**
+ * L'`Écran : Demande` (change 013, ticket 06) : le détail d'une demande. Rendu serveur, garde de
+ * session importée d'abord (ADR-0007), aucun îlot ni script. Texte de demande interpolé échappé
+ * seulement, jamais de `set:html` (I5). Demande retirée ou inconnue : même 404, sans donnée.
+ */
+import GabaritCadre from '../../../admin/GabaritCadre.astro';
+import { Badge } from '../../../admin/composants/ui/badge/index.ts';
+import { verifierSession } from '../../../platform/session/index.ts';
+import { obtenirDemande, listerFormulairesDeDemandes } from '../../../platform/demandes/magasin.ts';
+import { lireFormulairesDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
+import { relireDetail } from '../../../core/demandes/detail.ts';
+import { formaterReception } from '../../../core/demandes/date.ts';
+import { nomDuFormulaire } from '../../../core/demandes/liste.ts';
+import { formaterPrix } from '../../../core/formulaires/prix.ts';
+import {
+  TEXTE_RETOUR_DEMANDES,
+  texteTitreDemande,
+  TEXTE_EMAIL_NON_PARTI,
+  TEXTE_EMAIL_DEMANDE_NON_PARTI,
+  TEXTE_ORIGINE_FORMULAIRE,
+  TEXTE_ORIGINE_PAGE,
+  TEXTE_TOTAL_INDICATIF,
+  TEXTE_TOTAL_NON_ENGAGEANT,
+  TEXTE_SUITE_DEMANDE,
+  TEXTES_SUITE_DEMANDE,
+  TEXTE_DEMANDE_INTROUVABLE,
+  TEXTE_REVENIR_AUX_DEMANDES,
+} from '../../../admin/textes.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+const demande = await obtenirDemande(env.DB, Astro.params.id ?? '');
+if (demande === null) {
+  Astro.response.status = 404;
+}
+const lignes = demande === null ? [] : relireDetail(demande.detail);
+const choix = lignes.filter((l) => 'options' in l);
+const coordonnees = lignes.filter((l) => !('options' in l));
+const entree =
+  demande === null
+    ? undefined
+    : (await listerFormulairesDeDemandes(env.DB)).find((f) => f.id === demande.formulaireId);
+const nom =
+  demande === null
+    ? ''
+    : nomDuFormulaire(demande.formulaireId, lireFormulairesDeLaDeclaration(), [
+        { nom: entree?.nom ?? demande.formulaireNom, recueLe: 0 },
+      ]);
+const euros = (centimes: number): string => `${formaterPrix(centimes)} €`;
+---
+
+<GabaritCadre titre="Demande — Administration" rubrique="demandes">
+  {
+    demande === null ? (
+      <>
+        <h1>{TEXTE_DEMANDE_INTROUVABLE}</h1>
+        <p class="mt-6">
+          <a href="/admin/demandes" class="min-h-11 underline md:min-h-0">{TEXTE_REVENIR_AUX_DEMANDES}</a>
+        </p>
+      </>
+    ) : (
+      <>
+        <p>
+          <a href="/admin/demandes" class="min-h-11 underline md:min-h-0">{TEXTE_RETOUR_DEMANDES}</a>
+        </p>
+        <h1 class="mt-4 break-words">{texteTitreDemande(formaterReception(demande.recueLe))}</h1>
+        {demande.courriel === 'non-parti' && (
+          <div class="mt-2">
+            <Badge variant="outline">{TEXTE_EMAIL_NON_PARTI}</Badge>
+            <p class="mt-2">{TEXTE_EMAIL_DEMANDE_NON_PARTI}</p>
+          </div>
+        )}
+        <div class="mt-6 space-y-1">
+          <p class="break-words">{`${TEXTE_ORIGINE_FORMULAIRE} : ${nom}`}</p>
+          <p class="break-words">{`${TEXTE_ORIGINE_PAGE} : ${demande.pageTitre}`}</p>
+        </div>
+        <div class="mt-6 space-y-2">
+          {choix.map((ligne) =>
+            'options' in ligne ? (
+              <p class="break-words">
+                {`${ligne.etiquette} : ${ligne.options
+                  .map((o) => (o.prix === undefined ? o.libelle : `${o.libelle} (${euros(o.prix)})`))
+                  .join(', ')}`}
+              </p>
+            ) : null,
+          )}
+        </div>
+        {demande.total !== null && (
+          <p class="mt-6 font-medium">{`${TEXTE_TOTAL_INDICATIF} : ${euros(demande.total)} (${TEXTE_TOTAL_NON_ENGAGEANT})`}</p>
+        )}
+        <div class="mt-6 space-y-2">
+          {coordonnees.map((ligne) =>
+            'lignes' in ligne ? (
+              <div>
+                <p class="font-medium">{ligne.etiquette}</p>
+                {ligne.lignes.map((texte) => (
+                  <p class="min-h-6 break-words">{texte}</p>
+                ))}
+              </div>
+            ) : 'valeur' in ligne ? (
+              <p class="break-words">{`${ligne.etiquette} : ${ligne.valeur}`}</p>
+            ) : null,
+          )}
+        </div>
+        <p class="mt-6">{`${TEXTE_SUITE_DEMANDE} : ${TEXTES_SUITE_DEMANDE[demande.suite] ?? ''}`}</p>
+      </>
+    )
+  }
+</GabaritCadre>

@@ -95,6 +95,21 @@ interface LigneBrute {
   courriel: LigneDemande['courriel'];
 }
 
+/** Une ligne brute de `demandes` vue comme une demande de la liste. */
+function versLigneDemande(r: LigneBrute): LigneDemande {
+  return {
+    id: r.id,
+    recueLe: r.recue_le,
+    formulaireId: r.formulaire_id,
+    formulaireNom: r.formulaire_nom,
+    pageTitre: r.page_titre ?? '',
+    contact: r.contact ?? '',
+    total: r.total,
+    suite: r.suite,
+    courriel: r.courriel,
+  };
+}
+
 /**
  * Une page de 50 demandes présentes, la plus récente d'abord (ordre stable à la milliseconde),
  * filtrée par formulaire si `formulaireId` est donné. `page` commence à 1.
@@ -117,17 +132,7 @@ export async function listerDemandes(db: Base, page = 1, formulaireId: string | 
           .bind(DEMANDES_PAR_PAGE, decalage, formulaireId);
   const resultat = await instruction.all();
   const lignes = resultat.results as LigneBrute[];
-  return lignes.map((r) => ({
-    id: r.id,
-    recueLe: r.recue_le,
-    formulaireId: r.formulaire_id,
-    formulaireNom: r.formulaire_nom,
-    pageTitre: r.page_titre ?? '',
-    contact: r.contact ?? '',
-    total: r.total,
-    suite: r.suite,
-    courriel: r.courriel,
-  }));
+  return lignes.map((r) => versLigneDemande(r));
 }
 
 /** Le nombre de demandes présentes, filtrées par formulaire ou non. */
@@ -185,4 +190,22 @@ export async function compterParFormulaire(db: Base): Promise<ComptesFormulaire[
     commandes: r.commandes,
     retirees: r.retirees,
   }));
+}
+
+export interface DemandeLue extends LigneDemande {
+  readonly detail: string;
+}
+
+/** Une demande présente par son identifiant ; `null` si elle est retirée ou inconnue. */
+export async function obtenirDemande(db: Base, id: string): Promise<DemandeLue | null> {
+  await assurerSchema(db);
+  const r = await db
+    .prepare(
+      `select id, recue_le, formulaire_id, formulaire_nom, page_titre, contact, total, suite, courriel, detail
+       from demandes where id = ?1 and etat = 'presente'`,
+    )
+    .bind(id)
+    .first<LigneBrute & { detail: string | null }>();
+  if (r === null) return null;
+  return { ...versLigneDemande(r), detail: r.detail ?? '' };
 }

@@ -363,3 +363,15 @@ export const TEXTE_COLONNE_DEMANDES = 'Demandes';
 export const TEXTE_COLONNE_COMMANDES = 'Commandes';
 export const TEXTE_COLONNE_RETIREES = 'Retirées';
 export const TEXTE_NOMBRES_PAR_FORMULAIRE = 'Nombres par formulaire';
+
+/** Le détail d'une demande (FR-117). */
+export const TEXTE_RETOUR_DEMANDES = '← Toutes les demandes';
+export const texteTitreDemande = (reception: string): string => `Demande du ${reception}`;
+export const TEXTE_EMAIL_DEMANDE_NON_PARTI = 'L’e-mail de cette demande n’a pas pu partir : elle n’est connue que d’ici.';
+export const TEXTE_ORIGINE_FORMULAIRE = 'Formulaire';
+export const TEXTE_ORIGINE_PAGE = 'Page';
+export const TEXTE_TOTAL_INDICATIF = 'Total indicatif';
+export const TEXTE_TOTAL_NON_ENGAGEANT = 'estimation non engageante';
+export const TEXTE_SUITE_DEMANDE = 'Suite';
+export const TEXTE_DEMANDE_INTROUVABLE = 'Cette demande n’est plus dans la liste';
+export const TEXTE_REVENIR_AUX_DEMANDES = 'Revenir aux demandes';
