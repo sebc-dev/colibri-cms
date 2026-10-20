@@ -9,6 +9,12 @@ import { poserGardePolitique } from "./garde-politique.ts";
 const BASE = ".wrangler/parcours";
 const MESSAGE_ECHEC = "La suite n'a pas pu être enregistrée. Réessayez dans quelques instants.";
 const ID_DEMANDE = "demande-parcours-suite";
+// La demande semée est reçue le 17 octobre 2026 à 12:05 UTC, soit 14:05 à Paris.
+const LIBELLE_SUITE = "Suite de la demande du 17 octobre 2026 à 14:05";
+
+function estEnvoiDeSuite(url: string, methode: string): boolean {
+  return new URL(url).pathname === `/admin/demandes/${ID_DEMANDE}/suite` && methode === "POST";
+}
 
 function executer(commande: string): void {
   execFileSync(
@@ -75,6 +81,120 @@ test.describe("la suite d'une demande", () => {
       await expect(message).toBeVisible();
       await expect(message).toHaveAttribute("aria-live", "polite");
       await expect(liste).toHaveValue("devis-envoye");
+      garde.verifier();
+    } finally {
+      await contexte.close();
+    }
+  });
+
+  test("SC-07b — « commande » choisi dans la liste après « devis envoyé » : la liste porte « commande », et le nombre de commandes la compte sans rechargement", async ({
+    browser,
+  }) => {
+    const contexte = await browser.newContext();
+    await ouvrirSession(contexte);
+    const garde = await poserGardePolitique(contexte);
+    try {
+      const page = await contexte.newPage();
+      await page.goto("/admin/demandes");
+      const liste = page.getByLabel(LIBELLE_SUITE, { exact: true });
+      await expect(liste).toHaveValue("devis-envoye");
+      // La base des parcours est partagée par tous les fichiers d'une passe : l'oracle est relatif.
+      const cellule = page.locator('[data-nombres-formulaire="devis-gateau"] [data-nombre-commandes]');
+      const phrase = page.locator("[data-nombres-site]");
+      const commandesDuFormulaire = Number(await cellule.textContent());
+      const commandesDuSite = Number(/(\d+) commandes?/.exec((await phrase.textContent()) ?? "")?.[1]);
+      await page.evaluate(() => {
+        (window as unknown as { marque?: number }).marque = 1;
+      });
+
+      const [reponse] = await Promise.all([
+        page.waitForResponse((r) => estEnvoiDeSuite(r.url(), r.request().method())),
+        liste.selectOption("commande"),
+      ]);
+
+      expect(reponse.status()).toBe(200);
+      await expect(cellule).toHaveText(String(commandesDuFormulaire + 1));
+      await expect(phrase).toHaveText(
+        new RegExp(`(^|\\s)${String(commandesDuSite + 1)} commandes?(\\s|$)`),
+      );
+      await expect(liste).toHaveValue("commande");
+      expect(await page.evaluate(() => (window as unknown as { marque?: number }).marque)).toBe(1);
+      await expect(page.getByText(MESSAGE_ECHEC)).not.toBeVisible();
+      await page.reload();
+      await expect(liste).toHaveValue("commande");
+      garde.verifier();
+    } finally {
+      await contexte.close();
+    }
+  });
+
+  test("SC-07a — depuis le détail : « sans suite » choisi, la liste du détail le porte après rechargement", async ({
+    browser,
+  }) => {
+    const contexte = await browser.newContext();
+    await ouvrirSession(contexte);
+    const garde = await poserGardePolitique(contexte);
+    try {
+      const page = await contexte.newPage();
+      await page.goto(`/admin/demandes/${ID_DEMANDE}`);
+      const liste = page.getByLabel(LIBELLE_SUITE, { exact: true });
+      await expect(liste).toHaveValue("devis-envoye");
+
+      const [reponse] = await Promise.all([
+        page.waitForResponse((r) => estEnvoiDeSuite(r.url(), r.request().method())),
+        liste.selectOption("sans-suite"),
+      ]);
+
+      expect(reponse.status()).toBe(200);
+      await page.reload();
+      await expect(liste).toHaveValue("sans-suite");
+      garde.verifier();
+    } finally {
+      await contexte.close();
+    }
+  });
+
+  test("SC-07a — deux choix rapprochés : la liste finit sur la dernière suite choisie, et la base la porte", async ({
+    browser,
+  }) => {
+    const contexte = await browser.newContext();
+    await ouvrirSession(contexte);
+    const garde = await poserGardePolitique(contexte);
+    try {
+      const page = await contexte.newPage();
+      // Le premier envoi est retenu jusqu'à `liberer()` ; les suivants passent tout droit.
+      let liberer: () => void = () => undefined;
+      const retenue = new Promise<void>((resoudre) => {
+        liberer = resoudre;
+      });
+      let premier = true;
+      await page.route("**/admin/demandes/*/suite", async (route) => {
+        if (premier) {
+          premier = false;
+          await retenue;
+        }
+        await route.continue();
+      });
+      await page.goto("/admin/demandes");
+      const liste = page.getByLabel(LIBELLE_SUITE, { exact: true });
+      await expect(liste).toHaveValue("devis-envoye");
+
+      await Promise.all([
+        page.waitForRequest((r) => estEnvoiDeSuite(r.url(), r.method())),
+        liste.selectOption("sans-suite"),
+      ]);
+      await liste.selectOption("commande");
+      const secondEnvoi = page.waitForResponse(
+        (r) =>
+          estEnvoiDeSuite(r.url(), r.request().method()) &&
+          r.request().postData() === JSON.stringify({ suite: "commande" }),
+      );
+      liberer();
+
+      expect((await secondEnvoi).status()).toBe(200);
+      await expect(liste).toHaveValue("commande");
+      await page.reload();
+      await expect(liste).toHaveValue("commande");
       garde.verifier();
     } finally {
       await contexte.close();
