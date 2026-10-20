@@ -743,6 +743,29 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | CT-38.2 | Même écran, au téléphone (360 px) | Le mot de 80 caractères passe à la ligne, aucun défilement de côté | |
 | CT-38.3 | Même écran | La pastille « E-mail non parti » et sa mention sous le titre, « Demandes » marquée active dans le menu, et le lien « ← Toutes les demandes » ramène à la liste | |
 
+## 39. Noter la suite d'une demande — change 013 · ticket 07
+
+Les demandes se sèment en base, sur la base locale du § 0.2 :
+
+```sh
+npx wrangler d1 execute DB --local --command "insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) values ('recette-39-suite', 'devis-gateau', 'Devis gâteau', 'devis-envoye', 'presente', 1792238700000, 'Contact', null, 'marie@exemple.fr', '[]', 'parti'), ('recette-39-neuve', 'devis-gateau', 'Devis gâteau', 'a-renseigner', 'presente', 1792242300000, 'Contact', null, 'paul@exemple.fr', '[]', 'parti');"
+```
+
+Après les cas, les effacer :
+
+```sh
+npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-39-%';"
+```
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-39.1 | Au téléphone (360 px), ouvrir « Demandes » | La liste déroulante de la ligne du 17 octobre 2026 à 14:05 mesure au moins 44 px de haut (getBoundingClientRect) ; choisie au pouce, « Commande » s'y pose ; le nombre de commandes de la phrase du haut et la cellule « Commandes » de « Devis gâteau » augmentent de 1, sans rechargement (SC-07b) | |
+| CT-39.2 | Recharger, puis toucher la date pour ouvrir le détail | La ligne et la liste déroulante du détail portent toujours « Commande » (SC-07a) | |
+| CT-39.3 | La ligne de la demande neuve (15:05) | La liste montre « À renseigner », que l'on ne peut pas choisir (grisée) ; « Sans suite », « Devis envoyé » et « Commande » se choisissent | |
+| CT-39.4 | Avec un lecteur d'écran (NVDA ou VoiceOver), mettre le focus sur la liste de la ligne de 14:05 | Elle est annoncée « Suite de la demande du 17 octobre 2026 à 14:05 » | |
+| CT-39.5 | Outils → Réseau → bloquer l'URL de requête `/admin/demandes/recette-39-suite/suite`, puis choisir une autre suite dans la liste | La liste revient à la suite d'avant ; « La suite n'a pas pu être enregistrée. Réessayez dans quelques instants. » paraît sous la ligne, et le lecteur d'écran l'annonce sans couper la lecture ; après déblocage et rechargement, la demande porte toujours la suite d'avant (SC-07c) | |
+| CT-39.6 | Même blocage, depuis l'écran du détail | Même retour, même message, sous la liste du détail (SC-07c) | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |

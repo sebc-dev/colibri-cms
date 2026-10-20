@@ -5,6 +5,7 @@
  * seulement, jamais de `set:html` (I5). Demande retirée ou inconnue : même 404, sans donnée.
  */
 import GabaritCadre from '../../../admin/GabaritCadre.astro';
+import MontageChoixSuite from '../../../admin/MontageChoixSuite.astro';
 import { Badge } from '../../../admin/composants/ui/badge/index.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirDemande, listerFormulairesDeDemandes } from '../../../platform/demandes/magasin.ts';
@@ -23,6 +24,7 @@ import {
   TEXTE_TOTAL_INDICATIF,
   TEXTE_TOTAL_NON_ENGAGEANT,
   TEXTE_SUITE_DEMANDE,
+  texteLibelleSuite,
   TEXTES_SUITE_DEMANDE,
   TEXTE_DEMANDE_INTROUVABLE,
   TEXTE_REVENIR_AUX_DEMANDES,
@@ -107,8 +109,17 @@ const euros = (centimes: number): string => `${formaterPrix(centimes)} €`;
             ) : null,
           )}
         </div>
-        <p class="mt-6">{`${TEXTE_SUITE_DEMANDE} : ${TEXTES_SUITE_DEMANDE[demande.suite] ?? ''}`}</p>
+        <div
+          class="mt-6"
+          data-choix-suite
+          data-id-demande={demande.id}
+          data-suite={demande.suite}
+          data-libelle={texteLibelleSuite(formaterReception(demande.recueLe))}
+        >
+          <p>{`${TEXTE_SUITE_DEMANDE} : ${TEXTES_SUITE_DEMANDE[demande.suite] ?? ''}`}</p>
+        </div>
       </>
     )
   }
+  <MontageChoixSuite slot="scripts" />
 </GabaritCadre>

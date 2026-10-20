@@ -375,3 +375,7 @@ export const TEXTE_TOTAL_NON_ENGAGEANT = 'estimation non engageante';
 export const TEXTE_SUITE_DEMANDE = 'Suite';
 export const TEXTE_DEMANDE_INTROUVABLE = 'Cette demande n’est plus dans la liste';
 export const TEXTE_REVENIR_AUX_DEMANDES = 'Revenir aux demandes';
+
+/** Noter la suite d'une demande (FR-117). */
+export const TEXTE_SUITE_NON_ENREGISTREE = "La suite n'a pas pu être enregistrée. Réessayez dans quelques instants.";
+export const texteLibelleSuite = (reception: string): string => `Suite de la demande du ${reception}`;

@@ -5,6 +5,7 @@
 import { env } from 'cloudflare:workers';
 import { DEMANDES_PAR_PAGE } from '../../core/demandes/liste.ts';
 import type { ComptesFormulaire } from '../../core/demandes/nombres.ts';
+import type { SuiteChoisissable } from '../../core/demandes/suite.ts';
 
 type Base = typeof env.DB;
 
@@ -208,4 +209,14 @@ export async function obtenirDemande(db: Base, id: string): Promise<DemandeLue |
     .first<LigneBrute & { detail: string | null }>();
   if (r === null) return null;
   return { ...versLigneDemande(r), detail: r.detail ?? '' };
+}
+
+/** Note la suite d'une demande présente ; `false` si elle est retirée ou inconnue (rien ne change). */
+export async function noterSuite(db: Base, id: string, suite: SuiteChoisissable): Promise<boolean> {
+  await assurerSchema(db);
+  const resultat = await db
+    .prepare("update demandes set suite = ?2 where id = ?1 and etat = 'presente'")
+    .bind(id, suite)
+    .run();
+  return resultat.meta.changes > 0;
 }
