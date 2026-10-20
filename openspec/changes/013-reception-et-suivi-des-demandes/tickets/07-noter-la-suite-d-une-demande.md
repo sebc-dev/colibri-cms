@@ -57,8 +57,8 @@ terme de développeur ne paraît (FR-117).
 - toute suite autre que les trois du cahier des charges, et tout historique des suites.
 
 ## Critères
-- [ ] Quand l'éditrice choisit « devis envoyé » pour une demande, la demande porte « devis envoyé », et la porte toujours une fois l'écran rechargé   (SC-07a)
-- [ ] Quand l'éditrice choisit « commande » pour une demande qui portait « devis envoyé », la demande porte « commande », et le nombre de commandes compte cette demande   (SC-07b)
-- [ ] Quand l'éditrice choisit une suite et que son enregistrement n'aboutit pas, l'écran dit que la suite n'a pas pu être enregistrée, sans terme de développeur, et la demande garde la suite qu'elle portait avant   (SC-07c)
-- [ ] Quand une suite est envoyée pour une demande déjà retirée, elle est refusée, et rien ne change dans les nombres   (SC-07d)
-- [ ] Quand une suite est envoyée sans session ouverte, elle est refusée, et aucune demande ni aucun nombre ne change   (SC-07e)
+- [x] Quand l'éditrice choisit « devis envoyé » pour une demande, la demande porte « devis envoyé », et la porte toujours une fois l'écran rechargé   (SC-07a)
+- [x] Quand l'éditrice choisit « commande » pour une demande qui portait « devis envoyé », la demande porte « commande », et le nombre de commandes compte cette demande   (SC-07b)
+- [x] Quand l'éditrice choisit une suite et que son enregistrement n'aboutit pas, l'écran dit que la suite n'a pas pu être enregistrée, sans terme de développeur, et la demande garde la suite qu'elle portait avant   (SC-07c)
+- [x] Quand une suite est envoyée pour une demande déjà retirée, elle est refusée, et rien ne change dans les nombres   (SC-07d)
+- [x] Quand une suite est envoyée sans session ouverte, elle est refusée, et aucune demande ni aucun nombre ne change   (SC-07e)
