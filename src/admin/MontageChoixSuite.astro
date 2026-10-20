@@ -1,0 +1,12 @@
+---
+/**
+ * Monte l'îlot `ChoixSuite` des écrans Demandes et Demande (change 013, ticket 07). Même patron
+ * que `MontageEcranFormulaire.astro` : `<script>` de module bundlé par Astro, conforme à la CSP.
+ */
+---
+
+<script>
+  import { monterChoixSuite } from './ilots-svelte-5/monter.ts';
+
+  monterChoixSuite();
+</script>

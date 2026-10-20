@@ -5,6 +5,7 @@
  * script. Texte de demande interpolé échappé seulement, jamais de `set:html` (I5).
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
+import MontageChoixSuite from '../../admin/MontageChoixSuite.astro';
 import { Badge } from '../../admin/composants/ui/badge/index.ts';
 import { verifierSession } from '../../platform/session/index.ts';
 import {
@@ -29,6 +30,7 @@ import {
   TEXTE_DEMANDES_PLUS_ANCIENNES,
   texteNumeroDePage,
   texteNombresDuSite,
+  texteLibelleSuite,
   TEXTE_COLONNE_FORMULAIRE,
   TEXTE_COLONNE_DEMANDES,
   TEXTE_COLONNE_COMMANDES,
@@ -67,7 +69,7 @@ const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
 
 <GabaritCadre titre="Demandes — Administration" rubrique="demandes">
   <h1>{TEXTE_TITRE_DEMANDES}</h1>
-  <p class="mt-4 font-medium">
+  <p class="mt-4 font-medium" data-nombres-site>
     {texteNombresDuSite(nombres.site.demandes, nombres.site.commandes, nombres.site.retirees)}
   </p>
   {
@@ -83,10 +85,10 @@ const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
         </thead>
         <tbody>
           {nombres.formulaires.map((f) => (
-            <tr>
+            <tr data-nombres-formulaire={f.id}>
               <th scope="row" class="break-words font-normal">{f.nom}</th>
-              <td>{f.demandes}</td>
-              <td>{f.commandes}</td>
+              <td data-nombre-demandes>{f.demandes}</td>
+              <td data-nombre-commandes>{f.commandes}</td>
               {nombres.montrerRetirees && <td>{f.retirees}</td>}
             </tr>
           ))}
@@ -125,7 +127,14 @@ const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
             <span class="break-words text-ink-muted">{d.pageTitre}</span>
             <span class="break-all">{d.contact}</span>
             {d.total !== null && <span>{`${formaterPrix(d.total)} €`}</span>}
-            <span>{TEXTES_SUITE_DEMANDE[d.suite] ?? ''}</span>
+            <div
+              data-choix-suite
+              data-id-demande={d.id}
+              data-suite={d.suite}
+              data-libelle={texteLibelleSuite(formaterReception(d.recueLe))}
+            >
+              <span>{TEXTES_SUITE_DEMANDE[d.suite] ?? ''}</span>
+            </div>
             {d.courriel === 'non-parti' && (
               <Badge variant="outline">{TEXTE_EMAIL_NON_PARTI}</Badge>
             )}
@@ -151,4 +160,5 @@ const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
       </nav>
     )
   }
+  <MontageChoixSuite slot="scripts" />
 </GabaritCadre>

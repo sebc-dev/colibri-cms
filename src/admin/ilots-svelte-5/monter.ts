@@ -18,7 +18,8 @@ import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 import ReglageLienVideo from './ReglageLienVideo.svelte';
 import TexteRiche from './TexteRiche.svelte';
 import { afficherPastilleDeBrouillon, afficherPastilleDansLaZone } from '../pastille-brouillon.ts';
-import { TEXTE_CARTE_MENTION } from '../textes.ts';
+import { TEXTE_CARTE_MENTION, texteNombresDuSite } from '../textes.ts';
+import ChoixSuite from './ChoixSuite.svelte';
 import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
@@ -636,5 +637,50 @@ export function monterEcranPublier(): void {
         },
       },
     });
+  });
+}
+
+/**
+ * Monte l'îlot `ChoixSuite` (change 013, ticket 07) sur chaque nœud `data-choix-suite` des
+ * écrans Demandes et Demande. Après un enregistrement, la ligne des nombres du site (nœud
+ * `data-nombres-site`) et les lignes par formulaire (`data-nombres-formulaire`) sont remises à
+ * jour sans rechargement. Ne fait rien si aucun nœud n'est présent.
+ */
+export function monterChoixSuite(): void {
+  document.querySelectorAll<HTMLElement>('[data-choix-suite]').forEach((cible) => {
+    const { idDemande, suite, libelle } = cible.dataset;
+    if (idDemande === undefined || suite === undefined || libelle === undefined) return;
+    cible.innerHTML = '';
+    mount(ChoixSuite, {
+      target: cible,
+      props: {
+        idDemande,
+        suiteInitiale: suite,
+        libelle,
+        apresEnregistrement: majNombres,
+      },
+    });
+  });
+}
+
+interface NombresRecus {
+  site: { demandes: number; commandes: number; retirees: number };
+  formulaires: { id: string; demandes: number; commandes: number; retirees: number }[];
+}
+
+function majNombres(brut: unknown): void {
+  const nombres = brut as NombresRecus | undefined;
+  if (nombres === undefined || typeof nombres.site !== 'object') return;
+  const phrase = document.querySelector('[data-nombres-site]');
+  if (phrase !== null) {
+    phrase.textContent = texteNombresDuSite(nombres.site.demandes, nombres.site.commandes, nombres.site.retirees);
+  }
+  document.querySelectorAll<HTMLElement>('[data-nombres-formulaire]').forEach((ligne) => {
+    const f = nombres.formulaires.find((x) => x.id === ligne.dataset.nombresFormulaire);
+    if (f === undefined) return;
+    const demandes = ligne.querySelector('[data-nombre-demandes]');
+    const commandes = ligne.querySelector('[data-nombre-commandes]');
+    if (demandes !== null) demandes.textContent = String(f.demandes);
+    if (commandes !== null) commandes.textContent = String(f.commandes);
   });
 }
