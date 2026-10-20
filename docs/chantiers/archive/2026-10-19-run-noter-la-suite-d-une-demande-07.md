@@ -43,3 +43,12 @@ Hors de cette session : commiter la correction, puis relancer `/scd-spec-dev:run
 ## Écarté
 - Reprise nue sans correction : elle aurait resservi le même échec depuis le cache.
 - Retoucher le parcours : le test décrivait bien le critère, le défaut était dans le code.
+
+## Issue
+Run abouti le 2026-10-20 à la reprise `rerun: "2"`, PR #284. J'avais lu la liste déroulante avant l'`await` dans
+`choisir()`, sans toucher aux tests ; le parcours `demandes-suite` était passé avant la reprise, et les empreintes des
+deux tests étaient restées celles de la ceinture. La relecture a ensuite réécrit `choisir()` (file `enAttente`,
+error-handling-F-1). Trois tests classés appliqués par le tri manquent du diff (coverage-F-1, coverage-F-2, et le
+parcours « deux choix rapprochés » d'error-handling-F-1) : aucun agent n'a le droit d'écrire un test après la ceinture.
+Architecture-F-1 et change-F-1, rejetés comme hors du ticket, sont à arbitrer avant le run du ticket 08 : le code pose un
+seul îlot `ChoixSuite.svelte`, là où le design (D4/D5) et la ligne **Fichiers :** nommaient deux îlots d'écran.
