@@ -102,7 +102,10 @@ test.describe("la suite d'une demande", () => {
       const cellule = page.locator('[data-nombres-formulaire="devis-gateau"] [data-nombre-commandes]');
       const phrase = page.locator("[data-nombres-site]");
       const commandesDuFormulaire = Number(await cellule.textContent());
-      const commandesDuSite = Number(/(\d+) commandes?/.exec((await phrase.textContent()) ?? "")?.[1]);
+      // La phrase se lit « N demandes · M commandes », suivie des retirées s'il y en a.
+      const segmentCommandes =
+        ((await phrase.textContent()) ?? "").split("·").find((s) => s.includes("commande")) ?? "";
+      const commandesDuSite = Number.parseInt(segmentCommandes.trim(), 10);
       await page.evaluate(() => {
         (window as unknown as { marque?: number }).marque = 1;
       });
