@@ -137,9 +137,17 @@ formulaire de demande présente) et `?page=<n>` (borné à la dernière page), p
 
 L'îlot `EcranDemandes.svelte` monte sur la liste (présentation statique vidée au montage, données en
 attribut `data-*` échappé par Astro) et y ajoute : une case à cocher par ligne et « tout sélectionner sur
-cette page », une liste déroulante de suite par ligne (D7), et la barre de retrait (D8). Contrôles natifs
+cette page », une liste déroulante de suite par ligne (D7), et la barre de retrait (D8). Il tient l'état de
+l'écran : la sélection, et les nombres qu'il remet à jour après chaque suite enregistrée. La liste
+déroulante de chaque ligne est le composant `ChoixSuite.svelte`, qu'il emboîte. Contrôles natifs
 (`<input type="checkbox">`, `<select>`) stylés par les tokens ; le dialogue de confirmation reprend le
 composant `dialog` déjà copié. Aucun composant nouveau du registre.
+
+Découpage dans le temps : le ticket 07 a posé `ChoixSuite.svelte` seul, monté sur chaque nœud
+`data-choix-suite` par `monterChoixSuite` (`ilots-svelte-5/monter.ts`) depuis `MontageChoixSuite.astro`.
+Les nombres de la liste y sont remis à jour hors îlot par `majNombres`. Le ticket 09 crée
+`EcranDemandes.svelte`, monté depuis `MontageEcranDemandes.astro`, et `MontageChoixSuite.astro`,
+`monterChoixSuite` et `majNombres` disparaissent alors.
 
 Dates : formatées par `Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', dateStyle: 'long',
 timeStyle: 'short' })`, le fuseau étant une constante de `src/core/demandes/` (voir Risks).
@@ -151,9 +159,10 @@ texte long ligne par ligne (une ligne de texte par élément, jamais de HTML com
 retirée ou inconnue rend 404 avec le texte « Cette demande n'est plus dans la liste » et le lien de retour,
 sans lire autre chose que son existence. Le formulaire s'y nomme comme dans la liste (D4) : la
 déclaration d'abord, sinon le nom gardé sur la demande présente la plus récente de ce formulaire
-(`nomDuFormulaire`). L'îlot `EcranDemande.svelte` y porte la liste déroulante de suite
-et le geste « Retirer cette demande » (même dialogue que D8, sélection d'une seule demande) ; après un
-retrait, l'écran mène à la liste.
+(`nomDuFormulaire`). L'îlot `EcranDemande.svelte`, créé par le ticket 08 et monté depuis
+`MontageEcranDemande.astro`, emboîte `ChoixSuite.svelte` pour la suite et porte le geste « Retirer cette
+demande » (même dialogue que D8, sélection d'une seule demande) ; après un retrait, l'écran mène à la
+liste. Jusqu'au ticket 08, le détail monte `ChoixSuite.svelte` seul (D4).
 
 ### D6 — Les nombres : une lecture groupée, une composition pure
 
@@ -166,9 +175,10 @@ formulaires par nom, et dit quand le nombre de retirées s'affiche (non nul). Un
 
 `POST /admin/demandes/<id>/suite`, corps `{ suite }` : garde de session, corps borné, valeur parmi les trois
 suites (`core/`, `a-renseigner` refusée), mise à jour conditionnée à `etat = 'presente'` ; aucune ligne
-touchée → 404 `introuvable`. Réponse `{ ok: true, nombres }` : l'îlot remet à jour les nombres sans
-recharger. En échec, l'îlot rétablit la valeur précédente dans la liste déroulante et affiche le texte
-d'échec.
+touchée → 404 `introuvable`. Réponse `{ ok: true, nombres }` : sur la liste, les nombres sont remis à jour
+sans recharger, par `majNombres` jusqu'au ticket 09, puis par `EcranDemandes.svelte`, à qui
+`ChoixSuite.svelte` les remet par sa fonction `apresEnregistrement`. En échec, `ChoixSuite.svelte`
+rétablit la valeur précédente dans la liste déroulante et affiche le texte d'échec.
 
 ### D8 — Le retrait : sélection, motif, confirmation, une écriture groupée
 
@@ -208,8 +218,10 @@ Aucun terme de développeur (FR-117) : ni « supprimer la ligne », ni « statut
 - `colibri-cms.worker.routes` — la route d'envoi `src/pages/api/public/demandes.ts` ; les écrans
   `src/pages/admin/demandes.astro`, `src/pages/admin/demandes/[id].astro` ; les écritures
   `src/pages/admin/demandes/[id]/suite.ts`, `src/pages/admin/demandes/retrait.ts` ;
-- `colibri-cms.worker.admin` — `MenuRubriques.astro`, `textes.ts`, les îlots `EcranDemandes.svelte`,
-  `EcranDemande.svelte`, leurs composants `Montage*.astro`, `ilots-svelte-5/monter.ts` ;
+- `colibri-cms.worker.admin` — `MenuRubriques.astro`, `textes.ts`, le composant `ChoixSuite.svelte`
+  (ticket 07), les îlots `EcranDemande.svelte` (ticket 08) et `EcranDemandes.svelte` (ticket 09) qui
+  l'emboîtent, leurs composants `Montage*.astro`, `ilots-svelte-5/monter.ts` ; `MontageChoixSuite.astro`,
+  posé par le ticket 07, disparaît au ticket 09 ;
 - `colibri-cms.worker.core` — `demandes/` (détail, coordonnée de réponse, nombres, suite, retrait, fuseau) ;
 - `colibri-cms.worker.platform` — `demandes/magasin.ts` ;
 - `colibri-cms.d1` — migration `0013_demandes.sql` ; sa description dans `model.c4` gagne « les demandes
