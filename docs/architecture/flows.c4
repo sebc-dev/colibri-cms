@@ -77,4 +77,14 @@ views {
     email-routing -> editrice 'remet la demande'
     visiteur <- colibri-cms.worker.routes 'confirmation, sans cookie ni valeur saisie'
   }
+
+  dynamic view flow-suivi-demandes {
+    title "Suivi des demandes"
+    description "L'éditrice lit la liste, note la suite d'une demande ou la retire ; chaque geste passe la garde de session et s'écrit dans la base."
+    editrice -> colibri-cms.worker.routes 'GET /admin/demandes'                                // trace : src/pages/admin/demandes.astro ; src/pages/admin/demandes/[id].astro
+    colibri-cms.worker.platform -> colibri-cms.d1 'lit les demandes et leurs nombres'          // trace : src/platform/demandes/magasin.ts
+    editrice -> colibri-cms.worker.admin 'choisit une suite, retire'                           // trace : src/admin/ilots-svelte-5/EcranDemande.svelte ; src/admin/ilots-svelte-5/DialogueRetrait.svelte
+    colibri-cms.worker.admin -> colibri-cms.worker.routes 'POST /admin/demandes/…'             // trace : src/admin/ilots-svelte-5/EcranDemande.svelte ; src/admin/ilots-svelte-5/ChoixSuite.svelte
+    colibri-cms.worker.platform -> colibri-cms.d1 'enregistre la suite, efface au retrait'     // trace : src/platform/demandes/magasin.ts
+  }
 }

@@ -20,6 +20,7 @@ import TexteRiche from './TexteRiche.svelte';
 import { afficherPastilleDeBrouillon, afficherPastilleDansLaZone } from '../pastille-brouillon.ts';
 import { TEXTE_CARTE_MENTION, texteNombresDuSite } from '../textes.ts';
 import ChoixSuite from './ChoixSuite.svelte';
+import EcranDemande from './EcranDemande.svelte';
 import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementComposition from './EmplacementComposition.svelte';
 import EcranMedias from './EcranMedias.svelte';
@@ -682,5 +683,28 @@ function majNombres(brut: unknown): void {
     const commandes = ligne.querySelector('[data-nombre-commandes]');
     if (demandes !== null) demandes.textContent = String(f.demandes);
     if (commandes !== null) commandes.textContent = String(f.commandes);
+  });
+}
+
+/**
+ * Monte l'îlot `EcranDemande` (change 013, ticket 08) sur le nœud `data-ecran-demande` du détail
+ * d'une demande. Après un retrait, mène à la liste. Ne fait rien si le nœud est absent.
+ */
+export function monterEcranDemande(): void {
+  document.querySelectorAll<HTMLElement>('[data-ecran-demande]').forEach((cible) => {
+    const { idDemande, suite, libelle } = cible.dataset;
+    if (idDemande === undefined || suite === undefined || libelle === undefined) return;
+    cible.innerHTML = '';
+    mount(EcranDemande, {
+      target: cible,
+      props: {
+        idDemande,
+        suiteInitiale: suite,
+        libelle,
+        apresRetrait: () => {
+          window.location.assign('/admin/demandes');
+        },
+      },
+    });
   });
 }

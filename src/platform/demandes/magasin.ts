@@ -6,6 +6,7 @@ import { env } from 'cloudflare:workers';
 import { DEMANDES_PAR_PAGE } from '../../core/demandes/liste.ts';
 import type { ComptesFormulaire } from '../../core/demandes/nombres.ts';
 import type { SuiteChoisissable } from '../../core/demandes/suite.ts';
+import type { MotifDeRetrait } from '../../core/demandes/retrait.ts';
 
 type Base = typeof env.DB;
 
@@ -219,4 +220,21 @@ export async function noterSuite(db: Base, id: string, suite: SuiteChoisissable)
     .bind(id, suite)
     .run();
   return resultat.meta.changes > 0;
+}
+
+/**
+ * Retire des demandes présentes (ADR-0030). Ordinaire : tout ce que le visiteur a envoyé est
+ * effacé, la demande reste pour compter. Indésirable : la ligne entière est effacée. Une demande
+ * déjà retirée ou inconnue est laissée telle quelle. Marqueurs `?` comptés, un par identifiant.
+ */
+export async function retirerDemandes(db: Base, ids: readonly string[], motif: MotifDeRetrait): Promise<void> {
+  if (ids.length === 0) return;
+  await assurerSchema(db);
+  const marqueurs = ids.map((_, i) => `?${String(i + 1)}`).join(', ');
+  const requete =
+    motif === 'ordinaire'
+      ? `update demandes set etat = 'retiree', recue_le = null, page_titre = null, total = null, contact = null, detail = null, courriel = null
+         where id in (${marqueurs}) and etat = 'presente'`
+      : `delete from demandes where id in (${marqueurs}) and etat = 'presente'`;
+  await db.batch([db.prepare(requete).bind(...ids)]);
 }
