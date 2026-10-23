@@ -135,8 +135,9 @@ formulaire de demande présente) et `?page=<n>` (borné à la dernière page), p
   le détail ;
 - **la pagination** — « Demandes plus récentes » / « Demandes plus anciennes », liens qui gardent le filtre.
 
-L'îlot `EcranDemandes.svelte` monte sur la liste (présentation statique vidée au montage, données en
-attribut `data-*` échappé par Astro) et y ajoute : une case à cocher par ligne et « tout sélectionner sur
+L'îlot `EcranDemandes.svelte` monte sur l'écran, de la phrase des nombres à la liste, la pagination restant
+rendue par le serveur (présentation statique vidée au montage, données en attribut `data-*` échappé par
+Astro), et y ajoute : une case à cocher par ligne et « tout sélectionner sur
 cette page », une liste déroulante de suite par ligne (D7), et la barre de retrait (D8). Il tient l'état de
 l'écran : la sélection, et les nombres qu'il remet à jour après chaque suite enregistrée. La liste
 déroulante de chaque ligne est le composant `ChoixSuite.svelte`, qu'il emboîte. Contrôles natifs
