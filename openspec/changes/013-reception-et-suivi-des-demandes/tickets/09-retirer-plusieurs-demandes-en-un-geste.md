@@ -2,7 +2,7 @@
 
 **Bloqué par :** 08
 **Vérif :** tdd
-**Fichiers :** `src/pages/admin/demandes/retrait.ts`, `src/core/demandes/retrait.ts`, `src/platform/demandes/magasin.ts`, `src/admin/ilots-svelte-5/EcranDemandes.svelte`, `src/admin/ilots-svelte-5/DialogueRetrait.svelte`, `src/admin/textes.ts`, `docs/cahier-de-test.md`, `tests/unit/demandes/retrait-groupe.test.ts`, `tests/integration/retrait-groupe.test.ts`, `tests/parcours/demandes-retrait-groupe.parcours.ts`
+**Fichiers :** `src/pages/admin/demandes/retrait.ts`, `src/core/demandes/retrait.ts`, `src/platform/demandes/magasin.ts`, `src/admin/ilots-svelte-5/EcranDemandes.svelte`, `src/admin/ilots-svelte-5/DialogueRetrait.svelte`, `src/admin/ilots-svelte-5/monter.ts`, `src/admin/MontageEcranDemandes.astro`, `src/admin/MontageChoixSuite.astro`, `src/pages/admin/demandes.astro`, `src/admin/textes.ts`, `docs/cahier-de-test.md`, `tests/unit/demandes/retrait-groupe.test.ts`, `tests/integration/retrait-groupe.test.ts`, `tests/parcours/demandes-retrait-groupe.parcours.ts`
 
 ## Ce que ça livre
 
@@ -30,7 +30,7 @@ Chaque retrait efface ce que le ticket 08 efface : un retrait ordinaire ne garde
 d'origine et la suite de chaque demande ; un retrait indésirable efface chaque demande entière, qui ne
 compte plus nulle part. Aucun terme de développeur ne paraît (FR-117).
 
-**Décisions à respecter (ADR-0030, D8 de l'approche ; ADR-0009, I4, I5, I14, I17) :**
+**Décisions à respecter (ADR-0030, D4 et D8 de l'approche ; ADR-0009, I4, I5, I14, I17) :**
 - **La route du ticket 08 accepte désormais de 1 à 50 identifiants** textuels distincts, soit une page au
   plus. Zéro identifiant, 51 identifiants, ou un identifiant répété → 400. La règle vit dans
   `src/core/demandes/retrait.ts` (pur).
@@ -40,9 +40,26 @@ compte plus nulle part. Aucun terme de développeur ne paraît (FR-117).
 - **Conditions d'écriture.** `id in (…) and etat = 'presente'`, en marqueurs `?` comptés, jamais par
   concaténation. Une demande déjà retirée dans la sélection est laissée telle quelle, jamais comptée deux
   fois ; un identifiant inconnu mêlé à des connus n'empêche pas le retrait des autres.
-- **L'îlot de la liste.** `EcranDemandes.svelte` (ticket 07) gagne les cases et la barre ; il réemploie
-  `DialogueRetrait.svelte`. Contrôles natifs `<input type="checkbox">` stylés par les tokens (I14) ; aucun
-  composant nouveau du registre (ADR-0009) ; liaison de texte seulement (I5).
+- **L'îlot de la liste.** `EcranDemandes.svelte` est créé par ce ticket, monté par
+  `src/admin/ilots-svelte-5/monter.ts` depuis `MontageEcranDemandes.astro`, sans directive `client:*` (I4).
+  Il monte sur l'écran, de la phrase des nombres à la liste : la phrase et le tableau des nombres, le
+  filtre, puis la liste ; la pagination reste rendue par le serveur. `src/pages/admin/demandes.astro` garde
+  la présentation statique, vidée au montage, et passe à l'îlot ses données en attribut `data-*` échappé par
+  Astro. L'îlot :
+  - emboîte, sur chaque ligne, `ChoixSuite.svelte` (la liste déroulante de la suite, posée au ticket 07),
+    sans le modifier ;
+  - tient la sélection et la barre, et réemploie `DialogueRetrait.svelte` (ticket 08) ;
+  - remet à jour, sans recharger, les nombres du site et de chaque formulaire à partir de ceux que
+    `ChoixSuite.svelte` lui remet par sa fonction `apresEnregistrement` ;
+  - garde les attributs `data-nombres-site`, `data-nombres-formulaire`, `data-nombre-demandes` et
+    `data-nombre-commandes` sur la phrase et le tableau des nombres, que lit le parcours SC-07b.
+  Contrôles natifs `<input type="checkbox">` stylés par les tokens (I14) ; aucun composant nouveau du
+  registre (ADR-0009) ; liaison de texte seulement (I5).
+- **Ce qui disparaît.** `MontageChoixSuite.astro`, et `monterChoixSuite` et `majNombres` dans `monter.ts`,
+  sont retirés : plus aucun écran ne les monte. Les tests du ticket 07
+  (`tests/parcours/demandes-suite.parcours.ts`, `tests/integration/suite-d-une-demande.test.ts`) restent
+  verts sans retouche ; les tests d'intégration de la liste lisent la présentation statique, qui reste
+  rendue par le serveur.
 - **Les textes** vivent dans `src/admin/textes.ts` : intitulé de la case, barre de sélection, titre au
   pluriel du dialogue.
 - **Le cahier de recette.** `docs/cahier-de-test.md` gagne une section pour ce ticket : la barre de
