@@ -1,0 +1,12 @@
+---
+/**
+ * Monte l'îlot `EcranDemande` de l'écran Demande (change 013, ticket 08). Même patron que
+ * `MontageChoixSuite.astro` : `<script>` de module bundlé par Astro, conforme à la CSP.
+ */
+---
+
+<script>
+  import { monterEcranDemande } from './ilots-svelte-5/monter.ts';
+
+  monterEcranDemande();
+</script>

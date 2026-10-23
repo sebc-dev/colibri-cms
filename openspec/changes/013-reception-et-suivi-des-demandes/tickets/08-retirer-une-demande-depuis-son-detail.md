@@ -91,8 +91,8 @@ la liste, est le ticket 09. Pour SC-08c, l'éditrice retire donc les deux demand
 - l'effacement dans l'historique restaurable de D1 (7 jours) : résidu consigné par ADR-0030.
 
 ## Critères
-- [ ] Quand l'éditrice retire la demande de Marie Dupont en déclarant le retrait ordinaire, et confirme, la demande ne paraît plus dans la liste, et la base ne porte plus aucune des valeurs que Marie Dupont avait saisies, ni son total, ni sa page d'origine   (SC-08a)
-- [ ] Quand l'éditrice demande à retirer une demande, puis renonce à la confirmation, la demande est toujours dans la liste, avec tout son détail et sa suite   (SC-08b)
-- [ ] Quand, à partir de quatorze demandes — onze de « Devis gâteau » dont trois de suite « commande », trois de « Devis atelier » —, l'éditrice retire deux demandes « sans suite » de « Devis gâteau » en déclarant le retrait ordinaire, l'écran affiche 12 demandes, 3 commandes et 2 retirées pour le site, et 9 demandes, 3 commandes et 2 retirées pour « Devis gâteau »   (SC-08c)
-- [ ] Quand l'éditrice retire, en déclarant le retrait ordinaire, une demande de suite « commande », le nombre de demandes baisse de un, le nombre de retirées monte de un, et le nombre de commandes ne change pas   (SC-08d)
-- [ ] Quand un retrait est envoyé sans session ouverte, il est refusé, et aucune demande ni aucun nombre ne change   (SC-08e)
+- [x] Quand l'éditrice retire la demande de Marie Dupont en déclarant le retrait ordinaire, et confirme, la demande ne paraît plus dans la liste, et la base ne porte plus aucune des valeurs que Marie Dupont avait saisies, ni son total, ni sa page d'origine   (SC-08a)
+- [x] Quand l'éditrice demande à retirer une demande, puis renonce à la confirmation, la demande est toujours dans la liste, avec tout son détail et sa suite   (SC-08b)
+- [x] Quand, à partir de quatorze demandes — onze de « Devis gâteau » dont trois de suite « commande », trois de « Devis atelier » —, l'éditrice retire deux demandes « sans suite » de « Devis gâteau » en déclarant le retrait ordinaire, l'écran affiche 12 demandes, 3 commandes et 2 retirées pour le site, et 9 demandes, 3 commandes et 2 retirées pour « Devis gâteau »   (SC-08c)
+- [x] Quand l'éditrice retire, en déclarant le retrait ordinaire, une demande de suite « commande », le nombre de demandes baisse de un, le nombre de retirées monte de un, et le nombre de commandes ne change pas   (SC-08d)
+- [x] Quand un retrait est envoyé sans session ouverte, il est refusé, et aucune demande ni aucun nombre ne change   (SC-08e)

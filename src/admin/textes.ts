@@ -379,3 +379,19 @@ export const TEXTE_REVENIR_AUX_DEMANDES = 'Revenir aux demandes';
 /** Noter la suite d'une demande (FR-117). */
 export const TEXTE_SUITE_NON_ENREGISTREE = "La suite n'a pas pu être enregistrée. Réessayez dans quelques instants.";
 export const texteLibelleSuite = (reception: string): string => `Suite de la demande du ${reception}`;
+
+/** Retirer une demande depuis son détail (FR-073, FR-117). */
+export const TEXTE_BOUTON_RETIRER_DEMANDE = 'Retirer cette demande';
+export const TEXTE_TITRE_RETRAIT = 'Retirer cette demande ?';
+export const TEXTE_CORPS_RETRAIT =
+  "Tout ce que les visiteurs ont envoyé — choix, coordonnées, message — sera effacé définitivement. Ce retrait ne peut pas être annulé. Chaque demande reste dans votre boîte e-mail si elle y est arrivée.";
+export const TEXTE_MOTIF_RETRAIT = 'Raison du retrait';
+export const TEXTE_MOTIF_ORDINAIRE =
+  "Retrait ordinaire — la demande reste comptée parmi les retirées, et parmi les commandes si c’en était une.";
+export const TEXTE_MOTIF_INDESIRABLE =
+  "Demande indésirable — elle ne sera plus comptée nulle part.";
+export const TEXTE_BOUTON_RETIRER = 'Retirer';
+export const TEXTE_BOUTON_ANNULER_RETRAIT = 'Annuler';
+export const TEXTE_RETRAIT_EN_COURS = 'Retrait en cours…';
+export const TEXTE_RETRAIT_ECHEC =
+  "Le retrait n’a pas pu se faire : aucune demande n’a été retirée. Réessayez dans quelques instants.";

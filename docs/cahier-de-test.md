@@ -766,6 +766,28 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | CT-39.5 | Outils → Réseau → bloquer l'URL de requête `/admin/demandes/recette-39-suite/suite`, puis choisir une autre suite dans la liste | La liste revient à la suite d'avant ; « La suite n'a pas pu être enregistrée. Réessayez dans quelques instants. » paraît sous la ligne, et le lecteur d'écran l'annonce sans couper la lecture ; après déblocage et rechargement, la demande porte toujours la suite d'avant (SC-07c) | |
 | CT-39.6 | Même blocage, depuis l'écran du détail | Même retour, même message, sous la liste du détail (SC-07c) | |
 
+## 40. Retirer une demande depuis son détail — change 013 · ticket 08
+
+Les demandes se sèment en base, sur la base locale du § 0.2 :
+
+```sh
+npx wrangler d1 execute DB --local --command "insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) values ('recette-40-a', 'devis-gateau', 'Devis gâteau', 'devis-envoye', 'presente', 1792238700000, 'Contact', null, 'Marie Dupont marie@exemple.fr', '[]', 'parti'), ('recette-40-b', 'devis-gateau', 'Devis gâteau', 'commande', 'presente', 1792242300000, 'Contact', null, 'Paul Martin paul@exemple.fr', '[]', 'parti');"
+```
+
+Après les cas, les effacer :
+
+```sh
+npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-40-%';"
+```
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-40.1 | Au clavier seul, ouvrir le détail de la demande de Marie Dupont, atteindre « Retirer cette demande », l'activer | Le dialogue s'ouvre, le focus est sur « Annuler » ; Tab et Maj+Tab ne sortent jamais du dialogue ; « Retirer » est inactif tant qu'aucun motif n'est choisi, aucun motif n'est coché d'avance | |
+| CT-40.2 | Dans le dialogue, appuyer sur Échap | Le dialogue se ferme, le focus revient sur « Retirer cette demande » ; la demande reste dans la liste avec sa suite (SC-08b) | |
+| CT-40.3 | Avec un lecteur d'écran (NVDA ou VoiceOver), ouvrir le dialogue | Il est annoncé comme dialogue, avec son titre « Retirer cette demande ? » et son texte ; les deux motifs sont annoncés comme boutons radio d'un groupe « Raison du retrait » | |
+| CT-40.4 | Choisir « Retrait ordinaire », puis « Retirer » | « Retrait en cours… » est annoncé, puis l'écran mène à la liste à jour : la demande de Marie Dupont n'y est plus, le nombre « retirée » de la phrase du haut gagne 1 (SC-08a) | |
+| CT-40.5 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, ouvrir le dialogue d'une demande, choisir un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; la demande reste dans la liste | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
@@ -802,6 +824,9 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | 35 Liste des demandes | 3 | | | |
 | 36 Filtre et pages des demandes | 4 | | | |
 | 37 Nombres des demandes | 4 | | | |
+| 38 Détail d'une demande | 3 | | | |
+| 39 Suite d'une demande | 6 | | | |
+| 40 Retrait d'une demande | 5 | | | |
 | **Total** | **208** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________

@@ -1,11 +1,11 @@
 ---
 /**
  * L'`Écran : Demande` (change 013, ticket 06) : le détail d'une demande. Rendu serveur, garde de
- * session importée d'abord (ADR-0007), aucun îlot ni script. Texte de demande interpolé échappé
+ * session importée d'abord (ADR-0007), l'îlot EcranDemande (suite et retrait) est monté sur le nœud préparé ici (ticket 08). Texte de demande interpolé échappé
  * seulement, jamais de `set:html` (I5). Demande retirée ou inconnue : même 404, sans donnée.
  */
 import GabaritCadre from '../../../admin/GabaritCadre.astro';
-import MontageChoixSuite from '../../../admin/MontageChoixSuite.astro';
+import MontageEcranDemande from '../../../admin/MontageEcranDemande.astro';
 import { Badge } from '../../../admin/composants/ui/badge/index.ts';
 import { verifierSession } from '../../../platform/session/index.ts';
 import { obtenirDemande, listerFormulairesDeDemandes } from '../../../platform/demandes/magasin.ts';
@@ -28,6 +28,7 @@ import {
   TEXTES_SUITE_DEMANDE,
   TEXTE_DEMANDE_INTROUVABLE,
   TEXTE_REVENIR_AUX_DEMANDES,
+  TEXTE_BOUTON_RETIRER_DEMANDE,
 } from '../../../admin/textes.ts';
 import { env } from 'cloudflare:workers';
 
@@ -111,15 +112,16 @@ const euros = (centimes: number): string => `${formaterPrix(centimes)} €`;
         </div>
         <div
           class="mt-6"
-          data-choix-suite
+          data-ecran-demande
           data-id-demande={demande.id}
           data-suite={demande.suite}
           data-libelle={texteLibelleSuite(formaterReception(demande.recueLe))}
         >
           <p>{`${TEXTE_SUITE_DEMANDE} : ${TEXTES_SUITE_DEMANDE[demande.suite] ?? ''}`}</p>
+          <p class="mt-4">{TEXTE_BOUTON_RETIRER_DEMANDE}</p>
         </div>
       </>
     )
   }
-  <MontageChoixSuite slot="scripts" />
+  <MontageEcranDemande slot="scripts" />
 </GabaritCadre>
