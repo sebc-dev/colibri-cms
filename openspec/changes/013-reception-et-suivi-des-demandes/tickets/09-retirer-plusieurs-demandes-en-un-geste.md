@@ -78,8 +78,8 @@ compte plus nulle part. Aucun terme de développeur ne paraît (FR-117).
 - toute corbeille, toute annulation de retrait, tout effacement d'office.
 
 ## Critères
-- [ ] Quand l'éditrice sélectionne trois demandes, choisit le motif indésirable, et confirme, les trois demandes ne paraissent plus dans la liste, et la base n'en porte plus rien   (SC-09a)
-- [ ] Quand l'éditrice demande à retirer trois demandes, avant que rien ne soit retiré, l'écran dit que trois demandes vont être retirées et que ce que leurs visiteurs ont envoyé sera effacé définitivement   (SC-09b)
-- [ ] Quand l'éditrice retire deux des quatorze demandes présentes, les douze autres restent dans la liste, chacune avec son détail et sa suite inchangés   (SC-09c)
-- [ ] Quand l'éditrice confirme le retrait de trois demandes et que leur effacement n'aboutit pas, aucune des trois n'est retirée, et l'écran dit que le retrait n'a pas pu se faire, sans terme de développeur   (SC-09d)
-- [ ] Quand, après deux retraits ordinaires qui font lire 12 demandes, 3 commandes et 2 retirées, quarante demandes automatisées de « Devis gâteau » font lire 52 demandes, et que l'éditrice les sélectionne et les retire en un geste en les déclarant indésirables, l'écran affiche exactement 12 demandes, 3 commandes et 2 retirées pour le site, et les mêmes nombres qu'avant leur arrivée pour chaque formulaire   (SC-09e)
+- [x] Quand l'éditrice sélectionne trois demandes, choisit le motif indésirable, et confirme, les trois demandes ne paraissent plus dans la liste, et la base n'en porte plus rien   (SC-09a)
+- [x] Quand l'éditrice demande à retirer trois demandes, avant que rien ne soit retiré, l'écran dit que trois demandes vont être retirées et que ce que leurs visiteurs ont envoyé sera effacé définitivement   (SC-09b)
+- [x] Quand l'éditrice retire deux des quatorze demandes présentes, les douze autres restent dans la liste, chacune avec son détail et sa suite inchangés   (SC-09c)
+- [x] Quand l'éditrice confirme le retrait de trois demandes et que leur effacement n'aboutit pas, aucune des trois n'est retirée, et l'écran dit que le retrait n'a pas pu se faire, sans terme de développeur   (SC-09d)
+- [x] Quand, après deux retraits ordinaires qui font lire 12 demandes, 3 commandes et 2 retirées, quarante demandes automatisées de « Devis gâteau » font lire 52 demandes, et que l'éditrice les sélectionne et les retire en un geste en les déclarant indésirables, l'écran affiche exactement 12 demandes, 3 commandes et 2 retirées pour le site, et les mêmes nombres qu'avant leur arrivée pour chaque formulaire   (SC-09e)

@@ -1,11 +1,14 @@
 ---
 /**
  * L'`Écran : Demandes` (change 013, ticket 03) : la liste des demandes, la plus récente
- * d'abord, 50 au plus. Rendu serveur, garde de session importée (ADR-0007), aucun îlot ni
- * script. Texte de demande interpolé échappé seulement, jamais de `set:html` (I5).
+ * d'abord, 50 au plus. Rendu serveur, garde de session importée (ADR-0007), l'îlot
+ * EcranDemandes (nombres, filtre, liste, retrait groupé, ticket 09) se monte sur la présentation
+ * statique rendue ici, vidée au montage ; les données passent en `data-donnees`. Le titre et la
+ * pagination restent rendus par le serveur, hors de l'îlot.
+ * Texte de demande interpolé échappé seulement, jamais de `set:html` (I5).
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
-import MontageChoixSuite from '../../admin/MontageChoixSuite.astro';
+import MontageEcranDemandes from '../../admin/MontageEcranDemandes.astro';
 import { Badge } from '../../admin/composants/ui/badge/index.ts';
 import { verifierSession } from '../../platform/session/index.ts';
 import {
@@ -65,10 +68,45 @@ function adresse(f: string | null, p: number): string {
   return texte === '' ? '/admin/demandes' : `/admin/demandes?${texte}`;
 }
 const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
+
+// Les lignes ne passent pas dans ce JSON : chacune porte ses propres données (`data-demande`),
+// lues au montage ; la coordonnée n'y est pas redite, elle se lit dans le texte de la ligne (`data-contact`).
+// `<` et `>` passent en échappements JSON : aucun balisage brut dans un attribut (I5).
+const jsonSansChevrons = (valeur: unknown): string =>
+  JSON.stringify(valeur).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e');
+const ligneJson = (d: (typeof demandes)[number]): string =>
+  jsonSansChevrons({
+    id: d.id,
+    reception: formaterReception(d.recueLe),
+    formulaire: nomsParId.get(d.formulaireId) ?? d.formulaireNom,
+    page: d.pageTitre,
+    prix: d.total !== null ? `${formaterPrix(d.total)} €` : null,
+    suite: d.suite,
+    libelle: texteLibelleSuite(formaterReception(d.recueLe)),
+    courrielNonParti: d.courriel === 'non-parti',
+  });
+const donnees = jsonSansChevrons({
+  nombres: {
+    site: nombres.site,
+    formulaires: nombres.formulaires.map((f) => ({
+      id: f.id,
+      nom: f.nom,
+      demandes: f.demandes,
+      commandes: f.commandes,
+      retirees: f.retirees,
+    })),
+    montrerRetirees: nombres.montrerRetirees,
+  },
+  filtres: presents.map((f) => ({ id: f.id, nom: f.nom, adresse: adresse(f.id, 1) })),
+  adresseTous: adresse(null, 1),
+  formulaire,
+});
 ---
 
 <GabaritCadre titre="Demandes — Administration" rubrique="demandes">
   <h1>{TEXTE_TITRE_DEMANDES}</h1>
+  <div class="max-md:has-[[data-barre-selection]]:pb-28">
+  <div data-ecran-demandes data-donnees={donnees}>
   <p class="mt-4 font-medium" data-nombres-site>
     {texteNombresDuSite(nombres.site.demandes, nombres.site.commandes, nombres.site.retirees)}
   </p>
@@ -119,20 +157,15 @@ const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
     ) : (
       <ul class="mt-6 divide-y divide-border rounded-lg border border-border bg-card">
         {demandes.map((d) => (
-          <li class="flex flex-col gap-1 px-4 py-3 md:flex-row md:items-center md:gap-4">
+          <li class="flex flex-col gap-1 px-4 py-3 md:flex-row md:items-center md:gap-4" data-demande={ligneJson(d)}>
             <a href={`/admin/demandes/${d.id}`} class="min-h-11 break-words font-medium md:min-h-0">
               {formaterReception(d.recueLe)}
             </a>
             <span class="break-words">{nomsParId.get(d.formulaireId) ?? d.formulaireNom}</span>
             <span class="break-words text-ink-muted">{d.pageTitre}</span>
-            <span class="break-all">{d.contact}</span>
+            <span class="break-all" data-contact>{d.contact}</span>
             {d.total !== null && <span>{`${formaterPrix(d.total)} €`}</span>}
-            <div
-              data-choix-suite
-              data-id-demande={d.id}
-              data-suite={d.suite}
-              data-libelle={texteLibelleSuite(formaterReception(d.recueLe))}
-            >
+            <div>
               <span>{TEXTES_SUITE_DEMANDE[d.suite] ?? ''}</span>
             </div>
             {d.courriel === 'non-parti' && (
@@ -143,6 +176,7 @@ const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
       </ul>
     )
   }
+  </div>
   {
     pages > 1 && (
       <nav class="mt-6 flex flex-wrap items-center gap-4">
@@ -160,5 +194,6 @@ const nomsParId = new Map(presents.map((f) => [f.id, f.nom]));
       </nav>
     )
   }
-  <MontageChoixSuite slot="scripts" />
+  </div>
+  <MontageEcranDemandes slot="scripts" />
 </GabaritCadre>

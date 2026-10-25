@@ -1,5 +1,6 @@
 /**
- * Retirer une demande depuis son détail (change 013, ticket 08, ADR-0030). `verifierSession` en
+ * Retirer une ou plusieurs demandes (change 013, tickets 08 et 09, ADR-0030) : 1 à 50 identifiants,
+ * tout ou rien (une seule écriture). `verifierSession` en
  * tête (ADR-0007, I6), anti-forgerie par le cookie `SameSite=Strict` (ADR-0011), jamais de détail
  * technique dans une réponse d'échec.
  */

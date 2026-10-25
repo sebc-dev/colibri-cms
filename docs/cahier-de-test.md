@@ -788,6 +788,42 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | CT-40.4 | Choisir « Retrait ordinaire », puis « Retirer » | « Retrait en cours… » est annoncé, puis l'écran mène à la liste à jour : la demande de Marie Dupont n'y est plus, le nombre « retirée » de la phrase du haut gagne 1 (SC-08a) | |
 | CT-40.5 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, ouvrir le dialogue d'une demande, choisir un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; la demande reste dans la liste | |
 
+## 41. Retirer plusieurs demandes en un geste depuis la liste — change 013 · ticket 09
+
+Sur la base locale du § 0.2, semer cinq demandes de « Devis gâteau » :
+
+```sh
+npx wrangler d1 execute DB --local --command "with recursive n(i) as (select 1 union all select i + 1 from n where i < 5) insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) select 'recette-41-' || i, 'devis-gateau', 'Devis gâteau', 'sans-suite', 'presente', 1792238700000 + i * 60000, 'Contact', null, 'Client ' || i || ' c' || i || '@exemple.fr', '[]', 'parti' from n;"
+```
+
+Après les cas, les effacer :
+
+```sh
+npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-41-%';"
+```
+
+Pour CT-41.7 seulement, à jouer après l'effacement des demandes `recette-41-%`, semer quarante demandes :
+
+```sh
+npx wrangler d1 execute DB --local --command "with recursive n(i) as (select 1 union all select i + 1 from n where i < 40) insert into demandes (id, formulaire_id, formulaire_nom, suite, etat, recue_le, page_titre, total, contact, detail, courriel) select 'recette-41b-' || i, 'devis-gateau', 'Devis gâteau', 'sans-suite', 'presente', 1792238700000 + i * 60000, 'Contact', null, 'Client ' || i || ' s' || i || '@exemple.fr', '[]', 'parti' from n;"
+```
+
+Puis les effacer :
+
+```sh
+npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-41b-%';"
+```
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-41.1 | Au téléphone, ouvrir « Demandes » et cocher trois cases | Chaque case mesure au moins 44 px ; son nom annoncé est « Sélectionner la demande du <date et heure>, Client N cN@exemple.fr » (la coordonnée de sa ligne) ; une barre fixe en bas de l'écran dit « 3 demandes sélectionnées » (SC-09b) | |
+| CT-41.2 | Toucher « Retirer… » | Le dialogue « Retirer 3 demandes ? » annonce que ce que les visiteurs ont envoyé sera effacé définitivement ; rien n'est encore retiré ; aucun motif n'est coché d'avance | |
+| CT-41.3 | Choisir « Demande indésirable », puis « Retirer » | L'écran se recharge sur la même page : les trois demandes ne sont plus listées, les nombres du haut ont perdu 3 demandes et ne gagnent aucune retirée (SC-09a, SC-09e) | |
+| CT-41.4 | Toucher « Tout sélectionner sur cette page », puis « Tout désélectionner » | La barre dit « 2 demandes sélectionnées » puis disparaît ; rien n'est retiré | |
+| CT-41.5 | Depuis « Devis gâteau » dans la rangée « Formulaire : », retirer une demande | Après le retrait le filtre est gardé | |
+| CT-41.6 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, cocher deux demandes, « Retirer… », un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; les demandes restent listées (SC-09d) | |
+| CT-41.7 | Effacer les demandes du § 41, vérifier que « Demandes » n'affiche plus aucune demande, semer les quarante demandes ci-dessus ; au téléphone, toucher « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » | Quatre actions suffisent ; la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, et les nombres du haut sont revenus à ceux d'avant le semis, sans aucune retirée gagnée (UX2) | |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
@@ -827,6 +863,7 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | 38 Détail d'une demande | 3 | | | |
 | 39 Suite d'une demande | 6 | | | |
 | 40 Retrait d'une demande | 5 | | | |
-| **Total** | **208** | | | |
+| 41 Retrait groupé de demandes | 7 | | | |
+| **Total** | **215** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________

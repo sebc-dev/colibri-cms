@@ -18,8 +18,9 @@ import CorrectionBoutonAction from './CorrectionBoutonAction.svelte';
 import ReglageLienVideo from './ReglageLienVideo.svelte';
 import TexteRiche from './TexteRiche.svelte';
 import { afficherPastilleDeBrouillon, afficherPastilleDansLaZone } from '../pastille-brouillon.ts';
-import { TEXTE_CARTE_MENTION, texteNombresDuSite } from '../textes.ts';
-import ChoixSuite from './ChoixSuite.svelte';
+import { TEXTE_CARTE_MENTION } from '../textes.ts';
+import EcranDemandes from './EcranDemandes.svelte';
+import type { DonneesEcranDemandes, LigneDemande } from './donnees-demandes.ts';
 import EcranDemande from './EcranDemande.svelte';
 import EmplacementImage from './EmplacementImage.svelte';
 import EmplacementComposition from './EmplacementComposition.svelte';
@@ -642,47 +643,37 @@ export function monterEcranPublier(): void {
 }
 
 /**
- * Monte l'îlot `ChoixSuite` (change 013, ticket 07) sur chaque nœud `data-choix-suite` des
- * écrans Demandes et Demande. Après un enregistrement, la ligne des nombres du site (nœud
- * `data-nombres-site`) et les lignes par formulaire (`data-nombres-formulaire`) sont remises à
- * jour sans rechargement. Ne fait rien si aucun nœud n'est présent.
+ * Monte l'îlot `EcranDemandes` (change 013, ticket 09) sur le nœud `data-ecran-demandes` de la
+ * liste des demandes ; les données préparées par le serveur sont lues dans `data-donnees` et, pour
+ * chaque ligne, dans `data-demande`. Après un
+ * retrait, l'écran se recharge sur le même filtre et la même page. Ne fait rien si le nœud est absent.
  */
-export function monterChoixSuite(): void {
-  document.querySelectorAll<HTMLElement>('[data-choix-suite]').forEach((cible) => {
-    const { idDemande, suite, libelle } = cible.dataset;
-    if (idDemande === undefined || suite === undefined || libelle === undefined) return;
+export function monterEcranDemandes(): void {
+  document.querySelectorAll<HTMLElement>('[data-ecran-demandes]').forEach((cible) => {
+    const brut = cible.dataset.donnees;
+    if (brut === undefined) return;
+    let donnees: DonneesEcranDemandes;
+    try {
+      const demandes = [...cible.querySelectorAll<HTMLElement>('[data-demande]')].map(
+        (ligne): LigneDemande => ({
+          ...(JSON.parse(ligne.dataset.demande ?? '') as Omit<LigneDemande, 'contact'>),
+          contact: ligne.querySelector('[data-contact]')?.textContent ?? '',
+        }),
+      );
+      donnees = { ...(JSON.parse(brut) as Omit<DonneesEcranDemandes, 'demandes'>), demandes };
+    } catch {
+      return;
+    }
     cible.innerHTML = '';
-    mount(ChoixSuite, {
+    mount(EcranDemandes, {
       target: cible,
       props: {
-        idDemande,
-        suiteInitiale: suite,
-        libelle,
-        apresEnregistrement: majNombres,
+        donnees,
+        apresRetrait: () => {
+          window.location.assign(window.location.href);
+        },
       },
     });
-  });
-}
-
-interface NombresRecus {
-  site: { demandes: number; commandes: number; retirees: number };
-  formulaires: { id: string; demandes: number; commandes: number; retirees: number }[];
-}
-
-function majNombres(brut: unknown): void {
-  const nombres = brut as NombresRecus | undefined;
-  if (nombres === undefined || typeof nombres.site !== 'object') return;
-  const phrase = document.querySelector('[data-nombres-site]');
-  if (phrase !== null) {
-    phrase.textContent = texteNombresDuSite(nombres.site.demandes, nombres.site.commandes, nombres.site.retirees);
-  }
-  document.querySelectorAll<HTMLElement>('[data-nombres-formulaire]').forEach((ligne) => {
-    const f = nombres.formulaires.find((x) => x.id === ligne.dataset.nombresFormulaire);
-    if (f === undefined) return;
-    const demandes = ligne.querySelector('[data-nombre-demandes]');
-    const commandes = ligne.querySelector('[data-nombre-commandes]');
-    if (demandes !== null) demandes.textContent = String(f.demandes);
-    if (commandes !== null) commandes.textContent = String(f.commandes);
   });
 }
 

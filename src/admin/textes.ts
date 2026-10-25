@@ -395,3 +395,23 @@ export const TEXTE_BOUTON_ANNULER_RETRAIT = 'Annuler';
 export const TEXTE_RETRAIT_EN_COURS = 'Retrait en cours…';
 export const TEXTE_RETRAIT_ECHEC =
   "Le retrait n’a pas pu se faire : aucune demande n’a été retirée. Réessayez dans quelques instants.";
+
+/** Retirer plusieurs demandes en un geste depuis la liste (FR-074, FR-117). */
+const nombreDeDemandes = (n: number): string => accord(n, 'demande', 'demandes');
+export const texteDemandesSelectionnees = (n: number): string =>
+  `${nombreDeDemandes(n)} ${n > 1 ? 'sélectionnées' : 'sélectionnée'}`;
+export const texteCaseDemande = (reception: string, contact: string): string =>
+  `Sélectionner la demande du ${reception}, ${contact}`;
+export const TEXTE_TOUT_SELECTIONNER = 'Tout sélectionner sur cette page';
+export const TEXTE_TOUT_DESELECTIONNER = 'Tout désélectionner';
+export const TEXTE_BOUTON_RETIRER_SELECTION = 'Retirer…';
+export const texteTitreRetraitGroupe = (n: number): string =>
+  n === 1 ? TEXTE_TITRE_RETRAIT : `Retirer ${nombreDeDemandes(n)} ?`;
+export const texteCorpsRetraitGroupe = (n: number): string =>
+  `${nombreDeDemandes(n)} ${n > 1 ? 'vont être retirées' : 'va être retirée'}. Tout ce que les visiteurs ont envoyé — choix, coordonnées, message — sera effacé définitivement. Ce retrait ne peut pas être annulé. Chaque demande reste dans votre boîte e-mail si elle y est arrivée.`;
+export const texteMotifOrdinaireGroupe = (n: number): string =>
+  n === 1
+    ? TEXTE_MOTIF_ORDINAIRE
+    : 'Retrait ordinaire — les demandes restent comptées parmi les retirées, et parmi les commandes si c’en était.';
+export const texteMotifIndesirableGroupe = (n: number): string =>
+  n === 1 ? TEXTE_MOTIF_INDESIRABLE : 'Demande indésirable — elles ne seront plus comptées nulle part.';
