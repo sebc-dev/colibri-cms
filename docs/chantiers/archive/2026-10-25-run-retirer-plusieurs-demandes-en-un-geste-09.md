@@ -1,7 +1,7 @@
 # Run bloqué : retirer plusieurs demandes en un geste
 
 Portée : 013-reception-et-suivi-des-demandes · ticket 09
-Ouvert le 2026-10-25 · Actualisé le 2026-10-25 · branche `impl/retirer-plusieurs-demandes-en-un-geste-09` · HEAD `529c313`
+Ouvert le 2026-10-25 · Actualisé le 2026-10-25 · branche `impl/retirer-plusieurs-demandes-en-un-geste-09` · HEAD `cd9c338`
 
 ## Objectif
 Mener le ticket 09 jusqu'à sa PR après l'arrêt du run `wf_9165ddae-059` en `blocked-verify` (mode `tdd`).
@@ -38,3 +38,12 @@ Hors de cette session : commiter le code en vol, puis relancer `/scd-spec-dev:ru
 - Refuser la retouche : les cas « deux identifiants → 400 » contredisaient le ticket 09 et auraient échoué avec le
   nouveau code.
 - Finir à la main : la quality gate et la relecture du workflow n'auraient pas tourné.
+
+## Issue
+Run abouti le 2026-10-25, PR #287, en deux reprises. La reprise `rerun: "2"` avait trouvé une ceinture propre ; la
+gate, la relecture, le tri et les corrections avaient tourné, puis le run s'était arrêté en
+`blocked-tests-touched-after-verify` sur `tests/unit/demandes/retrait-groupe.test.ts`. Fausse alerte : le
+progress-recorder avait recopié pour ce test l'empreinte du parcours (`445c7feb…`), alors que le test commité avait
+celle de la ceinture (`8cf76337…`), recalculée par `git show HEAD:<test> | sha256sum`. J'avais ajouté à la copie locale
+du script une entrée `args.verifiedTestHashes` (les empreintes recalculées) pour le seul contrôle d'intégrité, puis
+repris : seuls la description et la PR avaient tourné. Les deux tests du 08 commités portaient toujours la retouche.
