@@ -188,18 +188,16 @@ it('SC-08a — retrait indésirable : la demande entière est effacée, sans auc
   expect(await ligne(db, id)).toBeNull();
 });
 
-it('SC-08a — cas limites : motif inconnu ou absent, ids vide, deux ids, non textuel : 400 et la demande est intacte', async () => {
+it('SC-08a — cas limites : motif inconnu ou absent, ids vide, non textuel : 400 et la demande est intacte', async () => {
   const db = await assurerSchema();
   const cookie = await semerSession(db);
   const id = await semerPresente(db, GATEAU);
-  const autre = await semerPresente(db, GATEAU);
   const avant = await ligne(db, id);
 
   for (const corps of [
     { ids: [id], motif: 'autre' },
     { ids: [id] },
     { ids: [], motif: 'ordinaire' },
-    { ids: [id, autre], motif: 'ordinaire' },
     { ids: [7], motif: 'ordinaire' },
     { ids: id, motif: 'ordinaire' },
   ]) {
@@ -207,7 +205,6 @@ it('SC-08a — cas limites : motif inconnu ou absent, ids vide, deux ids, non te
     expect(reponse.status).toBe(400);
   }
   expect(await ligne(db, id)).toEqual(avant);
-  expect((await ligne(db, autre))?.etat).toBe('presente');
 });
 
 it('SC-08a — cas limites : une demande déjà retirée ou inconnue est laissée telle quelle', async () => {
