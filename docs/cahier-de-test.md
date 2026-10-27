@@ -307,76 +307,86 @@ Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 
 Bibliothèque vide au départ (`delete from medias`).
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-10.1 | Ouvrir « Médias », bibliothèque vide | « La bibliothèque ne contient encore aucune image. » ; bouton « Téléverser une image » ; champ « Rechercher par nom ou description » | |
-| CT-10.2 | Téléverser `photo.jpg` | Une vignette apparaît dans la grille ; en base : `nom_origine = photo.jpg`, `format` = JPEG, `largeur`/`hauteur` = les vraies dimensions, `poids_octets` | |
-| CT-10.3 | Téléverser `logo.png` puis `banniere.webp` | Trois vignettes ; formats PNG et WebP en base | |
-| CT-10.4 | Téléverser `dessin.svg` | « Cette image n'est pas dans un format accepté (JPEG, PNG ou WebP) : choisissez une autre image. » ; rien en base | |
-| CT-10.5 | Téléverser `anim.gif` | Même refus de format | |
-| CT-10.6 | Téléverser `menteur.png` (un GIF renommé) | Refus de **format** — seuls les octets décident, pas l'extension | |
-| CT-10.7 | Téléverser `lourde.jpg` (> 2 Mo) | « Cette image est trop lourde : choisissez une image plus légère. » ; rien en base | |
-| CT-10.8 | Téléverser `tronque.jpg` | Refusé proprement (format) ; rien en base ; l'écran reste utilisable | |
-| CT-10.9 | Téléverser `jpeg-deguise.png` (un vrai JPEG renommé) | **Admis** ; en base `format` = JPEG, pas PNG | |
-| CT-10.10 | Recharger l'écran | Toutes les vignettes sont là ; l'ordre est stable | |
-| CT-10.11 | Rechercher « logo » | La grille ne montre que `logo.png` | |
-| CT-10.12 | Rechercher « zzz » | « Aucune image ne correspond à cette recherche. » — texte **différent** de CT-10.1 ; effacer la recherche rend toutes les images | |
-| CT-10.13 | Donner une description à `photo.jpg` (§ 11), puis rechercher un mot de cette description | `photo.jpg` est trouvée par sa description | |
-| CT-10.14 | Console et onglet Réseau pendant le § 10 | Aucune violation CSP ; les vignettes sont servies depuis `/admin/medias/<id>/octets` | |
+| CT-10.1 | Ouvrir « Médias », bibliothèque vide | « La bibliothèque ne contient encore aucune image. » ; bouton « Téléverser une image » ; champ « Rechercher par nom ou description » | NA — état vide inatteignable sur la recette : l'écran réinscrit à chaque ouverture les images que déclare le contenu en ligne (`src/pages/admin/medias.astro:51`, change 011 ticket 02), 47 ici, et toute variante en garde au moins 2 ; vider `medias` effacerait les marques de publication de la base partagée. Le reste de l'écran est conforme : bouton « Téléverser une image », champ « Rechercher » d'indication « Rechercher par nom ou description » |
+| CT-10.2 | Téléverser `photo.jpg` | Une vignette apparaît dans la grille ; en base : `nom_origine = photo.jpg`, `format` = JPEG, `largeur`/`hauteur` = les vraies dimensions, `poids_octets` | OK — vignette en tête de grille, servie par `/admin/medias/<id>/octets` ; en base `nom_origine = photo.jpg`, `format = jpeg`, 1600 × 1067, `poids_octets = 23385` (le poids du fichier) |
+| CT-10.3 | Téléverser `logo.png` puis `banniere.webp` | Trois vignettes ; formats PNG et WebP en base | OK — la grille passe de 48 à 50 vignettes ; en base `png` (512 × 512) et `webp`. Lu « trois vignettes de plus » : la bibliothèque part de 47 images publiées (CT-10.1) |
+| CT-10.4 | Téléverser `dessin.svg` | « Cette image n'est pas dans un format accepté (JPEG, PNG ou WebP) : choisissez une autre image. » ; rien en base | OK — message exact ; réponse 400 `raison: format` ; base inchangée (50 lignes) |
+| CT-10.5 | Téléverser `anim.gif` | Même refus de format | OK — même message ; 400 `format` ; base inchangée |
+| CT-10.6 | Téléverser `menteur.png` (un GIF renommé) | Refus de **format** — seuls les octets décident, pas l'extension | OK — refus de format (400 `format`) malgré l'extension `.png` ; base inchangée |
+| CT-10.7 | Téléverser `lourde.jpg` (> 2 Mo) | « Cette image est trop lourde : choisissez une image plus légère. » ; rien en base | OK — « Cette image est trop lourde : choisissez une image plus légère. » ; 400 `raison: poids` ; base inchangée |
+| CT-10.8 | Téléverser `tronque.jpg` | Refusé proprement (format) ; rien en base ; l'écran reste utilisable | OK — refus de format (400 `format`) ; base inchangée ; le téléversement suivant (CT-10.9) passe |
+| CT-10.9 | Téléverser `jpeg-deguise.png` (un vrai JPEG renommé) | **Admis** ; en base `format` = JPEG, pas PNG | OK — admis ; en base `format = jpeg` ; servi en `image/jpeg` (CT-12.2) |
+| CT-10.10 | Recharger l'écran | Toutes les vignettes sont là ; l'ordre est stable | OK — 51 vignettes, même ordre sur trois lectures, la plus récente en tête |
+| CT-10.11 | Rechercher « logo » | La grille ne montre que `logo.png` | OK — une seule vignette, `logo.png` |
+| CT-10.12 | Rechercher « zzz » | « Aucune image ne correspond à cette recherche. » — texte **différent** de CT-10.1 ; effacer la recherche rend toutes les images | OK — « Aucune image ne correspond à cette recherche. » ; effacer la recherche rend les 51 images |
+| CT-10.13 | Donner une description à `photo.jpg` (§ 11), puis rechercher un mot de cette description | `photo.jpg` est trouvée par sa description | OK — « devanture », mot de la description saisie en CT-11.5, ne laisse que « Façade de l'atelier » |
+| CT-10.14 | Console et onglet Réseau pendant le § 10 | Aucune violation CSP ; les vignettes sont servies depuis `/admin/medias/<id>/octets` | OK — console sans violation CSP ; les 4 images téléversées viennent de `/admin/medias/<id>/octets`, les 47 publiées de `/_astro/…` (ADR-0020) |
 
 ## 11. La fiche d'une image — `bibliotheque-de-medias`
 
 Cliquer la vignette de `photo.jpg`.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-11.1 | Lire la fiche | Aperçu de l'image ; champ « Nom » ; champ « Description » ; bouton « Enregistrer » ; lien de retour « Médias » ; titre « Posée dans » | |
-| CT-11.2 | Renommer en « Façade de l'atelier », enregistrer | Le nom affiché change dans la fiche et dans la grille ; en base `nom_affichage` = le nouveau nom et `nom_origine` = **toujours** `photo.jpg` | |
-| CT-11.3 | Vider le nom, enregistrer | « Le nom ne peut pas être vide. » ; rien d'écrit | |
-| CT-11.4 | Saisir la description « Vue de la rue, printemps 2026 », enregistrer, recharger | Retrouvée ; en base `description` renseignée | |
-| CT-11.5 | Modifier la description, enregistrer | La nouvelle remplace l'ancienne | |
-| CT-11.6 | Section « Posée dans » d'une image posée nulle part | « Cette image n'est posée dans aucun emplacement. » | |
-| CT-11.7 | Marque d'orphelin sur une image posée nulle part | Sur la **fiche** et sur la **vignette** : « Cette image n'est posée dans aucun emplacement : elle sera effacée à la prochaine publication. » | |
+| CT-11.1 | Lire la fiche | Aperçu de l'image ; champ « Nom » ; champ « Description » ; bouton « Enregistrer » ; lien de retour « Médias » ; titre « Posée dans » | OK — aperçu chargé, champs « Nom » et « Description » avec chacun son bouton « Enregistrer », lien « ‹ Médias », titre « Posée dans » |
+| CT-11.2 | Renommer en « Façade de l'atelier », enregistrer | Le nom affiché change dans la fiche et dans la grille ; en base `nom_affichage` = le nouveau nom et `nom_origine` = **toujours** `photo.jpg` | OK — titre de la fiche et nom dans la grille : « Façade de l'atelier » ; en base `nom_affichage` changé, `nom_origine = photo.jpg` |
+| CT-11.3 | Vider le nom, enregistrer | « Le nom ne peut pas être vide. » ; rien d'écrit | OK — « Le nom ne peut pas être vide. » ; aucun envoi au serveur ; en base le nom reste « Façade de l'atelier » |
+| CT-11.4 | Saisir la description « Vue de la rue, printemps 2026 », enregistrer, recharger | Retrouvée ; en base `description` renseignée | OK — retrouvée après rechargement ; en base `description = Vue de la rue, printemps 2026` |
+| CT-11.5 | Modifier la description, enregistrer | La nouvelle remplace l'ancienne | OK — « Vue de la rue au printemps, devanture repeinte » remplace l'ancienne, à l'écran et en base |
+| CT-11.6 | Section « Posée dans » d'une image posée nulle part | « Cette image n'est posée dans aucun emplacement. » | OK — texte exact sous « Posée dans » |
+| CT-11.7 | Marque d'orphelin sur une image posée nulle part | Sur la **fiche** et sur la **vignette** : « Cette image n'est posée dans aucun emplacement : elle sera effacée à la prochaine publication. » | OK — texte exact sur la fiche et sur la vignette de la grille |
 
 ## 12. Servir les octets — `bibliotheque-de-medias`
 
 Relever l'identité d'une image (`select id …`, § 0.5) ; noter `<id>`.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-12.1 | Avec session, ouvrir `/admin/medias/<id>/octets` ; onglet Réseau | L'image s'affiche ; `Content-Type: image/jpeg` (ou png/webp selon le vrai format) ; `X-Content-Type-Options: nosniff` | |
-| CT-12.2 | Même URL sur `jpeg-deguise.png` | `Content-Type: image/jpeg` — jamais `image/png` | |
-| CT-12.3 | Même URL en **fenêtre privée** (sans session) | Aucun octet : renvoi vers la connexion ou refus | |
-| CT-12.4 | `/admin/medias/inexistant/octets` avec session | Refus propre, rien de l'administration ne fuit | |
+| CT-12.1 | Avec session, ouvrir `/admin/medias/<id>/octets` ; onglet Réseau | L'image s'affiche ; `Content-Type: image/jpeg` (ou png/webp selon le vrai format) ; `X-Content-Type-Options: nosniff` | OK — `photo.jpg` : 200, `image/jpeg`, `nosniff`, 23385 octets ; `logo.png` en `image/png` et `banniere.webp` en `image/webp`, tous deux `nosniff` |
+| CT-12.2 | Même URL sur `jpeg-deguise.png` | `Content-Type: image/jpeg` — jamais `image/png` | OK — `image/jpeg`, `nosniff` |
+| CT-12.3 | Même URL en **fenêtre privée** (sans session) | Aucun octet : renvoi vers la connexion ou refus | OK — navigateur sans session : refus 401, corps vide (0 octet) |
+| CT-12.4 | `/admin/medias/inexistant/octets` avec session | Refus propre, rien de l'administration ne fuit | OK — 404, corps vide, `nosniff` |
 
 ## 13. Poser et remplacer une image — `pages-et-emplacements`
 
 Page **Accueil**, emplacement **image**. `.wrangler/tmp/email` et l'onglet Réseau restent ouverts.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-13.1 | Ouvrir le sélecteur d'image | Il présente les images de la bibliothèque, par leur **nom d'affichage** (« Façade de l'atelier », pas `photo.jpg` ni un identifiant) | |
-| CT-13.2 | Choisir « Façade de l'atelier » | L'emplacement montre l'image ; pastille brouillon ; **aucun** téléversement dans l'onglet Réseau ; en base, le brouillon de l'emplacement porte l'`id` de l'image | |
-| CT-13.3 | Remplacer par `logo.png` | La nouvelle image est montrée à la place ; le brouillon porte le nouvel `id` et plus l'ancien | |
-| CT-13.4 | Recharger l'éditeur | L'image posée est retrouvée | |
-| CT-13.5 | Fiche de `logo.png` → « Posée dans » | « Accueil — image » (titre de page + nature en français, **pas** `image-hero`) | |
-| CT-13.6 | Vignette et fiche de `logo.png` | La marque d'orphelin a **disparu** ; celle de « Façade de l'atelier » (plus posée nulle part) est **revenue** | |
-| CT-13.7 | Sélecteur d'image sur une bibliothèque vidée (`delete from medias`, après le § 14) | État vide compréhensible, sans terme de développeur | |
+| CT-13.1 | Ouvrir le sélecteur d'image | Il présente les images de la bibliothèque, par leur **nom d'affichage** (« Façade de l'atelier », pas `photo.jpg` ni un identifiant) | OK — « Choisir une image » nomme chaque image par son nom d'affichage (« Poser l'image Façade de l'atelier »), jamais `photo.jpg` ni un identifiant ; le nom est porté par le texte de remplacement et le bouton, la grille ne montre que les vignettes. Les 47 images publiées y sont cassées (défaut de CT-6.3) |
+| CT-13.2 | Choisir « Façade de l'atelier » | L'emplacement montre l'image ; pastille brouillon ; **aucun** téléversement dans l'onglet Réseau ; en base, le brouillon de l'emplacement porte l'`id` de l'image | OK — l'image s'affiche (servie par `/octets`) ; pastille « Brouillon » ; un seul envoi, vers `…/emplacements/image-hero`, aucun téléversement ; en base `mediaId` = l'identité de l'image |
+| CT-13.3 | Remplacer par `logo.png` | La nouvelle image est montrée à la place ; le brouillon porte le nouvel `id` et plus l'ancien | OK — `logo.png` montrée ; en base `mediaId` = celle de `logo.png`, plus l'ancienne |
+| CT-13.4 | Recharger l'éditeur | L'image posée est retrouvée | OK — `logo.png` retrouvée |
+| CT-13.5 | Fiche de `logo.png` → « Posée dans » | « Accueil — image » (titre de page + nature en français, **pas** `image-hero`) | OK — « Accueil — image » |
+| CT-13.6 | Vignette et fiche de `logo.png` | La marque d'orphelin a **disparu** ; celle de « Façade de l'atelier » (plus posée nulle part) est **revenue** | OK — plus de marque sur la fiche ni sur la vignette de `logo.png` ; marque revenue sur « Façade de l'atelier » |
+| CT-13.7 | Sélecteur d'image sur une bibliothèque vidée (`delete from medias`, après le § 14) | État vide compréhensible, sans terme de développeur | NA — même raison que CT-10.1 : la bibliothèque ne se vide pas sur la recette sans effacer les marques de publication de la base partagée |
 
 ## 14. Composer une galerie ou un carrousel — `pages-et-emplacements`
 
 Page **Accueil**, emplacement **galerie** ; puis page **Contact**, emplacement **carrousel**.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-14.1 | Poser trois images dans la galerie, dans l'ordre A, B, C | La galerie montre A, B, C dans cet ordre ; pastille brouillon ; en base l'ordre est celui choisi | |
-| CT-14.2 | Réordonner en C, A, B | L'ordre est mis à jour, persiste au rechargement | |
-| CT-14.3 | Retirer B | La galerie montre C, A ; B reste dans la bibliothèque | |
-| CT-14.4 | Recharger l'éditeur | C, A retrouvés | |
-| CT-14.5 | Fiche de A → « Posée dans » | « Accueil — galerie » | |
-| CT-14.6 | Même parcours sur le **carrousel** de Contact | Identique | |
-| CT-14.7 | Poser A dans le carrousel de Contact alors qu'elle est déjà dans la galerie d'Accueil | Accepté ; sa fiche liste **les deux** emplacements, chacun par sa page et sa nature | |
-| CT-14.8 | Pendant le § 14, la liste des pages | Accueil et Contact portent la pastille ; Tarifs n'a pas bougé (hors CT-7.8) | |
+| CT-14.1 | Poser trois images dans la galerie, dans l'ordre A, B, C | La galerie montre A, B, C dans cet ordre ; pastille brouillon ; en base l'ordre est celui choisi | OK — A, B, C = `fraisier.jpg`, `paris-brest.webp`, `tarte-citron.png` (semées par `site.mjs semer-bibliotheque`), posées dans cet ordre à la suite des 45 images publiées de la galerie ; pastille « Brouillon » ; en base, positions 46 à 48 dans cet ordre |
+| CT-14.2 | Réordonner en C, A, B | L'ordre est mis à jour, persiste au rechargement | OK — C, A, B (deux « Monter » sur C), à l'écran, en base et après rechargement |
+| CT-14.3 | Retirer B | La galerie montre C, A ; B reste dans la bibliothèque | OK — C, A ; « 47 images composent cette galerie. » ; B toujours en bibliothèque |
+| CT-14.4 | Recharger l'éditeur | C, A retrouvés | OK — C, A retrouvés |
+| CT-14.5 | Fiche de A → « Posée dans » | « Accueil — galerie » | OK — « Accueil — galerie » |
+| CT-14.6 | Même parcours sur le **carrousel** de Contact | Identique | OK — carrousel vide au départ (« Aucune image ne compose ce carrousel. ») ; A, B, C, puis C, A, B, puis C, A, retrouvés au rechargement et en base |
+| CT-14.7 | Poser A dans le carrousel de Contact alors qu'elle est déjà dans la galerie d'Accueil | Accepté ; sa fiche liste **les deux** emplacements, chacun par sa page et sa nature | OK — fiche de A : « Accueil — galerie » puis « Contact — carrousel » |
+| CT-14.8 | Pendant le § 14, la liste des pages | Accueil et Contact portent la pastille ; Tarifs n'a pas bougé (hors CT-7.8) | OK — Accueil et Contact portent « Brouillon » ; Tarifs garde son seul brouillon de CT-7.8 (`bouton-devis`). Les pastilles d'Accueil et de Contact dataient des §§ 7 à 9 : leurs nouveaux brouillons se lisent en base |
 
 > Rang parmi plusieurs emplacements de même nature (« 1re galerie », « 2e galerie ») : aucune page
 > de démonstration n'en a deux. Pour le tester, ajouter temporairement un second emplacement
@@ -387,14 +397,16 @@ Page **Accueil**, emplacement **galerie** ; puis page **Contact**, emplacement *
 État de départ attendu : A posée dans la galerie d'Accueil **et** dans le carrousel de Contact ;
 Tarifs sans image.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-15.1 | Fiche de A → « Supprimer… » | Une confirmation « Supprimer « A » ? » présente **d'abord** « Elle est posée dans : » suivi de la liste (Accueil — galerie, Contact — carrousel) ; boutons « Annuler » / « Supprimer » ; **rien n'est encore appliqué** | |
-| CT-15.2 | « Annuler » | Rien ne change : A toujours posée aux deux endroits | |
-| CT-15.3 | « Supprimer… » puis « Supprimer » | A est retirée de la galerie d'Accueil **et** du carrousel de Contact ; leurs brouillons sont mis à jour en base ; Accueil et Contact portent la pastille ; Tarifs non | |
-| CT-15.4 | Fiche de A après suppression | « Cette image n'est posée dans aucun emplacement. » + marque « sera effacée à la prochaine publication » ; A **reste** dans la grille (l'effacement réel attend la publication) | |
-| CT-15.5 | Ouvrir l'éditeur d'Accueil et de Contact | Aucun emplacement ne montre d'image cassée ni d'identifiant ; l'ordre des autres images de la galerie est conservé | |
-| CT-15.6 | « Supprimer… » sur une image posée nulle part | La confirmation dit « Cette image n'est posée dans aucun emplacement. » ; confirmer ne touche aucun brouillon (aucune nouvelle pastille, aucune ligne modifiée en base) | |
+| CT-15.1 | Fiche de A → « Supprimer… » | Une confirmation « Supprimer « A » ? » présente **d'abord** « Elle est posée dans : » suivi de la liste (Accueil — galerie, Contact — carrousel) ; boutons « Annuler » / « Supprimer » ; **rien n'est encore appliqué** | OK — « Supprimer « fraisier.jpg » ? », puis « Elle est posée dans : » Accueil — galerie, Contact — carrousel ; « Annuler » / « Supprimer » ; aucun envoi à l'ouverture |
+| CT-15.2 | « Annuler » | Rien ne change : A toujours posée aux deux endroits | OK — aucun envoi ; A toujours dans les deux brouillons |
+| CT-15.3 | « Supprimer… » puis « Supprimer » | A est retirée de la galerie d'Accueil **et** du carrousel de Contact ; leurs brouillons sont mis à jour en base ; Accueil et Contact portent la pastille ; Tarifs non | OK — un envoi `…/supprimer` (200) ; A retirée des brouillons de la galerie (46 images) et du carrousel (1) ; Accueil et Contact portent « Brouillon », Tarifs garde son seul brouillon |
+| CT-15.4 | Fiche de A après suppression | « Cette image n'est posée dans aucun emplacement. » + marque « sera effacée à la prochaine publication » ; A **reste** dans la grille (l'effacement réel attend la publication) | OK — « Cette image n'est posée dans aucun emplacement. » et la marque « sera effacée à la prochaine publication » ; A reste en bibliothèque |
+| CT-15.5 | Ouvrir l'éditeur d'Accueil et de Contact | Aucun emplacement ne montre d'image cassée ni d'identifiant ; l'ordre des autres images de la galerie est conservé | KO — même défaut que CT-6.3, aucun défaut nouveau. La suppression ne laisse ni trou ni reste de A : la galerie garde ses 45 images publiées dans leur ordre puis C, le carrousel garde C. Mais les images publiées sans octets s'affichent cassées : la galerie d'Accueil (24 cassées à la mesure, les autres pas encore chargées) et l'image de Contact, où « media-fixture-equipe.png » s'affiche à la place de la vignette |
+| CT-15.6 | « Supprimer… » sur une image posée nulle part | La confirmation dit « Cette image n'est posée dans aucun emplacement. » ; confirmer ne touche aucun brouillon (aucune nouvelle pastille, aucune ligne modifiée en base) | OK — sur B (`paris-brest.webp`) : « Cette image n'est posée dans aucun emplacement. » ; confirmer envoie `…/supprimer` (200) ; empreinte de tous les brouillons identique avant et après, aucune pastille nouvelle |
 
 ## 16. Écritures forgées depuis une autre origine — `pages-et-emplacements`
 
@@ -415,17 +427,23 @@ EOF
 python3 -m http.server 8080
 ```
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
+La page forgée est servie par `python3 -m http.server 8091` (le port 8080 était pris sur la machine) et vise `https://colibri.sebc.dev` au lieu de `http://127.0.0.1:8787`.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-16.1 | Ouvrir `http://localhost:8080/forge.html`, cliquer « go », lire la console | La requête n'aboutit pas (erreur réseau/CORS **ou** statut de refus) : le cookie `SameSite=Strict` n'est pas joint ; le bouton de Tarifs n'a **pas** changé ; rien de nouveau en base | |
-| CT-16.2 | Même page, remplacer l'URL par `/admin/medias/televerser` et le corps par un `FormData` portant `photo.jpg` | Refus ; rien en base | |
+| CT-16.1 | Ouvrir `http://localhost:8080/forge.html`, cliquer « go », lire la console | La requête n'aboutit pas (erreur réseau/CORS **ou** statut de refus) : le cookie `SameSite=Strict` n'est pas joint ; le bouton de Tarifs n'a **pas** changé ; rien de nouveau en base | OK — bloqué par le navigateur (CORS : la vérification préalable échoue), aucun cookie joint ; bouton de Tarifs inchangé en base (« Demander nos tarifs » → `/contact`) |
+| CT-16.2 | Même page, remplacer l'URL par `/admin/medias/televerser` et le corps par un `FormData` portant `photo.jpg` | Refus ; rien en base | OK — l'envoi part sans cookie et échoue ; base inchangée (63 images). Rejoué hors navigateur avec le cookie de session et `Origin: http://localhost:8091` : refus 403 |
 
 ## 17. Site public — `socle-ilots-admin`
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-17.1 | `npm run build`, puis inspecter `dist/` | Aucun fichier de page publique ne référence un composant de `src/admin` ni une feuille Tailwind (`grep -rlE "tailwind\|/admin/" dist/` hors du dossier admin doit être vide) | |
-| CT-17.2 | Ouvrir `http://127.0.0.1:8787/` | Aucune route serveur ne répond hors `/admin/` (le site public reste statique ; une 404 propre est acceptable tant qu'aucune page publique n'est livrée) | |
+| CT-17.1 | `npm run build`, puis inspecter `dist/` | Aucun fichier de page publique ne référence un composant de `src/admin` ni une feuille Tailwind (`grep -rlE "tailwind\|/admin/" dist/` hors du dossier admin doit être vide) | OK — build local de `9af1e47`. La commande du cahier remonte 3 fichiers de `_astro/` : le script de « Mes pages », `monter.js` et `Gabarit.css` (Tailwind), tous de l'administration, qui n'a plus de dossier bâti à elle. Aucune page publique ne les référence : `index.html`, `tarifs/`, `contact/` et `404.html` ne chargent que `site.css` (sans Tailwind) et le script du formulaire public (`src/render/Formulaire.astro`) |
+| CT-17.2 | Ouvrir `http://127.0.0.1:8787/` | Aucune route serveur ne répond hors `/admin/` (le site public reste statique ; une 404 propre est acceptable tant qu'aucune page publique n'est livrée) | OK — accueil, Tarifs et Contact servis comme fichiers fixes (`etag`, aucun cookie, CSP stricte, console vide) ; adresse inconnue : la page 404 bâtie ; POST sur `/` : 405. Seule route serveur hors `/admin/` : `api/public/demandes` (FR-097) |
 
 ## 18. La connexion habillée — change 005 · ticket 06
 
@@ -867,14 +885,14 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | 7 Bouton d'action | 8 | 8 | 0 | 0 |
 | 8 Lien de vidéo | 7 | 7 | 0 | 0 |
 | 9 Texte riche | 7 | 7 | 0 | 0 |
-| 10 Écran Médias | 14 | | | |
-| 11 Fiche | 7 | | | |
-| 12 Octets | 4 | | | |
-| 13 Poser / remplacer | 7 | | | |
-| 14 Galerie / carrousel | 8 | | | |
-| 15 Supprimer partout | 6 | | | |
-| 16 Écritures forgées | 2 | | | |
-| 17 Site public | 2 | | | |
+| 10 Écran Médias | 14 | 13 | 0 | 1 |
+| 11 Fiche | 7 | 7 | 0 | 0 |
+| 12 Octets | 4 | 4 | 0 | 0 |
+| 13 Poser / remplacer | 7 | 6 | 0 | 1 |
+| 14 Galerie / carrousel | 8 | 8 | 0 | 0 |
+| 15 Supprimer partout | 6 | 5 | 1 | 0 |
+| 16 Écritures forgées | 2 | 2 | 0 | 0 |
+| 17 Site public | 2 | 2 | 0 | 0 |
 | 18 Connexion habillée | 10 | 9 | 0 | 1 |
 | 19 Marque de brouillon | 6 | 6 | 0 | 0 |
 | 20 Mes pages habillé | 8 | 8 | 0 | 0 |
