@@ -1,7 +1,7 @@
 # Recette complète de l'application sur le serveur de recette
 
 Portée : hors-cycle
-Ouvert le 2026-10-27 · Actualisé le 2026-10-27 · branche `recette/complete-2026-10` · HEAD `be3feb9`
+Ouvert le 2026-10-27 · Actualisé le 2026-10-27 · branche `recette/complete-2026-10` · HEAD `594bb88`
 
 ## Objectif
 Dérouler tout `docs/cahier-de-test.md` sur la version courante de `main`, sur le serveur de recette
@@ -38,11 +38,17 @@ verdict (OK, KO, NA) au bilan du cahier.
   change 011 ticket 18) : je l'avais signalée comme remarque de libellé, pas notée KO.
 - Le texte riche se jouait au rythme humain (`run-code`, 300 ms entre deux gestes) : TipTap ne rend
   le focus au texte qu'une image après le clic sur Titre ou Lien ; sans pause, faux défaut.
+- Une prémisse que la recette n'atteignait pas sans toucher l'état publié de la base partagée
+  donnait NA, avec sa raison (choix de l'utilisateur pour la bibliothèque vide : CT-10.1, CT-13.7).
+  Un défaut déjà consigné qui faisait échouer l'attendu d'un autre cas donnait KO « même défaut
+  que CT-6.3 » (CT-15.5), sans compter de défaut neuf.
+- La note « rang » sous le § 14 n'était pas un cas numéroté : je ne l'avais pas jouée.
 
 ## Prochaine étape
-Jouer les §§ 10 à 17, après avoir décidé comment jouer le § 10 : il part d'une bibliothèque vide, et
-la recette garde les images publiées des passes précédentes. Les §§ 13 et 14 passent par l'éditeur
-d'image du KO CT-6.3. Puis reporter verdicts et bilan, commiter, actualiser la fiche.
+Jouer les §§ 18 à 28, puis rejouer les §§ 29 à 32 et jouer les §§ 33 à 41 (le § 22 veut la
+bibliothèque garnie : semée pendant le § 14). Au remplissage du bilan, j'allais lui ajouter les
+lignes des §§ 24 à 28, qui n'en ont pas, et recompter son total (215 affiché, 229 en lignes).
+Puis reporter verdicts et bilan, commiter, actualiser la fiche.
 
 ## Écarté
 - Jouer en local (`wrangler dev`, § 0.2 du cahier) : le serveur de recette donne la vraie D1, le vrai
@@ -58,3 +64,8 @@ d'image du KO CT-6.3. Puis reporter verdicts et bilan, commiter, actualiser la f
 - Noter CT-6.3 OK sur sa prémisse vieillie : la spec 011/02 et l'ADR-0020 exigent la vignette d'une
   image publiée sans octets en base ; l'écran Médias la sert, l'éditeur de page non.
 - Lire le dernier instantané par `ls -t .playwright-cli/` : il ramenait un fichier de septembre.
+- Vider `medias` pour jouer CT-10.1 et CT-13.7 (variante « sans images », puis `delete from
+  medias`) : l'écran Médias réinscrit à chaque ouverture les 47 images publiées, et vider la table
+  effaçait leurs marques de publication juste avant de rejouer les §§ 29 à 32.
+- Le port 8080 pour la page forgée du § 16 : un autre programme de la machine l'occupait ; 8091 a servi.
+- Arrêter ce serveur par `pkill -f "http.server …"` : la commande se tuait elle-même ; un `timeout` suffisait.
