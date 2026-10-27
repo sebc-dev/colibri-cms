@@ -1,20 +1,27 @@
 # ColibriCMS — Cahier de test manuel
 
-État couvert : tout ce qui est livré dans `main` au 2026-09-28 — les changes **001 Connexion par
-code**, **002 Socle d'îlots d'administration**, **003 Remplir et corriger les emplacements d'une
-page** et **004 Bibliothèque de médias** — et le change **005 Mise en page de l'administration**, dont les §§ 18 à 22 portent la recette de fin de front (§ 18,
-connexion habillée ; § 19, marque de brouillon ; § 20, « Mes pages » habillé ; § 21, éditeur habillé,
-emplacements de texte ; § 22, emplacements d'image habillés). La source de vérité de chaque attendu est la spec vivante
-citée en tête de section (`openspec/specs/<capacité>/spec.md`).
+État couvert : tout ce qui est livré dans `main` au 2026-10-27 (`9af1e47`) — les changes **001
+Connexion par code**, **002 Socle d'îlots d'administration**, **003 Remplir et corriger les
+emplacements d'une page** et **004 Bibliothèque de médias** (§§ 1 à 17) ; **005 Mise en page de
+l'administration**, dont les §§ 18 à 22 portent la recette de fin de front ; **006 Nom des
+emplacements** (sans section propre : les noms se lisent aux §§ 13 à 15) ; **007 Expéditeur du code
+de connexion** (§ 23) ; **008 Réglages transverses** (§§ 24 à 26) ; **009 Parcours navigateur**
+(tests automatiques, sans section ici) ; **010 Réglage des formulaires** (§§ 27 et 28) ; **011
+Aperçu et publication** (§§ 29 à 32) ; **012 Envoi des demandes de devis** (§§ 33 et 34) ; **013
+Réception et suivi des demandes** (§§ 35 à 41), livré dans `main` mais pas encore archivé. La source
+de vérité de chaque attendu est la spec vivante citée en tête de section
+(`openspec/specs/<capacité>/spec.md`) ; pour le change 013, c'est encore son delta
+(`openspec/changes/013-reception-et-suivi-des-demandes/specs/`).
 
 Ce cahier complète les tests automatiques (`docs/test.md`), il ne les remplace pas : il vise ce
 qu'un test dans `workerd` ne voit pas — le rendu au navigateur, la CSP réellement appliquée (voir
 `docs/test.md`, la CSP est invisible aux tests), les textes lus par l'éditrice, les gestes.
 
-**Hors périmètre** (pas encore livré, ne pas tester) : Aperçu et
-publication, le rendu des images sur le site public, l'effacement réel des images orphelines à la
-publication. Le site public n'a pas encore de page rendue : tout ce qui parle d'« état publié intact »
-n'est observable qu'en base (§ 0.5) ou par les tests automatiques.
+**Hors périmètre** (pas encore livré, ne pas tester) : le retour à la dernière version publiée, le
+moyen de reprise, le remplacement de l'adresse autorisée, le déploiement d'une instance au nom du
+client et de ses nouvelles versions, la reconstruction du site sans le CMS, le dossier d'instance,
+et la rapidité du site public (SC-005). Sur le serveur de recette, la révocation des accès
+d'Isometria (SC-012, SC-013) ne se recette pas : le compte est celui de l'opérateur.
 
 ---
 
