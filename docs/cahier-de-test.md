@@ -229,69 +229,79 @@ Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 
 ## 5. La liste des pages — `pages-et-emplacements`
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-5.1 | Ouvrir « Mes pages » | Trois lignes, dans cet ordre : **Accueil, Tarifs, Contact** | |
-| CT-5.2 | Cliquer « Accueil » | L'éditeur de la page Accueil s'ouvre | |
-| CT-5.3 | Sur la liste, aucune page n'a encore de brouillon | Aucune pastille « brouillon » | |
-| CT-5.4 | *(optionnel, coupe le serveur)* Renommer temporairement `content/pages` en `content/pages.off`, rebâtir et relancer `wrangler dev`, ouvrir « Mes pages » | Un message d'état vide, **sans** bouton de création. Remettre le dossier ensuite | |
+| CT-5.1 | Ouvrir « Mes pages » | Trois lignes, dans cet ordre : **Accueil, Tarifs, Contact** | OK — Accueil, Tarifs, Contact, dans cet ordre |
+| CT-5.2 | Cliquer « Accueil » | L'éditeur de la page Accueil s'ouvre | OK — `/admin/pages/accueil`, titre « Accueil » |
+| CT-5.3 | Sur la liste, aucune page n'a encore de brouillon | Aucune pastille « brouillon » | OK — aucune pastille ; aucune ligne `brouillons_emplacements` en base |
+| CT-5.4 | *(optionnel, coupe le serveur)* Renommer temporairement `content/pages` en `content/pages.off`, rebâtir et relancer `wrangler dev`, ouvrir « Mes pages » | Un message d'état vide, **sans** bouton de création. Remettre le dossier ensuite | OK — joué sur la variante `vide` (`site-vide-…`) : « Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici. », aucun bouton de création |
 
 ## 6. L'éditeur d'une page — `pages-et-emplacements`
 
 Ouvrir la page **Accueil**.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-6.1 | Lire l'éditeur | Cinq emplacements, dans l'ordre : texte riche · lien de vidéo · bouton d'action · image · galerie — chacun reconnaissable à sa nature | |
-| CT-6.2 | Lire les contenus | Le lien de vidéo montre l'URL YouTube ; le bouton montre « Demander un devis » / `/contact` ; la galerie est vide | |
-| CT-6.3 | L'emplacement **image** (son identité de démonstration n'existe pas en bibliothèque) | L'écran ne casse pas ; aucun identifiant technique (`media-fixture-hero`) ni mot « undefined » n'apparaît ; le sélecteur d'image reste utilisable | |
-| CT-6.4 | Actionner le fil de retour | Retour à « Mes pages » | |
-| CT-6.5 | Ouvrir **Contact** | texte riche · lien de vidéo (Vimeo) · image · carrousel, dans cet ordre | |
-| CT-6.6 | Ouvrir **Tarifs** | texte riche · bouton d'action | |
-| CT-6.7 | Parcourir l'éditeur | Aucun geste d'ajout, retrait, déplacement ni renommage d'emplacement | |
+| CT-6.1 | Lire l'éditeur | Cinq emplacements, dans l'ordre : texte riche · lien de vidéo · bouton d'action · image · galerie — chacun reconnaissable à sa nature | OK — Texte riche · Lien de la vidéo · Bouton d’action · Image · Galerie, chacun titré de sa nature |
+| CT-6.2 | Lire les contenus | Le lien de vidéo montre l'URL YouTube ; le bouton montre « Demander un devis » / `/contact` ; la galerie est vide | OK — bouton « Demander un devis » / `/contact`, vidéo YouTube ; écart d’attendu : l’éditeur montre le contenu publié courant, dont la galerie des 45 images publiées au § 30 d’une passe précédente |
+| CT-6.3 | L'emplacement **image** (son identité de démonstration n'existe pas en bibliothèque) | L'écran ne casse pas ; aucun identifiant technique (`media-fixture-hero`) ni mot « undefined » n'apparaît ; le sélecteur d'image reste utilisable | KO — prémisse vieillie : depuis le change 011 (ticket 02), `media-fixture-hero` est inscrite en bibliothèque comme image publiée, sans octets en base. L’éditeur la montre cassée : `EmplacementImage.svelte` vise toujours `/admin/medias/<id>/octets`, qui répond 200 avec 0 octet, et « media-fixture-hero.png » s’affiche à la place de la vignette (capture). Même défaut pour les 45 images publiées de la galerie et pour les 47 vignettes du sélecteur « Choisir une image ». L’écran Médias montre ces mêmes images (adresse statique `/_astro/…`, ADR-0020). L’écran ne casse pas, aucun « undefined », le sélecteur s’ouvre et reste utilisable |
+| CT-6.4 | Actionner le fil de retour | Retour à « Mes pages » | OK — retour à `/admin/mes-pages` |
+| CT-6.5 | Ouvrir **Contact** | texte riche · lien de vidéo (Vimeo) · image · carrousel, dans cet ordre | OK — Texte riche · Lien de la vidéo (`https://vimeo.com/76979871`) · Image · Carrousel |
+| CT-6.6 | Ouvrir **Tarifs** | texte riche · bouton d'action | OK — Texte riche · Bouton d’action |
+| CT-6.7 | Parcourir l'éditeur | Aucun geste d'ajout, retrait, déplacement ni renommage d'emplacement | OK — seuls gestes : Enregistrer, Remplacer l’image, et dans la galerie Monter, Descendre, Retirer, Ajouter une image (contenu, pas structure) |
 
 ## 7. Le bouton d'action — `pages-et-emplacements`
 
 Page **Accueil**, emplacement « bouton d'action ».
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-7.1 | Changer le libellé en « Obtenir un devis », enregistrer | Enregistré sans quitter l'écran ; la **pastille brouillon** apparaît au fil de retour ; en base une ligne `brouillons_emplacements` | |
-| CT-7.2 | Retour à « Mes pages » | La ligne Accueil porte la pastille brouillon ; Tarifs et Contact non | |
-| CT-7.3 | Recharger l'éditeur d'Accueil | Le libellé corrigé est bien celui affiché (persistance) | |
-| CT-7.4 | Destination `https://exemple.fr/devis`, enregistrer | Accepté | |
-| CT-7.5 | Destination `mailto:contact@exemple.fr`, puis `tel:+33123456789`, puis `/tarifs` | Chacune acceptée | |
-| CT-7.6 | Destination `javascript:alert(1)` | Refusée **au champ**, message compréhensible ; rien de nouveau en base | |
-| CT-7.7 | Destination `http://exemple.fr` (sans s), puis `ftp://exemple.fr` | Refusées au champ ; rien d'écrit | |
-| CT-7.8 | Page **Tarifs**, corriger son bouton | Seule Tarifs bascule à « brouillon » ; l'état d'Accueil ne change pas | |
+| CT-7.1 | Changer le libellé en « Obtenir un devis », enregistrer | Enregistré sans quitter l'écran ; la **pastille brouillon** apparaît au fil de retour ; en base une ligne `brouillons_emplacements` | OK — l’éditeur reste affiché, pastille « Brouillon » au titre ; ligne `accueil` / `bouton-devis` en base |
+| CT-7.2 | Retour à « Mes pages » | La ligne Accueil porte la pastille brouillon ; Tarifs et Contact non | OK — Accueil « Brouillon », Tarifs et Contact sans |
+| CT-7.3 | Recharger l'éditeur d'Accueil | Le libellé corrigé est bien celui affiché (persistance) | OK — « Obtenir un devis » après rechargement |
+| CT-7.4 | Destination `https://exemple.fr/devis`, enregistrer | Accepté | OK — destination enregistrée en base |
+| CT-7.5 | Destination `mailto:contact@exemple.fr`, puis `tel:+33123456789`, puis `/tarifs` | Chacune acceptée | OK — les trois enregistrées tour à tour, la base suit chacune |
+| CT-7.6 | Destination `javascript:alert(1)` | Refusée **au champ**, message compréhensible ; rien de nouveau en base | OK — « Cette destination n’est pas reconnue : utilisez une adresse web (commençant par https://), une adresse e-mail (mailto:), un numéro (tel:) ou un lien du site (commençant par /). », champ marqué invalide ; base inchangée (`/tarifs`, même `maj_le`) |
+| CT-7.7 | Destination `http://exemple.fr` (sans s), puis `ftp://exemple.fr` | Refusées au champ ; rien d'écrit | OK — même message pour les deux ; base inchangée |
+| CT-7.8 | Page **Tarifs**, corriger son bouton | Seule Tarifs bascule à « brouillon » ; l'état d'Accueil ne change pas | OK — Tarifs passe à « Brouillon », Accueil garde le sien, Contact reste sans |
 
 ## 8. Le lien de vidéo — `pages-et-emplacements`
 
 Page **Accueil**, emplacement « lien de vidéo ».
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-8.1 | Coller `https://www.youtube.com/watch?v=aqz-KE-bpKQ`, enregistrer | Accepté ; pastille brouillon ; persiste au rechargement | |
-| CT-8.2 | Coller `https://youtu.be/aqz-KE-bpKQ` | Accepté | |
-| CT-8.3 | Coller `https://vimeo.com/76979871` | Accepté | |
-| CT-8.4 | Coller `https://exemple.com/video` | Refusé au champ, en disant **ce qui est attendu** (YouTube ou Vimeo) ; rien en base | |
-| CT-8.5 | Coller `http://www.youtube.com/watch?v=aqz-KE-bpKQ` (sans s) | Refusé | |
-| CT-8.6 | Coller `pas une url` | Refusé | |
-| CT-8.7 | Après un refus, l'état de la page | N'a pas basculé à cause du refus (une page sans autre brouillon reste sans pastille) | |
+| CT-8.1 | Coller `https://www.youtube.com/watch?v=aqz-KE-bpKQ`, enregistrer | Accepté ; pastille brouillon ; persiste au rechargement | OK — en base, pastille, retrouvé après rechargement |
+| CT-8.2 | Coller `https://youtu.be/aqz-KE-bpKQ` | Accepté | OK — en base |
+| CT-8.3 | Coller `https://vimeo.com/76979871` | Accepté | OK — en base |
+| CT-8.4 | Coller `https://exemple.com/video` | Refusé au champ, en disant **ce qui est attendu** (YouTube ou Vimeo) ; rien en base | OK — « Ce lien n’est pas reconnu : collez un lien YouTube (par exemple https://www.youtube.com/watch?v=… ou https://youtu.be/…) ou Vimeo (par exemple https://vimeo.com/…). » ; base inchangée. Remarque : le champ n’est pas marqué invalide (`aria-invalid` absent), contrairement à celui du bouton d’action |
+| CT-8.5 | Coller `http://www.youtube.com/watch?v=aqz-KE-bpKQ` (sans s) | Refusé | OK — même message ; base inchangée |
+| CT-8.6 | Coller `pas une url` | Refusé | OK — même message ; base inchangée |
+| CT-8.7 | Après un refus, l'état de la page | N'a pas basculé à cause du refus (une page sans autre brouillon reste sans pastille) | OK — refus joué sur Contact, page sans brouillon : aucune pastille, aucune ligne en base |
 
 ## 9. Le texte riche — `pages-et-emplacements`
 
 Page **Contact**, emplacement « texte riche ».
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-9.1 | Lire la barre de mise en forme | Gras, italique, lien, liste, titre — et rien d'autre ; aucun bouton « HTML », « code », « source » | |
-| CT-9.2 | Taper un paragraphe, sélectionner un mot, actionner **gras** puis **italique** | Les marques se posent visuellement, sans qu'aucune balise ne s'écrive dans le texte | |
-| CT-9.3 | Poser un **titre**, une **liste** à deux éléments | Rendus comme tels | |
-| CT-9.4 | Poser un **lien** vers `https://exemple.fr` | Accepté | |
-| CT-9.5 | Poser un lien vers `javascript:alert(1)` | Refusé, sans terme de développeur | |
-| CT-9.6 | Enregistrer, recharger la page | Tout le contenu et toutes les marques sont retrouvés ; pastille brouillon ; en base le contenu est du Markdown (`**gras**`, `# Titre`, `- élément`), sans HTML | |
-| CT-9.7 | Coller depuis un traitement de texte un contenu avec couleur, police, tableau | Seules gras/italique/lien/liste/titre survivent après enregistrement + rechargement ; le reste est écarté | |
+| CT-9.1 | Lire la barre de mise en forme | Gras, italique, lien, liste, titre — et rien d'autre ; aucun bouton « HTML », « code », « source » | OK — Gras, Italique, Lien, Liste, Titre, rien d’autre |
+| CT-9.2 | Taper un paragraphe, sélectionner un mot, actionner **gras** puis **italique** | Les marques se posent visuellement, sans qu'aucune balise ne s'écrive dans le texte | OK — « gourmand » en gras italique, aucune balise dans le texte |
+| CT-9.3 | Poser un **titre**, une **liste** à deux éléments | Rendus comme tels | OK — titre et liste à deux puces rendus comme tels (capture) |
+| CT-9.4 | Poser un **lien** vers `https://exemple.fr` | Accepté | OK — « atelier » lié à `https://exemple.fr` |
+| CT-9.5 | Poser un lien vers `javascript:alert(1)` | Refusé, sans terme de développeur | OK — « Ce lien n’est pas accepté : il doit commencer par https://, mailto:, tel: ou /. », texte inchangé |
+| CT-9.6 | Enregistrer, recharger la page | Tout le contenu et toutes les marques sont retrouvés ; pastille brouillon ; en base le contenu est du Markdown (`**gras**`, `# Titre`, `- élément`), sans HTML | OK — tout retrouvé après rechargement, pastille ; en base `[atelier](https://exemple.fr) **_gourmand_**`, `## Nos horaires`, `- Lundi`, sans HTML ; le bouton Titre pose un titre de niveau 2 (`##`) |
+| CT-9.7 | Coller depuis un traitement de texte un contenu avec couleur, police, tableau | Seules gras/italique/lien/liste/titre survivent après enregistrement + rechargement ; le reste est écarté | OK — collage simulé (événement de collage portant le HTML d’un traitement de texte) : couleurs, polices, fond, souligné, code, barré, image et structure du tableau écartés ; gras, italique, lien, liste et titre gardés. Remarques : les cellules du tableau se collent sans espace (« Case ACase BCase CCase D ») ; un titre collé garde le niveau 1 (`#`), que le bouton Titre ne pose jamais |
 
 ## 10. La bibliothèque — écran Médias — `bibliotheque-de-medias`
 
@@ -852,11 +862,11 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | 2 Demander un code | 11 | 11 | 0 | 0 |
 | 3 Recopier le code, session | 15 | 15 | 0 | 0 |
 | 4 Cadre | 9 | 9 | 0 | 0 |
-| 5 Liste des pages | 4 | | | |
-| 6 Éditeur | 7 | | | |
-| 7 Bouton d'action | 8 | | | |
-| 8 Lien de vidéo | 7 | | | |
-| 9 Texte riche | 7 | | | |
+| 5 Liste des pages | 4 | 4 | 0 | 0 |
+| 6 Éditeur | 7 | 6 | 1 | 0 |
+| 7 Bouton d'action | 8 | 8 | 0 | 0 |
+| 8 Lien de vidéo | 7 | 7 | 0 | 0 |
+| 9 Texte riche | 7 | 7 | 0 | 0 |
 | 10 Écran Médias | 14 | | | |
 | 11 Fiche | 7 | | | |
 | 12 Octets | 4 | | | |
