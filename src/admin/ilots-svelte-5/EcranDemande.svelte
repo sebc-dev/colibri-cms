@@ -7,6 +7,7 @@
 <script lang="ts">
   import ChoixSuite from './ChoixSuite.svelte';
   import DialogueRetrait from './DialogueRetrait.svelte';
+  import { demanderRetrait } from './demander-retrait.ts';
   import { TEXTE_BOUTON_RETIRER_DEMANDE, TEXTE_RETRAIT_ECHEC } from '../textes.ts';
   import type { MotifDeRetrait } from '../../core/demandes/retrait.ts';
 
@@ -27,13 +28,7 @@
     enCours = true;
     echec = null;
     try {
-      const reponse = await fetch('/admin/demandes/retrait', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ids: [idDemande], motif }),
-      });
-      const json = (await reponse.json()) as { ok?: boolean };
-      if (!reponse.ok || json.ok !== true) throw new Error('refus');
+      await demanderRetrait([idDemande], motif);
       apresRetrait();
     } catch {
       echec = TEXTE_RETRAIT_ECHEC;

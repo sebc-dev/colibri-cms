@@ -3,7 +3,7 @@
   FR-073). Motif obligatoire, sans défaut : ordinaire ou indésirable (choix natif, boutons radio).
   « Retirer » reste inactif tant qu'aucun motif n'est choisi. Le focus initial est sur « Annuler »,
   piégé dans le dialogue par `bits-ui` ; Échap ferme et rend le focus au bouton qui l'a ouvert.
-  Réemployé par le retrait groupé (ticket 09). Interpolation échappée seulement (I5). Aucune
+  Réemployé par le retrait groupé (ticket 09, textes en props). Interpolation échappée seulement (I5). Aucune
   directive `client:*` (ADR-0006).
 -->
 <script lang="ts">
@@ -26,10 +26,24 @@
     ouvert: boolean;
     enCours: boolean;
     echec: string | null;
+    /** Titre, corps et motifs propres à un retrait groupé ; le retrait d'une seule demande par défaut. */
+    titre?: string;
+    corps?: string;
+    motifOrdinaire?: string;
+    motifIndesirable?: string;
     confirmer: (motif: MotifDeRetrait) => void;
   }
 
-  let { ouvert = $bindable(false), enCours, echec, confirmer }: Props = $props();
+  let {
+    ouvert = $bindable(false),
+    enCours,
+    echec,
+    titre = TEXTE_TITRE_RETRAIT,
+    corps = TEXTE_CORPS_RETRAIT,
+    motifOrdinaire = TEXTE_MOTIF_ORDINAIRE,
+    motifIndesirable = TEXTE_MOTIF_INDESIRABLE,
+    confirmer,
+  }: Props = $props();
 
   let motif = $state<MotifDeRetrait | null>(null);
   let annuler = $state<HTMLButtonElement | null>(null);
@@ -53,17 +67,17 @@
       escapeKeydownBehavior={enCours ? 'ignore' : 'close'}
       class="bg-popover text-popover-foreground ring-foreground/10 fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-xl p-4 text-sm ring-1 outline-none motion-safe:duration-100 motion-safe:data-open:animate-in motion-safe:data-open:fade-in-0 motion-safe:data-open:zoom-in-95 motion-safe:data-closed:animate-out motion-safe:data-closed:fade-out-0 motion-safe:data-closed:zoom-out-95"
     >
-      <DialogTitle class="break-words font-display text-base font-semibold">{TEXTE_TITRE_RETRAIT}</DialogTitle>
-      <DialogDescription class="break-words">{TEXTE_CORPS_RETRAIT}</DialogDescription>
+      <DialogTitle class="break-words font-display text-base font-semibold">{titre}</DialogTitle>
+      <DialogDescription class="break-words">{corps}</DialogDescription>
       <fieldset class="grid gap-2" disabled={enCours}>
         <legend class="mb-1 font-medium">{TEXTE_MOTIF_RETRAIT}</legend>
         <label class="flex min-h-11 items-start gap-2 md:min-h-0">
           <input type="radio" name="motif-retrait" value="ordinaire" bind:group={motif} class="mt-1" />
-          <span class="break-words">{TEXTE_MOTIF_ORDINAIRE}</span>
+          <span class="break-words">{motifOrdinaire}</span>
         </label>
         <label class="flex min-h-11 items-start gap-2 md:min-h-0">
           <input type="radio" name="motif-retrait" value="indesirable" bind:group={motif} class="mt-1" />
-          <span class="break-words">{TEXTE_MOTIF_INDESIRABLE}</span>
+          <span class="break-words">{motifIndesirable}</span>
         </label>
       </fieldset>
       {#if enCours}
