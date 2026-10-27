@@ -144,16 +144,18 @@ Noter ce que l'éditeur affiche dans ce cas (CT-6.3) — il ne doit ni casser ni
 
 ## 1. La porte de l'administration — `connexion-par-code`
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) et par requêtes directes (`curl`).
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-1.1 | Sans session, ouvrir `http://127.0.0.1:8787/admin/` | Renvoi vers l'écran de connexion ; rien de l'accueil n'apparaît | |
-| CT-1.2 | Ouvrir `/admin/connexion` sans session, puis (plus tard) avec session | L'écran de connexion se rend dans les deux cas, avec son champ d'adresse | |
-| CT-1.3 | Ouvrir `/admin/nimportequoi` sans session, puis avec session | Refus ; rien de l'administration n'est visible (ni menu, ni page) | |
-| CT-1.4 | Ouvrir `/admin` (sans barre finale), sans session | Même comportement que CT-1.1 | |
-| CT-1.5 | Outils de développement → Réseau, sur la réponse de `/admin/connexion` | En-têtes présents : `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, un refus de mise en cadre (`X-Frame-Options` ou `frame-ancestors`) | |
-| CT-1.6 | Même vérification sur le **renvoi** de CT-1.1 et sur le **refus** de CT-1.3 | Exactement les mêmes en-têtes, aux mêmes valeurs, que CT-1.5 | |
-| CT-1.7 | Lire la valeur de `Content-Security-Policy` | `script-src` sans `unsafe-inline` ni `unsafe-eval` ; aucune origine tierce (aucun `https://…` étranger) ; `style-src-attr 'unsafe-inline'` présent | |
-| CT-1.8 | Source de la page (Ctrl+U) sur `/admin/connexion` | Aucun `<script>` en ligne ; les scripts sont chargés par `<script src>` | |
+| CT-1.1 | Sans session, ouvrir `http://127.0.0.1:8787/admin/` | Renvoi vers l'écran de connexion ; rien de l'accueil n'apparaît | OK — 302 vers `/admin/connexion`, corps vide |
+| CT-1.2 | Ouvrir `/admin/connexion` sans session, puis (plus tard) avec session | L'écran de connexion se rend dans les deux cas, avec son champ d'adresse | OK — 200 sans session et avec session, champ « Adresse » présent |
+| CT-1.3 | Ouvrir `/admin/nimportequoi` sans session, puis avec session | Refus ; rien de l'administration n'est visible (ni menu, ni page) | OK — 404 « Page introuvable », avec et sans session : ni menu ni page, seul un lien « Retour à l'administration » |
+| CT-1.4 | Ouvrir `/admin` (sans barre finale), sans session | Même comportement que CT-1.1 | OK — `/admin` : 302 vers `/admin/connexion`, comme CT-1.1 |
+| CT-1.5 | Outils de développement → Réseau, sur la réponse de `/admin/connexion` | En-têtes présents : `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, un refus de mise en cadre (`X-Frame-Options` ou `frame-ancestors`) | OK — CSP, `nosniff`, `Referrer-Policy: same-origin`, `X-Frame-Options: DENY` et `frame-ancestors 'none'` |
+| CT-1.6 | Même vérification sur le **renvoi** de CT-1.1 et sur le **refus** de CT-1.3 | Exactement les mêmes en-têtes, aux mêmes valeurs, que CT-1.5 | OK — renvoi et refus portent les quatre mêmes en-têtes, aux mêmes valeurs |
+| CT-1.7 | Lire la valeur de `Content-Security-Policy` | `script-src` sans `unsafe-inline` ni `unsafe-eval` ; aucune origine tierce (aucun `https://…` étranger) ; `style-src-attr 'unsafe-inline'` présent | OK — `script-src 'self'`, ni `unsafe-inline` ni `unsafe-eval`, aucune origine tierce ; `style-src-attr 'unsafe-inline'` présent |
+| CT-1.8 | Source de la page (Ctrl+U) sur `/admin/connexion` | Aucun `<script>` en ligne ; les scripts sont chargés par `<script src>` | OK — aucune balise `<script>` sur l'écran de connexion |
 
 ## 2. Demander un code — `connexion-par-code`
 
@@ -161,39 +163,48 @@ Vider `.wrangler/tmp/email/` avant de commencer (`rm -rf .wrangler/tmp/email/*`)
 recette, « un fichier `.txt` apparaît » se lit « un message arrive dans la boîte de l'adresse autorisée »
 (§ 0.3).
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`) : navigateur piloté pour l'écran,
+requêtes directes (`curl`, un jeu de cookies par appareil) pour comparer les réponses, codes lus dans la
+boîte de l'adresse autorisée. **Seuil par origine** : au-delà de 20 soumissions par heure depuis une même
+connexion, adresses et codes confondus, l'écran refuse tout (« Trop de tentatives de connexion depuis
+votre accès à internet… », change 012). Les §§ 2 et 3 enchaînés le dépassent : remettre le compte à zéro
+entre les deux (`$R sql "delete from comptes_seuil"`).
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-2.1 | Soumettre `editrice@example.com` | L'écran passe à la saisie du code ; un fichier `.txt` apparaît sous `.wrangler/tmp/email/` | |
-| CT-2.2 | Ouvrir ce fichier | Texte seul (aucune balise HTML) ; objet `Votre code de connexion` ; corps `Code : XXXXXXXX` | |
-| CT-2.3 | Lire le code | Huit signes, chiffres ou majuscules, **jamais** de `I`, `L`, `O` ni `U` | |
-| CT-2.4 | En base (§ 0.5), la ligne `codes_connexion` créée | Le code en clair **n'y figure pas** (`empreinte` et `sel` seulement) ; `identifiant_appareil` renseigné | |
-| CT-2.5 | Soumettre `inconnu@example.com` (autre appareil ou après reset) | **Même écran, même texte** qu'en CT-2.1 ; **aucun** nouveau fichier dans `.wrangler/tmp/email/` ; aucune nouvelle ligne en base | |
-| CT-2.6 | Onglet Réseau : comparer les deux réponses POST de CT-2.1 et CT-2.5 | Même statut, mêmes en-têtes, corps identique ; le temps de réponse est ≥ 300 ms dans les deux cas et du même ordre | |
-| CT-2.7 | Outils → Application → Cookies, après affichage de `/admin/connexion` | Un cookie d'identifiant d'appareil est posé ; recharger la page ne le change pas | |
-| CT-2.8 | Demander **six** codes de suite avec l'adresse autorisée (moins d'une heure) | Les cinq premiers produisent un fichier ; le sixième affiche un message de plafond atteint, **sans** fichier ni ligne en base | |
-| CT-2.9 | Plafond atteint, soumettre `inconnu@example.com` | Le **même** message de plafond, mot pour mot | |
-| CT-2.10 | Plafond atteint, puis `delete from codes_connexion` (simule la sortie de l'heure) et redemander | Un code est de nouveau écrit et déposé | |
-| CT-2.11 | Reset complet **sans** réinsérer l'adresse autorisée (instance non semée), soumettre une adresse | Même écran que CT-2.1, rien d'autre — l'instance ne trahit pas qu'elle n'est pas semée. Réinsérer l'adresse ensuite (§ 0.2) | |
+| CT-2.1 | Soumettre `editrice@example.com` | L'écran passe à la saisie du code ; un fichier `.txt` apparaît sous `.wrangler/tmp/email/` | OK — l'écran garde sa carte à deux étapes (§ 18), l'étape « Code » prête ; message reçu. L'attendu « passe à la saisie » date d'avant cette carte |
+| CT-2.2 | Ouvrir ce fichier | Texte seul (aucune balise HTML) ; objet `Votre code de connexion` ; corps `Code : XXXXXXXX` | OK — texte seul, objet « Votre code de connexion », corps `Code : AJCSDN50`, expédié de `code@colibri.sebc.dev` |
+| CT-2.3 | Lire le code | Huit signes, chiffres ou majuscules, **jamais** de `I`, `L`, `O` ni `U` | OK — 18 codes reçus pendant les §§ 2 et 3 : huit signes chacun, aucun `I`, `L`, `O` ni `U` |
+| CT-2.4 | En base (§ 0.5), la ligne `codes_connexion` créée | Le code en clair **n'y figure pas** (`empreinte` et `sel` seulement) ; `identifiant_appareil` renseigné | OK — `empreinte` (64 signes) et `sel` (32), aucune colonne de code en clair ; `identifiant_appareil` = le cookie de l'appareil |
+| CT-2.5 | Soumettre `inconnu@example.com` (autre appareil ou après reset) | **Même écran, même texte** qu'en CT-2.1 ; **aucun** nouveau fichier dans `.wrangler/tmp/email/` ; aucune nouvelle ligne en base | OK — même corps, mêmes en-têtes ; aucune ligne, aucun message |
+| CT-2.6 | Onglet Réseau : comparer les deux réponses POST de CT-2.1 et CT-2.5 | Même statut, mêmes en-têtes, corps identique ; le temps de réponse est ≥ 300 ms dans les deux cas et du même ordre | OK — 200 des deux côtés, en-têtes et corps identiques ; 0,52 s et 0,42 s |
+| CT-2.7 | Outils → Application → Cookies, après affichage de `/admin/connexion` | Un cookie d'identifiant d'appareil est posé ; recharger la page ne le change pas | OK — `identifiant-appareil` posé, inchangé au rechargement |
+| CT-2.8 | Demander **six** codes de suite avec l'adresse autorisée (moins d'une heure) | Les cinq premiers produisent un fichier ; le sixième affiche un message de plafond atteint, **sans** fichier ni ligne en base | OK — cinq messages, cinq lignes ; la sixième : « Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter un moment avant de réessayer. », sans ligne ni message |
+| CT-2.9 | Plafond atteint, soumettre `inconnu@example.com` | Le **même** message de plafond, mot pour mot | OK — même page, au signe près |
+| CT-2.10 | Plafond atteint, puis `delete from codes_connexion` (simule la sortie de l'heure) et redemander | Un code est de nouveau écrit et déposé | OK — une ligne écrite, message reçu |
+| CT-2.11 | Reset complet **sans** réinsérer l'adresse autorisée (instance non semée), soumettre une adresse | Même écran que CT-2.1, rien d'autre — l'instance ne trahit pas qu'elle n'est pas semée. Réinsérer l'adresse ensuite (§ 0.2) | OK — même page que CT-2.1, aucune ligne ni message ; adresse réinsérée |
 
 ## 3. Recopier le code, ouvrir la session — `connexion-par-code`
 
+Joué le 2026-10-27, comme le § 2 ; les appareils A à W sont le navigateur piloté et des jeux de cookies distincts.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-3.1 | Lire l'écran de saisie du code | Il dit que le code reste valable **quinze minutes** et que **seul le dernier code demandé depuis cet appareil** permet d'entrer | |
-| CT-3.2 | Demander un code, le recopier tel quel | Renvoi vers l'accueil `/admin/` : « Vous êtes connectée. », aucun lien ni bouton d'action sur l'accueil | |
-| CT-3.3 | Outils → Application → Cookies après CT-3.2 | Un cookie `__Host-…` avec `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; sa valeur est opaque (ne contient ni adresse, ni date lisible) | |
-| CT-3.4 | Nouveau code ; le recopier en **minuscules**, avec des **tirets ou espaces** entre les signes | Accepté | |
-| CT-3.5 | Nouveau code contenant un `0`, `1` ou `V` ; le recopier en remplaçant par `O`, `I`/`L`, `U` | Accepté (confusables ramenés à leur signe) | |
-| CT-3.6 | Se déconnecter (supprimer le cookie `__Host-…`), présenter le **même** code une seconde fois | Refus : « Ce code a déjà servi : demandez un nouveau code. » | |
-| CT-3.7 | Nouveau code ; saisir un code faux | « Ce code n'est pas reconnu. Vérifiez-le et retapez-le. » ; pas de session | |
-| CT-3.8 | Saisir un code faux **cinq fois**, puis le **bon** code | À la cinquième : « Trop de tentatives avec ce code : demandez un nouveau code. » ; le bon code est ensuite refusé lui aussi (brûlé) | |
-| CT-3.9 | Demander un code depuis l'appareil A ; le saisir depuis l'appareil B (fenêtre privée) | « Ce code a été demandé depuis un autre appareil : revenez sur l'appareil où vous l'avez demandé pour vous connecter. » — jamais « demandez un nouveau code » | |
-| CT-3.10 | Appareil A : demander un code C1, puis un code C2 ; saisir C1 | « Ce code n'est plus valable : demandez un nouveau code. » ; C2 reste accepté | |
-| CT-3.11 | Appareil A : code CA ; appareil B : code CB ; saisir CA sur A | Accepté — la nouvelle demande de B n'a pas annulé le code de A | |
-| CT-3.12 | Demander un code, en base : `update codes_connexion set expire_le = 0;` puis le saisir | « Ce code a expiré : demandez un nouveau code. » | |
-| CT-3.13 | Session ouverte ; en base : `update sessions set creee_le = 0;` puis recharger `/admin/` | Renvoi vers la connexion (butée absolue de trente jours simulée) | |
-| CT-3.14 | Session ouverte ; recharger `/admin/mes-pages` dix fois de suite | Toujours servi ; aucune nouvelle ligne `sessions` à chaque requête (le rafraîchissement n'écrit pas à chaque fois) | |
-| CT-3.15 | Ouvrir une session sur A **et** une sur B | Les deux coexistent ; aucune ne ferme l'autre | |
+| CT-3.1 | Lire l'écran de saisie du code | Il dit que le code reste valable **quinze minutes** et que **seul le dernier code demandé depuis cet appareil** permet d'entrer | OK — « Seul le dernier code demandé depuis cet appareil permet d'entrer ; il reste valable quinze minutes » |
+| CT-3.2 | Demander un code, le recopier tel quel | Renvoi vers l'accueil `/admin/` : « Vous êtes connectée. », aucun lien ni bouton d'action sur l'accueil | OK — arrivée sur « Mes pages », comme le veut la spec vivante : l'accueil « Vous êtes connectée. » n'existe plus |
+| CT-3.3 | Outils → Application → Cookies après CT-3.2 | Un cookie `__Host-…` avec `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; sa valeur est opaque (ne contient ni adresse, ni date lisible) | OK — `__Host-session` : `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; valeur de 64 signes hexadécimaux |
+| CT-3.4 | Nouveau code ; le recopier en **minuscules**, avec des **tirets ou espaces** entre les signes | Accepté | OK — `45x-dpd rb` pour `45XDPDRB` : accepté |
+| CT-3.5 | Nouveau code contenant un `0`, `1` ou `V` ; le recopier en remplaçant par `O`, `I`/`L`, `U` | Accepté (confusables ramenés à leur signe) | OK — `U7FGC3Z2` pour `V7FGC3Z2` : accepté |
+| CT-3.6 | Se déconnecter (supprimer le cookie `__Host-…`), présenter le **même** code une seconde fois | Refus : « Ce code a déjà servi : demandez un nouveau code. » | OK — « Ce code a déjà servi : demandez un nouveau code. » |
+| CT-3.7 | Nouveau code ; saisir un code faux | « Ce code n'est pas reconnu. Vérifiez-le et retapez-le. » ; pas de session | OK — « Ce code n'est pas reconnu. Vérifiez-le et retapez-le. » ; pas de session |
+| CT-3.8 | Saisir un code faux **cinq fois**, puis le **bon** code | À la cinquième : « Trop de tentatives avec ce code : demandez un nouveau code. » ; le bon code est ensuite refusé lui aussi (brûlé) | OK — à la cinquième : « Trop de tentatives avec ce code : demandez un nouveau code. » ; le bon code reçoit ensuite le même refus |
+| CT-3.9 | Demander un code depuis l'appareil A ; le saisir depuis l'appareil B (fenêtre privée) | « Ce code a été demandé depuis un autre appareil : revenez sur l'appareil où vous l'avez demandé pour vous connecter. » — jamais « demandez un nouveau code » | OK — « Ce code a été demandé depuis un autre appareil : revenez sur l'appareil où vous l'avez demandé pour vous connecter. » |
+| CT-3.10 | Appareil A : demander un code C1, puis un code C2 ; saisir C1 | « Ce code n'est plus valable : demandez un nouveau code. » ; C2 reste accepté | OK — C1 : « Ce code n'est plus valable : demandez un nouveau code. » ; C2 accepté |
+| CT-3.11 | Appareil A : code CA ; appareil B : code CB ; saisir CA sur A | Accepté — la nouvelle demande de B n'a pas annulé le code de A | OK — CA accepté après la demande de CB |
+| CT-3.12 | Demander un code, en base : `update codes_connexion set expire_le = 0;` puis le saisir | « Ce code a expiré : demandez un nouveau code. » | OK — « Ce code a expiré : demandez un nouveau code. » |
+| CT-3.13 | Session ouverte ; en base : `update sessions set creee_le = 0;` puis recharger `/admin/` | Renvoi vers la connexion (butée absolue de trente jours simulée) | OK — renvoi vers `/admin/connexion` |
+| CT-3.14 | Session ouverte ; recharger `/admin/mes-pages` dix fois de suite | Toujours servi ; aucune nouvelle ligne `sessions` à chaque requête (le rafraîchissement n'écrit pas à chaque fois) | OK — dix rechargements servis ; six lignes `sessions` avant comme après |
+| CT-3.15 | Ouvrir une session sur A **et** une sur B | Les deux coexistent ; aucune ne ferme l'autre | OK — les sessions de A et de B restent servies ensemble |
 
 > Les échéances de sept jours sans usage et le repoussement glissant ne se testent pas à la main ;
 > ils sont couverts par les tests automatiques de `tests/integration/`.
@@ -202,17 +213,19 @@ recette, « un fichier `.txt` apparaît » se lit « un message arrive dans la b
 
 Session ouverte. Ouvrir `/admin/mes-pages`.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 800.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-4.1 | Lire la barre latérale | Cinq rubriques : **Mes pages**, **Médias**, **Réglages**, **Formulaires**, **Demandes** ; « Mes pages » marquée active | |
-| CT-4.2 | Cliquer « Médias » | L'écran Médias s'ouvre, « Médias » devient la rubrique active | |
-| CT-4.3 | Cliquer « Demandes » | L'écran Demandes s'ouvre, « Demandes » devient la rubrique active | |
-| CT-4.4 | Actionner « Replier le menu » | La barre devient un rail d'icônes seules ; la rubrique active reste marquée ; la zone de contenu s'élargit | |
-| CT-4.5 | Actionner « Déplier le menu » | Les libellés reparaissent à côté des icônes | |
-| CT-4.6 | Replier, puis **recharger** la page ; onglet Réseau pendant le repli | L'état replié est conservé ; **aucune** requête serveur n'a été émise par le repli | |
-| CT-4.7 | Parcourir tout le menu | Aucun bouton « + », « ajouter », « renommer », « supprimer », « déplacer » sur les rubriques ou les pages | |
-| CT-4.8 | Console ouverte pendant tout le § 4 | Aucune violation CSP ; aucun style de composant bloqué (menus, boutons, champs s'affichent normalement) | |
-| CT-4.9 | Source de l'écran | Aucune directive `client:` ; aucun `<script>` en ligne | |
+| CT-4.1 | Lire la barre latérale | Cinq rubriques : **Mes pages**, **Médias**, **Réglages**, **Formulaires**, **Demandes** ; « Mes pages » marquée active | OK — Mes pages, Médias, Réglages, Formulaires, Demandes ; « Mes pages » marquée active |
+| CT-4.2 | Cliquer « Médias » | L'écran Médias s'ouvre, « Médias » devient la rubrique active | OK |
+| CT-4.3 | Cliquer « Demandes » | L'écran Demandes s'ouvre, « Demandes » devient la rubrique active | OK — écran « Demandes », « 0 demande · 0 commande » |
+| CT-4.4 | Actionner « Replier le menu » | La barre devient un rail d'icônes seules ; la rubrique active reste marquée ; la zone de contenu s'élargit | OK — rail d'icônes de 63 px, « Demandes » reste marquée ; le contenu passe de 1056 à 1216 px |
+| CT-4.5 | Actionner « Déplier le menu » | Les libellés reparaissent à côté des icônes | OK — menu de 223 px, libellés revenus |
+| CT-4.6 | Replier, puis **recharger** la page ; onglet Réseau pendant le repli | L'état replié est conservé ; **aucune** requête serveur n'a été émise par le repli | OK — toujours replié après rechargement ; aucune requête au repli |
+| CT-4.7 | Parcourir tout le menu | Aucun bouton « + », « ajouter », « renommer », « supprimer », « déplacer » sur les rubriques ou les pages | OK — navigation, pages, « Publier », « Replier le menu » seuls ; « Ajouter un lien » des Réglages ajoute un réseau social, ni page ni rubrique |
+| CT-4.8 | Console ouverte pendant tout le § 4 | Aucune violation CSP ; aucun style de composant bloqué (menus, boutons, champs s'affichent normalement) | OK — console vide sur les cinq rubriques |
+| CT-4.9 | Source de l'écran | Aucune directive `client:` ; aucun `<script>` en ligne | OK — sur les cinq rubriques : aucune directive `client:`, aucun script en ligne, scripts chargés par `src` |
 
 ## 5. La liste des pages — `pages-et-emplacements`
 
@@ -835,10 +848,10 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 
 | Section | Cas | OK | KO | NA |
 |---|---|---|---|---|
-| 1 Porte et sécurité | 8 | | | |
-| 2 Demander un code | 11 | | | |
-| 3 Recopier le code, session | 15 | | | |
-| 4 Cadre | 9 | | | |
+| 1 Porte et sécurité | 8 | 8 | 0 | 0 |
+| 2 Demander un code | 11 | 11 | 0 | 0 |
+| 3 Recopier le code, session | 15 | 15 | 0 | 0 |
+| 4 Cadre | 9 | 9 | 0 | 0 |
 | 5 Liste des pages | 4 | | | |
 | 6 Éditeur | 7 | | | |
 | 7 Bouton d'action | 8 | | | |
