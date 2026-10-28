@@ -695,31 +695,37 @@ Constat SC-17a, reporté au ticket 19 : à jouer sur la recette raccordée (pré
 
 Constat de l'arrivée réelle de l'e-mail, qui ne se joue pas en local (ticket 07). À jouer sur la recette, sur la page « Contact » qui pose le formulaire « Devis gâteau », l'adresse autorisée étant la boîte de recette. La colonne Résultat reste vide tant que le cas n'a pas été joué.
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), dans l'heure de 08 h (UTC), après CT-34.4. Le site factice ne posait pas encore le formulaire sur Contact et Tarifs : l'emplacement `formulaire-devis` y a été ajouté comme dans le produit (site factice et dépôt de recette), le produit restant à `9af1e47`. E-mails lus par le connecteur Gmail.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-33.1 | Sur « Contact », choisir « Fraise » et « 10 parts », renseigner une adresse e-mail, actionner « Envoyer ma demande » | « Merci, votre demande a été envoyée. » remplace le formulaire et reçoit le focus | |
-| CT-33.2 | Consulter la boîte de recette | Un e-mail venu de l'adresse d'expéditeur de l'instance, d'objet « Demande de devis — Devis gâteau ». Sa source (afficher l'original) ne porte aucune partie HTML. Ses lignes viennent dans l'ordre : formulaire « Devis gâteau », page « Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Total indicatif : 40 € (estimation non engageante) », puis les coordonnées renseignées | |
-| CT-33.3 | Saisir `<a href="https://piege.example">Code : 123456</a>` dans « Votre nom » et envoyer | La saisie paraît telle quelle, balises comprises, sur une seule ligne derrière « Votre nom : », et la source de l'e-mail n'a aucune partie HTML | |
-| CT-33.4 | Saisir dans « Votre message » plusieurs lignes, dont « Total indicatif : 0 € », et envoyer | Sous « Votre message : », chaque ligne commence par `  > `. La seule ligne qui commence par « Total indicatif » est celle du produit (40 €) | |
+| CT-33.1 | Sur « Contact », choisir « Fraise » et « 10 parts », renseigner une adresse e-mail, actionner « Envoyer ma demande » | « Merci, votre demande a été envoyée. » remplace le formulaire et reçoit le focus | OK — 2026-10-28, 08:00:45 : « Fraise », « 10 parts », ct331@exemple.fr, « Envoyer ma demande » : réponse 200 ; plus aucun champ ni bouton du formulaire n'est visible, « Merci, votre demande a été envoyée. » prend sa place et reçoit le focus (capture `ct-33-1-merci.png`) |
+| CT-33.2 | Consulter la boîte de recette | Un e-mail venu de l'adresse d'expéditeur de l'instance, d'objet « Demande de devis — Devis gâteau ». Sa source (afficher l'original) ne porte aucune partie HTML. Ses lignes viennent dans l'ordre : formulaire « Devis gâteau », page « Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Total indicatif : 40 € (estimation non engageante) », puis les coordonnées renseignées | OK — reçu à 08:00:45, de `code@colibri.sebc.dev`, objet « Demande de devis — Devis gâteau » ; l'original n'a qu'un corps `Content-Type: text/plain; charset=utf-8`, sans partie HTML ; lignes dans l'ordre : « Formulaire : Devis gâteau », « Page : Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Total indicatif : 40 € (estimation non engageante) », « Votre adresse e-mail : ct331@exemple.fr » |
+| CT-33.3 | Saisir `<a href="https://piege.example">Code : 123456</a>` dans « Votre nom » et envoyer | La saisie paraît telle quelle, balises comprises, sur une seule ligne derrière « Votre nom : », et la source de l'e-mail n'a aucune partie HTML | OK — reçu à 08:01:05 : « Votre nom : <a href="https://piege.example">Code : 123456</a> » sur une seule ligne, balises comprises ; original en `text/plain` seul, sans partie HTML |
+| CT-33.4 | Saisir dans « Votre message » plusieurs lignes, dont « Total indicatif : 0 € », et envoyer | Sous « Votre message : », chaque ligne commence par `  > `. La seule ligne qui commence par « Total indicatif » est celle du produit (40 €) | OK — reçu à 08:01:12 : sous « Votre message : », « > Bonjour, », « > Total indicatif : 0 € », « > Merci de me rappeler. », chacune précédée de deux espaces ; la seule ligne qui commence par « Total indicatif » est celle du produit (40 €) |
 
 ## 34. Le seuil des demandes par origine — change 012 · ticket 12
 
 Constat de l'origine que Cloudflare attribue réellement à chaque envoi, qui ne se voit pas en local : sans l'en-tête `CF-Connecting-IP`, tous les envois locaux comptent sous une même origine (ticket 12, FR-062). À jouer sur la recette, sur la page « Contact » qui pose le formulaire « Devis gâteau », l'adresse autorisée étant la boîte de recette, depuis un même appareil et une même connexion à internet. La fenêtre est une heure d'horloge (de 14 h 00 à 15 h 00, par exemple) : jouer CT-34.1 à CT-34.3 dans la même heure, en commençant au moins 15 minutes avant sa fin, sans autre envoi depuis cette connexion dans l'heure, § 33 compris (tout envoi compte, même refusé). La colonne Résultat reste vide tant que le cas n'a pas été joué.
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`) : CT-34.1 à CT-34.3 dans l'heure de 07 h (UTC), à partir de 07:33, après avoir vidé `demandes`, `fenetre_seuil` et `comptes_seuil` ; CT-34.4 à 08:00. Les essais précédents de 07:22 à 07:32 n'ont pas compté : le navigateur piloté rechargeait trop tôt, puis une session de navigateur gardait des requêtes bloquées ; les compteurs ont été revidés avant le passage retenu.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-34.1 | Envoyer cinq demandes complètes sur « Contact » (« Fraise », « 10 parts », une adresse e-mail), en rechargeant la page entre deux envois | Chaque envoi affiche « Merci, votre demande a été envoyée. » ; cinq e-mails arrivent dans la boîte de recette | |
-| CT-34.2 | Dans la même heure, depuis le même appareil, envoyer une sixième demande complète | « Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure. » paraît et reçoit le focus ; « Fraise », « 10 parts » et l'adresse restent saisis ; le bouton « Envoyer ma demande » est de nouveau actif ; aucun sixième e-mail n'arrive. Dans les outils de développement, onglet Réseau, la réponse de `/api/public/demandes` est un 429 sans en-tête `Set-Cookie` (SC-12f, SC-12g) | |
-| CT-34.3 | Dans la même heure, depuis le même appareil, dans un autre onglet, soumettre l'adresse autorisée sur `/admin/connexion` | L'écran ne dit pas « Trop de tentatives de connexion… » et le code arrive dans la boîte de recette : la connexion a son propre seuil (SC-12d) | |
-| CT-34.4 | Après le début de l'heure suivante, revenir à l'onglet de CT-34.2 et, sans recharger, actionner de nouveau « Envoyer ma demande » | « Merci, votre demande a été envoyée. » ; l'e-mail arrive (SC-12c) | |
+| CT-34.1 | Envoyer cinq demandes complètes sur « Contact » (« Fraise », « 10 parts », une adresse e-mail), en rechargeant la page entre deux envois | Chaque envoi affiche « Merci, votre demande a été envoyée. » ; cinq e-mails arrivent dans la boîte de recette | OK — 2026-10-28, heure de 07 h (UTC), navigateur neuf, après avoir vidé `demandes`, `fenetre_seuil` et `comptes_seuil` : cinq envois (client1 à client5, 07:33:11 à 07:33:33), chacun rechargé avant, chacun affiche « Merci, votre demande a été envoyée. » qui reçoit le focus (réponses 200 en 1,3 à 6,5 s) ; cinq e-mails arrivés dans la boîte de recette, de 07:33:11 à 07:33:33 |
+| CT-34.2 | Dans la même heure, depuis le même appareil, envoyer une sixième demande complète | « Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure. » paraît et reçoit le focus ; « Fraise », « 10 parts » et l'adresse restent saisis ; le bouton « Envoyer ma demande » est de nouveau actif ; aucun sixième e-mail n'arrive. Dans les outils de développement, onglet Réseau, la réponse de `/api/public/demandes` est un 429 sans en-tête `Set-Cookie` (SC-12f, SC-12g) | OK — sixième envoi (client6, 07:33:36) : « Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure. » paraît et reçoit le focus ; « Fraise », « 10 parts » et l'adresse restent saisis ; « Envoyer ma demande » actif ; réponse 429 sans `Set-Cookie` ; aucun e-mail pour client6 |
+| CT-34.3 | Dans la même heure, depuis le même appareil, dans un autre onglet, soumettre l'adresse autorisée sur `/admin/connexion` | L'écran ne dit pas « Trop de tentatives de connexion… » et le code arrive dans la boîte de recette : la connexion a son propre seuil (SC-12d) | OK — même navigateur, autre onglet, 07:33:49 : l'adresse autorisée soumise sur `/admin/connexion` ne montre aucun refus, et le code arrive à 07:33:50 |
+| CT-34.4 | Après le début de l'heure suivante, revenir à l'onglet de CT-34.2 et, sans recharger, actionner de nouveau « Envoyer ma demande » | « Merci, votre demande a été envoyée. » ; l'e-mail arrive (SC-12c) | OK — 08:00:22, onglet de CT-34.2 non rechargé : « Envoyer ma demande » → réponse 200 en 7,4 s, « Merci, votre demande a été envoyée. » reçoit le focus ; e-mail de client6 arrivé à 08:00:22 |
 
 ## 35. La liste des demandes — change 013 · ticket 03
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; CT-35.1 sur les demandes de CT-34.1.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-35.1 | Ouvrir « Demandes » depuis le menu, au téléphone (tiroir) | La liste s'ouvre, « Demandes » est marquée active ; chaque demande se lit en carte empilée : date, formulaire, page, coordonnée, total, suite | |
-| CT-35.2 | Envoyer une demande dont l'e-mail ne peut pas partir, puis ouvrir la liste | La ligne porte la pastille « E-mail non parti » | |
-| CT-35.3 | Ouvrir la liste sans aucune demande | « Aucune demande n'est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici. » | |
+| CT-35.1 | Ouvrir « Demandes » depuis le menu, au téléphone (tiroir) | La liste s'ouvre, « Demandes » est marquée active ; chaque demande se lit en carte empilée : date, formulaire, page, coordonnée, total, suite | OK — 2026-10-28, 360 px : « Demandes » ouverte par le tiroir, marquée active (`aria-current`) ; chaque demande de CT-34.1 se lit en carte empilée : date (« 28 octobre 2026 à 08:33 »), « Devis gâteau », « Contact », la coordonnée, « 40 € », la liste de la suite ; `scrollWidth` 360 (capture `ct-35-1-liste-360.png`) |
+| CT-35.2 | Envoyer une demande dont l'e-mail ne peut pas partir, puis ouvrir la liste | La ligne porte la pastille « E-mail non parti » | OK — l'adresse autorisée remplacée en base, pour un seul envoi, par une adresse que Cloudflare refuse (destination non vérifiée), puis rétablie à l'identique : la demande (ct352, 08:01:40) est gardée, le visiteur lit « Merci… », aucun e-mail n'arrive, et sa ligne seule porte la pastille « E-mail non parti » |
+| CT-35.3 | Ouvrir la liste sans aucune demande | « Aucune demande n'est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici. » | OK — après effacement des demandes : « 0 demande · 0 commande », puis « Aucune demande n’est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici. » |
 
 ## 36. Filtrer et parcourir les demandes — change 013 · ticket 04
 
@@ -736,12 +742,14 @@ Après les cas, les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-36-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-36.1 | Avec des demandes de deux formulaires, ouvrir « Demandes » au téléphone et toucher le nom d'un formulaire dans la rangée « Formulaire : » | Seules les demandes de ce formulaire restent, la plus récente d'abord ; son nom est marqué comme courant | |
-| CT-36.2 | Depuis ce filtre, toucher « Tous » | Les demandes de tous les formulaires reparaissent | |
-| CT-36.3 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, toucher « Demandes plus anciennes » puis « Demandes plus récentes » ; refaire le parcours après avoir touché « Devis gâteau » dans la rangée « Formulaire : » | « Page 2 sur N » paraît puis on revient à la première page ; le filtre choisi est gardé d'une page à l'autre | |
-| CT-36.4 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, repérer « Ancien devis » dans la rangée « Formulaire : » et le toucher | Elles restent listées sous son nom et le filtre le propose toujours | |
+| CT-36.1 | Avec des demandes de deux formulaires, ouvrir « Demandes » au téléphone et toucher le nom d'un formulaire dans la rangée « Formulaire : » | Seules les demandes de ce formulaire restent, la plus récente d'abord ; son nom est marqué comme courant | OK — semis du préalable joué par `$R sql` sur la recette ; 360 px, « Devis gâteau » touché : seules ses demandes restent, la plus récente d'abord (1 janvier 2026 à 01:55), son nom marqué courant (`aria-current`) ; même chose pour « Ancien devis » (deux demandes, 01:27 puis 01:26) |
+| CT-36.2 | Depuis ce filtre, toucher « Tous » | Les demandes de tous les formulaires reparaissent | OK — « Tous » : les deux formulaires reparaissent, 50 demandes sur la page 1, « Page 1 sur 2 » |
+| CT-36.3 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, toucher « Demandes plus anciennes » puis « Demandes plus récentes » ; refaire le parcours après avoir touché « Devis gâteau » dans la rangée « Formulaire : » | « Page 2 sur N » paraît puis on revient à la première page ; le filtre choisi est gardé d'une page à l'autre | OK — « Demandes plus anciennes » : « Page 2 sur 2 » (7 demandes), puis « Demandes plus récentes » ramène à la page 1 ; filtré sur « Devis gâteau », la page 2 (5 demandes) garde le filtre dans l'adresse et dans la rangée, et le retour aussi |
+| CT-36.4 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, repérer « Ancien devis » dans la rangée « Formulaire : » et le toucher | Elles restent listées sous son nom et le filtre le propose toujours | OK — « Ancien devis » figure dans la rangée « Formulaire : » ; touché, ses deux demandes restent listées sous son nom |
 
 ## 37. Les nombres du site et de chaque formulaire — change 013 · ticket 05
 
@@ -764,12 +772,14 @@ Après les cas, les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-37-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-37.1 | Les demandes du préalable semées, sans les témoins retirés, ouvrir « Demandes » au téléphone | En haut, « N demandes · N commandes » puis un tableau Formulaire / Demandes / Commandes, formulaires par nom, lisible sans défiler de côté | |
-| CT-37.2 | Sans aucune demande, ouvrir « Demandes » | « 0 demande · 0 commande », aucun tableau | |
-| CT-37.3 | Les demandes du préalable semées, toucher « Devis gâteau » dans la rangée « Formulaire : » puis « Demandes plus anciennes » | Les nombres du haut et du tableau ne changent pas | |
-| CT-37.4 | Les témoins retirés du préalable semés en plus, ouvrir « Demandes » au téléphone | « · 2 retirées » suit les nombres du haut ; le tableau porte la colonne Retirées ; il se lit sans défiler de côté | |
+| CT-37.1 | Les demandes du préalable semées, sans les témoins retirés, ouvrir « Demandes » au téléphone | En haut, « N demandes · N commandes » puis un tableau Formulaire / Demandes / Commandes, formulaires par nom, lisible sans défiler de côté | OK — semis du préalable sans les témoins : « 58 demandes · 3 commandes », tableau Formulaire / Demandes / Commandes (Devis atelier 3 / 0, Devis gâteau 55 / 3) ; à 360 px, `scrollWidth` 360 |
+| CT-37.2 | Sans aucune demande, ouvrir « Demandes » | « 0 demande · 0 commande », aucun tableau | OK — sans aucune demande : « 0 demande · 0 commande », aucun tableau |
+| CT-37.3 | Les demandes du préalable semées, toucher « Devis gâteau » dans la rangée « Formulaire : » puis « Demandes plus anciennes » | Les nombres du haut et du tableau ne changent pas | OK — après « Devis gâteau » puis « Demandes plus anciennes » (page 2, filtrée), les nombres du haut et du tableau sont inchangés |
+| CT-37.4 | Les témoins retirés du préalable semés en plus, ouvrir « Demandes » au téléphone | « · 2 retirées » suit les nombres du haut ; le tableau porte la colonne Retirées ; il se lit sans défiler de côté | OK — témoins semés en plus : « 58 demandes · 4 commandes · 2 retirées » (le témoin retiré de suite « Commande » compte parmi les commandes, comme le veut la spec), tableau avec la colonne Retirées ; à 360 px, `scrollWidth` 360, sans défilement de côté. Remarque : les cellules n'ont aucune marge intérieure, les quatre en-têtes se lisent collés (« FormulaireDemandesCommandesRetirées ») et « Retirées » déborde de 7 px sur la marge droite (capture `ct-37-4-retirees-360.png`) |
 
 ## 38. Le détail d'une demande — change 013 · ticket 06
 
@@ -785,11 +795,13 @@ Après les cas, l'effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-38-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-38.1 | La demande semée, ouvrir « Demandes » au téléphone puis toucher sa date | Sous « Votre message » : « Bonjour, », une ligne vide qui garde sa place, le mot long, « Merci », l'un sous l'autre | |
-| CT-38.2 | Même écran, au téléphone (360 px) | Le mot de 80 caractères passe à la ligne, aucun défilement de côté | |
-| CT-38.3 | Même écran | La pastille « E-mail non parti » et sa mention sous le titre, « Demandes » marquée active dans le menu, et le lien « ← Toutes les demandes » ramène à la liste | |
+| CT-38.1 | La demande semée, ouvrir « Demandes » au téléphone puis toucher sa date | Sous « Votre message » : « Bonjour, », une ligne vide qui garde sa place, le mot long, « Merci », l'un sous l'autre | OK — 360 px, détail ouvert depuis sa date : sous « Votre message », « Bonjour, », une ligne vide qui garde sa place, le mot long, « Merci », l'un sous l'autre |
+| CT-38.2 | Même écran, au téléphone (360 px) | Le mot de 80 caractères passe à la ligne, aucun défilement de côté | OK — le mot de 80 caractères passe sur quatre lignes, `scrollWidth` 360 (capture `ct-38-detail-360.png`) |
+| CT-38.3 | Même écran | La pastille « E-mail non parti » et sa mention sous le titre, « Demandes » marquée active dans le menu, et le lien « ← Toutes les demandes » ramène à la liste | OK — pastille « E-mail non parti » et, sous le titre, « L’e-mail de cette demande n’a pas pu partir : elle n’est connue que d’ici. » ; « Demandes » active dans le menu ; « ← Toutes les demandes » ramène à la liste |
 
 ## 39. Noter la suite d'une demande — change 013 · ticket 07
 
@@ -805,14 +817,16 @@ Après les cas, les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-39-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-39.1 | Au téléphone (360 px), ouvrir « Demandes » | La liste déroulante de la ligne du 17 octobre 2026 à 14:05 mesure au moins 44 px de haut (getBoundingClientRect) ; choisie au pouce, « Commande » s'y pose ; le nombre de commandes de la phrase du haut et la cellule « Commandes » de « Devis gâteau » augmentent de 1, sans rechargement (SC-07b) | |
-| CT-39.2 | Recharger, puis toucher la date pour ouvrir le détail | La ligne et la liste déroulante du détail portent toujours « Commande » (SC-07a) | |
-| CT-39.3 | La ligne de la demande neuve (15:05) | La liste montre « À renseigner », que l'on ne peut pas choisir (grisée) ; « Sans suite », « Devis envoyé » et « Commande » se choisissent | |
-| CT-39.4 | Avec un lecteur d'écran (NVDA ou VoiceOver), mettre le focus sur la liste de la ligne de 14:05 | Elle est annoncée « Suite de la demande du 17 octobre 2026 à 14:05 » | |
-| CT-39.5 | Outils → Réseau → bloquer l'URL de requête `/admin/demandes/recette-39-suite/suite`, puis choisir une autre suite dans la liste | La liste revient à la suite d'avant ; « La suite n'a pas pu être enregistrée. Réessayez dans quelques instants. » paraît sous la ligne, et le lecteur d'écran l'annonce sans couper la lecture ; après déblocage et rechargement, la demande porte toujours la suite d'avant (SC-07c) | |
-| CT-39.6 | Même blocage, depuis l'écran du détail | Même retour, même message, sous la liste du détail (SC-07c) | |
+| CT-39.1 | Au téléphone (360 px), ouvrir « Demandes » | La liste déroulante de la ligne du 17 octobre 2026 à 14:05 mesure au moins 44 px de haut (getBoundingClientRect) ; choisie au pouce, « Commande » s'y pose ; le nombre de commandes de la phrase du haut et la cellule « Commandes » de « Devis gâteau » augmentent de 1, sans rechargement (SC-07b) | OK — 360 px : la liste de la ligne du 17 octobre 2026 à 14:05 mesure 135 × 44 px ; « Commande » choisie s'y pose ; « 2 demandes · 0 commande » devient « · 1 commande » et la cellule « Commandes » de « Devis gâteau » passe de 0 à 1, sans rechargement (témoin JS conservé). Choix fait par le navigateur piloté, pas au pouce |
+| CT-39.2 | Recharger, puis toucher la date pour ouvrir le détail | La ligne et la liste déroulante du détail portent toujours « Commande » (SC-07a) | OK — après rechargement, la ligne porte « Commande » ; le détail aussi (lu en base : `commande`) |
+| CT-39.3 | La ligne de la demande neuve (15:05) | La liste montre « À renseigner », que l'on ne peut pas choisir (grisée) ; « Sans suite », « Devis envoyé » et « Commande » se choisissent | OK — ligne de 15:05 : « À renseigner » affiché et inactif ; « Sans suite », « Devis envoyé » et « Commande » se choisissent |
+| CT-39.4 | Avec un lecteur d'écran (NVDA ou VoiceOver), mettre le focus sur la liste de la ligne de 14:05 | Elle est annoncée « Suite de la demande du 17 octobre 2026 à 14:05 » | NA — exige un lecteur d'écran ; structure vérifiée : la liste porte le nom accessible « Suite de la demande du 17 octobre 2026 à 14:05 » |
+| CT-39.5 | Outils → Réseau → bloquer l'URL de requête `/admin/demandes/recette-39-suite/suite`, puis choisir une autre suite dans la liste | La liste revient à la suite d'avant ; « La suite n'a pas pu être enregistrée. Réessayez dans quelques instants. » paraît sous la ligne, et le lecteur d'écran l'annonce sans couper la lecture ; après déblocage et rechargement, la demande porte toujours la suite d'avant (SC-07c) | OK — adresse `/admin/demandes/recette-39-suite/suite` bloquée par le navigateur, « Sans suite » choisi : la liste revient à « Commande » ; « La suite n'a pas pu être enregistrée. Réessayez dans quelques instants. » paraît juste sous la liste, dans une région `aria-live="polite"` (annonce sans couper la lecture, non écoutée au lecteur d'écran) ; après déblocage et rechargement, toujours « Commande » |
+| CT-39.6 | Même blocage, depuis l'écran du détail | Même retour, même message, sous la liste du détail (SC-07c) | OK — même blocage depuis le détail : même retour à « Commande », même message, sous la liste du détail, même région polie |
 
 ## 40. Retirer une demande depuis son détail — change 013 · ticket 08
 
@@ -828,13 +842,15 @@ Après les cas, les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-40-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-40.1 | Au clavier seul, ouvrir le détail de la demande de Marie Dupont, atteindre « Retirer cette demande », l'activer | Le dialogue s'ouvre, le focus est sur « Annuler » ; Tab et Maj+Tab ne sortent jamais du dialogue ; « Retirer » est inactif tant qu'aucun motif n'est choisi, aucun motif n'est coché d'avance | |
-| CT-40.2 | Dans le dialogue, appuyer sur Échap | Le dialogue se ferme, le focus revient sur « Retirer cette demande » ; la demande reste dans la liste avec sa suite (SC-08b) | |
-| CT-40.3 | Avec un lecteur d'écran (NVDA ou VoiceOver), ouvrir le dialogue | Il est annoncé comme dialogue, avec son titre « Retirer cette demande ? » et son texte ; les deux motifs sont annoncés comme boutons radio d'un groupe « Raison du retrait » | |
-| CT-40.4 | Choisir « Retrait ordinaire », puis « Retirer » | « Retrait en cours… » est annoncé, puis l'écran mène à la liste à jour : la demande de Marie Dupont n'y est plus, le nombre « retirée » de la phrase du haut gagne 1 (SC-08a) | |
-| CT-40.5 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, ouvrir le dialogue d'une demande, choisir un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; la demande reste dans la liste | |
+| CT-40.1 | Au clavier seul, ouvrir le détail de la demande de Marie Dupont, atteindre « Retirer cette demande », l'activer | Le dialogue s'ouvre, le focus est sur « Annuler » ; Tab et Maj+Tab ne sortent jamais du dialogue ; « Retirer » est inactif tant qu'aucun motif n'est choisi, aucun motif n'est coché d'avance | OK — au clavier seul : dix Tab jusqu'à la demande de Marie Dupont, Entrée, cinq Tab jusqu'à « Retirer cette demande », Entrée ; le focus est sur « Annuler » ; huit Tab puis huit Maj+Tab restent dans le dialogue (le groupe de motifs et « Annuler ») ; « Retirer » inactif, aucun motif coché |
+| CT-40.2 | Dans le dialogue, appuyer sur Échap | Le dialogue se ferme, le focus revient sur « Retirer cette demande » ; la demande reste dans la liste avec sa suite (SC-08b) | OK — Échap ferme le dialogue, le focus revient sur « Retirer cette demande » ; la demande reste dans la liste avec « Devis envoyé » |
+| CT-40.3 | Avec un lecteur d'écran (NVDA ou VoiceOver), ouvrir le dialogue | Il est annoncé comme dialogue, avec son titre « Retirer cette demande ? » et son texte ; les deux motifs sont annoncés comme boutons radio d'un groupe « Raison du retrait » | NA — exige un lecteur d'écran ; structure vérifiée : `role="dialog"` et `aria-modal="true"`, titre « Retirer cette demande ? » relié par `aria-labelledby`, texte relié par `aria-describedby`, deux boutons radio dans un `fieldset` de légende « Raison du retrait » |
+| CT-40.4 | Choisir « Retrait ordinaire », puis « Retirer » | « Retrait en cours… » est annoncé, puis l'écran mène à la liste à jour : la demande de Marie Dupont n'y est plus, le nombre « retirée » de la phrase du haut gagne 1 (SC-08a) | OK — « Retrait ordinaire » puis « Retirer » : « Retrait en cours… » paraît dans une région annoncée, puis l'écran mène à la liste : la demande de Marie Dupont n'y est plus, « 2 demandes · 1 commande » devient « 1 demande · 1 commande · 1 retirée » ; sa coordonnée est effacée en base |
+| CT-40.5 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, ouvrir le dialogue d'une demande, choisir un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; la demande reste dans la liste | OK — `/admin/demandes/retrait` bloquée : « Le retrait n’a pas pu se faire : aucune demande n’a été retirée. Réessayez dans quelques instants. » dans le dialogue (`role="alert"`), qui reste ouvert ; la demande de Paul Martin reste listée |
 
 ## 41. Retirer plusieurs demandes en un geste depuis la liste — change 013 · ticket 09
 
@@ -862,15 +878,17 @@ Puis les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-41b-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-41.1 | Au téléphone, ouvrir « Demandes » et cocher trois cases | Chaque case mesure au moins 44 px ; son nom annoncé est « Sélectionner la demande du <date et heure>, Client N cN@exemple.fr » (la coordonnée de sa ligne) ; une barre fixe en bas de l'écran dit « 3 demandes sélectionnées » (SC-09b) | |
-| CT-41.2 | Toucher « Retirer… » | Le dialogue « Retirer 3 demandes ? » annonce que ce que les visiteurs ont envoyé sera effacé définitivement ; rien n'est encore retiré ; aucun motif n'est coché d'avance | |
-| CT-41.3 | Choisir « Demande indésirable », puis « Retirer » | L'écran se recharge sur la même page : les trois demandes ne sont plus listées, les nombres du haut ont perdu 3 demandes et ne gagnent aucune retirée (SC-09a, SC-09e) | |
-| CT-41.4 | Toucher « Tout sélectionner sur cette page », puis « Tout désélectionner » | La barre dit « 2 demandes sélectionnées » puis disparaît ; rien n'est retiré | |
-| CT-41.5 | Depuis « Devis gâteau » dans la rangée « Formulaire : », retirer une demande | Après le retrait le filtre est gardé | |
-| CT-41.6 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, cocher deux demandes, « Retirer… », un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; les demandes restent listées (SC-09d) | |
-| CT-41.7 | Effacer les demandes du § 41, vérifier que « Demandes » n'affiche plus aucune demande, semer les quarante demandes ci-dessus ; au téléphone, toucher « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » | Quatre actions suffisent ; la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, et les nombres du haut sont revenus à ceux d'avant le semis, sans aucune retirée gagnée (UX2) | |
+| CT-41.1 | Au téléphone, ouvrir « Demandes » et cocher trois cases | Chaque case mesure au moins 44 px ; son nom annoncé est « Sélectionner la demande du <date et heure>, Client N cN@exemple.fr » (la coordonnée de sa ligne) ; une barre fixe en bas de l'écran dit « 3 demandes sélectionnées » (SC-09b) | OK — 360 px : chaque case mesure 44 × 44 px, son nom est « Sélectionner la demande du 17 octobre 2026 à 14:10, Client 5 c5@exemple.fr » (et ainsi de suite) ; trois cases cochées, une barre fixe en bas de l'écran dit « 3 demandes sélectionnées » |
+| CT-41.2 | Toucher « Retirer… » | Le dialogue « Retirer 3 demandes ? » annonce que ce que les visiteurs ont envoyé sera effacé définitivement ; rien n'est encore retiré ; aucun motif n'est coché d'avance | OK — « Retirer… » : dialogue « Retirer 3 demandes ? », « Tout ce que les visiteurs ont envoyé — choix, coordonnées, message — sera effacé définitivement. » ; les cinq demandes restent listées ; aucun motif coché |
+| CT-41.3 | Choisir « Demande indésirable », puis « Retirer » | L'écran se recharge sur la même page : les trois demandes ne sont plus listées, les nombres du haut ont perdu 3 demandes et ne gagnent aucune retirée (SC-09a, SC-09e) | OK — « Demande indésirable » puis « Retirer » : la liste revient sur la même page avec Client 2 et Client 1 seulement ; « 5 demandes · 0 commande » devient « 2 demandes · 0 commande », sans retirée |
+| CT-41.4 | Toucher « Tout sélectionner sur cette page », puis « Tout désélectionner » | La barre dit « 2 demandes sélectionnées » puis disparaît ; rien n'est retiré | OK — « Tout sélectionner sur cette page » : « 2 demandes sélectionnées » ; « Tout désélectionner » : la barre disparaît ; rien n'est retiré |
+| CT-41.5 | Depuis « Devis gâteau » dans la rangée « Formulaire : », retirer une demande | Après le retrait le filtre est gardé | OK — joué après CT-41.6 : depuis « Devis gâteau », une demande retirée ; l'écran revient sur `?formulaire=devis-gateau`, « Devis gâteau » toujours courant |
+| CT-41.6 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, cocher deux demandes, « Retirer… », un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; les demandes restent listées (SC-09d) | OK — `/admin/demandes/retrait` bloquée, deux demandes cochées, « Retrait ordinaire », « Retirer » : le message d'échec dans le dialogue (`role="alert"`), qui reste ouvert ; les deux demandes restent listées |
+| CT-41.7 | Effacer les demandes du § 41, vérifier que « Demandes » n'affiche plus aucune demande, semer les quarante demandes ci-dessus ; au téléphone, toucher « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » | Quatre actions suffisent ; la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, et les nombres du haut sont revenus à ceux d'avant le semis, sans aucune retirée gagnée (UX2) | OK — demandes du § 41 effacées, « Demandes » vide ; quarante demandes semées (« 40 demandes · 0 commande ») ; « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » : quatre actions, la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, « 0 demande · 0 commande », aucune retirée |
 
 ## Bilan
 
@@ -908,15 +926,15 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | 30 Images en plusieurs passes | 1 | 1 | 0 | 0 |
 | 31 Publication impossible ou refusée | 2 | 2 | 0 | 0 |
 | 32 Une publication à la fois | 1 | 1 | 0 | 0 |
-| 33 Une demande part par e-mail | 4 | | | |
-| 34 Seuil des demandes par origine | 4 | | | |
-| 35 Liste des demandes | 3 | | | |
-| 36 Filtre et pages des demandes | 4 | | | |
-| 37 Nombres des demandes | 4 | | | |
-| 38 Détail d'une demande | 3 | | | |
-| 39 Suite d'une demande | 6 | | | |
-| 40 Retrait d'une demande | 5 | | | |
-| 41 Retrait groupé de demandes | 7 | | | |
+| 33 Une demande part par e-mail | 4 | 4 | 0 | 0 |
+| 34 Seuil des demandes par origine | 4 | 4 | 0 | 0 |
+| 35 Liste des demandes | 3 | 3 | 0 | 0 |
+| 36 Filtre et pages des demandes | 4 | 4 | 0 | 0 |
+| 37 Nombres des demandes | 4 | 4 | 0 | 0 |
+| 38 Détail d'une demande | 3 | 3 | 0 | 0 |
+| 39 Suite d'une demande | 6 | 5 | 0 | 1 |
+| 40 Retrait d'une demande | 5 | 4 | 0 | 1 |
+| 41 Retrait groupé de demandes | 7 | 7 | 0 | 0 |
 | **Total** | **260** | | | |
 
-Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
+Testé par : Claude, au navigateur piloté (`playwright-cli` 0.1.21, Chromium 154) · Date : 2026-10-27 et 2026-10-28 · Commit de `main` : `9af1e47` · Navigateur : Chromium 154, sans tête
