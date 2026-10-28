@@ -47,7 +47,10 @@ branche s'y appliquent. Une branche qui ajoute une migration → la recette de `
   par défaut, ou `RECETTE_EXPEDITEUR`). Ce fichier est posé par `$R instance` **avant** le build
   (le skill `site-factice` le fait pour vous) ; aucune valeur de recette n'entre dans `wrangler.jsonc`
   ni `wrangler.astro.jsonc`. Lire le code par le MCP Gmail (`subject:"Votre code de connexion"
-  newer_than:1h`) : objet fixe, texte seul, `From` = `senderAddress`. Prérequis, **geste humain** :
+  newer_than:1h`) : objet fixe, texte seul, `From` = `senderAddress`. L'index de `search_threads`
+  retarde de plusieurs minutes : retrouver une fois le fil où Gmail regroupe les messages de même
+  objet (« Votre code de connexion », « Demande de devis — Devis gâteau »), puis le relire par
+  `get_thread`, toujours à jour. Prérequis, **geste humain** :
   l'acheminement d'e-mail activé sur le domaine de `senderAddress` dans le compte Cloudflare de
   recette (sinon Cloudflare refuse : « You can only send from your routing domains »).
   Un envoi refusé n'empêche pas l'écran de saisie (même réponse, anti-énumération) mais laisse
@@ -114,6 +117,9 @@ fenetre_seuil; delete from comptes_seuil"`.
   chargement, masquée : attendre la réponse (`page.waitForResponse` sur `/api/public/demandes`,
   1 à 7 s), jamais la présence du texte. Recharger avant la réponse coupe l'envoi : la demande reste
   « E-mail non parti » alors que l'e-mail arrive.
+- CT-35.2 (un e-mail qui ne part pas) : sauvegarder l'adresse de `adresses_autorisees`, la remplacer
+  pour un seul envoi par une adresse non vérifiée (Cloudflare refuse alors l'envoi pour de vrai),
+  puis la rétablir à l'identique et le vérifier (`select adresse = '<sauvegarde>' from …`).
 
 ## Avant de commencer
 
@@ -223,6 +229,11 @@ une petite publication avant de mesurer « 1 image ». Une image téléversée q
 effacée à la publication suivante : téléverser chaque lot de mesure juste avant la publication qui
 le pose. Composer la galerie d'un lot par la route de l'îlot :
 `POST /admin/pages/<page>/emplacements/<id>` avec `{ "mediaIds": [...] }`.
+
+CT-31.1 (publier sans dépôt raccordé) se joue sur une variante du site factice, sans toucher à
+`JETON_DEPOT` : bâtie sans `depotDePublication`, elle échoue avant tout dépôt, ce que couvre le
+scénario de spec « Un site sans dépôt configuré ne publie pas ». Ses brouillons sont ceux de la base
+partagée, qu'un échec laisse intacts.
 
 ## Ce qui reste hors d'atteinte
 
