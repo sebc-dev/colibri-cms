@@ -589,13 +589,13 @@ recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-24.1 | Ouvrir `Réglages` sur une instance où rien n'a été enregistré | Aucune des trois cartes ne porte la marque « Brouillon » (SC-06d) | OK — 2026-10-08, recette (aperçu), 1280 px |
-| CT-24.2 | Carte Coordonnées : parcourir les champs | Aucun geste d'ajout, de retrait, de renommage ni de déplacement (SC-06a) | OK — 2026-10-08 : trois champs et « Enregistrer », aucun autre geste |
-| CT-24.3 | Saisir `abc` dans le téléphone, « Enregistrer » | Le champ du téléphone est marqué en erreur (texte danger), message « Un numéro de téléphone, de 6 à 15 chiffres. » ; la saisie reste ; aucune marque « Brouillon » nouvelle (SC-06b) | OK — 2026-10-08 : message en text-danger sous le champ, aria-invalid=true, « abc » gardé, aucune marque, base inchangée |
-| CT-24.4 | Corriger le téléphone, « Enregistrer » | Pendant l'envoi, le bouton est inactif et dit « Enregistrement… » ; au succès la marque « Brouillon » paraît aussitôt dans la carte Coordonnées, sans changement d'écran ; les cartes Réseaux sociaux et Mention gardent leur état (SC-06c) | OK — 2026-10-08 (envoi retardé de 3 s) : « Enregistrement… » + bouton inactif ; marque aussitôt, même page ; Réseaux et Mention sans marque |
-| CT-24.5 | Recharger l'écran | La carte Coordonnées garde la marque et les valeurs saisies (SC-06c) | OK — 2026-10-08 : marque et « 04 11 22 33 44 » après rechargement |
-| CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | OK — 2026-10-08 (fetch rejeté, simule hors ligne) : message affiché, saisie gardée, base inchangée |
-| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | OK — 2026-10-08 : champs 44/44/90 px, bouton 44 px, pas de défilement horizontal (360), console sans violation CSP |
+| CT-24.1 | Ouvrir `Réglages` sur une instance où rien n'a été enregistré | Aucune des trois cartes ne porte la marque « Brouillon » (SC-06d) | OK — 2026-10-28, `https://colibri.sebc.dev` (`main` `9af1e47`), 1280 px, aucun réglage en brouillon ni publié en base : aucune des trois cartes ne porte la marque |
+| CT-24.2 | Carte Coordonnées : parcourir les champs | Aucun geste d'ajout, de retrait, de renommage ni de déplacement (SC-06a) | OK — trois champs (Téléphone de l'atelier, Adresse e-mail, Adresse) et « Enregistrer », aucun autre geste |
+| CT-24.3 | Saisir `abc` dans le téléphone, « Enregistrer » | Le champ du téléphone est marqué en erreur (texte danger), message « Un numéro de téléphone, de 6 à 15 chiffres. » ; la saisie reste ; aucune marque « Brouillon » nouvelle (SC-06b) | OK — « Un numéro de téléphone, de 6 à 15 chiffres. » en rouge rgb(180,35,24), relié au champ (`aria-describedby`), `aria-invalid=true`, « abc » gardé, aucune marque |
+| CT-24.4 | Corriger le téléphone, « Enregistrer » | Pendant l'envoi, le bouton est inactif et dit « Enregistrement… » ; au succès la marque « Brouillon » paraît aussitôt dans la carte Coordonnées, sans changement d'écran ; les cartes Réseaux sociaux et Mention gardent leur état (SC-06c) | OK — envoi retardé de 2,5 s : bouton inactif et « Enregistrement… » ; au succès, marque aussitôt dans la carte Coordonnées, même écran ; Réseaux sociaux et Mention sans marque |
+| CT-24.5 | Recharger l'écran | La carte Coordonnées garde la marque et les valeurs saisies (SC-06c) | OK — après rechargement : marque et « 04 11 22 33 44 » (lu aussi en base) |
+| CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | OK — navigateur mis hors ligne : « La connexion a échoué : vérifiez votre accès à Internet, puis réessayez. », saisie « 05 66 77 88 99 » gardée, base inchangée |
+| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | OK — 360 px : champs 44, 44 et 90 px de haut, « Enregistrer » 102 × 44 px (il n'occupe plus la largeur de la carte, contrairement aux cartes des pages), `scrollWidth` 360, console vide |
 
 ## 25. La carte Réseaux sociaux — change 008 · ticket 07
 
@@ -604,22 +604,22 @@ de recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-25.1 | Carte Réseaux sociaux : « Ajouter un lien », corriger le nom d'un autre, « Retirer » un troisième, « Monter » le dernier, puis « Enregistrer » | La carte montre la liste résultante dans le nouvel ordre et porte la marque « Brouillon » (SC-07a) |  OK — 2026-10-09, recette (aperçu), 1280 px : LinkedIn ajouté, Facebook renommé « Facebook de l'atelier », Pinterest retiré, LinkedIn monté ; la carte montre Instagram, LinkedIn, Facebook de l'atelier avec la marque « Brouillon » ; la base porte la même liste dans cet ordre, gardée au rechargement |
-| CT-25.2 | Liste vide | « Aucun lien pour l'instant. » et « Ajouter un lien » (SC-07a) |  OK — 2026-10-09 : les trois liens retirés → « Aucun lien pour l'instant. » et « Ajouter un lien » |
-| CT-25.3 | Premier lien / dernier lien | « Monter » inactif sur le premier, « Descendre » inactif sur le dernier ; libellés accessibles « Monter Instagram » (SC-07a) |  OK — 2026-10-09 : « Monter Instagram » inactif (premier), « Descendre Pinterest » inactif (dernier) ; libellés « Monter Instagram », « Retirer Facebook »… |
-| CT-25.4 | Saisir `http://exemple.fr` comme adresse, « Enregistrer » | Le champ de l'adresse dit « Une adresse qui commence par https:// » ; la saisie reste ; rien n'est enregistré (SC-07e) |  OK — 2026-10-09 : champ marqué invalide, « Une adresse qui commence par https:// », saisie gardée, base inchangée |
-| CT-25.5 | Atteindre 12 liens | « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît (SC-07f) |  OK — 2026-10-09 : au 12e lien « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît |
-| CT-25.6 | À 360 px | Champs et boutons d'au moins 44 px de haut ; aucune violation CSP en console |  OK — 2026-10-09 : 17 champs et boutons, le plus petit à 44 px, pas de défilement horizontal (360), console sans violation CSP |
+| CT-25.1 | Carte Réseaux sociaux : « Ajouter un lien », corriger le nom d'un autre, « Retirer » un troisième, « Monter » le dernier, puis « Enregistrer » | La carte montre la liste résultante dans le nouvel ordre et porte la marque « Brouillon » (SC-07a) | OK — 2026-10-28, `https://colibri.sebc.dev`, 1280 px : LinkedIn ajouté, Facebook renommé « Facebook de l'atelier », Pinterest retiré, LinkedIn monté ; la carte montre Instagram, LinkedIn, Facebook de l'atelier avec la marque « Brouillon » ; la base porte la même liste dans cet ordre, gardée au rechargement |
+| CT-25.2 | Liste vide | « Aucun lien pour l'instant. » et « Ajouter un lien » (SC-07a) | OK — les trois liens retirés : « Aucun lien pour l'instant. », puis « Ajouter un lien » et « Enregistrer » |
+| CT-25.3 | Premier lien / dernier lien | « Monter » inactif sur le premier, « Descendre » inactif sur le dernier ; libellés accessibles « Monter Instagram » (SC-07a) | OK — « Monter Instagram » inactif (premier), « Descendre Pinterest » inactif (dernier) ; libellés accessibles « Monter Instagram », « Retirer Instagram »… |
+| CT-25.4 | Saisir `http://exemple.fr` comme adresse, « Enregistrer » | Le champ de l'adresse dit « Une adresse qui commence par https:// » ; la saisie reste ; rien n'est enregistré (SC-07e) | OK — `http://exemple.fr` : champ `aria-invalid=true`, « Une adresse qui commence par https:// », saisie gardée, base inchangée |
+| CT-25.5 | Atteindre 12 liens | « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît (SC-07f) | OK — au 11e lien « Ajouter un lien » reste ; au 12e il disparaît et « La liste est complète (12 liens au plus). » paraît |
+| CT-25.6 | À 360 px | Champs et boutons d'au moins 44 px de haut ; aucune violation CSP en console | OK — 360 px : 17 champs et boutons, le plus petit à 44 px de haut, `scrollWidth` 360, console vide |
 
 ## 26. La carte Mention d'information — change 008 · ticket 08
 
 | N° | Geste | Résultat attendu | OK / KO |
 |---|---|---|---|
-| CT-26.1 | Sur la carte, sélectionner un mot puis actionner « Gras », « Italique », puis « Lien », « Liste », « Titre » | Chaque mise en forme se pose sans écrire de balise (SC-08d) | OK — 2026-10-08, recette (aperçu), 1280 px : Gras → `<strong>`, Italique → `<em>`, Lien → `<a href=https…>`, Liste → `<ul><li>`, Titre → `<h2>` (Liste et Titre défaits par un second appui) ; aucune balise écrite dans le texte |
-| CT-26.2 | Poser du gras et un lien https, « Enregistrer » | La carte porte la marque « Brouillon » (SC-08a) | OK — 2026-10-08 : marque « Brouillon » aussitôt dans la carte ; base : `Les **informations** … _uniquement_ … [tiers](https://exemple.fr/donnees).` |
-| CT-26.3 | Vider le texte, « Enregistrer » | « La mention ne peut pas rester vide. » ; rien n'est enregistré (SC-08c) | OK — 2026-10-08 : « La mention ne peut pas rester vide. » (alerte), réponse 400 ; base inchangée |
-| CT-26.4 | Saisir un lien `http://…` dans « Adresse du lien » | Le lien est refusé avec son message (SC-08b) | OK — 2026-10-08 : champ marqué invalide, « Ce lien n'est pas accepté : il doit commencer par https://, mailto:, tel: ou /. », lien non posé |
-| CT-26.5 | À 360 px | Boutons d'au moins 44 px ; aucune violation CSP en console | OK — 2026-10-08 : boutons 50/66/47/51/50 × 44 px, « Enregistrer » 262 × 44 px, pas de défilement horizontal (360), mise en forme jouée à 360 px, console sans violation CSP |
+| CT-26.1 | Sur la carte, sélectionner un mot puis actionner « Gras », « Italique », puis « Lien », « Liste », « Titre » | Chaque mise en forme se pose sans écrire de balise (SC-08d) | OK — 2026-10-28, `https://colibri.sebc.dev`, 1280 px, mot sélectionné à chaque fois : Gras → `<strong>`, Italique → `<em>`, Lien → `<a href="https://exemple.fr/donnees">`, Liste → `<ul><li>`, Titre → `<h2>` (Liste et Titre défaits par un second appui) ; le texte ne contient aucune balise |
+| CT-26.2 | Poser du gras et un lien https, « Enregistrer » | La carte porte la marque « Brouillon » (SC-08a) | OK — marque « Brouillon » aussitôt dans la carte ; base : `Les **informations** … _uniquement_ … [tiers](https://exemple.fr/donnees).` |
+| CT-26.3 | Vider le texte, « Enregistrer » | « La mention ne peut pas rester vide. » ; rien n'est enregistré (SC-08c) | OK — texte vidé : « La mention ne peut pas rester vide. » (alerte), réponse 400 ; base inchangée |
+| CT-26.4 | Saisir un lien `http://…` dans « Adresse du lien » | Le lien est refusé avec son message (SC-08b) | OK — `http://exemple.fr` : champ `aria-invalid=true`, « Ce lien n'est pas accepté : il doit commencer par https://, mailto:, tel: ou /. », lien non posé |
+| CT-26.5 | À 360 px | Boutons d'au moins 44 px ; aucune violation CSP en console | OK — 360 px : boutons 50, 66, 47, 51, 50 × 44 px, « Enregistrer » 102 × 44 px, `scrollWidth` 360, mise en gras jouée à 360 px, console vide |
 
 ---
 
@@ -629,28 +629,28 @@ Session ouverte. Ouvrir `/admin/formulaires`.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-27.1 | Cliquer « Formulaires » dans le menu | L'écran s'ouvre ; « Formulaires » est la seule rubrique marquée active | OK — depuis « Mes pages », le clic ouvre `/admin/formulaires` ; « Formulaires » seule en surbrillance (fond vert, texte blanc) et seule `aria-current="page"`, dans la barre latérale comme dans le tiroir du téléphone ; console vide, aucune violation CSP |
-| CT-27.2 | Lire la liste | « Devis atelier » puis « Devis gâteau », chacun sur une ligne entière cliquable | OK — « Devis atelier » puis « Devis gâteau » (ce dernier avec sa marque « Brouillon », laissée par le § 28) ; chaque lien couvre toute sa ligne (990 × 46 px) : un clic au bord droit ouvre l'écran du formulaire |
-| CT-27.3 | Chercher un geste d'ajout, retrait, renommage ou déplacement | Aucun, ni dans le menu ni sur l'écran ; aucun terme technique ni identifiant visible | OK — aucun bouton hors « Replier le menu » et « Ouvrir le menu », aucun champ, aucun élément à glisser ni modifiable ; texte visible : les cinq rubriques, « Formulaires », les deux noms, « Brouillon » — aucun identifiant |
-| CT-27.4 | Ouvrir l'adresse de la variante `sans-formulaire` | « Aucun formulaire n'est prévu pour votre site. », sans bouton de création | OK — adresse d'aperçu `site-sans-formulaire` : « Aucun formulaire n’est prévu pour votre site. », aucun bouton ni lien dans la zone principale, « Formulaires » active ; seule erreur de console, le 404 de `favicon.ico` |
-| CT-27.5 | Ouvrir `/admin/formulaires` sans session | Renvoi vers la connexion, aucun formulaire montré | OK — sans cookie, 302 vers `/admin/connexion`, corps vide ; au navigateur, l'écran de connexion s'affiche et la page ne contient aucun nom de formulaire |
+| CT-27.1 | Cliquer « Formulaires » dans le menu | L'écran s'ouvre ; « Formulaires » est la seule rubrique marquée active | OK — 2026-10-28, `https://colibri.sebc.dev` (`main` `9af1e47`) : depuis « Mes pages », le clic ouvre `/admin/formulaires` ; « Formulaires » seule en surbrillance (fond plumage, texte blanc) et seule `aria-current="page"`, dans la barre latérale à 1280 px comme dans le tiroir à 360 px ; console vide |
+| CT-27.2 | Lire la liste | « Devis atelier » puis « Devis gâteau », chacun sur une ligne entière cliquable | OK — « Devis atelier » puis « Devis gâteau », sans brouillon ; chaque lien couvre toute sa ligne (990 × 46 px) : un clic à 4 px du bord droit ouvre l'écran du formulaire |
+| CT-27.3 | Chercher un geste d'ajout, retrait, renommage ou déplacement | Aucun, ni dans le menu ni sur l'écran ; aucun terme technique ni identifiant visible | OK — aucun bouton hors « Replier le menu » et « Ouvrir le menu », aucun champ, aucun élément à glisser ni modifiable ; texte de la zone principale : « Formulaires », les deux noms — aucun identifiant |
+| CT-27.4 | Ouvrir l'adresse de la variante `sans-formulaire` | « Aucun formulaire n'est prévu pour votre site. », sans bouton de création | OK — variante `sans-formulaire` (`site-sans-formulaire-…`) : « Aucun formulaire n’est prévu pour votre site. », aucun bouton ni lien dans la zone principale, « Formulaires » active ; seule erreur de console, le 404 de `favicon.ico` |
+| CT-27.5 | Ouvrir `/admin/formulaires` sans session | Renvoi vers la connexion, aucun formulaire montré | OK — sans cookie, 302 vers `/admin/connexion`, corps vide ; au navigateur sans session, l'écran de connexion s'affiche et ne contient aucun nom de formulaire |
 
 ## 28. L'écran d'un formulaire, corriger les options — change 010 · ticket 07
 
 Session ouverte. Ouvrir « Devis gâteau » depuis `/admin/formulaires`.
 
-Joué le 2026-10-11 sur l'adresse d'aperçu de la branche `impl/corriger-les-options-depuis-l-ecran-07` (`d9499f1`), au navigateur piloté (`playwright-cli`), à partir d'un formulaire sans brouillon. Console : aucune violation CSP sur tout le §, seuls le 404 de `favicon.ico` et le 400 attendu du refus.
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), à partir d'un formulaire sans brouillon. Console : aucune violation CSP sur tout le §.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-28.1 | Monter « Fraise » de deux rangs, puis « Enregistrer » | « Fraise », « Vanille », « Chocolat » dans cet ordre ; la marque « Brouillon » apparaît à côté du titre sans changement d'écran ; la saisie reste affichée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » | OK — 1280 px : Fraise, Vanille, Chocolat à l'écran et en base (10, 8 et 9 €) ; marque « Brouillon » apparue à côté du titre, même page (témoin JS conservé, adresse inchangée) ; saisie gardée ; message de confirmation affiché |
-| CT-28.2 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | Message en haut ; la ligne fautive porte « Un montant en euros, par exemple 12 ou 12,50. » ; toute la saisie reste ; la marque n'apparaît pas si elle n'y était pas | OK — « Rien n'est enregistré : corrigez les choix signalés. » en haut, rouge sur rouge pâle ; sous le prix de Fraise, « Un montant en euros, par exemple 12 ou 12,50. » (`aria-invalid`, relié par `aria-describedby`) ; les 15 zones gardent leur saisie, « douze » compris ; aucune marque ; aucun brouillon en base |
+| CT-28.1 | Monter « Fraise » de deux rangs, puis « Enregistrer » | « Fraise », « Vanille », « Chocolat » dans cet ordre ; la marque « Brouillon » apparaît à côté du titre sans changement d'écran ; la saisie reste affichée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » | OK — 1280 px : Fraise, Vanille, Chocolat à l'écran et en base (10, 8 et 9 €) ; marque « Brouillon » apparue à droite du titre, même page (témoin JS conservé, adresse inchangée) ; saisie gardée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » |
+| CT-28.2 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | Message en haut ; la ligne fautive porte « Un montant en euros, par exemple 12 ou 12,50. » ; toute la saisie reste ; la marque n'apparaît pas si elle n'y était pas | OK — joué avant CT-28.1, sans brouillon : « Rien n’est enregistré : corrigez les choix signalés. » en haut, rouge sur rouge pâle ; sous le prix de Fraise, « Un montant en euros, par exemple 12 ou 12,50. » (`aria-invalid`, relié par `aria-describedby`) ; les 15 zones gardent leur saisie, « douze » compris ; aucune marque ; aucun brouillon en base |
 | CT-28.3 | Cliquer « Ajouter un choix » | Le curseur est dans la ligne vide | OK — « Ajouter un choix dans Parfum » : le curseur est dans la zone « Choix » de la nouvelle ligne, vide, 4e de la carte |
-| CT-28.4 | Garder une seule option dans un champ | « Retirer » inactif, « Gardez au moins un choix. » | OK — Occasion réduite à « Baptême & communion » : « Retirer » inactif, « Gardez au moins un choix. » affiché |
-| CT-28.5 | Pendant l'envoi | Le bouton est inactif et affiche « Enregistrement… » | OK — envoi retardé de 3 s (interception réseau) : à 1 s, bouton inactif, « Enregistrement… », pas encore de marque ; actif et « Enregistrer » à la fin |
-| CT-28.6 | Sur téléphone, monter, descendre, retirer au doigt et au clavier | Les boutons sont assez grands et atteignables ; aucun terme technique ni identifiant visible | OK — 360 × 740 au navigateur : `scrollWidth` 360, 47 boutons, zones et liens tous ≥ 44 × 44 px ; au clavier, Tab mène du prix à « Descendre Fraise » puis « Retirer Fraise » (« Monter », inactif, est sauté), Entrée descend Fraise ; aucun terme technique ni identifiant dans le texte de l'écran. Pas joué au doigt sur un vrai téléphone |
+| CT-28.4 | Garder une seule option dans un champ | « Retirer » inactif, « Gardez au moins un choix. » | OK — Occasion réduite à « Anniversaire » : « Retirer » inactif, « Gardez au moins un choix. » affiché |
+| CT-28.5 | Pendant l'envoi | Le bouton est inactif et affiche « Enregistrement… » | OK — envoi retardé de 3 s (route du navigateur) : à 1 s, bouton inactif, « Enregistrement… » ; actif et « Enregistrer » à la fin |
+| CT-28.6 | Sur téléphone, monter, descendre, retirer au doigt et au clavier | Les boutons sont assez grands et atteignables ; aucun terme technique ni identifiant visible | OK — 360 × 740 au navigateur : `scrollWidth` 360, 47 boutons, zones et liens tous ≥ 44 × 44 px ; au clavier, Tab mène du prix de Fraise à « Descendre Fraise » puis « Retirer Fraise » (« Monter », inactif, est sauté), Entrée descend Fraise ; aucun terme technique ni identifiant dans le texte de l'écran ; console vide. Pas joué au doigt sur un vrai téléphone |
 | CT-28.7 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | L'écran se place sur ce prix et le curseur y est ; le message en haut reste affiché | OK — après le refus, le prix de Fraise est dans la vue et a le curseur ; le message du haut reste en place, au-dessus de la première carte (hors de la vue tant qu'on ne remonte pas) |
-| CT-28.8 | Ouvrir « Devis gâteau » | Un seul bouton « Enregistrer » à l'écran, et il enregistre | OK — un seul « Enregistrer » (celui de l'îlot, `type="submit"`) ; c'est lui qui enregistre en CT-28.1 |
+| CT-28.8 | Ouvrir « Devis gâteau » | Un seul bouton « Enregistrer » à l'écran, et il enregistre | OK — un seul « Enregistrer » à l'écran (`type="submit"`) ; c'est lui qui enregistre en CT-28.1 |
 
 ## 29. Aperçu et publication sur la vraie chaîne — change 011 · ticket 19
 
@@ -899,6 +899,11 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | 21 Éditeur habillé | 9 | 9 | 0 | 0 |
 | 22 Emplacements d'image habillés | 12 | 12 | 0 | 0 |
 | 23 Code en recette | 5 | 5 | 0 | 0 |
+| 24 Carte Coordonnées | 7 | 7 | 0 | 0 |
+| 25 Carte Réseaux sociaux | 6 | 6 | 0 | 0 |
+| 26 Carte Mention d'information | 5 | 5 | 0 | 0 |
+| 27 Liste des formulaires | 5 | 5 | 0 | 0 |
+| 28 Écran d'un formulaire | 8 | 8 | 0 | 0 |
 | 29 Publication sur la vraie chaîne | 9 | 8 | 1 | 0 |
 | 30 Images en plusieurs passes | 1 | 1 | 0 | 0 |
 | 31 Publication impossible ou refusée | 2 | 2 | 0 | 0 |
@@ -912,6 +917,6 @@ npx wrangler d1 execute DB --local --command "delete from demandes where id like
 | 39 Suite d'une demande | 6 | | | |
 | 40 Retrait d'une demande | 5 | | | |
 | 41 Retrait groupé de demandes | 7 | | | |
-| **Total** | **215** | | | |
+| **Total** | **260** | | | |
 
 Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
