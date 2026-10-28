@@ -9,6 +9,7 @@
       "rang": 1,
       "libelle": "Demander un devis",
       "destination": "/contact"
-    }
+    },
+    { "id": "formulaire-devis", "nature": "formulaire", "rang": 2, "formulaire": "devis-gateau" }
   ]
 }
