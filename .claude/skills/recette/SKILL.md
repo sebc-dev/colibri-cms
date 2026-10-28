@@ -76,6 +76,13 @@ Un ticket relu = une session nommée (`-s=<NN>`), pour ne pas mêler les cookies
 `console` est le **contrôle transverse CSP** : la CSP est invisible aux tests `workerd`, ici elle
 est réellement appliquée. Une 404 de `favicon.ico` n'est pas un défaut du produit.
 
+Deux pièges du pilotage :
+- `run-code` n'a pas `setTimeout` : attendre par `page.waitForTimeout(ms)`, y compris dans un
+  gestionnaire de `page.route`. `eval` veut une expression : `(() => { … })()`, et `return` sur la
+  même ligne que sa valeur.
+- Une session dont des requêtes restent en attente (page rechargée pendant un envoi, serveur lent)
+  bloque les envois suivants de cette session : `close`, puis rouvrir une session neuve.
+
 ## Traduire le cahier de test
 
 | Cahier (local) | Recette |
@@ -91,6 +98,22 @@ est réellement appliquée. Une 404 de `favicon.ico` n'est pas un défaut du pro
 | CT-18.10 vrai téléphone | Ouvrir `https://colibri.sebc.dev/admin/connexion` directement |
 
 `__Host-` exige HTTPS : sur la recette, CT-3.3 se vérifie pour de vrai (en local il dépend de l'outil).
+
+`raz` vide aussi `medias` (conséquence au § Publication réelle), mais ni `demandes`, ni
+`fenetre_seuil`, ni `comptes_seuil` : avant le § 33, `$R sql "delete from demandes; delete from
+fenetre_seuil; delete from comptes_seuil"`.
+
+## Jouer les demandes (§§ 33 à 35)
+
+- Le seuil compte cinq envois par **heure d'horloge UTC** et par connexion, refusés compris. Ordre
+  qui tient : CT-34.1 à 34.3 dans une heure sans autre envoi (commencer avant h:45), l'onglet de
+  CT-34.2 gardé sans recharger, CT-34.4 après l'heure pleine, puis le § 33 et CT-35.2 dans cette
+  nouvelle heure (cinq envois en tout). Un essai raté se rattrape en revidant `fenetre_seuil` et
+  `comptes_seuil`.
+- Le formulaire public porte la confirmation « Merci, votre demande a été envoyée. » dès le
+  chargement, masquée : attendre la réponse (`page.waitForResponse` sur `/api/public/demandes`,
+  1 à 7 s), jamais la présence du texte. Recharger avant la réponse coupe l'envoi : la demande reste
+  « E-mail non parti » alors que l'e-mail arrive.
 
 ## Avant de commencer
 
@@ -193,6 +216,13 @@ contient « Impossible de récupérer les images publiées », poser une clé à
 `COLIBRI_CLE_LECTURE_DEPOT` de Workers Builds, dans le compte de recette (jamais dans le dépôt
 produit), puis relancer la reconstruction.
 Ce que l'agent ne constate pas lui-même est remonté pour constat humain, jamais attesté.
+
+Mesures du § 29 : après un `raz`, l'écran Médias réinscrit les images publiées sans leur empreinte
+de dépôt, et la publication suivante les renvoie toutes (47 images en 43 s le 2026-10-28) ; faire
+une petite publication avant de mesurer « 1 image ». Une image téléversée que rien ne pose est
+effacée à la publication suivante : téléverser chaque lot de mesure juste avant la publication qui
+le pose. Composer la galerie d'un lot par la route de l'îlot :
+`POST /admin/pages/<page>/emplacements/<id>` avec `{ "mediaIds": [...] }`.
 
 ## Ce qui reste hors d'atteinte
 
