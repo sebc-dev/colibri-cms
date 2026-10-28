@@ -69,3 +69,10 @@ Puis reporter verdicts et bilan, commiter, actualiser la fiche.
   effaçait leurs marques de publication juste avant de rejouer les §§ 29 à 32.
 - Le port 8080 pour la page forgée du § 16 : un autre programme de la machine l'occupait ; 8091 a servi.
 - Arrêter ce serveur par `pkill -f "http.server …"` : la commande se tuait elle-même ; un `timeout` suffisait.
+
+## Issue
+Cahier joué en entier sur la recette les 27 et 28 octobre : 260 cas, 252 OK, 2 KO (CT-6.3, CT-15.5 :
+image publiée cassée dans l'éditeur), 6 NA dont CT-31.2, que l'utilisateur a choisi de ne pas rejouer
+(clé invalide à poser puis reposer). Le site factice et le dépôt de recette ont reçu l'emplacement de
+formulaire du change 012, sans lequel les §§ 33 et 34 ne se jouaient pas. Constats hors cahier et
+remarques dans la PR #288 (verdicts jusqu'au commit `c5bbfc6`).
