@@ -683,7 +683,7 @@ Constat SC-17a, reporté au ticket 19 : à jouer sur la recette raccordée (pré
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
 | CT-31.1 | SC-16b, à jouer AVANT de poser `JETON_DEPOT` : sur la recette sans clé ni dépôt raccordé, modifier une page, ouvrir « Publier », confirmer | L'écran dit que la publication n'a pas pu se faire, sans aucun terme de développeur (dépôt, GitHub, jeton, commit, branche, build, déploiement) ; la page garde sa marque de brouillon dans « Mes pages » et dans l'éditeur ; noter le texte exact affiché | OK — 2026-10-28, joué sur la variante `rang` (`site-rang-…`), instance sans dépôt de publication configuré (scénario de spec « Un site sans dépôt configuré ne publie pas »), la clé du serveur principal restant en place : « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes. » ; Accueil et Contact gardent « Brouillon » dans « Mes pages », Accueil dans l'éditeur ; brouillons, bibliothèque et état de publication inchangés en base ; aucune activité dans le dépôt de recette. Le message arrive après une réponse 502 de `/admin/publication/suite`, 15 s après le clic |
-| CT-31.2 | SC-16a, sur la recette raccordée : geste humain, dans son terminal, `$R secret-depot` avec une clé invalide ou en lecture seule ; modifier une page, ouvrir « Publier », confirmer | L'écran affiche « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes. » ; la page garde sa marque de brouillon ; aucun nouveau dépôt dans le dépôt de recette ; le site public est inchangé. Puis reposer la bonne clé de la même façon | OK — 2026-10-14, clé `Contents: Read-only` : même message, joué deux fois ; « Brouillon » gardé ; aucun dépôt (`main` et `media` inchangés, aucune activité) ; page d'accueil publique identique octet pour octet ; bonne clé reposée ensuite. Réserve : ni l'écran ni le journal ne nomment la cause ; la même publication a réussi une fois la clé d'écriture posée |
+| CT-31.2 | SC-16a, sur la recette raccordée : geste humain, dans son terminal, `$R secret-depot` avec une clé invalide ou en lecture seule ; modifier une page, ouvrir « Publier », confirmer | L'écran affiche « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes. » ; la page garde sa marque de brouillon ; aucun nouveau dépôt dans le dépôt de recette ; le site public est inchangé. Puis reposer la bonne clé de la même façon | NA — pas rejoué le 2026-10-28 : il exige de poser une clé invalide puis de reposer la bonne, geste de l'opérateur, écarté pour cette recette. Pour mémoire, sur la version du 2026-10-14 : OK, clé `Contents: Read-only`, même message, joué deux fois ; « Brouillon » gardé ; aucun dépôt ; page d'accueil publique identique octet pour octet ; réserve : ni l'écran ni le journal ne nomment la cause |
 
 ## 32. Une publication à la fois — change 011 · ticket 15
 
@@ -924,7 +924,7 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | 28 Écran d'un formulaire | 8 | 8 | 0 | 0 |
 | 29 Publication sur la vraie chaîne | 9 | 9 | 0 | 0 |
 | 30 Images en plusieurs passes | 1 | 1 | 0 | 0 |
-| 31 Publication impossible ou refusée | 2 | 2 | 0 | 0 |
+| 31 Publication impossible ou refusée | 2 | 1 | 0 | 1 |
 | 32 Une publication à la fois | 1 | 1 | 0 | 0 |
 | 33 Une demande part par e-mail | 4 | 4 | 0 | 0 |
 | 34 Seuil des demandes par origine | 4 | 4 | 0 | 0 |
@@ -935,6 +935,6 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | 39 Suite d'une demande | 6 | 5 | 0 | 1 |
 | 40 Retrait d'une demande | 5 | 4 | 0 | 1 |
 | 41 Retrait groupé de demandes | 7 | 7 | 0 | 0 |
-| **Total** | **260** | | | |
+| **Total** | **260** | **252** | **2** | **6** |
 
 Testé par : Claude, au navigateur piloté (`playwright-cli` 0.1.21, Chromium 154) · Date : 2026-10-27 et 2026-10-28 · Commit de `main` : `9af1e47` · Navigateur : Chromium 154, sans tête
