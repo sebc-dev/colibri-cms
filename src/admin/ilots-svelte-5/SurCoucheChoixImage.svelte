@@ -76,7 +76,7 @@
                   aria-label={libelleChoix(media.nomAffichage)}
                   class="block min-h-11 w-full rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
-                  <VignetteMedia id={media.id} alt={media.nomAffichage} />
+                  <VignetteMedia id={media.id} alt={media.nomAffichage} src={media.vignette} />
                 </button>
               </li>
             {/each}

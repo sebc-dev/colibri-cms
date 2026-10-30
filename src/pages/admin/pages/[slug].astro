@@ -126,6 +126,7 @@ import { obtenirPublieEmplacements } from '../../../platform/publication/magasin
 import { lirePagesContenuCourant } from '../../../platform/contenu/references-medias.ts';
 import { referencesDuContenuCourant } from '../../../core/medias/references.ts';
 import { listerMediasBrouillon } from '../../../platform/medias/magasin.ts';
+import { adressesOriginalesEmpaquetees } from '../../../platform/contenu/medias.ts';
 import { appliquerBrouillonSurEmplacement, pagePorteUnBrouillon } from '../../../core/pages/brouillon.ts';
 import {
   TEXTE_BOUTON_VOIR_APERCU,
@@ -163,11 +164,18 @@ const porteUnBrouillon = pagePorteUnBrouillon(brouillon);
 // 10-signaler-images-orphelines.md) : `listerMediasBrouillon` exige
 // désormais l'ensemble des références brouillon (`effacable` par image,
 // non exploité par ces sélecteurs, mais requis par la signature partagée
-// avec `medias.astro`).
+// avec `medias.astro`). Les adresses statiques des originales empaquetées,
+// comme `medias.astro` : sans elles, une image publiée dont la base ne garde
+// plus les octets s'affichait cassée dans l'éditeur (CT-6.3, ADR-0020).
 const { publiees: referencesPubliees, brouillon: referencesBrouillon } = referencesDuContenuCourant(
   await lirePagesContenuCourant(env.DB),
 );
-const mediasDisponibles = await listerMediasBrouillon(env.DB, referencesBrouillon, undefined, referencesPubliees);
+const mediasDisponibles = await listerMediasBrouillon(
+  env.DB,
+  referencesBrouillon,
+  adressesOriginalesEmpaquetees(),
+  referencesPubliees,
+);
 const page = {
   titre: pageDeclaree.titre,
   emplacements: pageDeclaree.emplacements.map((emplacement) =>

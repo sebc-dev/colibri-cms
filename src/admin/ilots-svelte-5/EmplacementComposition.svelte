@@ -108,6 +108,11 @@
     return mediasInitiaux.find((media) => media.id === idMedia)?.nomAffichage ?? idMedia;
   }
 
+  /** L'adresse statique d'une image publiée dont la base ne garde plus les octets (CT-15.5). */
+  function vignetteDe(idMedia: string): string | undefined {
+    return mediasInitiaux.find((media) => media.id === idMedia)?.vignette;
+  }
+
   /**
    * Remplace en bloc l'ensemble ordonné, jamais un diff incrémental
    * (FR-024/025, SC-09b) — le patron commun aux trois gestes (ajouter,
@@ -162,7 +167,7 @@
     <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {#each mediaIds as idMedia, index (idMedia + String(index))}
         <li class="flex flex-col gap-2">
-          <VignetteMedia id={idMedia} alt={nomDe(idMedia)} />
+          <VignetteMedia id={idMedia} alt={nomDe(idMedia)} src={vignetteDe(idMedia)} />
           <div class="flex flex-wrap gap-1.5">
             <Button
               type="button"
