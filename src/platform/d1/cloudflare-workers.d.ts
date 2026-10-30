@@ -46,6 +46,9 @@ declare module 'cloudflare:workers' {
     // Liaison `ASSETS` (wrangler.jsonc) : lit les originales empaquetées (ticket 15).
     ASSETS: { fetch(requete: Request): Promise<Response> };
   };
+  // Garde le worker vivant jusqu'à la fin de la promesse, même si le client se déconnecte (30 s au plus
+  // après la réponse ou la déconnexion). Lecteur : `src/pages/api/public/demandes.ts` (la marque « parti »).
+  export function waitUntil(promesse: Promise<unknown>): void;
   // Les exports du worker principal, tels que `@cloudflare/vitest-plugin` les
   // expose aux tests d'intégration en remplacement de `SELF` (déprécié) :
   // `exports.default.fetch(new Request(...))` atteint le gestionnaire du
