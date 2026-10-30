@@ -46,3 +46,8 @@ Le rebase préventif du run doit reposer cette branche (la fiche seule) sur le n
   souvent sur une assertion retirée (008/04), ce qui oblige à finir sans gate ni review.
 - Réviser le change pour garder le 503 : abandonne FR-066, et le visiteur renverrait une demande
   déjà gardée, que l'éditrice verrait en double.
+
+## Issue
+Run abouti le 2026-10-18 : la retouche préalable des deux tests du ticket 01 est entrée par la PR #276,
+puis le ticket 02 par la PR #277 (`dce7d4a`). Fiche restée ouverte par oubli ; fermée le 2026-10-30, à
+l'archivage du change 013.
