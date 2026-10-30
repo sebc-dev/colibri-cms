@@ -511,7 +511,7 @@ export function monterCarteMention(): void {
         },
         libelle: TEXTE_CARTE_MENTION,
         // Même bouton que les cartes Coordonnées et Réseaux sociaux.
-        classeEnregistrer: 'h-auto self-start rounded-md border-0 px-3 py-2 max-md:min-h-11',
+        classeEnregistrer: 'h-auto w-full self-start rounded-md border-0 px-3 py-2 max-md:min-h-11 md:w-auto',
       },
     });
   });
