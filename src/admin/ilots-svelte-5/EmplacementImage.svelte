@@ -131,7 +131,7 @@
 <div class="flex flex-col gap-3">
   {#if imagePosee}
     <img
-      src={`/admin/medias/${mediaId}/octets`}
+      src={imagePosee.vignette ?? `/admin/medias/${mediaId}/octets`}
       alt={imagePosee.nomAffichage}
       loading="lazy"
       class="aspect-video w-full rounded-lg border border-border bg-muted object-cover"
