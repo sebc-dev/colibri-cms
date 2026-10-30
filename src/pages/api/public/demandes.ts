@@ -7,7 +7,7 @@
  * Une demande refusée n'est pas gardée ; aucune valeur saisie n'est journalisée.
  */
 import type { APIRoute } from 'astro';
-import { env } from 'cloudflare:workers';
+import { env, waitUntil } from 'cloudflare:workers';
 import {
   clesToutesDeclarees,
   pagePoseLeFormulaire,
@@ -138,8 +138,11 @@ export const POST: APIRoute = async ({ request, url }) => {
   const total = totalDesValeurs(formulaire, verdict.valeurs);
   const idDemande = await garderSansBloquer(demandeAGarder(formulaire, page.titre, verdict.valeurs, total));
   const { objet, texte } = composerCourriel(formulaire, page.titre, verdict.valeurs, total);
-  const parti = await acheminerSiPossible({ objet, texte });
-  if (idDemande !== null && parti) await noterCourrielParti(idDemande);
+  // Le visiteur peut quitter la page pendant l'envoi : `waitUntil` garde le worker vivant jusqu'à la
+  // marque « parti », que la connexion fermée aurait sinon interrompue après l'envoi.
+  const acheminement = acheminerPuisNoter(idDemande, { objet, texte });
+  waitUntil(acheminement);
+  const parti = await acheminement;
   // Confirmée dès que la demande est gardée ou que son e-mail est parti (FR-066).
   return idDemande !== null || parti ? reponse(200, { statut: 'envoyee' }) : reponse(503, { statut: 'acheminement' });
 };
@@ -178,6 +181,16 @@ async function acheminerSiPossible(courriel: { readonly objet: string; readonly 
     console.error(`[demande] acheminement refusé (${motif})`);
     return false;
   }
+}
+
+/** Remet l'e-mail puis, s'il est parti, retire la mention « non parti » de la demande gardée ; ne rejette jamais. */
+async function acheminerPuisNoter(
+  idDemande: string | null,
+  courriel: { readonly objet: string; readonly texte: string },
+): Promise<boolean> {
+  const parti = await acheminerSiPossible(courriel);
+  if (idDemande !== null && parti) await noterCourrielParti(idDemande);
+  return parti;
 }
 
 /** Toute autre méthode que POST est refusée (405), sans lire le corps ni rien envoyer. */
