@@ -11,14 +11,13 @@ page ni au site public — dans le cadre de navigation de l'administration. Couv
 ### Requirement: Cadre de navigation de l'administration
 
 L'administration SHALL présenter, autour de chaque écran servi derrière la garde, un cadre portant le
-logo du produit et le menu des rubriques (« Mes pages », Médias, Réglages, Formulaires, Demandes),
-« Mes pages », « Médias », « Réglages » et « Formulaires » étant les rubriques actives et servies
-(« Médias » menant à l'`Écran : Médias`, « Réglages » à l'`Écran : Réglages`, « Formulaires » à
-l'`Écran : Formulaires`) ; Demandes situe la navigation sans mener à aucun écran. Le cadre DOIT porter
-aussi, hors du menu des rubriques et toujours visible, le geste **« Publier »**, qui mène à l'`Écran :
-Publier`, et l'**état de la dernière publication** dès la première confirmation (« publication en
-cours » tant qu'une publication ou une relance dépose, puis « en cours de mise en ligne », « en ligne »,
-« n'a pas abouti »). Le cadre DOIT être présent dès l'affichage de l'écran, sans
+logo du produit et le menu des rubriques (« Mes pages », Médias, Réglages, Formulaires, Demandes), les
+cinq étant des rubriques actives et servies (« Médias » menant à l'`Écran : Médias`, « Réglages » à
+l'`Écran : Réglages`, « Formulaires » à l'`Écran : Formulaires`, « Demandes » à l'`Écran : Demandes`). Le
+cadre DOIT porter aussi, hors du menu des rubriques et toujours visible, le geste **« Publier »**, qui mène
+à l'`Écran : Publier`, et l'**état de la dernière publication** dès la première confirmation
+(« publication en cours » tant qu'une publication ou une relance dépose, puis « en cours de mise en
+ligne », « en ligne », « n'a pas abouti »). Le cadre DOIT être présent dès l'affichage de l'écran, sans
 attendre qu'un script s'exécute.
 Sur un écran large, le menu est une barre latérale qui DOIT pouvoir se replier en un rail d'icônes et
 se redéployer, l'état replié/déployé étant une préférence retenue sur l'appareil sans effet serveur ;
@@ -28,7 +27,7 @@ n'offre aucun geste de structure (FR-024/025, FR-117).
 
 #### Scenario: La barre latérale porte les cinq rubriques
 - **WHEN** l'`Écran : Cadre de l'administration` est affiché
-- **THEN** la barre latérale montre les cinq rubriques, la rubrique de l'écran courant marquée active (« Mes pages » sur la liste des pages et sur l'éditeur d'une page, « Médias » sur la bibliothèque et sur la fiche d'une image, « Réglages » sur l'écran des réglages, « Formulaires » sur la liste des formulaires et sur l'écran d'un formulaire)
+- **THEN** la barre latérale montre les cinq rubriques, la rubrique de l'écran courant marquée active (« Mes pages » sur la liste des pages et sur l'éditeur d'une page, « Médias » sur la bibliothèque et sur la fiche d'une image, « Réglages » sur l'écran des réglages, « Formulaires » sur la liste des formulaires et sur l'écran d'un formulaire, « Demandes » sur la liste des demandes et sur le détail d'une demande)
 
 #### Scenario: Le cadre est présent dès l'affichage
 - **WHEN** un écran servi derrière la garde est demandé
@@ -66,9 +65,13 @@ n'offre aucun geste de structure (FR-024/025, FR-117).
 - **THEN** le tiroir se referme
 - **AND** le focus revient au bouton de menu quand la fermeture ne mène pas à un autre écran
 
+#### Scenario: La rubrique Demandes mène à la liste des demandes
+- **WHEN** l'éditrice actionne « Demandes » dans le menu du cadre, en barre ou en tiroir
+- **THEN** l'`Écran : Demandes` s'ouvre, la rubrique « Demandes » marquée active
+
 #### Scenario: Aucune autre rubrique n'est servie et aucun geste de structure n'est offert
 - **WHEN** l'éditrice parcourt le menu du cadre, en barre ou en tiroir
-- **THEN** aucune rubrique autre que « Mes pages », « Médias », « Réglages » et « Formulaires » ne mène à un écran servi, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page
+- **THEN** chacune des cinq rubriques mène à son écran, aucune autre entrée du menu ne mène à un écran, et le menu n'offre aucun geste d'ajout, de retrait, de déplacement ni de renommage de rubrique ou de page
 
 #### Scenario: Aucun terme de développeur dans le cadre
 - **WHEN** l'éditrice lit le menu, le geste « Publier », l'état de la dernière publication et les libellés du cadre

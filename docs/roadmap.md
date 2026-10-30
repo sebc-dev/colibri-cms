@@ -47,7 +47,8 @@ pilotées. Le site public reste statique — un seul traitement serveur, l'envoi
 - [x] **012 — Composer et envoyer une demande de devis** · *livrée* (FR-007, FR-052→062 · SC-007) —
       porte FR-007, le seuil par origine que 001 a déclaré hors-périmètre et lui délègue ; a tiré en
       avant FR-063 et FR-064 (l'acheminement par e-mail et son contenu)
-- [ ] Réception et suivi des demandes (FR-063→079 · SC-007, SC-019)
+- [x] **013 — Réception et suivi des demandes** · *livrée* (FR-063→079 · SC-007, SC-019) — FR-063 et
+      FR-064 étaient déjà livrées par 012 ; 013 a gardé chaque demande et ouvert son suivi
 - [ ] Site public rapide et complet (FR-095→097 · SC-005)
 
 ## Epic C — Filets & reprise · Later
