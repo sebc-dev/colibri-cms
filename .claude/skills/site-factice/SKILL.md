@@ -33,6 +33,8 @@ $S semer-bibliotheque --hote <h>      # 12 images « A · … » à « L · … 
    navigateur ; `lourde.jpg` pèse ~6 Mo.
 5. `$S semer-bibliotheque --hote colibri.sebc.dev` **seulement** avant les cas qui supposent une
    bibliothèque garnie (§ 22, au moins une douzaine d'images) — le § 10 part d'une bibliothèque vide.
+   Les images semées que rien ne pose sont effacées par la première publication (§ 29) : ressemer
+   pour une recette suivante.
 
 ## Rejouer un cas soi-même (playwright-cli)
 

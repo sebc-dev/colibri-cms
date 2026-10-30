@@ -20,6 +20,7 @@
       "nature": "carrousel",
       "rang": 3,
       "mediaIds": []
-    }
+    },
+    { "id": "formulaire-devis", "nature": "formulaire", "rang": 4, "formulaire": "devis-gateau" }
   ]
 }

@@ -1,20 +1,27 @@
 # ColibriCMS — Cahier de test manuel
 
-État couvert : tout ce qui est livré dans `main` au 2026-09-28 — les changes **001 Connexion par
-code**, **002 Socle d'îlots d'administration**, **003 Remplir et corriger les emplacements d'une
-page** et **004 Bibliothèque de médias** — et le change **005 Mise en page de l'administration**, dont les §§ 18 à 22 portent la recette de fin de front (§ 18,
-connexion habillée ; § 19, marque de brouillon ; § 20, « Mes pages » habillé ; § 21, éditeur habillé,
-emplacements de texte ; § 22, emplacements d'image habillés). La source de vérité de chaque attendu est la spec vivante
-citée en tête de section (`openspec/specs/<capacité>/spec.md`).
+État couvert : tout ce qui est livré dans `main` au 2026-10-27 (`9af1e47`) — les changes **001
+Connexion par code**, **002 Socle d'îlots d'administration**, **003 Remplir et corriger les
+emplacements d'une page** et **004 Bibliothèque de médias** (§§ 1 à 17) ; **005 Mise en page de
+l'administration**, dont les §§ 18 à 22 portent la recette de fin de front ; **006 Nom des
+emplacements** (sans section propre : les noms se lisent aux §§ 13 à 15) ; **007 Expéditeur du code
+de connexion** (§ 23) ; **008 Réglages transverses** (§§ 24 à 26) ; **009 Parcours navigateur**
+(tests automatiques, sans section ici) ; **010 Réglage des formulaires** (§§ 27 et 28) ; **011
+Aperçu et publication** (§§ 29 à 32) ; **012 Envoi des demandes de devis** (§§ 33 et 34) ; **013
+Réception et suivi des demandes** (§§ 35 à 41), livré dans `main` mais pas encore archivé. La source
+de vérité de chaque attendu est la spec vivante citée en tête de section
+(`openspec/specs/<capacité>/spec.md`) ; pour le change 013, c'est encore son delta
+(`openspec/changes/013-reception-et-suivi-des-demandes/specs/`).
 
 Ce cahier complète les tests automatiques (`docs/test.md`), il ne les remplace pas : il vise ce
 qu'un test dans `workerd` ne voit pas — le rendu au navigateur, la CSP réellement appliquée (voir
 `docs/test.md`, la CSP est invisible aux tests), les textes lus par l'éditrice, les gestes.
 
-**Hors périmètre** (pas encore livré, ne pas tester) : Aperçu et
-publication, le rendu des images sur le site public, l'effacement réel des images orphelines à la
-publication. Le site public n'a pas encore de page rendue : tout ce qui parle d'« état publié intact »
-n'est observable qu'en base (§ 0.5) ou par les tests automatiques.
+**Hors périmètre** (pas encore livré, ne pas tester) : le retour à la dernière version publiée, le
+moyen de reprise, le remplacement de l'adresse autorisée, le déploiement d'une instance au nom du
+client et de ses nouvelles versions, la reconstruction du site sans le CMS, le dossier d'instance,
+et la rapidité du site public (SC-005). Sur le serveur de recette, la révocation des accès
+d'Isometria (SC-012, SC-013) ne se recette pas : le compte est celui de l'opérateur.
 
 ---
 
@@ -137,16 +144,18 @@ Noter ce que l'éditeur affiche dans ce cas (CT-6.3) — il ne doit ni casser ni
 
 ## 1. La porte de l'administration — `connexion-par-code`
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) et par requêtes directes (`curl`).
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-1.1 | Sans session, ouvrir `http://127.0.0.1:8787/admin/` | Renvoi vers l'écran de connexion ; rien de l'accueil n'apparaît | |
-| CT-1.2 | Ouvrir `/admin/connexion` sans session, puis (plus tard) avec session | L'écran de connexion se rend dans les deux cas, avec son champ d'adresse | |
-| CT-1.3 | Ouvrir `/admin/nimportequoi` sans session, puis avec session | Refus ; rien de l'administration n'est visible (ni menu, ni page) | |
-| CT-1.4 | Ouvrir `/admin` (sans barre finale), sans session | Même comportement que CT-1.1 | |
-| CT-1.5 | Outils de développement → Réseau, sur la réponse de `/admin/connexion` | En-têtes présents : `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, un refus de mise en cadre (`X-Frame-Options` ou `frame-ancestors`) | |
-| CT-1.6 | Même vérification sur le **renvoi** de CT-1.1 et sur le **refus** de CT-1.3 | Exactement les mêmes en-têtes, aux mêmes valeurs, que CT-1.5 | |
-| CT-1.7 | Lire la valeur de `Content-Security-Policy` | `script-src` sans `unsafe-inline` ni `unsafe-eval` ; aucune origine tierce (aucun `https://…` étranger) ; `style-src-attr 'unsafe-inline'` présent | |
-| CT-1.8 | Source de la page (Ctrl+U) sur `/admin/connexion` | Aucun `<script>` en ligne ; les scripts sont chargés par `<script src>` | |
+| CT-1.1 | Sans session, ouvrir `http://127.0.0.1:8787/admin/` | Renvoi vers l'écran de connexion ; rien de l'accueil n'apparaît | OK — 302 vers `/admin/connexion`, corps vide |
+| CT-1.2 | Ouvrir `/admin/connexion` sans session, puis (plus tard) avec session | L'écran de connexion se rend dans les deux cas, avec son champ d'adresse | OK — 200 sans session et avec session, champ « Adresse » présent |
+| CT-1.3 | Ouvrir `/admin/nimportequoi` sans session, puis avec session | Refus ; rien de l'administration n'est visible (ni menu, ni page) | OK — 404 « Page introuvable », avec et sans session : ni menu ni page, seul un lien « Retour à l'administration » |
+| CT-1.4 | Ouvrir `/admin` (sans barre finale), sans session | Même comportement que CT-1.1 | OK — `/admin` : 302 vers `/admin/connexion`, comme CT-1.1 |
+| CT-1.5 | Outils de développement → Réseau, sur la réponse de `/admin/connexion` | En-têtes présents : `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, un refus de mise en cadre (`X-Frame-Options` ou `frame-ancestors`) | OK — CSP, `nosniff`, `Referrer-Policy: same-origin`, `X-Frame-Options: DENY` et `frame-ancestors 'none'` |
+| CT-1.6 | Même vérification sur le **renvoi** de CT-1.1 et sur le **refus** de CT-1.3 | Exactement les mêmes en-têtes, aux mêmes valeurs, que CT-1.5 | OK — renvoi et refus portent les quatre mêmes en-têtes, aux mêmes valeurs |
+| CT-1.7 | Lire la valeur de `Content-Security-Policy` | `script-src` sans `unsafe-inline` ni `unsafe-eval` ; aucune origine tierce (aucun `https://…` étranger) ; `style-src-attr 'unsafe-inline'` présent | OK — `script-src 'self'`, ni `unsafe-inline` ni `unsafe-eval`, aucune origine tierce ; `style-src-attr 'unsafe-inline'` présent |
+| CT-1.8 | Source de la page (Ctrl+U) sur `/admin/connexion` | Aucun `<script>` en ligne ; les scripts sont chargés par `<script src>` | OK — aucune balise `<script>` sur l'écran de connexion |
 
 ## 2. Demander un code — `connexion-par-code`
 
@@ -154,39 +163,48 @@ Vider `.wrangler/tmp/email/` avant de commencer (`rm -rf .wrangler/tmp/email/*`)
 recette, « un fichier `.txt` apparaît » se lit « un message arrive dans la boîte de l'adresse autorisée »
 (§ 0.3).
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`) : navigateur piloté pour l'écran,
+requêtes directes (`curl`, un jeu de cookies par appareil) pour comparer les réponses, codes lus dans la
+boîte de l'adresse autorisée. **Seuil par origine** : au-delà de 20 soumissions par heure depuis une même
+connexion, adresses et codes confondus, l'écran refuse tout (« Trop de tentatives de connexion depuis
+votre accès à internet… », change 012). Les §§ 2 et 3 enchaînés le dépassent : remettre le compte à zéro
+entre les deux (`$R sql "delete from comptes_seuil"`).
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-2.1 | Soumettre `editrice@example.com` | L'écran passe à la saisie du code ; un fichier `.txt` apparaît sous `.wrangler/tmp/email/` | |
-| CT-2.2 | Ouvrir ce fichier | Texte seul (aucune balise HTML) ; objet `Votre code de connexion` ; corps `Code : XXXXXXXX` | |
-| CT-2.3 | Lire le code | Huit signes, chiffres ou majuscules, **jamais** de `I`, `L`, `O` ni `U` | |
-| CT-2.4 | En base (§ 0.5), la ligne `codes_connexion` créée | Le code en clair **n'y figure pas** (`empreinte` et `sel` seulement) ; `identifiant_appareil` renseigné | |
-| CT-2.5 | Soumettre `inconnu@example.com` (autre appareil ou après reset) | **Même écran, même texte** qu'en CT-2.1 ; **aucun** nouveau fichier dans `.wrangler/tmp/email/` ; aucune nouvelle ligne en base | |
-| CT-2.6 | Onglet Réseau : comparer les deux réponses POST de CT-2.1 et CT-2.5 | Même statut, mêmes en-têtes, corps identique ; le temps de réponse est ≥ 300 ms dans les deux cas et du même ordre | |
-| CT-2.7 | Outils → Application → Cookies, après affichage de `/admin/connexion` | Un cookie d'identifiant d'appareil est posé ; recharger la page ne le change pas | |
-| CT-2.8 | Demander **six** codes de suite avec l'adresse autorisée (moins d'une heure) | Les cinq premiers produisent un fichier ; le sixième affiche un message de plafond atteint, **sans** fichier ni ligne en base | |
-| CT-2.9 | Plafond atteint, soumettre `inconnu@example.com` | Le **même** message de plafond, mot pour mot | |
-| CT-2.10 | Plafond atteint, puis `delete from codes_connexion` (simule la sortie de l'heure) et redemander | Un code est de nouveau écrit et déposé | |
-| CT-2.11 | Reset complet **sans** réinsérer l'adresse autorisée (instance non semée), soumettre une adresse | Même écran que CT-2.1, rien d'autre — l'instance ne trahit pas qu'elle n'est pas semée. Réinsérer l'adresse ensuite (§ 0.2) | |
+| CT-2.1 | Soumettre `editrice@example.com` | L'écran passe à la saisie du code ; un fichier `.txt` apparaît sous `.wrangler/tmp/email/` | OK — l'écran garde sa carte à deux étapes (§ 18), l'étape « Code » prête ; message reçu. L'attendu « passe à la saisie » date d'avant cette carte |
+| CT-2.2 | Ouvrir ce fichier | Texte seul (aucune balise HTML) ; objet `Votre code de connexion` ; corps `Code : XXXXXXXX` | OK — texte seul, objet « Votre code de connexion », corps `Code : AJCSDN50`, expédié de `code@colibri.sebc.dev` |
+| CT-2.3 | Lire le code | Huit signes, chiffres ou majuscules, **jamais** de `I`, `L`, `O` ni `U` | OK — 18 codes reçus pendant les §§ 2 et 3 : huit signes chacun, aucun `I`, `L`, `O` ni `U` |
+| CT-2.4 | En base (§ 0.5), la ligne `codes_connexion` créée | Le code en clair **n'y figure pas** (`empreinte` et `sel` seulement) ; `identifiant_appareil` renseigné | OK — `empreinte` (64 signes) et `sel` (32), aucune colonne de code en clair ; `identifiant_appareil` = le cookie de l'appareil |
+| CT-2.5 | Soumettre `inconnu@example.com` (autre appareil ou après reset) | **Même écran, même texte** qu'en CT-2.1 ; **aucun** nouveau fichier dans `.wrangler/tmp/email/` ; aucune nouvelle ligne en base | OK — même corps, mêmes en-têtes ; aucune ligne, aucun message |
+| CT-2.6 | Onglet Réseau : comparer les deux réponses POST de CT-2.1 et CT-2.5 | Même statut, mêmes en-têtes, corps identique ; le temps de réponse est ≥ 300 ms dans les deux cas et du même ordre | OK — 200 des deux côtés, en-têtes et corps identiques ; 0,52 s et 0,42 s |
+| CT-2.7 | Outils → Application → Cookies, après affichage de `/admin/connexion` | Un cookie d'identifiant d'appareil est posé ; recharger la page ne le change pas | OK — `identifiant-appareil` posé, inchangé au rechargement |
+| CT-2.8 | Demander **six** codes de suite avec l'adresse autorisée (moins d'une heure) | Les cinq premiers produisent un fichier ; le sixième affiche un message de plafond atteint, **sans** fichier ni ligne en base | OK — cinq messages, cinq lignes ; la sixième : « Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter un moment avant de réessayer. », sans ligne ni message |
+| CT-2.9 | Plafond atteint, soumettre `inconnu@example.com` | Le **même** message de plafond, mot pour mot | OK — même page, au signe près |
+| CT-2.10 | Plafond atteint, puis `delete from codes_connexion` (simule la sortie de l'heure) et redemander | Un code est de nouveau écrit et déposé | OK — une ligne écrite, message reçu |
+| CT-2.11 | Reset complet **sans** réinsérer l'adresse autorisée (instance non semée), soumettre une adresse | Même écran que CT-2.1, rien d'autre — l'instance ne trahit pas qu'elle n'est pas semée. Réinsérer l'adresse ensuite (§ 0.2) | OK — même page que CT-2.1, aucune ligne ni message ; adresse réinsérée |
 
 ## 3. Recopier le code, ouvrir la session — `connexion-par-code`
 
+Joué le 2026-10-27, comme le § 2 ; les appareils A à W sont le navigateur piloté et des jeux de cookies distincts.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-3.1 | Lire l'écran de saisie du code | Il dit que le code reste valable **quinze minutes** et que **seul le dernier code demandé depuis cet appareil** permet d'entrer | |
-| CT-3.2 | Demander un code, le recopier tel quel | Renvoi vers l'accueil `/admin/` : « Vous êtes connectée. », aucun lien ni bouton d'action sur l'accueil | |
-| CT-3.3 | Outils → Application → Cookies après CT-3.2 | Un cookie `__Host-…` avec `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; sa valeur est opaque (ne contient ni adresse, ni date lisible) | |
-| CT-3.4 | Nouveau code ; le recopier en **minuscules**, avec des **tirets ou espaces** entre les signes | Accepté | |
-| CT-3.5 | Nouveau code contenant un `0`, `1` ou `V` ; le recopier en remplaçant par `O`, `I`/`L`, `U` | Accepté (confusables ramenés à leur signe) | |
-| CT-3.6 | Se déconnecter (supprimer le cookie `__Host-…`), présenter le **même** code une seconde fois | Refus : « Ce code a déjà servi : demandez un nouveau code. » | |
-| CT-3.7 | Nouveau code ; saisir un code faux | « Ce code n'est pas reconnu. Vérifiez-le et retapez-le. » ; pas de session | |
-| CT-3.8 | Saisir un code faux **cinq fois**, puis le **bon** code | À la cinquième : « Trop de tentatives avec ce code : demandez un nouveau code. » ; le bon code est ensuite refusé lui aussi (brûlé) | |
-| CT-3.9 | Demander un code depuis l'appareil A ; le saisir depuis l'appareil B (fenêtre privée) | « Ce code a été demandé depuis un autre appareil : revenez sur l'appareil où vous l'avez demandé pour vous connecter. » — jamais « demandez un nouveau code » | |
-| CT-3.10 | Appareil A : demander un code C1, puis un code C2 ; saisir C1 | « Ce code n'est plus valable : demandez un nouveau code. » ; C2 reste accepté | |
-| CT-3.11 | Appareil A : code CA ; appareil B : code CB ; saisir CA sur A | Accepté — la nouvelle demande de B n'a pas annulé le code de A | |
-| CT-3.12 | Demander un code, en base : `update codes_connexion set expire_le = 0;` puis le saisir | « Ce code a expiré : demandez un nouveau code. » | |
-| CT-3.13 | Session ouverte ; en base : `update sessions set creee_le = 0;` puis recharger `/admin/` | Renvoi vers la connexion (butée absolue de trente jours simulée) | |
-| CT-3.14 | Session ouverte ; recharger `/admin/mes-pages` dix fois de suite | Toujours servi ; aucune nouvelle ligne `sessions` à chaque requête (le rafraîchissement n'écrit pas à chaque fois) | |
-| CT-3.15 | Ouvrir une session sur A **et** une sur B | Les deux coexistent ; aucune ne ferme l'autre | |
+| CT-3.1 | Lire l'écran de saisie du code | Il dit que le code reste valable **quinze minutes** et que **seul le dernier code demandé depuis cet appareil** permet d'entrer | OK — « Seul le dernier code demandé depuis cet appareil permet d'entrer ; il reste valable quinze minutes » |
+| CT-3.2 | Demander un code, le recopier tel quel | Renvoi vers l'accueil `/admin/` : « Vous êtes connectée. », aucun lien ni bouton d'action sur l'accueil | OK — arrivée sur « Mes pages », comme le veut la spec vivante : l'accueil « Vous êtes connectée. » n'existe plus |
+| CT-3.3 | Outils → Application → Cookies après CT-3.2 | Un cookie `__Host-…` avec `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; sa valeur est opaque (ne contient ni adresse, ni date lisible) | OK — `__Host-session` : `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` ; valeur de 64 signes hexadécimaux |
+| CT-3.4 | Nouveau code ; le recopier en **minuscules**, avec des **tirets ou espaces** entre les signes | Accepté | OK — `45x-dpd rb` pour `45XDPDRB` : accepté |
+| CT-3.5 | Nouveau code contenant un `0`, `1` ou `V` ; le recopier en remplaçant par `O`, `I`/`L`, `U` | Accepté (confusables ramenés à leur signe) | OK — `U7FGC3Z2` pour `V7FGC3Z2` : accepté |
+| CT-3.6 | Se déconnecter (supprimer le cookie `__Host-…`), présenter le **même** code une seconde fois | Refus : « Ce code a déjà servi : demandez un nouveau code. » | OK — « Ce code a déjà servi : demandez un nouveau code. » |
+| CT-3.7 | Nouveau code ; saisir un code faux | « Ce code n'est pas reconnu. Vérifiez-le et retapez-le. » ; pas de session | OK — « Ce code n'est pas reconnu. Vérifiez-le et retapez-le. » ; pas de session |
+| CT-3.8 | Saisir un code faux **cinq fois**, puis le **bon** code | À la cinquième : « Trop de tentatives avec ce code : demandez un nouveau code. » ; le bon code est ensuite refusé lui aussi (brûlé) | OK — à la cinquième : « Trop de tentatives avec ce code : demandez un nouveau code. » ; le bon code reçoit ensuite le même refus |
+| CT-3.9 | Demander un code depuis l'appareil A ; le saisir depuis l'appareil B (fenêtre privée) | « Ce code a été demandé depuis un autre appareil : revenez sur l'appareil où vous l'avez demandé pour vous connecter. » — jamais « demandez un nouveau code » | OK — « Ce code a été demandé depuis un autre appareil : revenez sur l'appareil où vous l'avez demandé pour vous connecter. » |
+| CT-3.10 | Appareil A : demander un code C1, puis un code C2 ; saisir C1 | « Ce code n'est plus valable : demandez un nouveau code. » ; C2 reste accepté | OK — C1 : « Ce code n'est plus valable : demandez un nouveau code. » ; C2 accepté |
+| CT-3.11 | Appareil A : code CA ; appareil B : code CB ; saisir CA sur A | Accepté — la nouvelle demande de B n'a pas annulé le code de A | OK — CA accepté après la demande de CB |
+| CT-3.12 | Demander un code, en base : `update codes_connexion set expire_le = 0;` puis le saisir | « Ce code a expiré : demandez un nouveau code. » | OK — « Ce code a expiré : demandez un nouveau code. » |
+| CT-3.13 | Session ouverte ; en base : `update sessions set creee_le = 0;` puis recharger `/admin/` | Renvoi vers la connexion (butée absolue de trente jours simulée) | OK — renvoi vers `/admin/connexion` |
+| CT-3.14 | Session ouverte ; recharger `/admin/mes-pages` dix fois de suite | Toujours servi ; aucune nouvelle ligne `sessions` à chaque requête (le rafraîchissement n'écrit pas à chaque fois) | OK — dix rechargements servis ; six lignes `sessions` avant comme après |
+| CT-3.15 | Ouvrir une session sur A **et** une sur B | Les deux coexistent ; aucune ne ferme l'autre | OK — les sessions de A et de B restent servies ensemble |
 
 > Les échéances de sept jours sans usage et le repoussement glissant ne se testent pas à la main ;
 > ils sont couverts par les tests automatiques de `tests/integration/`.
@@ -195,158 +213,180 @@ recette, « un fichier `.txt` apparaît » se lit « un message arrive dans la b
 
 Session ouverte. Ouvrir `/admin/mes-pages`.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 800.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-4.1 | Lire la barre latérale | Cinq rubriques : **Mes pages**, **Médias**, **Réglages**, **Formulaires**, **Demandes** ; « Mes pages » marquée active | |
-| CT-4.2 | Cliquer « Médias » | L'écran Médias s'ouvre, « Médias » devient la rubrique active | |
-| CT-4.3 | Cliquer « Demandes » | L'écran Demandes s'ouvre, « Demandes » devient la rubrique active | |
-| CT-4.4 | Actionner « Replier le menu » | La barre devient un rail d'icônes seules ; la rubrique active reste marquée ; la zone de contenu s'élargit | |
-| CT-4.5 | Actionner « Déplier le menu » | Les libellés reparaissent à côté des icônes | |
-| CT-4.6 | Replier, puis **recharger** la page ; onglet Réseau pendant le repli | L'état replié est conservé ; **aucune** requête serveur n'a été émise par le repli | |
-| CT-4.7 | Parcourir tout le menu | Aucun bouton « + », « ajouter », « renommer », « supprimer », « déplacer » sur les rubriques ou les pages | |
-| CT-4.8 | Console ouverte pendant tout le § 4 | Aucune violation CSP ; aucun style de composant bloqué (menus, boutons, champs s'affichent normalement) | |
-| CT-4.9 | Source de l'écran | Aucune directive `client:` ; aucun `<script>` en ligne | |
+| CT-4.1 | Lire la barre latérale | Cinq rubriques : **Mes pages**, **Médias**, **Réglages**, **Formulaires**, **Demandes** ; « Mes pages » marquée active | OK — Mes pages, Médias, Réglages, Formulaires, Demandes ; « Mes pages » marquée active |
+| CT-4.2 | Cliquer « Médias » | L'écran Médias s'ouvre, « Médias » devient la rubrique active | OK |
+| CT-4.3 | Cliquer « Demandes » | L'écran Demandes s'ouvre, « Demandes » devient la rubrique active | OK — écran « Demandes », « 0 demande · 0 commande » |
+| CT-4.4 | Actionner « Replier le menu » | La barre devient un rail d'icônes seules ; la rubrique active reste marquée ; la zone de contenu s'élargit | OK — rail d'icônes de 63 px, « Demandes » reste marquée ; le contenu passe de 1056 à 1216 px |
+| CT-4.5 | Actionner « Déplier le menu » | Les libellés reparaissent à côté des icônes | OK — menu de 223 px, libellés revenus |
+| CT-4.6 | Replier, puis **recharger** la page ; onglet Réseau pendant le repli | L'état replié est conservé ; **aucune** requête serveur n'a été émise par le repli | OK — toujours replié après rechargement ; aucune requête au repli |
+| CT-4.7 | Parcourir tout le menu | Aucun bouton « + », « ajouter », « renommer », « supprimer », « déplacer » sur les rubriques ou les pages | OK — navigation, pages, « Publier », « Replier le menu » seuls ; « Ajouter un lien » des Réglages ajoute un réseau social, ni page ni rubrique |
+| CT-4.8 | Console ouverte pendant tout le § 4 | Aucune violation CSP ; aucun style de composant bloqué (menus, boutons, champs s'affichent normalement) | OK — console vide sur les cinq rubriques |
+| CT-4.9 | Source de l'écran | Aucune directive `client:` ; aucun `<script>` en ligne | OK — sur les cinq rubriques : aucune directive `client:`, aucun script en ligne, scripts chargés par `src` |
 
 ## 5. La liste des pages — `pages-et-emplacements`
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-5.1 | Ouvrir « Mes pages » | Trois lignes, dans cet ordre : **Accueil, Tarifs, Contact** | |
-| CT-5.2 | Cliquer « Accueil » | L'éditeur de la page Accueil s'ouvre | |
-| CT-5.3 | Sur la liste, aucune page n'a encore de brouillon | Aucune pastille « brouillon » | |
-| CT-5.4 | *(optionnel, coupe le serveur)* Renommer temporairement `content/pages` en `content/pages.off`, rebâtir et relancer `wrangler dev`, ouvrir « Mes pages » | Un message d'état vide, **sans** bouton de création. Remettre le dossier ensuite | |
+| CT-5.1 | Ouvrir « Mes pages » | Trois lignes, dans cet ordre : **Accueil, Tarifs, Contact** | OK — Accueil, Tarifs, Contact, dans cet ordre |
+| CT-5.2 | Cliquer « Accueil » | L'éditeur de la page Accueil s'ouvre | OK — `/admin/pages/accueil`, titre « Accueil » |
+| CT-5.3 | Sur la liste, aucune page n'a encore de brouillon | Aucune pastille « brouillon » | OK — aucune pastille ; aucune ligne `brouillons_emplacements` en base |
+| CT-5.4 | *(optionnel, coupe le serveur)* Renommer temporairement `content/pages` en `content/pages.off`, rebâtir et relancer `wrangler dev`, ouvrir « Mes pages » | Un message d'état vide, **sans** bouton de création. Remettre le dossier ensuite | OK — joué sur la variante `vide` (`site-vide-…`) : « Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici. », aucun bouton de création |
 
 ## 6. L'éditeur d'une page — `pages-et-emplacements`
 
 Ouvrir la page **Accueil**.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-6.1 | Lire l'éditeur | Cinq emplacements, dans l'ordre : texte riche · lien de vidéo · bouton d'action · image · galerie — chacun reconnaissable à sa nature | |
-| CT-6.2 | Lire les contenus | Le lien de vidéo montre l'URL YouTube ; le bouton montre « Demander un devis » / `/contact` ; la galerie est vide | |
-| CT-6.3 | L'emplacement **image** (son identité de démonstration n'existe pas en bibliothèque) | L'écran ne casse pas ; aucun identifiant technique (`media-fixture-hero`) ni mot « undefined » n'apparaît ; le sélecteur d'image reste utilisable | |
-| CT-6.4 | Actionner le fil de retour | Retour à « Mes pages » | |
-| CT-6.5 | Ouvrir **Contact** | texte riche · lien de vidéo (Vimeo) · image · carrousel, dans cet ordre | |
-| CT-6.6 | Ouvrir **Tarifs** | texte riche · bouton d'action | |
-| CT-6.7 | Parcourir l'éditeur | Aucun geste d'ajout, retrait, déplacement ni renommage d'emplacement | |
+| CT-6.1 | Lire l'éditeur | Cinq emplacements, dans l'ordre : texte riche · lien de vidéo · bouton d'action · image · galerie — chacun reconnaissable à sa nature | OK — Texte riche · Lien de la vidéo · Bouton d’action · Image · Galerie, chacun titré de sa nature |
+| CT-6.2 | Lire les contenus | Le lien de vidéo montre l'URL YouTube ; le bouton montre « Demander un devis » / `/contact` ; la galerie est vide | OK — bouton « Demander un devis » / `/contact`, vidéo YouTube ; écart d’attendu : l’éditeur montre le contenu publié courant, dont la galerie des 45 images publiées au § 30 d’une passe précédente |
+| CT-6.3 | L'emplacement **image** (son identité de démonstration n'existe pas en bibliothèque) | L'écran ne casse pas ; aucun identifiant technique (`media-fixture-hero`) ni mot « undefined » n'apparaît ; le sélecteur d'image reste utilisable | KO — prémisse vieillie : depuis le change 011 (ticket 02), `media-fixture-hero` est inscrite en bibliothèque comme image publiée, sans octets en base. L’éditeur la montre cassée : `EmplacementImage.svelte` vise toujours `/admin/medias/<id>/octets`, qui répond 200 avec 0 octet, et « media-fixture-hero.png » s’affiche à la place de la vignette (capture). Même défaut pour les 45 images publiées de la galerie et pour les 47 vignettes du sélecteur « Choisir une image ». L’écran Médias montre ces mêmes images (adresse statique `/_astro/…`, ADR-0020). L’écran ne casse pas, aucun « undefined », le sélecteur s’ouvre et reste utilisable |
+| CT-6.4 | Actionner le fil de retour | Retour à « Mes pages » | OK — retour à `/admin/mes-pages` |
+| CT-6.5 | Ouvrir **Contact** | texte riche · lien de vidéo (Vimeo) · image · carrousel, dans cet ordre | OK — Texte riche · Lien de la vidéo (`https://vimeo.com/76979871`) · Image · Carrousel |
+| CT-6.6 | Ouvrir **Tarifs** | texte riche · bouton d'action | OK — Texte riche · Bouton d’action |
+| CT-6.7 | Parcourir l'éditeur | Aucun geste d'ajout, retrait, déplacement ni renommage d'emplacement | OK — seuls gestes : Enregistrer, Remplacer l’image, et dans la galerie Monter, Descendre, Retirer, Ajouter une image (contenu, pas structure) |
 
 ## 7. Le bouton d'action — `pages-et-emplacements`
 
 Page **Accueil**, emplacement « bouton d'action ».
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-7.1 | Changer le libellé en « Obtenir un devis », enregistrer | Enregistré sans quitter l'écran ; la **pastille brouillon** apparaît au fil de retour ; en base une ligne `brouillons_emplacements` | |
-| CT-7.2 | Retour à « Mes pages » | La ligne Accueil porte la pastille brouillon ; Tarifs et Contact non | |
-| CT-7.3 | Recharger l'éditeur d'Accueil | Le libellé corrigé est bien celui affiché (persistance) | |
-| CT-7.4 | Destination `https://exemple.fr/devis`, enregistrer | Accepté | |
-| CT-7.5 | Destination `mailto:contact@exemple.fr`, puis `tel:+33123456789`, puis `/tarifs` | Chacune acceptée | |
-| CT-7.6 | Destination `javascript:alert(1)` | Refusée **au champ**, message compréhensible ; rien de nouveau en base | |
-| CT-7.7 | Destination `http://exemple.fr` (sans s), puis `ftp://exemple.fr` | Refusées au champ ; rien d'écrit | |
-| CT-7.8 | Page **Tarifs**, corriger son bouton | Seule Tarifs bascule à « brouillon » ; l'état d'Accueil ne change pas | |
+| CT-7.1 | Changer le libellé en « Obtenir un devis », enregistrer | Enregistré sans quitter l'écran ; la **pastille brouillon** apparaît au fil de retour ; en base une ligne `brouillons_emplacements` | OK — l’éditeur reste affiché, pastille « Brouillon » au titre ; ligne `accueil` / `bouton-devis` en base |
+| CT-7.2 | Retour à « Mes pages » | La ligne Accueil porte la pastille brouillon ; Tarifs et Contact non | OK — Accueil « Brouillon », Tarifs et Contact sans |
+| CT-7.3 | Recharger l'éditeur d'Accueil | Le libellé corrigé est bien celui affiché (persistance) | OK — « Obtenir un devis » après rechargement |
+| CT-7.4 | Destination `https://exemple.fr/devis`, enregistrer | Accepté | OK — destination enregistrée en base |
+| CT-7.5 | Destination `mailto:contact@exemple.fr`, puis `tel:+33123456789`, puis `/tarifs` | Chacune acceptée | OK — les trois enregistrées tour à tour, la base suit chacune |
+| CT-7.6 | Destination `javascript:alert(1)` | Refusée **au champ**, message compréhensible ; rien de nouveau en base | OK — « Cette destination n’est pas reconnue : utilisez une adresse web (commençant par https://), une adresse e-mail (mailto:), un numéro (tel:) ou un lien du site (commençant par /). », champ marqué invalide ; base inchangée (`/tarifs`, même `maj_le`) |
+| CT-7.7 | Destination `http://exemple.fr` (sans s), puis `ftp://exemple.fr` | Refusées au champ ; rien d'écrit | OK — même message pour les deux ; base inchangée |
+| CT-7.8 | Page **Tarifs**, corriger son bouton | Seule Tarifs bascule à « brouillon » ; l'état d'Accueil ne change pas | OK — Tarifs passe à « Brouillon », Accueil garde le sien, Contact reste sans |
 
 ## 8. Le lien de vidéo — `pages-et-emplacements`
 
 Page **Accueil**, emplacement « lien de vidéo ».
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-8.1 | Coller `https://www.youtube.com/watch?v=aqz-KE-bpKQ`, enregistrer | Accepté ; pastille brouillon ; persiste au rechargement | |
-| CT-8.2 | Coller `https://youtu.be/aqz-KE-bpKQ` | Accepté | |
-| CT-8.3 | Coller `https://vimeo.com/76979871` | Accepté | |
-| CT-8.4 | Coller `https://exemple.com/video` | Refusé au champ, en disant **ce qui est attendu** (YouTube ou Vimeo) ; rien en base | |
-| CT-8.5 | Coller `http://www.youtube.com/watch?v=aqz-KE-bpKQ` (sans s) | Refusé | |
-| CT-8.6 | Coller `pas une url` | Refusé | |
-| CT-8.7 | Après un refus, l'état de la page | N'a pas basculé à cause du refus (une page sans autre brouillon reste sans pastille) | |
+| CT-8.1 | Coller `https://www.youtube.com/watch?v=aqz-KE-bpKQ`, enregistrer | Accepté ; pastille brouillon ; persiste au rechargement | OK — en base, pastille, retrouvé après rechargement |
+| CT-8.2 | Coller `https://youtu.be/aqz-KE-bpKQ` | Accepté | OK — en base |
+| CT-8.3 | Coller `https://vimeo.com/76979871` | Accepté | OK — en base |
+| CT-8.4 | Coller `https://exemple.com/video` | Refusé au champ, en disant **ce qui est attendu** (YouTube ou Vimeo) ; rien en base | OK — « Ce lien n’est pas reconnu : collez un lien YouTube (par exemple https://www.youtube.com/watch?v=… ou https://youtu.be/…) ou Vimeo (par exemple https://vimeo.com/…). » ; base inchangée. Remarque : le champ n’est pas marqué invalide (`aria-invalid` absent), contrairement à celui du bouton d’action |
+| CT-8.5 | Coller `http://www.youtube.com/watch?v=aqz-KE-bpKQ` (sans s) | Refusé | OK — même message ; base inchangée |
+| CT-8.6 | Coller `pas une url` | Refusé | OK — même message ; base inchangée |
+| CT-8.7 | Après un refus, l'état de la page | N'a pas basculé à cause du refus (une page sans autre brouillon reste sans pastille) | OK — refus joué sur Contact, page sans brouillon : aucune pastille, aucune ligne en base |
 
 ## 9. Le texte riche — `pages-et-emplacements`
 
 Page **Contact**, emplacement « texte riche ».
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-9.1 | Lire la barre de mise en forme | Gras, italique, lien, liste, titre — et rien d'autre ; aucun bouton « HTML », « code », « source » | |
-| CT-9.2 | Taper un paragraphe, sélectionner un mot, actionner **gras** puis **italique** | Les marques se posent visuellement, sans qu'aucune balise ne s'écrive dans le texte | |
-| CT-9.3 | Poser un **titre**, une **liste** à deux éléments | Rendus comme tels | |
-| CT-9.4 | Poser un **lien** vers `https://exemple.fr` | Accepté | |
-| CT-9.5 | Poser un lien vers `javascript:alert(1)` | Refusé, sans terme de développeur | |
-| CT-9.6 | Enregistrer, recharger la page | Tout le contenu et toutes les marques sont retrouvés ; pastille brouillon ; en base le contenu est du Markdown (`**gras**`, `# Titre`, `- élément`), sans HTML | |
-| CT-9.7 | Coller depuis un traitement de texte un contenu avec couleur, police, tableau | Seules gras/italique/lien/liste/titre survivent après enregistrement + rechargement ; le reste est écarté | |
+| CT-9.1 | Lire la barre de mise en forme | Gras, italique, lien, liste, titre — et rien d'autre ; aucun bouton « HTML », « code », « source » | OK — Gras, Italique, Lien, Liste, Titre, rien d’autre |
+| CT-9.2 | Taper un paragraphe, sélectionner un mot, actionner **gras** puis **italique** | Les marques se posent visuellement, sans qu'aucune balise ne s'écrive dans le texte | OK — « gourmand » en gras italique, aucune balise dans le texte |
+| CT-9.3 | Poser un **titre**, une **liste** à deux éléments | Rendus comme tels | OK — titre et liste à deux puces rendus comme tels (capture) |
+| CT-9.4 | Poser un **lien** vers `https://exemple.fr` | Accepté | OK — « atelier » lié à `https://exemple.fr` |
+| CT-9.5 | Poser un lien vers `javascript:alert(1)` | Refusé, sans terme de développeur | OK — « Ce lien n’est pas accepté : il doit commencer par https://, mailto:, tel: ou /. », texte inchangé |
+| CT-9.6 | Enregistrer, recharger la page | Tout le contenu et toutes les marques sont retrouvés ; pastille brouillon ; en base le contenu est du Markdown (`**gras**`, `# Titre`, `- élément`), sans HTML | OK — tout retrouvé après rechargement, pastille ; en base `[atelier](https://exemple.fr) **_gourmand_**`, `## Nos horaires`, `- Lundi`, sans HTML ; le bouton Titre pose un titre de niveau 2 (`##`) |
+| CT-9.7 | Coller depuis un traitement de texte un contenu avec couleur, police, tableau | Seules gras/italique/lien/liste/titre survivent après enregistrement + rechargement ; le reste est écarté | OK — collage simulé (événement de collage portant le HTML d’un traitement de texte) : couleurs, polices, fond, souligné, code, barré, image et structure du tableau écartés ; gras, italique, lien, liste et titre gardés. Remarques : les cellules du tableau se collent sans espace (« Case ACase BCase CCase D ») ; un titre collé garde le niveau 1 (`#`), que le bouton Titre ne pose jamais |
 
 ## 10. La bibliothèque — écran Médias — `bibliotheque-de-medias`
 
 Bibliothèque vide au départ (`delete from medias`).
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-10.1 | Ouvrir « Médias », bibliothèque vide | « La bibliothèque ne contient encore aucune image. » ; bouton « Téléverser une image » ; champ « Rechercher par nom ou description » | |
-| CT-10.2 | Téléverser `photo.jpg` | Une vignette apparaît dans la grille ; en base : `nom_origine = photo.jpg`, `format` = JPEG, `largeur`/`hauteur` = les vraies dimensions, `poids_octets` | |
-| CT-10.3 | Téléverser `logo.png` puis `banniere.webp` | Trois vignettes ; formats PNG et WebP en base | |
-| CT-10.4 | Téléverser `dessin.svg` | « Cette image n'est pas dans un format accepté (JPEG, PNG ou WebP) : choisissez une autre image. » ; rien en base | |
-| CT-10.5 | Téléverser `anim.gif` | Même refus de format | |
-| CT-10.6 | Téléverser `menteur.png` (un GIF renommé) | Refus de **format** — seuls les octets décident, pas l'extension | |
-| CT-10.7 | Téléverser `lourde.jpg` (> 2 Mo) | « Cette image est trop lourde : choisissez une image plus légère. » ; rien en base | |
-| CT-10.8 | Téléverser `tronque.jpg` | Refusé proprement (format) ; rien en base ; l'écran reste utilisable | |
-| CT-10.9 | Téléverser `jpeg-deguise.png` (un vrai JPEG renommé) | **Admis** ; en base `format` = JPEG, pas PNG | |
-| CT-10.10 | Recharger l'écran | Toutes les vignettes sont là ; l'ordre est stable | |
-| CT-10.11 | Rechercher « logo » | La grille ne montre que `logo.png` | |
-| CT-10.12 | Rechercher « zzz » | « Aucune image ne correspond à cette recherche. » — texte **différent** de CT-10.1 ; effacer la recherche rend toutes les images | |
-| CT-10.13 | Donner une description à `photo.jpg` (§ 11), puis rechercher un mot de cette description | `photo.jpg` est trouvée par sa description | |
-| CT-10.14 | Console et onglet Réseau pendant le § 10 | Aucune violation CSP ; les vignettes sont servies depuis `/admin/medias/<id>/octets` | |
+| CT-10.1 | Ouvrir « Médias », bibliothèque vide | « La bibliothèque ne contient encore aucune image. » ; bouton « Téléverser une image » ; champ « Rechercher par nom ou description » | NA — état vide inatteignable sur la recette : l'écran réinscrit à chaque ouverture les images que déclare le contenu en ligne (`src/pages/admin/medias.astro:51`, change 011 ticket 02), 47 ici, et toute variante en garde au moins 2 ; vider `medias` effacerait les marques de publication de la base partagée. Le reste de l'écran est conforme : bouton « Téléverser une image », champ « Rechercher » d'indication « Rechercher par nom ou description » |
+| CT-10.2 | Téléverser `photo.jpg` | Une vignette apparaît dans la grille ; en base : `nom_origine = photo.jpg`, `format` = JPEG, `largeur`/`hauteur` = les vraies dimensions, `poids_octets` | OK — vignette en tête de grille, servie par `/admin/medias/<id>/octets` ; en base `nom_origine = photo.jpg`, `format = jpeg`, 1600 × 1067, `poids_octets = 23385` (le poids du fichier) |
+| CT-10.3 | Téléverser `logo.png` puis `banniere.webp` | Trois vignettes ; formats PNG et WebP en base | OK — la grille passe de 48 à 50 vignettes ; en base `png` (512 × 512) et `webp`. Lu « trois vignettes de plus » : la bibliothèque part de 47 images publiées (CT-10.1) |
+| CT-10.4 | Téléverser `dessin.svg` | « Cette image n'est pas dans un format accepté (JPEG, PNG ou WebP) : choisissez une autre image. » ; rien en base | OK — message exact ; réponse 400 `raison: format` ; base inchangée (50 lignes) |
+| CT-10.5 | Téléverser `anim.gif` | Même refus de format | OK — même message ; 400 `format` ; base inchangée |
+| CT-10.6 | Téléverser `menteur.png` (un GIF renommé) | Refus de **format** — seuls les octets décident, pas l'extension | OK — refus de format (400 `format`) malgré l'extension `.png` ; base inchangée |
+| CT-10.7 | Téléverser `lourde.jpg` (> 2 Mo) | « Cette image est trop lourde : choisissez une image plus légère. » ; rien en base | OK — « Cette image est trop lourde : choisissez une image plus légère. » ; 400 `raison: poids` ; base inchangée |
+| CT-10.8 | Téléverser `tronque.jpg` | Refusé proprement (format) ; rien en base ; l'écran reste utilisable | OK — refus de format (400 `format`) ; base inchangée ; le téléversement suivant (CT-10.9) passe |
+| CT-10.9 | Téléverser `jpeg-deguise.png` (un vrai JPEG renommé) | **Admis** ; en base `format` = JPEG, pas PNG | OK — admis ; en base `format = jpeg` ; servi en `image/jpeg` (CT-12.2) |
+| CT-10.10 | Recharger l'écran | Toutes les vignettes sont là ; l'ordre est stable | OK — 51 vignettes, même ordre sur trois lectures, la plus récente en tête |
+| CT-10.11 | Rechercher « logo » | La grille ne montre que `logo.png` | OK — une seule vignette, `logo.png` |
+| CT-10.12 | Rechercher « zzz » | « Aucune image ne correspond à cette recherche. » — texte **différent** de CT-10.1 ; effacer la recherche rend toutes les images | OK — « Aucune image ne correspond à cette recherche. » ; effacer la recherche rend les 51 images |
+| CT-10.13 | Donner une description à `photo.jpg` (§ 11), puis rechercher un mot de cette description | `photo.jpg` est trouvée par sa description | OK — « devanture », mot de la description saisie en CT-11.5, ne laisse que « Façade de l'atelier » |
+| CT-10.14 | Console et onglet Réseau pendant le § 10 | Aucune violation CSP ; les vignettes sont servies depuis `/admin/medias/<id>/octets` | OK — console sans violation CSP ; les 4 images téléversées viennent de `/admin/medias/<id>/octets`, les 47 publiées de `/_astro/…` (ADR-0020) |
 
 ## 11. La fiche d'une image — `bibliotheque-de-medias`
 
 Cliquer la vignette de `photo.jpg`.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-11.1 | Lire la fiche | Aperçu de l'image ; champ « Nom » ; champ « Description » ; bouton « Enregistrer » ; lien de retour « Médias » ; titre « Posée dans » | |
-| CT-11.2 | Renommer en « Façade de l'atelier », enregistrer | Le nom affiché change dans la fiche et dans la grille ; en base `nom_affichage` = le nouveau nom et `nom_origine` = **toujours** `photo.jpg` | |
-| CT-11.3 | Vider le nom, enregistrer | « Le nom ne peut pas être vide. » ; rien d'écrit | |
-| CT-11.4 | Saisir la description « Vue de la rue, printemps 2026 », enregistrer, recharger | Retrouvée ; en base `description` renseignée | |
-| CT-11.5 | Modifier la description, enregistrer | La nouvelle remplace l'ancienne | |
-| CT-11.6 | Section « Posée dans » d'une image posée nulle part | « Cette image n'est posée dans aucun emplacement. » | |
-| CT-11.7 | Marque d'orphelin sur une image posée nulle part | Sur la **fiche** et sur la **vignette** : « Cette image n'est posée dans aucun emplacement : elle sera effacée à la prochaine publication. » | |
+| CT-11.1 | Lire la fiche | Aperçu de l'image ; champ « Nom » ; champ « Description » ; bouton « Enregistrer » ; lien de retour « Médias » ; titre « Posée dans » | OK — aperçu chargé, champs « Nom » et « Description » avec chacun son bouton « Enregistrer », lien « ‹ Médias », titre « Posée dans » |
+| CT-11.2 | Renommer en « Façade de l'atelier », enregistrer | Le nom affiché change dans la fiche et dans la grille ; en base `nom_affichage` = le nouveau nom et `nom_origine` = **toujours** `photo.jpg` | OK — titre de la fiche et nom dans la grille : « Façade de l'atelier » ; en base `nom_affichage` changé, `nom_origine = photo.jpg` |
+| CT-11.3 | Vider le nom, enregistrer | « Le nom ne peut pas être vide. » ; rien d'écrit | OK — « Le nom ne peut pas être vide. » ; aucun envoi au serveur ; en base le nom reste « Façade de l'atelier » |
+| CT-11.4 | Saisir la description « Vue de la rue, printemps 2026 », enregistrer, recharger | Retrouvée ; en base `description` renseignée | OK — retrouvée après rechargement ; en base `description = Vue de la rue, printemps 2026` |
+| CT-11.5 | Modifier la description, enregistrer | La nouvelle remplace l'ancienne | OK — « Vue de la rue au printemps, devanture repeinte » remplace l'ancienne, à l'écran et en base |
+| CT-11.6 | Section « Posée dans » d'une image posée nulle part | « Cette image n'est posée dans aucun emplacement. » | OK — texte exact sous « Posée dans » |
+| CT-11.7 | Marque d'orphelin sur une image posée nulle part | Sur la **fiche** et sur la **vignette** : « Cette image n'est posée dans aucun emplacement : elle sera effacée à la prochaine publication. » | OK — texte exact sur la fiche et sur la vignette de la grille |
 
 ## 12. Servir les octets — `bibliotheque-de-medias`
 
 Relever l'identité d'une image (`select id …`, § 0.5) ; noter `<id>`.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-12.1 | Avec session, ouvrir `/admin/medias/<id>/octets` ; onglet Réseau | L'image s'affiche ; `Content-Type: image/jpeg` (ou png/webp selon le vrai format) ; `X-Content-Type-Options: nosniff` | |
-| CT-12.2 | Même URL sur `jpeg-deguise.png` | `Content-Type: image/jpeg` — jamais `image/png` | |
-| CT-12.3 | Même URL en **fenêtre privée** (sans session) | Aucun octet : renvoi vers la connexion ou refus | |
-| CT-12.4 | `/admin/medias/inexistant/octets` avec session | Refus propre, rien de l'administration ne fuit | |
+| CT-12.1 | Avec session, ouvrir `/admin/medias/<id>/octets` ; onglet Réseau | L'image s'affiche ; `Content-Type: image/jpeg` (ou png/webp selon le vrai format) ; `X-Content-Type-Options: nosniff` | OK — `photo.jpg` : 200, `image/jpeg`, `nosniff`, 23385 octets ; `logo.png` en `image/png` et `banniere.webp` en `image/webp`, tous deux `nosniff` |
+| CT-12.2 | Même URL sur `jpeg-deguise.png` | `Content-Type: image/jpeg` — jamais `image/png` | OK — `image/jpeg`, `nosniff` |
+| CT-12.3 | Même URL en **fenêtre privée** (sans session) | Aucun octet : renvoi vers la connexion ou refus | OK — navigateur sans session : refus 401, corps vide (0 octet) |
+| CT-12.4 | `/admin/medias/inexistant/octets` avec session | Refus propre, rien de l'administration ne fuit | OK — 404, corps vide, `nosniff` |
 
 ## 13. Poser et remplacer une image — `pages-et-emplacements`
 
 Page **Accueil**, emplacement **image**. `.wrangler/tmp/email` et l'onglet Réseau restent ouverts.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-13.1 | Ouvrir le sélecteur d'image | Il présente les images de la bibliothèque, par leur **nom d'affichage** (« Façade de l'atelier », pas `photo.jpg` ni un identifiant) | |
-| CT-13.2 | Choisir « Façade de l'atelier » | L'emplacement montre l'image ; pastille brouillon ; **aucun** téléversement dans l'onglet Réseau ; en base, le brouillon de l'emplacement porte l'`id` de l'image | |
-| CT-13.3 | Remplacer par `logo.png` | La nouvelle image est montrée à la place ; le brouillon porte le nouvel `id` et plus l'ancien | |
-| CT-13.4 | Recharger l'éditeur | L'image posée est retrouvée | |
-| CT-13.5 | Fiche de `logo.png` → « Posée dans » | « Accueil — image » (titre de page + nature en français, **pas** `image-hero`) | |
-| CT-13.6 | Vignette et fiche de `logo.png` | La marque d'orphelin a **disparu** ; celle de « Façade de l'atelier » (plus posée nulle part) est **revenue** | |
-| CT-13.7 | Sélecteur d'image sur une bibliothèque vidée (`delete from medias`, après le § 14) | État vide compréhensible, sans terme de développeur | |
+| CT-13.1 | Ouvrir le sélecteur d'image | Il présente les images de la bibliothèque, par leur **nom d'affichage** (« Façade de l'atelier », pas `photo.jpg` ni un identifiant) | OK — « Choisir une image » nomme chaque image par son nom d'affichage (« Poser l'image Façade de l'atelier »), jamais `photo.jpg` ni un identifiant ; le nom est porté par le texte de remplacement et le bouton, la grille ne montre que les vignettes. Les 47 images publiées y sont cassées (défaut de CT-6.3) |
+| CT-13.2 | Choisir « Façade de l'atelier » | L'emplacement montre l'image ; pastille brouillon ; **aucun** téléversement dans l'onglet Réseau ; en base, le brouillon de l'emplacement porte l'`id` de l'image | OK — l'image s'affiche (servie par `/octets`) ; pastille « Brouillon » ; un seul envoi, vers `…/emplacements/image-hero`, aucun téléversement ; en base `mediaId` = l'identité de l'image |
+| CT-13.3 | Remplacer par `logo.png` | La nouvelle image est montrée à la place ; le brouillon porte le nouvel `id` et plus l'ancien | OK — `logo.png` montrée ; en base `mediaId` = celle de `logo.png`, plus l'ancienne |
+| CT-13.4 | Recharger l'éditeur | L'image posée est retrouvée | OK — `logo.png` retrouvée |
+| CT-13.5 | Fiche de `logo.png` → « Posée dans » | « Accueil — image » (titre de page + nature en français, **pas** `image-hero`) | OK — « Accueil — image » |
+| CT-13.6 | Vignette et fiche de `logo.png` | La marque d'orphelin a **disparu** ; celle de « Façade de l'atelier » (plus posée nulle part) est **revenue** | OK — plus de marque sur la fiche ni sur la vignette de `logo.png` ; marque revenue sur « Façade de l'atelier » |
+| CT-13.7 | Sélecteur d'image sur une bibliothèque vidée (`delete from medias`, après le § 14) | État vide compréhensible, sans terme de développeur | NA — même raison que CT-10.1 : la bibliothèque ne se vide pas sur la recette sans effacer les marques de publication de la base partagée |
 
 ## 14. Composer une galerie ou un carrousel — `pages-et-emplacements`
 
 Page **Accueil**, emplacement **galerie** ; puis page **Contact**, emplacement **carrousel**.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-14.1 | Poser trois images dans la galerie, dans l'ordre A, B, C | La galerie montre A, B, C dans cet ordre ; pastille brouillon ; en base l'ordre est celui choisi | |
-| CT-14.2 | Réordonner en C, A, B | L'ordre est mis à jour, persiste au rechargement | |
-| CT-14.3 | Retirer B | La galerie montre C, A ; B reste dans la bibliothèque | |
-| CT-14.4 | Recharger l'éditeur | C, A retrouvés | |
-| CT-14.5 | Fiche de A → « Posée dans » | « Accueil — galerie » | |
-| CT-14.6 | Même parcours sur le **carrousel** de Contact | Identique | |
-| CT-14.7 | Poser A dans le carrousel de Contact alors qu'elle est déjà dans la galerie d'Accueil | Accepté ; sa fiche liste **les deux** emplacements, chacun par sa page et sa nature | |
-| CT-14.8 | Pendant le § 14, la liste des pages | Accueil et Contact portent la pastille ; Tarifs n'a pas bougé (hors CT-7.8) | |
+| CT-14.1 | Poser trois images dans la galerie, dans l'ordre A, B, C | La galerie montre A, B, C dans cet ordre ; pastille brouillon ; en base l'ordre est celui choisi | OK — A, B, C = `fraisier.jpg`, `paris-brest.webp`, `tarte-citron.png` (semées par `site.mjs semer-bibliotheque`), posées dans cet ordre à la suite des 45 images publiées de la galerie ; pastille « Brouillon » ; en base, positions 46 à 48 dans cet ordre |
+| CT-14.2 | Réordonner en C, A, B | L'ordre est mis à jour, persiste au rechargement | OK — C, A, B (deux « Monter » sur C), à l'écran, en base et après rechargement |
+| CT-14.3 | Retirer B | La galerie montre C, A ; B reste dans la bibliothèque | OK — C, A ; « 47 images composent cette galerie. » ; B toujours en bibliothèque |
+| CT-14.4 | Recharger l'éditeur | C, A retrouvés | OK — C, A retrouvés |
+| CT-14.5 | Fiche de A → « Posée dans » | « Accueil — galerie » | OK — « Accueil — galerie » |
+| CT-14.6 | Même parcours sur le **carrousel** de Contact | Identique | OK — carrousel vide au départ (« Aucune image ne compose ce carrousel. ») ; A, B, C, puis C, A, B, puis C, A, retrouvés au rechargement et en base |
+| CT-14.7 | Poser A dans le carrousel de Contact alors qu'elle est déjà dans la galerie d'Accueil | Accepté ; sa fiche liste **les deux** emplacements, chacun par sa page et sa nature | OK — fiche de A : « Accueil — galerie » puis « Contact — carrousel » |
+| CT-14.8 | Pendant le § 14, la liste des pages | Accueil et Contact portent la pastille ; Tarifs n'a pas bougé (hors CT-7.8) | OK — Accueil et Contact portent « Brouillon » ; Tarifs garde son seul brouillon de CT-7.8 (`bouton-devis`). Les pastilles d'Accueil et de Contact dataient des §§ 7 à 9 : leurs nouveaux brouillons se lisent en base |
 
 > Rang parmi plusieurs emplacements de même nature (« 1re galerie », « 2e galerie ») : aucune page
 > de démonstration n'en a deux. Pour le tester, ajouter temporairement un second emplacement
@@ -357,14 +397,16 @@ Page **Accueil**, emplacement **galerie** ; puis page **Contact**, emplacement *
 État de départ attendu : A posée dans la galerie d'Accueil **et** dans le carrousel de Contact ;
 Tarifs sans image.
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-15.1 | Fiche de A → « Supprimer… » | Une confirmation « Supprimer « A » ? » présente **d'abord** « Elle est posée dans : » suivi de la liste (Accueil — galerie, Contact — carrousel) ; boutons « Annuler » / « Supprimer » ; **rien n'est encore appliqué** | |
-| CT-15.2 | « Annuler » | Rien ne change : A toujours posée aux deux endroits | |
-| CT-15.3 | « Supprimer… » puis « Supprimer » | A est retirée de la galerie d'Accueil **et** du carrousel de Contact ; leurs brouillons sont mis à jour en base ; Accueil et Contact portent la pastille ; Tarifs non | |
-| CT-15.4 | Fiche de A après suppression | « Cette image n'est posée dans aucun emplacement. » + marque « sera effacée à la prochaine publication » ; A **reste** dans la grille (l'effacement réel attend la publication) | |
-| CT-15.5 | Ouvrir l'éditeur d'Accueil et de Contact | Aucun emplacement ne montre d'image cassée ni d'identifiant ; l'ordre des autres images de la galerie est conservé | |
-| CT-15.6 | « Supprimer… » sur une image posée nulle part | La confirmation dit « Cette image n'est posée dans aucun emplacement. » ; confirmer ne touche aucun brouillon (aucune nouvelle pastille, aucune ligne modifiée en base) | |
+| CT-15.1 | Fiche de A → « Supprimer… » | Une confirmation « Supprimer « A » ? » présente **d'abord** « Elle est posée dans : » suivi de la liste (Accueil — galerie, Contact — carrousel) ; boutons « Annuler » / « Supprimer » ; **rien n'est encore appliqué** | OK — « Supprimer « fraisier.jpg » ? », puis « Elle est posée dans : » Accueil — galerie, Contact — carrousel ; « Annuler » / « Supprimer » ; aucun envoi à l'ouverture |
+| CT-15.2 | « Annuler » | Rien ne change : A toujours posée aux deux endroits | OK — aucun envoi ; A toujours dans les deux brouillons |
+| CT-15.3 | « Supprimer… » puis « Supprimer » | A est retirée de la galerie d'Accueil **et** du carrousel de Contact ; leurs brouillons sont mis à jour en base ; Accueil et Contact portent la pastille ; Tarifs non | OK — un envoi `…/supprimer` (200) ; A retirée des brouillons de la galerie (46 images) et du carrousel (1) ; Accueil et Contact portent « Brouillon », Tarifs garde son seul brouillon |
+| CT-15.4 | Fiche de A après suppression | « Cette image n'est posée dans aucun emplacement. » + marque « sera effacée à la prochaine publication » ; A **reste** dans la grille (l'effacement réel attend la publication) | OK — « Cette image n'est posée dans aucun emplacement. » et la marque « sera effacée à la prochaine publication » ; A reste en bibliothèque |
+| CT-15.5 | Ouvrir l'éditeur d'Accueil et de Contact | Aucun emplacement ne montre d'image cassée ni d'identifiant ; l'ordre des autres images de la galerie est conservé | KO — même défaut que CT-6.3, aucun défaut nouveau. La suppression ne laisse ni trou ni reste de A : la galerie garde ses 45 images publiées dans leur ordre puis C, le carrousel garde C. Mais les images publiées sans octets s'affichent cassées : la galerie d'Accueil (24 cassées à la mesure, les autres pas encore chargées) et l'image de Contact, où « media-fixture-equipe.png » s'affiche à la place de la vignette |
+| CT-15.6 | « Supprimer… » sur une image posée nulle part | La confirmation dit « Cette image n'est posée dans aucun emplacement. » ; confirmer ne touche aucun brouillon (aucune nouvelle pastille, aucune ligne modifiée en base) | OK — sur B (`paris-brest.webp`) : « Cette image n'est posée dans aucun emplacement. » ; confirmer envoie `…/supprimer` (200) ; empreinte de tous les brouillons identique avant et après, aucune pastille nouvelle |
 
 ## 16. Écritures forgées depuis une autre origine — `pages-et-emplacements`
 
@@ -385,17 +427,23 @@ EOF
 python3 -m http.server 8080
 ```
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
+La page forgée est servie par `python3 -m http.server 8091` (le port 8080 était pris sur la machine) et vise `https://colibri.sebc.dev` au lieu de `http://127.0.0.1:8787`.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-16.1 | Ouvrir `http://localhost:8080/forge.html`, cliquer « go », lire la console | La requête n'aboutit pas (erreur réseau/CORS **ou** statut de refus) : le cookie `SameSite=Strict` n'est pas joint ; le bouton de Tarifs n'a **pas** changé ; rien de nouveau en base | |
-| CT-16.2 | Même page, remplacer l'URL par `/admin/medias/televerser` et le corps par un `FormData` portant `photo.jpg` | Refus ; rien en base | |
+| CT-16.1 | Ouvrir `http://localhost:8080/forge.html`, cliquer « go », lire la console | La requête n'aboutit pas (erreur réseau/CORS **ou** statut de refus) : le cookie `SameSite=Strict` n'est pas joint ; le bouton de Tarifs n'a **pas** changé ; rien de nouveau en base | OK — bloqué par le navigateur (CORS : la vérification préalable échoue), aucun cookie joint ; bouton de Tarifs inchangé en base (« Demander nos tarifs » → `/contact`) |
+| CT-16.2 | Même page, remplacer l'URL par `/admin/medias/televerser` et le corps par un `FormData` portant `photo.jpg` | Refus ; rien en base | OK — l'envoi part sans cookie et échoue ; base inchangée (63 images). Rejoué hors navigateur avec le cookie de session et `Origin: http://localhost:8091` : refus 403 |
 
 ## 17. Site public — `socle-ilots-admin`
 
+Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté, à 1280 × 720.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-17.1 | `npm run build`, puis inspecter `dist/` | Aucun fichier de page publique ne référence un composant de `src/admin` ni une feuille Tailwind (`grep -rlE "tailwind\|/admin/" dist/` hors du dossier admin doit être vide) | |
-| CT-17.2 | Ouvrir `http://127.0.0.1:8787/` | Aucune route serveur ne répond hors `/admin/` (le site public reste statique ; une 404 propre est acceptable tant qu'aucune page publique n'est livrée) | |
+| CT-17.1 | `npm run build`, puis inspecter `dist/` | Aucun fichier de page publique ne référence un composant de `src/admin` ni une feuille Tailwind (`grep -rlE "tailwind\|/admin/" dist/` hors du dossier admin doit être vide) | OK — build local de `9af1e47`. La commande du cahier remonte 3 fichiers de `_astro/` : le script de « Mes pages », `monter.js` et `Gabarit.css` (Tailwind), tous de l'administration, qui n'a plus de dossier bâti à elle. Aucune page publique ne les référence : `index.html`, `tarifs/`, `contact/` et `404.html` ne chargent que `site.css` (sans Tailwind) et le script du formulaire public (`src/render/Formulaire.astro`) |
+| CT-17.2 | Ouvrir `http://127.0.0.1:8787/` | Aucune route serveur ne répond hors `/admin/` (le site public reste statique ; une 404 propre est acceptable tant qu'aucune page publique n'est livrée) | OK — accueil, Tarifs et Contact servis comme fichiers fixes (`etag`, aucun cookie, CSP stricte, console vide) ; adresse inconnue : la page 404 bâtie ; POST sur `/` : 405. Seule route serveur hors `/admin/` : `api/public/demandes` (FR-097) |
 
 ## 18. La connexion habillée — change 005 · ticket 06
 
@@ -405,19 +453,19 @@ la branche `impl/connexion-habillee-06`. Pour le vrai téléphone, l'instance ex
 build. Les tests automatiques couvrent déjà la structure (SC-06a à
 SC-06e) ; ce § vise ce qu'ils ne voient pas : largeur, zones de toucher, contrastes, clavier.
 
-Joué le 2026-10-02 sur `https://colibri.sebc.dev` et les variantes du site factice (`main` `42da591`), au navigateur piloté (`playwright-cli`) : mesures calculées dans la page (contrastes, tailles, polices, `scrollWidth`), sans session pour le § 18.
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), sans session : mesures calculées dans la page (contrastes, tailles, polices, `scrollWidth`). Console : aucun message sur tout le §.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-18.1 | À 1280 px de large, sans session, ouvrir `/admin/connexion` | Une carte centrée (400 px de large au plus) sur le fond neutre chaud ; logo et titre « Connexion » en tête ; deux étapes séparées par un trait : recevoir un code (libellé « Adresse », bouton « Recevoir un code »), puis saisir le code (durée de validité, libellé « Code », bouton « Se connecter ») | OK — 1280 px sans session : carte de 400 px centrée sur fond neutre chaud ; logo puis « Connexion » ; étape 1 (« Adresse », « Recevoir un code »), trait, étape 2 (durée de validité, « Code », « Se connecter ») |
-| CT-18.2 | Outils → Éléments → onglet *Calculé*, sur le titre puis sur un libellé ; onglet Réseau, filtre *Police* | Titre en **Fraunces**, texte en **Instrument Sans** ; les polices viennent de la même origine (aucune requête vers un domaine tiers) | OK — titre Fraunces, texte Instrument Sans ; polices chargées depuis l'origine, aucune ressource tierce (`performance` : 0 requête hors origine) |
-| CT-18.3 | Regarder les deux boutons ; comparer les textes avec § 2 et § 3 | Les deux boutons portent la couleur principale (plumage) ; aucun texte n'a changé : mêmes libellés, même durée de validité, mêmes messages de refus et de plafond | OK — « Recevoir un code » et « Se connecter » en plumage rgb(14,107,85) ; textes inchangés : durée « quinze minutes » et « seul le dernier code demandé depuis cet appareil » (CT-3.1), refus « Ce code n'est pas reconnu. Vérifiez-le et retapez-le. » (CT-3.7), message de plafond |
-| CT-18.4 | Mode appareil à **360 px** de large (360 × 740), état initial ; dans la console : `document.documentElement.scrollWidth` | Valeur **≤ 360** ; aucun défilement horizontal ; la carte occupe toute la largeur moins 16 px de chaque côté ; aucun texte ni champ coupé (SC-06f) | OK — 360 × 740, état initial : scrollWidth 360, carte à 16 px de chaque bord, aucun élément ne dépasse de la carte |
-| CT-18.5 | Toujours à 360 px : saisir un code faux (état « code refusé »), puis déclencher le plafond (CT-2.8) | Dans les deux états, `scrollWidth` ≤ 360 et rien n'est coupé ; le message de refus et le message d'attente passent à la ligne sans déborder (SC-06f) | OK — 360 px, état « code refusé » (code en attente inséré en base pour l'appareil, code faux saisi) puis plafond (cinq codes de l'heure insérés en base, adresse soumise : aucun e-mail envoyé) : scrollWidth 360 dans les deux états, messages passés à la ligne, rien ne dépasse |
+| CT-18.1 | À 1280 px de large, sans session, ouvrir `/admin/connexion` | Une carte centrée (400 px de large au plus) sur le fond neutre chaud ; logo et titre « Connexion » en tête ; deux étapes séparées par un trait : recevoir un code (libellé « Adresse », bouton « Recevoir un code »), puis saisir le code (durée de validité, libellé « Code », bouton « Se connecter ») | OK — 1280 px sans session : carte de 400 px centrée (440 px de chaque côté) sur fond neutre chaud rgb(247,246,241) ; logo puis « Connexion » ; étape 1 (« Adresse », « Recevoir un code »), trait de 1 px, étape 2 (durée de validité, « Code », « Se connecter ») |
+| CT-18.2 | Outils → Éléments → onglet *Calculé*, sur le titre puis sur un libellé ; onglet Réseau, filtre *Police* | Titre en **Fraunces**, texte en **Instrument Sans** ; les polices viennent de la même origine (aucune requête vers un domaine tiers) | OK — titre Fraunces 600, texte Instrument Sans 400 et 500 ; les trois fichiers de police servis par l'origine (`/_astro/…woff2`), aucune ressource hors origine (`performance`) |
+| CT-18.3 | Regarder les deux boutons ; comparer les textes avec § 2 et § 3 | Les deux boutons portent la couleur principale (plumage) ; aucun texte n'a changé : mêmes libellés, même durée de validité, mêmes messages de refus et de plafond | OK — « Recevoir un code » et « Se connecter » en plumage rgb(14,107,85) ; textes identiques à ceux relevés aux CT-3.1 (durée « quinze minutes », « seul le dernier code demandé depuis cet appareil »), CT-3.7 (refus) et CT-2.8 (plafond) |
+| CT-18.4 | Mode appareil à **360 px** de large (360 × 740), état initial ; dans la console : `document.documentElement.scrollWidth` | Valeur **≤ 360** ; aucun défilement horizontal ; la carte occupe toute la largeur moins 16 px de chaque côté ; aucun texte ni champ coupé (SC-06f) | OK — 360 × 740, état initial : `scrollWidth` 360, carte de 328 px à 16 px de chaque bord, aucun élément ne dépasse de la carte |
+| CT-18.5 | Toujours à 360 px : saisir un code faux (état « code refusé »), puis déclencher le plafond (CT-2.8) | Dans les deux états, `scrollWidth` ≤ 360 et rien n'est coupé ; le message de refus et le message d'attente passent à la ligne sans déborder (SC-06f) | OK — 360 px, état « code refusé » (vrai code demandé pour l'adresse autorisée, code faux saisi) puis plafond (quatre codes de l'heure ajoutés en base, adresse soumise : aucun code écrit, lignes retirées ensuite) : `scrollWidth` 360 dans les deux états, messages passés à la ligne, rien ne dépasse |
 | CT-18.6 | À 360 px, dans la console : ``[...document.querySelectorAll('button,input')].map(e => { const r = e.getBoundingClientRect(); return [e.name \|\| e.textContent.trim(), Math.round(r.width), Math.round(r.height)] })`` | Les deux champs et les deux boutons mesurent chacun **au moins 44 × 44 px** (SC-06g) | OK — 360 px : champ d'adresse, « Recevoir un code », champ de code, « Se connecter » à 296 × 44 px chacun |
-| CT-18.7 | Outils → Éléments → sélecteur de couleur (ou Lighthouse → Accessibilité) sur le titre, les deux phrases d'étape, les libellés, le texte des champs et des boutons | Chaque texte atteint un contraste d'**au moins 4,5:1** sur son fond (SC-06h) | OK — titre, phrases d'étape, libellés et texte des champs 16,67:1 ; texte des boutons 6,46:1 |
-| CT-18.8 | Code faux : mesurer le contraste du message de refus | Message en rouge (danger), placé sous l'étape de code, au-dessus du champ ; contraste **≥ 4,5:1** sur son fond (SC-06d, SC-06h) | OK — refus en rouge (danger), sous la phrase de l'étape de code et au-dessus du champ, 5,62:1 |
-| CT-18.9 | Plafond atteint (CT-2.8) : lire la carte et mesurer le contraste du message d'attente | La carte ne montre **que** le message d'attente, sur fond ambre, sans champ ni bouton ; contraste **≥ 4,5:1** sur son fond ambre (SC-06b, SC-06h) | OK — plafond : la carte ne montre que « Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter un moment avant de réessayer. », sans champ ni bouton, texte rgb(138,90,0) sur ambre rgb(252,239,210), 5,2:1 ; aucun code écrit |
+| CT-18.7 | Outils → Éléments → sélecteur de couleur (ou Lighthouse → Accessibilité) sur le titre, les deux phrases d'étape, les libellés, le texte des champs et des boutons | Chaque texte atteint un contraste d'**au moins 4,5:1** sur son fond (SC-06h) | OK — titre, phrases d'étape, libellés et texte des champs rgb(23,32,28) sur blanc, 16,67:1 ; texte des boutons blanc sur plumage, 6,46:1 |
+| CT-18.8 | Code faux : mesurer le contraste du message de refus | Message en rouge (danger), placé sous l'étape de code, au-dessus du champ ; contraste **≥ 4,5:1** sur son fond (SC-06d, SC-06h) | OK — refus en rouge rgb(187,57,47) sur blanc, 5,62:1, encadré sous la phrase de l'étape de code et au-dessus du champ |
+| CT-18.9 | Plafond atteint (CT-2.8) : lire la carte et mesurer le contraste du message d'attente | La carte ne montre **que** le message d'attente, sur fond ambre, sans champ ni bouton ; contraste **≥ 4,5:1** sur son fond ambre (SC-06b, SC-06h) | OK — plafond : la carte ne montre que « Trop de demandes de connexion ont déjà été envoyées récemment. Merci de patienter un moment avant de réessayer. », sans champ ni bouton ; texte rgb(138,90,0) sur ambre rgb(252,239,210), 5,2:1 |
 | CT-18.10 | Sur un **vrai téléphone** (iPhone et Android si possible) : toucher le champ d'adresse, puis le champ de code | Le champ d'adresse ouvre le clavier d'e-mail (touche `@`) ; le champ de code propose le code reçu en suggestion quand l'appareil sait le faire — NA si le code n'arrive pas sur le téléphone, puisqu'en local aucun e-mail ne part (SC-06c) | NA — exige un vrai téléphone ; structure vérifiée : champ d'adresse `type="email"` `autocomplete="email"`, champ de code `autocomplete="one-time-code"` |
 
 Mesure de contraste : dans Chrome, cliquer la pastille de couleur d'une propriété `color` dans
@@ -433,16 +481,16 @@ la moitié de SC-05b) ; ce § vise ce qu'ils ne voient pas : la marque ajoutée 
 sans recharger, après un enregistrement (SC-05b). Partir d'une base remise à zéro (§ 0.6), console
 ouverte.
 
-Joué le 2026-10-02 sur `https://colibri.sebc.dev` et les variantes du site factice (`main` `42da591`), au navigateur piloté (`playwright-cli`) : mesures calculées dans la page (contrastes, tailles, polices, `scrollWidth`), sans session pour le § 18.
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), à 1280 × 720, après effacement des seuls brouillons de pages en base (la bibliothèque semée au § 14 et les marques de publication sont gardées). Console : aucun message sur tout le §.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-19.1 | Ouvrir « Mes pages » | Aucune ligne ne porte de marque « Brouillon » | OK — « Mes pages » sans aucune marque après remise à zéro |
-| CT-19.2 | Ouvrir **Tarifs** (sans brouillon) ; corriger le texte du bouton d'action et enregistrer, **sans recharger** | Une marque apparaît à côté du titre : libellé écrit « Brouillon », point devant, texte rubis sur fond rubis pâle, forme de pastille ; aucune violation CSP dans la console (SC-05b) | OK — après enregistrement sans recharger, marque « Brouillon » à côté du titre : point de 6 px, texte rubis rgb(180,35,90) sur rubis pâle rgb(251,227,236), pastille (rayon plein) ; console vide |
-| CT-19.3 | Sans recharger, enregistrer une seconde correction ; dans la console : `document.querySelectorAll('[data-pastille-brouillon]').length` | Toujours **une seule** marque à l'écran ; la console renvoie **1** (SC-05b) | OK — seconde correction enregistrée : `[data-pastille-brouillon]` = 1 |
-| CT-19.4 | Recharger l'éditeur de Tarifs ; comparer avec la marque vue en CT-19.2 | Marque visuellement identique : même libellé, même point, mêmes couleurs, même taille, même place (SC-05b) | OK — après rechargement, marque identique au pixel près (position, taille, couleurs, police, balisage) |
-| CT-19.5 | Revenir à « Mes pages » | La ligne Tarifs porte la même marque que le titre de son éditeur (SC-05a) | OK — la ligne Tarifs porte la même marque (balisage identique), les autres non |
-| CT-19.6 | Parcourir « Mes pages », l'éditeur, Médias et la fiche d'une image | Aucun bouton ni lien n'est rubis : cette couleur ne paraît que dans la marque (SC-05c) | OK — aucun élément hors de la marque en rubis ni rubis pâle (texte, fond, bord) sur « Mes pages », l'éditeur, Médias et la fiche d'une image |
+| CT-19.1 | Ouvrir « Mes pages » | Aucune ligne ne porte de marque « Brouillon » | OK — brouillons de pages effacés en base (bibliothèque et publication gardées) : « Mes pages » sans aucune marque, `[data-pastille-brouillon]` = 0 |
+| CT-19.2 | Ouvrir **Tarifs** (sans brouillon) ; corriger le texte du bouton d'action et enregistrer, **sans recharger** | Une marque apparaît à côté du titre : libellé écrit « Brouillon », point devant, texte rubis sur fond rubis pâle, forme de pastille ; aucune violation CSP dans la console (SC-05b) | OK — libellé du bouton corrigé et enregistré sans recharger : marque « Brouillon » à droite du titre, sur sa ligne ; point de 6 px, texte rubis rgb(180,35,90) sur rubis pâle rgb(251,227,236), pastille (rayon plein), Instrument Sans 12 px ; console vide |
+| CT-19.3 | Sans recharger, enregistrer une seconde correction ; dans la console : `document.querySelectorAll('[data-pastille-brouillon]').length` | Toujours **une seule** marque à l'écran ; la console renvoie **1** (SC-05b) | OK — seconde correction enregistrée (« Demander nos tarifs détaillés », lue en base) : `[data-pastille-brouillon]` = 1 |
+| CT-19.4 | Recharger l'éditeur de Tarifs ; comparer avec la marque vue en CT-19.2 | Marque visuellement identique : même libellé, même point, mêmes couleurs, même taille, même place (SC-05b) | OK — après rechargement, marque identique : même position (507 × 151), même taille (76 × 20 px), mêmes couleurs, police et balisage |
+| CT-19.5 | Revenir à « Mes pages » | La ligne Tarifs porte la même marque que le titre de son éditeur (SC-05a) | OK — la ligne Tarifs porte la marque au balisage identique à celle de l'éditeur ; Accueil et Contact n'en portent pas |
+| CT-19.6 | Parcourir « Mes pages », l'éditeur, Médias et la fiche d'une image | Aucun bouton ni lien n'est rubis : cette couleur ne paraît que dans la marque (SC-05c) | OK — aucun élément hors de la marque en rubis ni rubis pâle (texte, fond, bord, contour) sur « Mes pages », l'éditeur de Tarifs, Médias et la fiche d'une image (N-11.jpg) |
 
 ---
 
@@ -455,18 +503,18 @@ couvrent déjà le balisage : ordre des lignes, adresse sous le titre en `font-m
 et SC-07c) ; ce § vise ce qu'ils ne voient pas : polices réellement rendues, largeur, zones de
 toucher, contrastes. Partir d'une base remise à zéro (§ 0.6), session ouverte.
 
-Joué le 2026-10-02 sur `https://colibri.sebc.dev` et les variantes du site factice (`main` `42da591`), au navigateur piloté (`playwright-cli`) : mesures calculées dans la page (contrastes, tailles, polices, `scrollWidth`), sans session pour le § 18.
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` et les variantes `titres-longs` et `vide` du site factice (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), après effacement des seuls brouillons de pages. Console : seul le 404 de `favicon.ico` sur les variantes.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-20.1 | À 1280 px de large, ouvrir « Mes pages » | Sous le titre, une carte sur le fond neutre chaud (ni blanc pur ni gris froid) ; une ligne par page dans l'ordre Accueil, Tarifs, Contact, séparées par un filet ; sous chaque titre, son adresse : `/`, `/tarifs`, `/contact` (SC-07a, SC-07c) | OK — carte blanche bordée (1 px, sans ombre) sur fond neutre chaud rgb(247,246,241) ; Accueil, Tarifs, Contact dans l'ordre, filets 1 px entre les lignes ; adresses /, /tarifs, /contact |
+| CT-20.1 | À 1280 px de large, ouvrir « Mes pages » | Sous le titre, une carte sur le fond neutre chaud (ni blanc pur ni gris froid) ; une ligne par page dans l'ordre Accueil, Tarifs, Contact, séparées par un filet ; sous chaque titre, son adresse : `/`, `/tarifs`, `/contact` (SC-07a, SC-07c) | OK — 1280 px : carte blanche bordée (1 px rgb(225,223,214), sans ombre) sur fond neutre chaud rgb(247,246,241) ; Accueil, Tarifs, Contact dans l'ordre, filets de 1 px entre les lignes ; adresses /, /tarifs, /contact |
 | CT-20.2 | Outils → Éléments → onglet *Calculé* (ou *Polices affichées*) sur le titre « Mes pages », sur le titre d'une ligne, puis sur une adresse ; dans la console : `[...document.fonts].filter(f => f.status === 'loaded').map(f => f.family)` | Titre de l'écran en **Fraunces**, texte des lignes en **Instrument Sans**, adresse en **JetBrains Mono** ; les trois familles figurent parmi les polices chargées (SC-07b, SC-07c) | OK — titre Fraunces, lignes Instrument Sans, adresses JetBrains Mono ; les trois familles chargées |
-| CT-20.3 | Corriger un emplacement de **Tarifs** et enregistrer, puis revenir à « Mes pages » | La ligne Tarifs porte la marque « Brouillon » (§ 19), sur la ligne de l'adresse, sans décaler le titre ; cliquer n'importe où sur la ligne ouvre l'éditeur de Tarifs | OK — marque sur la ligne de l'adresse de Tarifs, hauteur de ligne inchangée (77 px comme Accueil) ; un clic à l'extrême droite de la ligne ouvre l'éditeur de Tarifs |
-| CT-20.4 | Mode appareil à **360 px** de large (360 × 740), avec le brouillon de CT-20.3 ; dans la console : `document.documentElement.scrollWidth` | Valeur **≤ 360** ; aucun défilement horizontal ; titre, adresse et marque de brouillon ne sont pas coupés ; la marque passe sous le titre (SC-07d, SC-07e) | OK — 360 × 740 : scrollWidth 360 ; rien de coupé ; la marque passe sous le titre, sur la ligne de l'adresse |
-| CT-20.5 | Titre long : dans `content/pages/tarifs/page.json`, remplacer `"titre": "Tarifs"` par un titre de 80 caractères sans espace (ex. `TarifsDesPrestationsDeMariageEtDeReceptionPourLesGrandesOccasionsDeLaSaisonDEte`), puis un titre de 120 caractères avec espaces ; rebâtir et servir (§ 0.2), ouvrir « Mes pages » à 360 px ; **à la fin, `git restore content/pages` et rebâtir** | Dans les deux cas, `scrollWidth` ≤ 360 ; le titre passe à la ligne sans déborder de la carte, rien n'est coupé ; l'adresse reste lisible sous le titre (SC-07d) | OK — variante `titres-longs` à 360 px : titres de 120 signes (4 lignes) et de 80 signes sans espace (3 lignes) passent à la ligne dans la carte (bord droit ≤ 306 px pour une carte à 328 px), scrollWidth 360, adresses lisibles dessous |
-| CT-20.6 | À 360 px, dans la console : ``[...document.querySelectorAll('#liste-des-pages > li, a, button')].map(e => { const r = e.getBoundingClientRect(); return [e.textContent.trim().slice(0, 20), Math.round(r.width), Math.round(r.height)] })`` | Chaque ligne de la liste et chaque lien ou bouton de l'écran mesure **au moins 44 × 44 px** (SC-07e) | OK — 360 px : les trois lignes 294 × 76-77 px, « Ouvrir le menu » 44 × 44 px ; aucune cible sous 44 px |
-| CT-20.7 | Sélecteur de couleur (onglet Styles) ou Lighthouse → Accessibilité, sur : le titre de l'écran, le titre d'une ligne, une adresse, la marque « Brouillon » | Chaque texte atteint **≥ 4,5:1** sur son fond ; l'adresse, en texte atténué, aussi (SC-07f) | OK — contrastes calculés : titre 15,41:1, ligne 16,67:1, adresse (atténuée) 6,12:1, marque « Brouillon » 5,2:1 |
-| CT-20.8 | Liste vide : déplacer temporairement les trois dossiers de `content/pages/` hors du dépôt, rebâtir et servir, ouvrir « Mes pages » à 1280 px puis à 360 px ; mesurer le contraste du message ; **à la fin, remettre les dossiers en place (`git status` propre) et rebâtir** | Le message « Aucune page n'est disponible pour le moment : il n'y a rien à modifier ici. » s'affiche **dans la carte**, en texte atténué, inchangé ; contraste **≥ 4,5:1** ; à 360 px, `scrollWidth` ≤ 360 (SC-07d, SC-07f) | OK — variante `vide` : « Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici. » dans la carte, texte atténué rgb(91,100,95), contraste 6,12:1 ; aucun bouton ; scrollWidth 1280 puis 360 |
+| CT-20.3 | Corriger un emplacement de **Tarifs** et enregistrer, puis revenir à « Mes pages » | La ligne Tarifs porte la marque « Brouillon » (§ 19), sur la ligne de l'adresse, sans décaler le titre ; cliquer n'importe où sur la ligne ouvre l'éditeur de Tarifs | OK — libellé du bouton de Tarifs corrigé et enregistré : marque sur la ligne de l'adresse, sous le titre, hauteur de ligne inchangée (77 px comme Accueil) ; un clic à 4 px du bord droit de la ligne ouvre l'éditeur de Tarifs |
+| CT-20.4 | Mode appareil à **360 px** de large (360 × 740), avec le brouillon de CT-20.3 ; dans la console : `document.documentElement.scrollWidth` | Valeur **≤ 360** ; aucun défilement horizontal ; titre, adresse et marque de brouillon ne sont pas coupés ; la marque passe sous le titre (SC-07d, SC-07e) | OK — 360 × 740 : `scrollWidth` 360 ; rien de coupé ; la marque passe sous le titre, sur la ligne de l'adresse |
+| CT-20.5 | Titre long : dans `content/pages/tarifs/page.json`, remplacer `"titre": "Tarifs"` par un titre de 80 caractères sans espace (ex. `TarifsDesPrestationsDeMariageEtDeReceptionPourLesGrandesOccasionsDeLaSaisonDEte`), puis un titre de 120 caractères avec espaces ; rebâtir et servir (§ 0.2), ouvrir « Mes pages » à 360 px ; **à la fin, `git restore content/pages` et rebâtir** | Dans les deux cas, `scrollWidth` ≤ 360 ; le titre passe à la ligne sans déborder de la carte, rien n'est coupé ; l'adresse reste lisible sous le titre (SC-07d) | OK — joué sur la variante `titres-longs` (`site-titres-longs-…`) à 360 px : Tarifs à 80 signes sans espace et Accueil à 120 signes avec espaces dans la même liste ; `scrollWidth` 360, titres passés à la ligne dans la carte (lignes de 121 et 143 px), adresses lisibles dessous |
+| CT-20.6 | À 360 px, dans la console : ``[...document.querySelectorAll('#liste-des-pages > li, a, button')].map(e => { const r = e.getBoundingClientRect(); return [e.textContent.trim().slice(0, 20), Math.round(r.width), Math.round(r.height)] })`` | Chaque ligne de la liste et chaque lien ou bouton de l'écran mesure **au moins 44 × 44 px** (SC-07e) | OK — 360 px : les trois lignes à 294 × 76 ou 77 px, bouton du menu 44 × 44, « Publier » 72 × 44 ; les liens du menu replié ne sont pas affichés |
+| CT-20.7 | Sélecteur de couleur (onglet Styles) ou Lighthouse → Accessibilité, sur : le titre de l'écran, le titre d'une ligne, une adresse, la marque « Brouillon » | Chaque texte atteint **≥ 4,5:1** sur son fond ; l'adresse, en texte atténué, aussi (SC-07f) | OK — titre 15,41:1 ; titre de ligne 16,67:1 ; adresse en texte atténué rgb(91,100,95) 6,12:1 ; marque « Brouillon » 5,2:1 |
+| CT-20.8 | Liste vide : déplacer temporairement les trois dossiers de `content/pages/` hors du dépôt, rebâtir et servir, ouvrir « Mes pages » à 1280 px puis à 360 px ; mesurer le contraste du message ; **à la fin, remettre les dossiers en place (`git status` propre) et rebâtir** | Le message « Aucune page n'est disponible pour le moment : il n'y a rien à modifier ici. » s'affiche **dans la carte**, en texte atténué, inchangé ; contraste **≥ 4,5:1** ; à 360 px, `scrollWidth` ≤ 360 (SC-07d, SC-07f) | OK — joué sur la variante `vide` (`site-vide-…`) : « Aucune page n’est disponible pour le moment : il n’y a rien à modifier ici. » dans la carte, en texte atténué, 6,12:1 ; `scrollWidth` 1280 puis 360 ; aucun bouton ni lien dans la zone principale |
 
 ---
 
@@ -474,19 +522,19 @@ Joué le 2026-10-02 sur `https://colibri.sebc.dev` et les variantes du site fact
 
 Livré par la PR **#122** : le run a mesuré ces points sur l'artefact bâti, ce § les rejoue à la main. Avant la fusion, servir le build de la branche `impl/editeur-emplacements-texte-08`. Aucun test automatique ne voit le rendu de l'éditeur (ni feuille, ni CSP dans `workerd`). **SC-08a reste ouvert** : chaque carte affiche le nom de sa nature ; le nom propre de chaque emplacement, déclaré par l'intégrateur, viendra avec un change dédié — ne pas le chercher ici. Partir d'une base remise à zéro (§ 0.6), session ouverte, console ouverte.
 
-Joué le 2026-10-02 sur `https://colibri.sebc.dev` et les variantes du site factice (`main` `42da591`), au navigateur piloté (`playwright-cli`) : mesures calculées dans la page (contrastes, tailles, polices, `scrollWidth`), sans session pour le § 18.
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` et la variante `titres-longs` du site factice (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), après effacement des seuls brouillons de pages. Console : aucune violation CSP ; seuls les 401 attendus des refus de CT-21.5.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-21.1 | À 1280 px de large, ouvrir l'éditeur d'**Accueil** | En tête, le lien « ‹ Mes pages » puis le titre de la page ; une carte par emplacement, dans l'ordre Texte riche, Lien de la vidéo, Bouton d'action, Image, Galerie ; chaque carte porte le **nom de sa nature** au-dessus de son contenu, puis ses gestes ; fond neutre chaud, cartes sans ombre (SC-08a, SC-08c) | OK — 1280 px : « ‹ Mes pages » puis « Accueil » ; cartes Texte riche, Lien de la vidéo, Bouton d’action, Image, Galerie dans l'ordre, nature en tête ; fond neutre chaud rgb(247,246,241), cartes blanches cerclées d'un filet 1 px, sans ombre portée |
-| CT-21.2 | Outils → Éléments → onglet *Calculé* sur le titre de la page, un titre de carte, le texte d'un champ ; regarder les trois boutons « Enregistrer » | Titre de la page en **Fraunces**, le reste en **Instrument Sans** ; les trois « Enregistrer » dans la couleur principale (plumage), texte blanc (SC-08c) | OK — titre Fraunces, cartes et champs Instrument Sans ; les trois « Enregistrer » en plumage rgb(14,107,85), texte blanc (6,46:1) |
-| CT-21.3 | Mode appareil à **360 px** de large (360 × 740) ; parcourir l'éditeur ; corriger le texte riche et enregistrer, puis régler le lien de vidéo et enregistrer | Les cartes se suivent sur **une seule colonne**, en pleine largeur ; dans chaque carte, « Enregistrer » passe sous le contenu, en pleine largeur ; corriger, enregistrer et régler le lien restent possibles ; après le premier enregistrement, la marque « Brouillon » apparaît à côté du titre (SC-08a) | OK — 360 px : cinq cartes en une colonne (296 px de large, même bord gauche) ; les trois « Enregistrer » sous leur contenu, pleine largeur de carte (264 px dans 296 px de carte, marge intérieure comprise) ; texte riche puis lien de vidéo corrigés et enregistrés (lus en base) ; marque « Brouillon » apparue dès le premier enregistrement ; scrollWidth 360 |
-| CT-21.4 | Onglet Réseau, limitation *3G lente* ; enregistrer une correction du bouton d'action | Pendant l'envoi, « Enregistrer » est **désactivé** et garde son libellé (aucun « Enregistrement… ») ; il redevient actif à la fin (SC-08b) | OK — envoi retardé de 4 s (interception réseau) : « Enregistrer » désactivé de ~1 s à ~4 s, libellé inchangé, réactivé ensuite ; correction écrite en base |
-| CT-21.5 | Outils → Application → Cookies : supprimer le cookie `__Host-…` **sans recharger** ; actionner « Enregistrer » dans chacune des trois cartes de texte ; se reconnecter ensuite (§ 0.3) | Chaque carte affiche, **dans la carte**, « Votre accès a expiré : reconnectez-vous, puis réessayez. » en rouge (danger) sur fond rouge pâle ; les autres cartes ne bougent pas ; rien d'écrit en base (SC-08b) | OK — cookie `__Host-session` supprimé sans recharger, « Enregistrer » des trois cartes de texte : chacune affiche dans la carte « Votre accès a expiré : reconnectez-vous, puis réessayez. », rouge rgb(180,35,24) sur rouge pâle (5,55:1) ; cartes Image et Galerie inchangées ; brouillons en base inchangés (même nombre, mêmes dates) |
-| CT-21.6 | À 360 px, dans la console : `document.documentElement.scrollWidth`, au repos puis après les refus de CT-21.5. Titre long : dans `content/pages/accueil/page.json`, remplacer `"titre": "Accueil"` par un titre de 80 caractères sans espace, puis de 120 caractères avec espaces ; rebâtir et servir (§ 0.2) ; **à la fin, `git restore content/pages` et rebâtir** | Dans tous les cas, valeur **≤ 360** ; aucun défilement horizontal ; le titre passe à la ligne avec sa marque de brouillon, rien n'est coupé ; les messages de refus passent à la ligne sans déborder (SC-08d) | OK (titres longs) — variante `titres-longs` à 360 px : titre d'Accueil (120 signes) sur 8 lignes, titre de Tarifs (80 signes sans espace) sur 7 lignes avec sa marque « Brouillon » dessous, bord droit 325 px, scrollWidth 360 ; refus : voir mesure à 360 px plus bas ; OK (refus) — 360 px : scrollWidth 360 au repos et après les trois refus de CT-21.5, messages passés à la ligne dans leur carte |
-| CT-21.7 | À 360 px, ouvrir le champ de lien du texte riche (bouton « Lien »), puis dans la console : ``[...document.querySelectorAll('main a, main button, main input, main [contenteditable]')].map(e => { const r = e.getBoundingClientRect(); return [e.textContent.trim().slice(0, 20) \|\| e.placeholder \|\| e.type, Math.round(r.width), Math.round(r.height), getComputedStyle(e).fontSize] })`` | Chaque lien, bouton et champ des emplacements de texte mesure **au moins 44 × 44 px** (SC-08e) ; les quatre champs de saisie et la zone d'écriture du texte riche ont **la même taille de texte**, 16 px. « Remplacer l'image » et « Ajouter une image » relèvent du ticket 09 : voir CT-22.10 | OK — 360 px, champ de lien du texte riche ouvert : 17 liens, boutons et champs mesurés, aucun sous 44 × 44 px ; les quatre champs de saisie et la zone d'écriture du texte riche à 16 px |
-| CT-21.8 | Sélecteur de couleur (onglet Styles) ou Lighthouse → Accessibilité, sur : le titre, un titre de carte, le texte d'un champ, le **texte d'exemple grisé** du champ « Adresse du lien », un message de refus (CT-21.5), la marque « Brouillon », le texte d'un « Enregistrer » | Chaque texte atteint **≥ 4,5:1** sur son fond, texte d'exemple compris (≈ 6:1 attendu) (SC-08f) | OK — titre 15,41:1, titre de carte 16,67:1, texte d'un champ 16,67:1, texte d'exemple grisé de « Adresse du lien » 6,12:1, refus 5,55:1, marque 5,2:1, « Enregistrer » 6,46:1 |
-| CT-21.9 | Console ouverte pendant tout le § 21 ; dans le texte riche, taper deux espaces de suite entre deux mots, enregistrer, recharger | **Aucune** violation CSP, et aucun avertissement de l'éditeur de texte riche sur `white-space` (corrigé par la PR **#124**) ; les deux espaces restent deux espaces ordinaires à l'écran, après l'enregistrement et après le rechargement | OK — deux espaces tapés après « pâtisserie » (devant l'espace existant) : trois espaces ordinaires (U+0020) à l'écran, enregistrés tels quels, retrouvés après rechargement (`white-space: break-spaces`) ; console vide (0 message) sur tout le § 21 |
+| CT-21.1 | À 1280 px de large, ouvrir l'éditeur d'**Accueil** | En tête, le lien « ‹ Mes pages » puis le titre de la page ; une carte par emplacement, dans l'ordre Texte riche, Lien de la vidéo, Bouton d'action, Image, Galerie ; chaque carte porte le **nom de sa nature** au-dessus de son contenu, puis ses gestes ; fond neutre chaud, cartes sans ombre (SC-08a, SC-08c) | OK — 1280 px : « ‹ Mes pages », titre « Accueil », puis « Voir l’aperçu » ; cartes Texte riche, Lien de la vidéo, Bouton d’action, Image, Galerie dans l'ordre, nom de la nature en tête de chaque carte, gestes dessous ; fond neutre chaud rgb(247,246,241), cartes blanches cerclées d'un filet de 1 px, sans ombre portée |
+| CT-21.2 | Outils → Éléments → onglet *Calculé* sur le titre de la page, un titre de carte, le texte d'un champ ; regarder les trois boutons « Enregistrer » | Titre de la page en **Fraunces**, le reste en **Instrument Sans** ; les trois « Enregistrer » dans la couleur principale (plumage), texte blanc (SC-08c) | OK — titre Fraunces ; titres de carte, champs et zone d'écriture Instrument Sans ; les trois « Enregistrer » en plumage rgb(14,107,85), texte blanc |
+| CT-21.3 | Mode appareil à **360 px** de large (360 × 740) ; parcourir l'éditeur ; corriger le texte riche et enregistrer, puis régler le lien de vidéo et enregistrer | Les cartes se suivent sur **une seule colonne**, en pleine largeur ; dans chaque carte, « Enregistrer » passe sous le contenu, en pleine largeur ; corriger, enregistrer et régler le lien restent possibles ; après le premier enregistrement, la marque « Brouillon » apparaît à côté du titre (SC-08a) | OK — 360 × 740 : cartes sur une colonne (296 px de large, à 32 px du bord) ; chaque « Enregistrer » sous son contenu, pleine largeur (264 × 44) ; texte riche corrigé puis lien Vimeo réglé, tous deux lus en base ; marque « Brouillon » présente dès le premier enregistrement |
+| CT-21.4 | Onglet Réseau, limitation *3G lente* ; enregistrer une correction du bouton d'action | Pendant l'envoi, « Enregistrer » est **désactivé** et garde son libellé (aucun « Enregistrement… ») ; il redevient actif à la fin (SC-08b) | OK — envoi retardé de 2,5 s (route du navigateur, à la place de la limitation 3G lente) : « Enregistrer » désactivé à 0,4 s et à 1,6 s, libellé « Enregistrer » inchangé, actif de nouveau à la fin ; enregistrement lu en base |
+| CT-21.5 | Outils → Application → Cookies : supprimer le cookie `__Host-…` **sans recharger** ; actionner « Enregistrer » dans chacune des trois cartes de texte ; se reconnecter ensuite (§ 0.3) | Chaque carte affiche, **dans la carte**, « Votre accès a expiré : reconnectez-vous, puis réessayez. » en rouge (danger) sur fond rouge pâle ; les autres cartes ne bougent pas ; rien d'écrit en base (SC-08b) | OK — cookie `__Host-session` retiré sans recharger : « Votre accès a expiré : reconnectez-vous, puis réessayez. » dans chacune des trois cartes de texte, rouge rgb(180,35,24) sur rouge pâle rgb(253,231,229) ; cartes Image et Galerie sans message ; dates d'écriture des brouillons inchangées en base ; reconnecté ensuite |
+| CT-21.6 | À 360 px, dans la console : `document.documentElement.scrollWidth`, au repos puis après les refus de CT-21.5. Titre long : dans `content/pages/accueil/page.json`, remplacer `"titre": "Accueil"` par un titre de 80 caractères sans espace, puis de 120 caractères avec espaces ; rebâtir et servir (§ 0.2) ; **à la fin, `git restore content/pages` et rebâtir** | Dans tous les cas, valeur **≤ 360** ; aucun défilement horizontal ; le titre passe à la ligne avec sa marque de brouillon, rien n'est coupé ; les messages de refus passent à la ligne sans déborder (SC-08d) | OK — 360 px : `scrollWidth` 360 au repos et après les trois refus (messages sur deux lignes, dans les cartes). Variante `titres-longs` : Accueil (120 signes avec espaces) et Tarifs (80 signes sans espace) passent à la ligne dans la largeur, marque « Brouillon » dessous ; `scrollWidth` 360, rien ne dépasse |
+| CT-21.7 | À 360 px, ouvrir le champ de lien du texte riche (bouton « Lien »), puis dans la console : ``[...document.querySelectorAll('main a, main button, main input, main [contenteditable]')].map(e => { const r = e.getBoundingClientRect(); return [e.textContent.trim().slice(0, 20) \|\| e.placeholder \|\| e.type, Math.round(r.width), Math.round(r.height), getComputedStyle(e).fontSize] })`` | Chaque lien, bouton et champ des emplacements de texte mesure **au moins 44 × 44 px** (SC-08e) ; les quatre champs de saisie et la zone d'écriture du texte riche ont **la même taille de texte**, 16 px. « Remplacer l'image » et « Ajouter une image » relèvent du ticket 09 : voir CT-22.10 | OK — 360 px, champ de lien du texte riche ouvert : 18 liens, boutons et champs mesurés, aucun sous 44 × 44 px ; les quatre champs de saisie et la zone d'écriture du texte riche à 16 px |
+| CT-21.8 | Sélecteur de couleur (onglet Styles) ou Lighthouse → Accessibilité, sur : le titre, un titre de carte, le texte d'un champ, le **texte d'exemple grisé** du champ « Adresse du lien », un message de refus (CT-21.5), la marque « Brouillon », le texte d'un « Enregistrer » | Chaque texte atteint **≥ 4,5:1** sur son fond, texte d'exemple compris (≈ 6:1 attendu) (SC-08f) | OK — titre 15,41:1 ; titre de carte et texte d'un champ 16,67:1 ; texte d'exemple du champ « Adresse du lien » rgb(91,100,95) 6,12:1 ; refus 5,55:1 ; marque 5,2:1 ; texte d'« Enregistrer » 6,46:1 |
+| CT-21.9 | Console ouverte pendant tout le § 21 ; dans le texte riche, taper deux espaces de suite entre deux mots, enregistrer, recharger | **Aucune** violation CSP, et aucun avertissement de l'éditeur de texte riche sur `white-space` (corrigé par la PR **#124**) ; les deux espaces restent deux espaces ordinaires à l'écran, après l'enregistrement et après le rechargement | OK — « Venez  nous voir. » tapé avec deux espaces, enregistré (deux espaces dans le texte lu en base), rechargé : deux espaces ordinaires (codes 32, 32) à l'écran avant et après rechargement, `white-space: break-spaces` ; console vide pendant la saisie et l'enregistrement, aucune violation CSP sur tout le § (seuls les 401 attendus de CT-21.5) |
 
 ---
 
@@ -502,37 +550,37 @@ zéro (§ 0.6), session ouverte, console ouverte. Il faut **au moins une douzain
 bibliothèque pour que la sur-couche défile : téléverser le jeu du § 0.4 (fichiers admis) plusieurs
 fois.
 
-Joué le 2026-10-02 sur `https://colibri.sebc.dev` et les variantes du site factice (`main` `42da591`), au navigateur piloté (`playwright-cli`) : mesures calculées dans la page (contrastes, tailles, polices, `scrollWidth`), sans session pour le § 18.
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), après effacement des seuls brouillons de pages, bibliothèque garnie au § 14 (63 images, dont 16 avec leurs octets ; les 47 images publiées s'affichent cassées, défaut de CT-6.3).
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-22.1 | À 1280 px de large, éditeur d'**Accueil**, carte **Image**, sans image posée | La carte dit « Aucune image n'est posée à cet emplacement. » en texte atténué, puis le bouton « Choisir une image » dans la couleur principale | OK — 1280 px, carte Image vide : « Aucune image n'est posée à cet emplacement. » atténué (6,12:1), puis « Choisir une image » en plumage, texte blanc |
-| CT-22.2 | « Choisir une image » ; choisir une image | Une sur-couche « Choisir une image » s'ouvre, vignettes sur 3 colonnes, bouton de fermeture (croix) en haut à droite ; au choix, elle se ferme et la carte **montre l'image posée** (plus une phrase) ; la marque « Brouillon » apparaît à côté du titre | OK — sur-couche « Choisir une image », 12 vignettes sur 3 colonnes, croix « Fermer » en haut à droite ; au choix (A · fraisier) elle se ferme et la carte montre l'image (plus de phrase, bouton « Remplacer l'image ») ; marque « Brouillon » à côté du titre (déjà présente depuis le § 21 sur Accueil ; son apparition sur une page sans brouillon est constatée en CT-22.5 sur Contact) |
-| CT-22.3 | « Remplacer l'image » ; en choisir une autre ; recharger | La nouvelle image est montrée à la place de l'ancienne, et retrouvée au rechargement (SC-09a) | OK — « Remplacer l'image » → J · buffet : nouvelle image montrée, retrouvée au rechargement |
-| CT-22.4 | Carte **Galerie** : « Ajouter une image » trois fois (A, B, C) ; puis Descendre A, Monter C, Retirer B | La sur-couche « Ajouter une image » s'ouvre à chaque ajout ; les vignettes composées s'alignent sur 3 colonnes ; le compte suit (« 3 images composent cette galerie. », puis 2) ; « Monter » est grisé sur la première image, « Descendre » sur la dernière (SC-09a) | OK — Galerie : trois ajouts (fraisier, paris-brest, tarte citron), sur-couche « Ajouter une image » à chaque fois ; vignettes composées sur 3 colonnes ; « 3 images composent cette galerie. » puis « 2 … » après Retirer ; Descendre A, Monter C, Retirer B donnent l'ordre attendu ; « Monter » grisé sur la première, « Descendre » sur la dernière à chaque étape |
-| CT-22.5 | Mode appareil à **360 px** de large (360 × 740) ; refaire CT-22.2 à CT-22.4 sur Accueil, puis composer le **carrousel** de **Contact** ; à chaque étape, dans la console : `document.documentElement.scrollWidth` | Tous les gestes restent possibles ; valeur **≤ 360**, sur-couche ouverte comprise ; « Choisir une image », « Remplacer l'image » et « Ajouter une image » prennent toute la largeur de la carte ; les vignettes composées passent sur 2 colonnes (SC-09a) | OK — 360 × 740 : sur Accueil, remplacer l'image, ajouter, monter et retirer dans la galerie ; sur Contact, carrousel composé de trois images (« 3 images composent ce carrousel. ») ; scrollWidth 360 à chaque étape, sur-couche ouverte comprise ; « Remplacer l'image » et « Ajouter une image » à 264 px, pleine largeur de carte ; vignettes composées sur 2 colonnes ; la marque « Brouillon » apparaît sur Contact (0 → 1) au premier ajout |
-| CT-22.6 | À 360 px, ouvrir la sur-couche de choix ; faire défiler son contenu jusqu'en bas | La sur-couche occupe l'écran moins 16 px de chaque côté, sans déborder en largeur ; vignettes sur 2 colonnes ; **seul son contenu défile** : le titre et la croix de fermeture restent visibles en haut ; la croix ferme la sur-couche (SC-09b) | OK — 360 px : sur-couche à 16 px de chaque bord, vignettes sur 2 colonnes ; seule sa zone de contenu défile (jusqu'en bas, 312 px) : titre et croix restent à 32 px du haut ; la croix ferme la sur-couche |
-| CT-22.7 | Outils → *Rendu* (Chrome) → « Émuler la fonctionnalité CSS prefers-reduced-motion » → `reduce` ; ouvrir puis fermer la sur-couche, à 1280 px et à 360 px | La sur-couche apparaît et disparaît **sans mouvement** (ni zoom, ni glissement) (SC-09c) | OK — `prefers-reduced-motion: reduce` émulé, à 1280 et 360 px : à l'ouverture et à la fermeture, aucune animation active (`getAnimations()` vide, `animation: none`) ; contrôle sans la préférence : animation `enter` de 100 ms sur la sur-couche et son fond |
-| CT-22.8 | Outils → Application → Cookies : supprimer le cookie `__Host-…` **sans recharger** ; carte Image : ouvrir le choix et choisir une image ; puis fermer la sur-couche avec la croix | Le refus « Votre accès a expiré : reconnectez-vous, puis réessayez. » s'affiche **dans la sur-couche**, en rouge (danger) sur fond rouge pâle, sous le titre, sans la fermer ; après fermeture, le même texte s'affiche **dans la carte Image**, dans le même style ; les autres cartes ne bougent pas ; rien d'écrit en base (SC-09d) | OK — cookie supprimé sans recharger, carte Image : choisir (chocolats) → « Votre accès a expiré : reconnectez-vous, puis réessayez. » dans la sur-couche, sous le titre, rouge rgb(180,35,24) sur rouge pâle, sur-couche restée ouverte ; fermée par la croix, le même texte, même style, dans la carte Image ; image posée inchangée (facade), autres cartes sans message ; brouillons en base inchangés (7, mêmes dates) |
-| CT-22.9 | Toujours sans cookie : carte Galerie, « Ajouter une image » → choisir une image (lire, puis fermer) ; puis « Monter » ou « Retirer » sur une image composée ; se reconnecter ensuite (§ 0.3) | Le refus d'ajout s'affiche dans la sur-couche, puis dans la carte Galerie après fermeture ; le refus de Monter ou Retirer s'affiche **directement dans la carte Galerie** ; même texte, même style qu'en CT-22.8 (SC-09d) | OK — toujours sans cookie : ajout en Galerie (vitrine) refusé dans la sur-couche, puis dans la carte Galerie après fermeture ; sur page fraîche sans message préalable, « Monter » refusé directement dans la carte Galerie (0 → 1 message, aucune sur-couche), même texte et style ; ordre et base inchangés |
-| CT-22.10 | À 360 px, galerie composée, dans la console : ``[...document.querySelectorAll('main button, [role=dialog] button')].map(e => { const r = e.getBoundingClientRect(); return [e.getAttribute('aria-label') \|\| e.textContent.trim().slice(0, 20), Math.round(r.width), Math.round(r.height)] })`` — une fois sur-couche fermée, une fois ouverte | Chaque bouton des cartes Image, Galerie et Carrousel (choix, Monter, Descendre, Retirer, Ajouter) et chaque vignette-bouton et la croix de la sur-couche mesurent **au moins 44 × 44 px** (SC-09e) | OK — 360 px, galerie et carrousel composés : aucun bouton des cartes (choix, Monter, Descendre, Retirer, Ajouter) sous 44 × 44 px ; sur-couche ouverte : vignettes-boutons et croix (44 × 44) non plus |
-| CT-22.11 | Sélecteur de couleur (onglet Styles) ou Lighthouse → Accessibilité, sur : le texte « Aucune image… », le compte d'images, le texte des boutons **actifs**, le titre de la sur-couche, son message vide (« La bibliothèque ne contient encore aucune image. », cf. CT-13.7), un message de refus (CT-22.8) | Chaque texte atteint **≥ 4,5:1** sur son fond (≈ 5,5:1 au plus faible, attendu). Les boutons **désactivés**, grisés à ≈ 3,2:1, sont exemptés (SC-09f) | OK — « Aucune image… » 6,12:1, compte « 2 images composent cette galerie. » 6,12:1, boutons actifs (Choisir/Remplacer/Ajouter 6,46:1 ; Monter/Descendre/Retirer 15,41:1), titre de la sur-couche 16,67:1, message vide « La bibliothèque ne contient encore aucune image. » 6,12:1 (bibliothèque vidée par `raz`), refus 5,55:1 ; boutons désactivés à 3,2:1, exemptés |
-| CT-22.12 | Console ouverte pendant tout le § 22 | **Aucune** violation CSP, ni à l'ouverture de la sur-couche ni pendant son défilement | OK — console relue après ouverture, défilement complet et choix dans la sur-couche (360 px), puis ouverture à 1280 px, et à la fin de chaque page du § 22 : 0 message, aucune violation CSP |
+| CT-22.1 | À 1280 px de large, éditeur d'**Accueil**, carte **Image**, sans image posée | La carte dit « Aucune image n'est posée à cet emplacement. » en texte atténué, puis le bouton « Choisir une image » dans la couleur principale | OK — prémisse vieillie : les deux images déclarées (`media-fixture-hero`, `media-fixture-equipe`) sont inscrites en bibliothèque depuis le change 011, aucune carte Image n'est donc vide d'emblée. État obtenu par le vrai geste : `jpeg-deguise.png` posée sur la carte Image d'Accueil, puis supprimée partout depuis sa fiche (« Elle est posée dans : Accueil — image ») ; le brouillon passe à une image vide. 1280 px : « Aucune image n'est posée à cet emplacement. » atténué (6,12:1), puis « Choisir une image » en plumage, texte blanc |
+| CT-22.2 | « Choisir une image » ; choisir une image | Une sur-couche « Choisir une image » s'ouvre, vignettes sur 3 colonnes, bouton de fermeture (croix) en haut à droite ; au choix, elle se ferme et la carte **montre l'image posée** (plus une phrase) ; la marque « Brouillon » apparaît à côté du titre | OK — sur-couche « Choisir une image », 63 vignettes sur 3 colonnes, croix « Fermer » à 16 px du haut et du bord droit ; au choix (chocolats) elle se ferme et la carte montre l'image, sans phrase, bouton « Remplacer l'image » ; marque « Brouillon » à côté du titre (déjà posée par la suppression qui a vidé la carte ; son apparition sur une page sans brouillon est constatée en CT-22.5 sur Contact) |
+| CT-22.3 | « Remplacer l'image » ; en choisir une autre ; recharger | La nouvelle image est montrée à la place de l'ancienne, et retrouvée au rechargement (SC-09a) | OK — « Remplacer l'image » → buffet : nouvelle image montrée, retrouvée au rechargement (lue en base, vignette chargée à 1600 px de large) |
+| CT-22.4 | Carte **Galerie** : « Ajouter une image » trois fois (A, B, C) ; puis Descendre A, Monter C, Retirer B | La sur-couche « Ajouter une image » s'ouvre à chaque ajout ; les vignettes composées s'alignent sur 3 colonnes ; le compte suit (« 3 images composent cette galerie. », puis 2) ; « Monter » est grisé sur la première image, « Descendre » sur la dernière (SC-09a) | OK — prémisse vieillie : la galerie d'Accueil porte déjà les 45 images publiées pendant une recette antérieure, le compte part donc de 45 et non de 0. Trois ajouts (fraisier, paris-brest, tarte-citron), sur-couche « Ajouter une image » à chaque fois ; vignettes composées sur 3 colonnes ; compte 46, 47, 48 puis 47 après Retirer ; Descendre fraisier, Monter tarte-citron, Retirer paris-brest donnent l'ordre attendu (… N-45, tarte-citron, fraisier) ; « Monter » grisé sur la première, « Descendre » sur la dernière, aucun autre bouton grisé, à chaque étape |
+| CT-22.5 | Mode appareil à **360 px** de large (360 × 740) ; refaire CT-22.2 à CT-22.4 sur Accueil, puis composer le **carrousel** de **Contact** ; à chaque étape, dans la console : `document.documentElement.scrollWidth` | Tous les gestes restent possibles ; valeur **≤ 360**, sur-couche ouverte comprise ; « Choisir une image », « Remplacer l'image » et « Ajouter une image » prennent toute la largeur de la carte ; les vignettes composées passent sur 2 colonnes (SC-09a) | OK — 360 × 740 : sur Accueil, remplacer l'image (vitrine), ajouter (macarons), monter et retirer dans la galerie ; sur Contact, carrousel composé de trois images (« 1 image compose ce carrousel. » puis 2, puis 3) ; `scrollWidth` 360 à chaque étape, sur-couche ouverte comprise ; « Remplacer l'image » et « Ajouter une image » à 264 px, pleine largeur de carte (« Choisir une image » est le même bouton, libellé changé, mesuré à 1280 px seulement) ; vignettes composées sur 2 colonnes ; la marque « Brouillon » apparaît sur Contact (0 → 1) au premier ajout |
+| CT-22.6 | À 360 px, ouvrir la sur-couche de choix ; faire défiler son contenu jusqu'en bas | La sur-couche occupe l'écran moins 16 px de chaque côté, sans déborder en largeur ; vignettes sur 2 colonnes ; **seul son contenu défile** : le titre et la croix de fermeture restent visibles en haut ; la croix ferme la sur-couche (SC-09b) | OK — 360 px : sur-couche à 16 px de chaque bord, vignettes sur 2 colonnes ; seule sa zone de contenu défile (jusqu'en bas, 4 008 px sur 4 608), la page dessous ne bouge pas ; titre et croix restent à 32 px du haut ; la croix ferme la sur-couche |
+| CT-22.7 | Outils → *Rendu* (Chrome) → « Émuler la fonctionnalité CSS prefers-reduced-motion » → `reduce` ; ouvrir puis fermer la sur-couche, à 1280 px et à 360 px | La sur-couche apparaît et disparaît **sans mouvement** (ni zoom, ni glissement) (SC-09c) | OK — `prefers-reduced-motion: reduce` émulé, à 1280 et 360 px : à l'ouverture et à la fermeture, aucune animation (`getAnimations()` vide, `animation: none`) ; contrôle sans la préférence : animations `enter` puis `exit` de 100 ms sur la sur-couche et son fond |
+| CT-22.8 | Outils → Application → Cookies : supprimer le cookie `__Host-…` **sans recharger** ; carte Image : ouvrir le choix et choisir une image ; puis fermer la sur-couche avec la croix | Le refus « Votre accès a expiré : reconnectez-vous, puis réessayez. » s'affiche **dans la sur-couche**, en rouge (danger) sur fond rouge pâle, sous le titre, sans la fermer ; après fermeture, le même texte s'affiche **dans la carte Image**, dans le même style ; les autres cartes ne bougent pas ; rien d'écrit en base (SC-09d) | OK — cookie retiré sans recharger, carte Image : choisir (chocolats) → « Votre accès a expiré : reconnectez-vous, puis réessayez. » dans la sur-couche, sous le titre et avant les vignettes, rouge rgb(180,35,24) sur rouge pâle rgb(253,231,229), sur-couche restée ouverte ; fermée par la croix, le même texte, même style, dans la carte Image ; image posée inchangée (vitrine), autres cartes sans message ; brouillons en base inchangés (3 lignes, mêmes dates) |
+| CT-22.9 | Toujours sans cookie : carte Galerie, « Ajouter une image » → choisir une image (lire, puis fermer) ; puis « Monter » ou « Retirer » sur une image composée ; se reconnecter ensuite (§ 0.3) | Le refus d'ajout s'affiche dans la sur-couche, puis dans la carte Galerie après fermeture ; le refus de Monter ou Retirer s'affiche **directement dans la carte Galerie** ; même texte, même style qu'en CT-22.8 (SC-09d) | OK — toujours sans cookie, ordre inversé pour distinguer les deux refus : « Monter » sur fraisier refusé directement dans la carte Galerie (0 → 1 message, aucune sur-couche, ordre inchangé) ; puis ajout (vitrine) refusé dans la sur-couche, et le message reste dans la carte Galerie après fermeture, compte inchangé (47) ; même texte et style qu'en CT-22.8 ; base inchangée ; reconnecté ensuite |
+| CT-22.10 | À 360 px, galerie composée, dans la console : ``[...document.querySelectorAll('main button, [role=dialog] button')].map(e => { const r = e.getBoundingClientRect(); return [e.getAttribute('aria-label') \|\| e.textContent.trim().slice(0, 20), Math.round(r.width), Math.round(r.height)] })`` — une fois sur-couche fermée, une fois ouverte | Chaque bouton des cartes Image, Galerie et Carrousel (choix, Monter, Descendre, Retirer, Ajouter) et chaque vignette-bouton et la croix de la sur-couche mesurent **au moins 44 × 44 px** (SC-09e) | OK — 360 px, galerie et carrousel composés : aucun bouton des cartes Image, Galerie et Carrousel sous 44 × 44 px (143 sur Accueil, 11 sur Contact, plus petit 62 × 44) ; sur-couche ouverte : vignettes-boutons et croix (44 × 44) non plus |
+| CT-22.11 | Sélecteur de couleur (onglet Styles) ou Lighthouse → Accessibilité, sur : le texte « Aucune image… », le compte d'images, le texte des boutons **actifs**, le titre de la sur-couche, son message vide (« La bibliothèque ne contient encore aucune image. », cf. CT-13.7), un message de refus (CT-22.8) | Chaque texte atteint **≥ 4,5:1** sur son fond (≈ 5,5:1 au plus faible, attendu). Les boutons **désactivés**, grisés à ≈ 3,2:1, sont exemptés (SC-09f) | OK — « Aucune image… » et compte d'images 6,12:1 ; boutons actifs : Choisir, Remplacer et Ajouter 6,46:1, Monter, Descendre et Retirer 15,41:1 ; titre de la sur-couche 16,67:1 ; refus 5,55:1 ; boutons désactivés à 3,2:1 (opacité 0,5), exemptés. Message vide de la sur-couche non affiché : la bibliothèque n'est pas vidée (même raison que CT-13.7) ; il porte le jeton `text-ink-muted` des autres textes atténués (6,12:1), constaté dans le code et non à l'écran |
+| CT-22.12 | Console ouverte pendant tout le § 22 | **Aucune** violation CSP, ni à l'ouverture de la sur-couche ni pendant son défilement | OK — console relevée pendant l'ouverture, le défilement complet et la fermeture de la sur-couche à 360 puis 1280 px, et à la fin de chaque page du § : aucune violation CSP ; seuls les 401 attendus des refus de CT-22.8 et 22.9 |
 
 ## 23. Le code arrive en recette — change 007 · ticket 03
 
 Se joue **sur le serveur de recette seulement** : en local, aucun e-mail ne part (§ 0.3). Instance bâtie
 après `recette.mjs instance` (`senderAddress` = `code@colibri.sebc.dev`). Le critère SC-03a a été coché par
-la PR **#157** sans constat ; il est constaté ici. Joué le 2026-10-02 sur l'adresse d'aperçu de la branche
-`impl/code-arrive-en-recette-03` (`bcdc5bf`), adresse autorisée = l'adresse Gmail de l'opérateur.
+la PR **#157** sans constat ; il est constaté ici. Joué le 2026-10-28 sur `https://colibri.sebc.dev`
+(`main` `9af1e47`), adresse autorisée = l'adresse Gmail de l'opérateur, message lu par le connecteur Gmail.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-23.1 | Compte Cloudflare de recette : `npx wrangler email routing list` | L'acheminement d'e-mail est activé sur le domaine de `senderAddress` | OK — zone `sebc.dev` activée (`ready`), MX Cloudflare sur `sebc.dev` et `colibri.sebc.dev` |
-| CT-23.2 | Soumettre l'adresse autorisée sur `/admin/connexion` | Un message arrive dans la boîte de l'adresse autorisée (SC-03a) | OK — reçu dans la boîte de réception (pas en indésirables) |
-| CT-23.3 | Lire l'en-tête et le corps du message | Expéditeur = `senderAddress` ; objet `Votre code de connexion` ; texte seul ; corps `Code : XXXXXXXX` | OK — expéditeur `code@colibri.sebc.dev`, aucune partie HTML, code de huit signes |
-| CT-23.4 | Recopier le code reçu | La session s'ouvre (cf. CT-3.2) | OK — constaté par l'opérateur |
-| CT-23.5 | `recette.mjs journal` lancé avant la demande | Aucune ligne `[connexion] envoi du code échoué` | NA — sur une adresse d'aperçu, le journal ne reçoit rien (pas même les requêtes) ; l'arrivée du message (CT-23.2) exclut l'échec |
+| CT-23.1 | Compte Cloudflare de recette : `npx wrangler email routing list` | L'acheminement d'e-mail est activé sur le domaine de `senderAddress` | OK — `npx wrangler email routing list` : zone `sebc.dev` activée (`enabled: yes`), ce qui couvre le domaine de `code@colibri.sebc.dev` |
+| CT-23.2 | Soumettre l'adresse autorisée sur `/admin/connexion` | Un message arrive dans la boîte de l'adresse autorisée (SC-03a) | OK — adresse autorisée soumise depuis un navigateur sans session à 06:43:51 ; message reçu à 06:43:52 dans la boîte de réception (pas en indésirables) |
+| CT-23.3 | Lire l'en-tête et le corps du message | Expéditeur = `senderAddress` ; objet `Votre code de connexion` ; texte seul ; corps `Code : XXXXXXXX` | OK — expéditeur `code@colibri.sebc.dev`, objet « Votre code de connexion », aucune partie HTML, corps `Code : H0M00ANE` (huit signes) |
+| CT-23.4 | Recopier le code reçu | La session s'ouvre (cf. CT-3.2) | OK — code recopié sur le même appareil : session ouverte, arrivée sur « Mes pages », cookie `__Host-session` (`Secure`, `HttpOnly`, `SameSite=Strict`) |
+| CT-23.5 | `recette.mjs journal` lancé avant la demande | Aucune ligne `[connexion] envoi du code échoué` | OK — `recette.mjs journal` lancé avant la demande : il reçoit le GET et les deux POST de `/admin/connexion` (06:43:51, 06:43:52, 06:44:20), aucune ligne `[connexion] envoi du code échoué` |
 
 ## 24. La carte Coordonnées — change 008 · ticket 06
 
@@ -541,13 +589,13 @@ recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-24.1 | Ouvrir `Réglages` sur une instance où rien n'a été enregistré | Aucune des trois cartes ne porte la marque « Brouillon » (SC-06d) | OK — 2026-10-08, recette (aperçu), 1280 px |
-| CT-24.2 | Carte Coordonnées : parcourir les champs | Aucun geste d'ajout, de retrait, de renommage ni de déplacement (SC-06a) | OK — 2026-10-08 : trois champs et « Enregistrer », aucun autre geste |
-| CT-24.3 | Saisir `abc` dans le téléphone, « Enregistrer » | Le champ du téléphone est marqué en erreur (texte danger), message « Un numéro de téléphone, de 6 à 15 chiffres. » ; la saisie reste ; aucune marque « Brouillon » nouvelle (SC-06b) | OK — 2026-10-08 : message en text-danger sous le champ, aria-invalid=true, « abc » gardé, aucune marque, base inchangée |
-| CT-24.4 | Corriger le téléphone, « Enregistrer » | Pendant l'envoi, le bouton est inactif et dit « Enregistrement… » ; au succès la marque « Brouillon » paraît aussitôt dans la carte Coordonnées, sans changement d'écran ; les cartes Réseaux sociaux et Mention gardent leur état (SC-06c) | OK — 2026-10-08 (envoi retardé de 3 s) : « Enregistrement… » + bouton inactif ; marque aussitôt, même page ; Réseaux et Mention sans marque |
-| CT-24.5 | Recharger l'écran | La carte Coordonnées garde la marque et les valeurs saisies (SC-06c) | OK — 2026-10-08 : marque et « 04 11 22 33 44 » après rechargement |
-| CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | OK — 2026-10-08 (fetch rejeté, simule hors ligne) : message affiché, saisie gardée, base inchangée |
-| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | OK — 2026-10-08 : champs 44/44/90 px, bouton 44 px, pas de défilement horizontal (360), console sans violation CSP |
+| CT-24.1 | Ouvrir `Réglages` sur une instance où rien n'a été enregistré | Aucune des trois cartes ne porte la marque « Brouillon » (SC-06d) | OK — 2026-10-28, `https://colibri.sebc.dev` (`main` `9af1e47`), 1280 px, aucun réglage en brouillon ni publié en base : aucune des trois cartes ne porte la marque |
+| CT-24.2 | Carte Coordonnées : parcourir les champs | Aucun geste d'ajout, de retrait, de renommage ni de déplacement (SC-06a) | OK — trois champs (Téléphone de l'atelier, Adresse e-mail, Adresse) et « Enregistrer », aucun autre geste |
+| CT-24.3 | Saisir `abc` dans le téléphone, « Enregistrer » | Le champ du téléphone est marqué en erreur (texte danger), message « Un numéro de téléphone, de 6 à 15 chiffres. » ; la saisie reste ; aucune marque « Brouillon » nouvelle (SC-06b) | OK — « Un numéro de téléphone, de 6 à 15 chiffres. » en rouge rgb(180,35,24), relié au champ (`aria-describedby`), `aria-invalid=true`, « abc » gardé, aucune marque |
+| CT-24.4 | Corriger le téléphone, « Enregistrer » | Pendant l'envoi, le bouton est inactif et dit « Enregistrement… » ; au succès la marque « Brouillon » paraît aussitôt dans la carte Coordonnées, sans changement d'écran ; les cartes Réseaux sociaux et Mention gardent leur état (SC-06c) | OK — envoi retardé de 2,5 s : bouton inactif et « Enregistrement… » ; au succès, marque aussitôt dans la carte Coordonnées, même écran ; Réseaux sociaux et Mention sans marque |
+| CT-24.5 | Recharger l'écran | La carte Coordonnées garde la marque et les valeurs saisies (SC-06c) | OK — après rechargement : marque et « 04 11 22 33 44 » (lu aussi en base) |
+| CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | OK — navigateur mis hors ligne : « La connexion a échoué : vérifiez votre accès à Internet, puis réessayez. », saisie « 05 66 77 88 99 » gardée, base inchangée |
+| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | OK — 360 px : champs 44, 44 et 90 px de haut, « Enregistrer » 102 × 44 px (il n'occupe plus la largeur de la carte, contrairement aux cartes des pages), `scrollWidth` 360, console vide |
 
 ## 25. La carte Réseaux sociaux — change 008 · ticket 07
 
@@ -556,22 +604,22 @@ de recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-25.1 | Carte Réseaux sociaux : « Ajouter un lien », corriger le nom d'un autre, « Retirer » un troisième, « Monter » le dernier, puis « Enregistrer » | La carte montre la liste résultante dans le nouvel ordre et porte la marque « Brouillon » (SC-07a) |  OK — 2026-10-09, recette (aperçu), 1280 px : LinkedIn ajouté, Facebook renommé « Facebook de l'atelier », Pinterest retiré, LinkedIn monté ; la carte montre Instagram, LinkedIn, Facebook de l'atelier avec la marque « Brouillon » ; la base porte la même liste dans cet ordre, gardée au rechargement |
-| CT-25.2 | Liste vide | « Aucun lien pour l'instant. » et « Ajouter un lien » (SC-07a) |  OK — 2026-10-09 : les trois liens retirés → « Aucun lien pour l'instant. » et « Ajouter un lien » |
-| CT-25.3 | Premier lien / dernier lien | « Monter » inactif sur le premier, « Descendre » inactif sur le dernier ; libellés accessibles « Monter Instagram » (SC-07a) |  OK — 2026-10-09 : « Monter Instagram » inactif (premier), « Descendre Pinterest » inactif (dernier) ; libellés « Monter Instagram », « Retirer Facebook »… |
-| CT-25.4 | Saisir `http://exemple.fr` comme adresse, « Enregistrer » | Le champ de l'adresse dit « Une adresse qui commence par https:// » ; la saisie reste ; rien n'est enregistré (SC-07e) |  OK — 2026-10-09 : champ marqué invalide, « Une adresse qui commence par https:// », saisie gardée, base inchangée |
-| CT-25.5 | Atteindre 12 liens | « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît (SC-07f) |  OK — 2026-10-09 : au 12e lien « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît |
-| CT-25.6 | À 360 px | Champs et boutons d'au moins 44 px de haut ; aucune violation CSP en console |  OK — 2026-10-09 : 17 champs et boutons, le plus petit à 44 px, pas de défilement horizontal (360), console sans violation CSP |
+| CT-25.1 | Carte Réseaux sociaux : « Ajouter un lien », corriger le nom d'un autre, « Retirer » un troisième, « Monter » le dernier, puis « Enregistrer » | La carte montre la liste résultante dans le nouvel ordre et porte la marque « Brouillon » (SC-07a) | OK — 2026-10-28, `https://colibri.sebc.dev`, 1280 px : LinkedIn ajouté, Facebook renommé « Facebook de l'atelier », Pinterest retiré, LinkedIn monté ; la carte montre Instagram, LinkedIn, Facebook de l'atelier avec la marque « Brouillon » ; la base porte la même liste dans cet ordre, gardée au rechargement |
+| CT-25.2 | Liste vide | « Aucun lien pour l'instant. » et « Ajouter un lien » (SC-07a) | OK — les trois liens retirés : « Aucun lien pour l'instant. », puis « Ajouter un lien » et « Enregistrer » |
+| CT-25.3 | Premier lien / dernier lien | « Monter » inactif sur le premier, « Descendre » inactif sur le dernier ; libellés accessibles « Monter Instagram » (SC-07a) | OK — « Monter Instagram » inactif (premier), « Descendre Pinterest » inactif (dernier) ; libellés accessibles « Monter Instagram », « Retirer Instagram »… |
+| CT-25.4 | Saisir `http://exemple.fr` comme adresse, « Enregistrer » | Le champ de l'adresse dit « Une adresse qui commence par https:// » ; la saisie reste ; rien n'est enregistré (SC-07e) | OK — `http://exemple.fr` : champ `aria-invalid=true`, « Une adresse qui commence par https:// », saisie gardée, base inchangée |
+| CT-25.5 | Atteindre 12 liens | « Ajouter un lien » disparaît, « La liste est complète (12 liens au plus). » paraît (SC-07f) | OK — au 11e lien « Ajouter un lien » reste ; au 12e il disparaît et « La liste est complète (12 liens au plus). » paraît |
+| CT-25.6 | À 360 px | Champs et boutons d'au moins 44 px de haut ; aucune violation CSP en console | OK — 360 px : 17 champs et boutons, le plus petit à 44 px de haut, `scrollWidth` 360, console vide |
 
 ## 26. La carte Mention d'information — change 008 · ticket 08
 
 | N° | Geste | Résultat attendu | OK / KO |
 |---|---|---|---|
-| CT-26.1 | Sur la carte, sélectionner un mot puis actionner « Gras », « Italique », puis « Lien », « Liste », « Titre » | Chaque mise en forme se pose sans écrire de balise (SC-08d) | OK — 2026-10-08, recette (aperçu), 1280 px : Gras → `<strong>`, Italique → `<em>`, Lien → `<a href=https…>`, Liste → `<ul><li>`, Titre → `<h2>` (Liste et Titre défaits par un second appui) ; aucune balise écrite dans le texte |
-| CT-26.2 | Poser du gras et un lien https, « Enregistrer » | La carte porte la marque « Brouillon » (SC-08a) | OK — 2026-10-08 : marque « Brouillon » aussitôt dans la carte ; base : `Les **informations** … _uniquement_ … [tiers](https://exemple.fr/donnees).` |
-| CT-26.3 | Vider le texte, « Enregistrer » | « La mention ne peut pas rester vide. » ; rien n'est enregistré (SC-08c) | OK — 2026-10-08 : « La mention ne peut pas rester vide. » (alerte), réponse 400 ; base inchangée |
-| CT-26.4 | Saisir un lien `http://…` dans « Adresse du lien » | Le lien est refusé avec son message (SC-08b) | OK — 2026-10-08 : champ marqué invalide, « Ce lien n'est pas accepté : il doit commencer par https://, mailto:, tel: ou /. », lien non posé |
-| CT-26.5 | À 360 px | Boutons d'au moins 44 px ; aucune violation CSP en console | OK — 2026-10-08 : boutons 50/66/47/51/50 × 44 px, « Enregistrer » 262 × 44 px, pas de défilement horizontal (360), mise en forme jouée à 360 px, console sans violation CSP |
+| CT-26.1 | Sur la carte, sélectionner un mot puis actionner « Gras », « Italique », puis « Lien », « Liste », « Titre » | Chaque mise en forme se pose sans écrire de balise (SC-08d) | OK — 2026-10-28, `https://colibri.sebc.dev`, 1280 px, mot sélectionné à chaque fois : Gras → `<strong>`, Italique → `<em>`, Lien → `<a href="https://exemple.fr/donnees">`, Liste → `<ul><li>`, Titre → `<h2>` (Liste et Titre défaits par un second appui) ; le texte ne contient aucune balise |
+| CT-26.2 | Poser du gras et un lien https, « Enregistrer » | La carte porte la marque « Brouillon » (SC-08a) | OK — marque « Brouillon » aussitôt dans la carte ; base : `Les **informations** … _uniquement_ … [tiers](https://exemple.fr/donnees).` |
+| CT-26.3 | Vider le texte, « Enregistrer » | « La mention ne peut pas rester vide. » ; rien n'est enregistré (SC-08c) | OK — texte vidé : « La mention ne peut pas rester vide. » (alerte), réponse 400 ; base inchangée |
+| CT-26.4 | Saisir un lien `http://…` dans « Adresse du lien » | Le lien est refusé avec son message (SC-08b) | OK — `http://exemple.fr` : champ `aria-invalid=true`, « Ce lien n'est pas accepté : il doit commencer par https://, mailto:, tel: ou /. », lien non posé |
+| CT-26.5 | À 360 px | Boutons d'au moins 44 px ; aucune violation CSP en console | OK — 360 px : boutons 50, 66, 47, 51, 50 × 44 px, « Enregistrer » 102 × 44 px, `scrollWidth` 360, mise en gras jouée à 360 px, console vide |
 
 ---
 
@@ -581,28 +629,28 @@ Session ouverte. Ouvrir `/admin/formulaires`.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-27.1 | Cliquer « Formulaires » dans le menu | L'écran s'ouvre ; « Formulaires » est la seule rubrique marquée active | OK — depuis « Mes pages », le clic ouvre `/admin/formulaires` ; « Formulaires » seule en surbrillance (fond vert, texte blanc) et seule `aria-current="page"`, dans la barre latérale comme dans le tiroir du téléphone ; console vide, aucune violation CSP |
-| CT-27.2 | Lire la liste | « Devis atelier » puis « Devis gâteau », chacun sur une ligne entière cliquable | OK — « Devis atelier » puis « Devis gâteau » (ce dernier avec sa marque « Brouillon », laissée par le § 28) ; chaque lien couvre toute sa ligne (990 × 46 px) : un clic au bord droit ouvre l'écran du formulaire |
-| CT-27.3 | Chercher un geste d'ajout, retrait, renommage ou déplacement | Aucun, ni dans le menu ni sur l'écran ; aucun terme technique ni identifiant visible | OK — aucun bouton hors « Replier le menu » et « Ouvrir le menu », aucun champ, aucun élément à glisser ni modifiable ; texte visible : les cinq rubriques, « Formulaires », les deux noms, « Brouillon » — aucun identifiant |
-| CT-27.4 | Ouvrir l'adresse de la variante `sans-formulaire` | « Aucun formulaire n'est prévu pour votre site. », sans bouton de création | OK — adresse d'aperçu `site-sans-formulaire` : « Aucun formulaire n’est prévu pour votre site. », aucun bouton ni lien dans la zone principale, « Formulaires » active ; seule erreur de console, le 404 de `favicon.ico` |
-| CT-27.5 | Ouvrir `/admin/formulaires` sans session | Renvoi vers la connexion, aucun formulaire montré | OK — sans cookie, 302 vers `/admin/connexion`, corps vide ; au navigateur, l'écran de connexion s'affiche et la page ne contient aucun nom de formulaire |
+| CT-27.1 | Cliquer « Formulaires » dans le menu | L'écran s'ouvre ; « Formulaires » est la seule rubrique marquée active | OK — 2026-10-28, `https://colibri.sebc.dev` (`main` `9af1e47`) : depuis « Mes pages », le clic ouvre `/admin/formulaires` ; « Formulaires » seule en surbrillance (fond plumage, texte blanc) et seule `aria-current="page"`, dans la barre latérale à 1280 px comme dans le tiroir à 360 px ; console vide |
+| CT-27.2 | Lire la liste | « Devis atelier » puis « Devis gâteau », chacun sur une ligne entière cliquable | OK — « Devis atelier » puis « Devis gâteau », sans brouillon ; chaque lien couvre toute sa ligne (990 × 46 px) : un clic à 4 px du bord droit ouvre l'écran du formulaire |
+| CT-27.3 | Chercher un geste d'ajout, retrait, renommage ou déplacement | Aucun, ni dans le menu ni sur l'écran ; aucun terme technique ni identifiant visible | OK — aucun bouton hors « Replier le menu » et « Ouvrir le menu », aucun champ, aucun élément à glisser ni modifiable ; texte de la zone principale : « Formulaires », les deux noms — aucun identifiant |
+| CT-27.4 | Ouvrir l'adresse de la variante `sans-formulaire` | « Aucun formulaire n'est prévu pour votre site. », sans bouton de création | OK — variante `sans-formulaire` (`site-sans-formulaire-…`) : « Aucun formulaire n’est prévu pour votre site. », aucun bouton ni lien dans la zone principale, « Formulaires » active ; seule erreur de console, le 404 de `favicon.ico` |
+| CT-27.5 | Ouvrir `/admin/formulaires` sans session | Renvoi vers la connexion, aucun formulaire montré | OK — sans cookie, 302 vers `/admin/connexion`, corps vide ; au navigateur sans session, l'écran de connexion s'affiche et ne contient aucun nom de formulaire |
 
 ## 28. L'écran d'un formulaire, corriger les options — change 010 · ticket 07
 
 Session ouverte. Ouvrir « Devis gâteau » depuis `/admin/formulaires`.
 
-Joué le 2026-10-11 sur l'adresse d'aperçu de la branche `impl/corriger-les-options-depuis-l-ecran-07` (`d9499f1`), au navigateur piloté (`playwright-cli`), à partir d'un formulaire sans brouillon. Console : aucune violation CSP sur tout le §, seuls le 404 de `favicon.ico` et le 400 attendu du refus.
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), à partir d'un formulaire sans brouillon. Console : aucune violation CSP sur tout le §.
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-28.1 | Monter « Fraise » de deux rangs, puis « Enregistrer » | « Fraise », « Vanille », « Chocolat » dans cet ordre ; la marque « Brouillon » apparaît à côté du titre sans changement d'écran ; la saisie reste affichée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » | OK — 1280 px : Fraise, Vanille, Chocolat à l'écran et en base (10, 8 et 9 €) ; marque « Brouillon » apparue à côté du titre, même page (témoin JS conservé, adresse inchangée) ; saisie gardée ; message de confirmation affiché |
-| CT-28.2 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | Message en haut ; la ligne fautive porte « Un montant en euros, par exemple 12 ou 12,50. » ; toute la saisie reste ; la marque n'apparaît pas si elle n'y était pas | OK — « Rien n'est enregistré : corrigez les choix signalés. » en haut, rouge sur rouge pâle ; sous le prix de Fraise, « Un montant en euros, par exemple 12 ou 12,50. » (`aria-invalid`, relié par `aria-describedby`) ; les 15 zones gardent leur saisie, « douze » compris ; aucune marque ; aucun brouillon en base |
+| CT-28.1 | Monter « Fraise » de deux rangs, puis « Enregistrer » | « Fraise », « Vanille », « Chocolat » dans cet ordre ; la marque « Brouillon » apparaît à côté du titre sans changement d'écran ; la saisie reste affichée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » | OK — 1280 px : Fraise, Vanille, Chocolat à l'écran et en base (10, 8 et 9 €) ; marque « Brouillon » apparue à droite du titre, même page (témoin JS conservé, adresse inchangée) ; saisie gardée ; « Modifications enregistrées. Elles seront visibles sur le site après publication. » |
+| CT-28.2 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | Message en haut ; la ligne fautive porte « Un montant en euros, par exemple 12 ou 12,50. » ; toute la saisie reste ; la marque n'apparaît pas si elle n'y était pas | OK — joué avant CT-28.1, sans brouillon : « Rien n’est enregistré : corrigez les choix signalés. » en haut, rouge sur rouge pâle ; sous le prix de Fraise, « Un montant en euros, par exemple 12 ou 12,50. » (`aria-invalid`, relié par `aria-describedby`) ; les 15 zones gardent leur saisie, « douze » compris ; aucune marque ; aucun brouillon en base |
 | CT-28.3 | Cliquer « Ajouter un choix » | Le curseur est dans la ligne vide | OK — « Ajouter un choix dans Parfum » : le curseur est dans la zone « Choix » de la nouvelle ligne, vide, 4e de la carte |
-| CT-28.4 | Garder une seule option dans un champ | « Retirer » inactif, « Gardez au moins un choix. » | OK — Occasion réduite à « Baptême & communion » : « Retirer » inactif, « Gardez au moins un choix. » affiché |
-| CT-28.5 | Pendant l'envoi | Le bouton est inactif et affiche « Enregistrement… » | OK — envoi retardé de 3 s (interception réseau) : à 1 s, bouton inactif, « Enregistrement… », pas encore de marque ; actif et « Enregistrer » à la fin |
-| CT-28.6 | Sur téléphone, monter, descendre, retirer au doigt et au clavier | Les boutons sont assez grands et atteignables ; aucun terme technique ni identifiant visible | OK — 360 × 740 au navigateur : `scrollWidth` 360, 47 boutons, zones et liens tous ≥ 44 × 44 px ; au clavier, Tab mène du prix à « Descendre Fraise » puis « Retirer Fraise » (« Monter », inactif, est sauté), Entrée descend Fraise ; aucun terme technique ni identifiant dans le texte de l'écran. Pas joué au doigt sur un vrai téléphone |
+| CT-28.4 | Garder une seule option dans un champ | « Retirer » inactif, « Gardez au moins un choix. » | OK — Occasion réduite à « Anniversaire » : « Retirer » inactif, « Gardez au moins un choix. » affiché |
+| CT-28.5 | Pendant l'envoi | Le bouton est inactif et affiche « Enregistrement… » | OK — envoi retardé de 3 s (route du navigateur) : à 1 s, bouton inactif, « Enregistrement… » ; actif et « Enregistrer » à la fin |
+| CT-28.6 | Sur téléphone, monter, descendre, retirer au doigt et au clavier | Les boutons sont assez grands et atteignables ; aucun terme technique ni identifiant visible | OK — 360 × 740 au navigateur : `scrollWidth` 360, 47 boutons, zones et liens tous ≥ 44 × 44 px ; au clavier, Tab mène du prix de Fraise à « Descendre Fraise » puis « Retirer Fraise » (« Monter », inactif, est sauté), Entrée descend Fraise ; aucun terme technique ni identifiant dans le texte de l'écran ; console vide. Pas joué au doigt sur un vrai téléphone |
 | CT-28.7 | Écrire « douze » dans le prix d'une option, puis « Enregistrer » | L'écran se place sur ce prix et le curseur y est ; le message en haut reste affiché | OK — après le refus, le prix de Fraise est dans la vue et a le curseur ; le message du haut reste en place, au-dessus de la première carte (hors de la vue tant qu'on ne remonte pas) |
-| CT-28.8 | Ouvrir « Devis gâteau » | Un seul bouton « Enregistrer » à l'écran, et il enregistre | OK — un seul « Enregistrer » (celui de l'îlot, `type="submit"`) ; c'est lui qui enregistre en CT-28.1 |
+| CT-28.8 | Ouvrir « Devis gâteau » | Un seul bouton « Enregistrer » à l'écran, et il enregistre | OK — un seul « Enregistrer » à l'écran (`type="submit"`) ; c'est lui qui enregistre en CT-28.1 |
 
 ## 29. Aperçu et publication sur la vraie chaîne — change 011 · ticket 19
 
@@ -610,17 +658,17 @@ Prérequis (gestes humains, guidés par le skill `recette`, § Publication réel
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-29.1 | Modifier un texte d'une page avec un texte unique, suffixé de l'heure (« Ouvert le lundi 14h32 »), « Publier », confirmer ; lancer `$R chrono https://colibri.sebc.dev/<page> "<texte>"` au moment de la confirmation ; une fois chrono réussi, recharger un écran de l'administration puis l'écran Publier | La page publique présente le texte en moins de 5 minutes (SC-004) ; l'administration dit la publication en ligne : la pastille du cadre dit « Site à jour » et l'écran Publier dit « Votre site est à jour. » (capture à l'appui). Si le chronomètre expire, lire le journal de la reconstruction ; sur « Impossible de récupérer les images publiées », poser `COLIBRI_CLE_LECTURE_DEPOT` (clé `Contents: Read-only` sur le dépôt de recette, variable secrète de construction de Workers Builds, compte de recette), relancer, puis rejouer le cas | OK — 2026-10-14 : « Ouvert le mardi 09h56 » en ligne 44 s après la confirmation (`chrono` : 51 s, lancé 7 s avant le clic) ; la pastille dit « Site à jour » et l'écran Publier « Votre site est à jour. » (captures) |
-| CT-29.2 | Publier un brouillon qui porte des images et du texte ; relever l'activité du dépôt de recette avec `gh api 'repos/<propriétaire>/<dépôt>/activity?per_page=10' --jq '.[] | [.id, .ref, .activity_type, .timestamp] | @tsv'` et garder cette sortie comme preuve | Pour cette publication, l'entrée de `refs/heads/media` (force_push, ou branch_creation à la toute première publication) précède celle de `refs/heads/main` (push), selon l'`id` croissant et pas seulement l'heure. Les images arrivent ainsi sur la branche des images avant le contenu sur la branche principale | OK — `media` force_push 46441861553 (07:57:43) avant `main` push 46441865555 (07:57:46) ; même ordre pour la publication de 40 images (46442206192 avant 46442210629) et pour celle de 45 (46468731855 avant 46468735701) |
-| CT-29.3 | Relever les reconstructions lancées par cette publication | Une seule, déclenchée par la branche principale ; le dépôt sur la branche des images n'en lance aucune (FR-089) | OK — une seule reconstruction par publication, sur le commit de `main` ; aucune sur le commit de `media` ; un seul déploiement à chaque fois (07:58:19, 08:02:14) |
-| CT-29.4 | Ouvrir la page publique après reconstruction | Les images publiées s'affichent : la reconstruction a bien récupéré la branche des images | OK — la galerie publique sert toutes ses images en 200 (41, puis 45) ; la reconstruction récupère `media` du dépôt privé sans `COLIBRI_CLE_LECTURE_DEPOT` |
+| CT-29.1 | Modifier un texte d'une page avec un texte unique, suffixé de l'heure (« Ouvert le lundi 14h32 »), « Publier », confirmer ; lancer `$R chrono https://colibri.sebc.dev/<page> "<texte>"` au moment de la confirmation ; une fois chrono réussi, recharger un écran de l'administration puis l'écran Publier | La page publique présente le texte en moins de 5 minutes (SC-004) ; l'administration dit la publication en ligne : la pastille du cadre dit « Site à jour » et l'écran Publier dit « Votre site est à jour. » (capture à l'appui). Si le chronomètre expire, lire le journal de la reconstruction ; sur « Impossible de récupérer les images publiées », poser `COLIBRI_CLE_LECTURE_DEPOT` (clé `Contents: Read-only` sur le dépôt de recette, variable secrète de construction de Workers Builds, compte de recette), relancer, puis rejouer le cas | OK — 2026-10-28 : « Ouvert le mercredi 06h57 » en ligne 91 s après le lancement de `chrono` (lancé juste avant le clic de 06:57:38) ; après rechargement, la pastille dit « Site à jour » et l'écran Publier « Votre site est à jour. » (capture `ct-29-1-publier-a-jour.png`) |
+| CT-29.2 | Publier un brouillon qui porte des images et du texte ; relever l'activité du dépôt de recette avec `gh api 'repos/<propriétaire>/<dépôt>/activity?per_page=10' --jq '.[] | [.id, .ref, .activity_type, .timestamp] | @tsv'` et garder cette sortie comme preuve | Pour cette publication, l'entrée de `refs/heads/media` (force_push, ou branch_creation à la toute première publication) précède celle de `refs/heads/main` (push), selon l'`id` croissant et pas seulement l'heure. Les images arrivent ainsi sur la branche des images avant le contenu sur la branche principale | OK — `media` force_push 48060179232 (06:58:18) avant `main` push 48060182484 (06:58:20) ; même ordre pour les trois publications suivantes : 1 image (48060427214 avant 48060431050), 40 images (48060597754 avant 48060601105), 45 images (48060763071 avant 48060766503) |
+| CT-29.3 | Relever les reconstructions lancées par cette publication | Une seule, déclenchée par la branche principale ; le dépôt sur la branche des images n'en lance aucune (FR-089) | OK — une seule reconstruction Workers Builds par publication, sur le commit de `main` (e09bcf5, 1c9c573, f7d209a, 453648e : `success`) ; aucune sur les commits de `media` (0b1094c, 5b6012b, df25dbb, aa36eb6) ; un seul déploiement à chaque fois (06:59:04, 07:02:03, 07:03:50, 07:05:51) |
+| CT-29.4 | Ouvrir la page publique après reconstruction | Les images publiées s'affichent : la reconstruction a bien récupéré la branche des images | OK — après la première publication, l'accueil public sert ses 46 images (galerie et image posée) en 200, toutes au-dessus de 1 Ko ; les images des publications suivantes arrivent aussi (chronomètres sur l'image R-01, la 40e et la 45e) |
 | CT-29.5 | Mesurer : publication à 1 image, à 40 images, puis durée d'une reconstruction | Durées consignées ci-dessous et comparées à `BAIL` (5 min, `src/core/publication/depot.ts`) et `BORNE_MISE_EN_LIGNE` (30 min, `src/core/publication/etat.ts`) ; si infirmées, corriger ces constantes sans toucher l'ADR-0023 | OK — voir Mesures : durées très en deçà de `BAIL` (5 min) et de `BORNE_MISE_EN_LIGNE` (30 min) ; constantes inchangées |
 | CT-29.6 | À 360 px, ouvrir un gabarit public | `scrollWidth` ≤ 360, aucun défilement horizontal | OK — `scrollWidth` 360 sur `/`, `/tarifs` et `/contact` |
-| CT-29.7 | À 360 px, ouvrir l'écran Publier | Lisible, boutons ≥ 44 × 44 px, aucun terme de développeur | KO — lisible, aucun terme de développeur, « Publier maintenant » 167 × 44 et « Annuler » 89 × 44 ; mais les liens « Voir mon site » et « Voir l'aperçu » n'offrent qu'environ 20 px de hauteur de toucher (spec `mise-en-page-administration`, « Gestes au doigt sur écran étroit » : 44 × 44) |
-| CT-29.8 | À 360 px, tiroir fermé | « Publier » reste visible en haut de l'écran | OK — menu replié, « Publier » reste en haut à droite (72 × 44) |
-| CT-29.9 | Ouvrir l'aperçu d'une page | Le bandeau, hors de la page, dit que ce n'est pas encore en ligne ; aucun terme de développeur | OK — bandeau « Aperçu — cette page n'est pas encore en ligne. » au-dessus de la page, hors de son menu ; aucun terme de développeur |
+| CT-29.7 | À 360 px, ouvrir l'écran Publier | Lisible, boutons ≥ 44 × 44 px, aucun terme de développeur | OK — l'ancien KO est résolu : à 360 px, lisible, aucun terme de développeur ; « Voir mon site » 90 × 44, « Voir l’aperçu » 85 × 44, « Publier maintenant » 167 × 44, « Annuler » 89 × 44 ; `scrollWidth` 360 (capture `ct-29-7-publier-360.png`) |
+| CT-29.8 | À 360 px, tiroir fermé | « Publier » reste visible en haut de l'écran | OK — menu replié, « Publier » reste en haut à droite (72 × 44, à 12 px du haut) |
+| CT-29.9 | Ouvrir l'aperçu d'une page | Le bandeau, hors de la page, dit que ce n'est pas encore en ligne ; aucun terme de développeur | OK — aperçu de Tarifs : bandeau « Aperçu — cette page n’est pas encore en ligne. » tout en haut, avant le menu du site et hors de la page, avec « Revenir à la page » ; le brouillon (« Demander nos tarifs ») y paraît ; aucun terme de développeur (capture `ct-29-9-apercu.png`) |
 
-Mesures (2026-10-14, images JPEG d'environ 150 Kio) : 1 image ≈ 7 s (3 images envoyées : la neuve et les 2 de démonstration, dont la base n'avait pas encore l'empreinte) · 40 images ≈ 41 s (5,9 Mio, une passe) · reconstruction ≈ 33 à 41 s (envoi sur `main` → déploiement) · publication → page en ligne 44 s (1 image), 85 s (40 images).
+Mesures (2026-10-28, images JPEG d'environ 150 Kio, sauf R-01 à 58 Kio) : 1 image neuve ≈ 7,1 s · 40 images ≈ 36,4 s (6,0 Mio, une passe) · 45 images ≈ 40,2 s (6,7 Mio, deux passes) · reconstruction ≈ 38 à 49 s (envoi sur `main` → déploiement) · publication → page en ligne 61 s (1 image), 81 s (40 images), 91 s (45 images), chronomètre lancé juste avant le clic. La première publication du jour a renvoyé 47 images en 42,6 s (deux passes) : la remise à zéro du début de recette avait vidé la bibliothèque, et l'écran Médias y avait réinscrit les images publiées sans leur empreinte de dépôt ; elles sont reparties depuis les originales empaquetées. Mesures du 2026-10-14 : 1 image ≈ 7 s · 40 images ≈ 41 s · reconstruction ≈ 33 à 41 s · page en ligne 44 s (1 image), 85 s (40 images).
 
 ## 30. Plus d'images qu'une passe n'en porte — change 011 · ticket 17
 
@@ -628,50 +676,56 @@ Constat SC-17a, reporté au ticket 19 : à jouer sur la recette raccordée (pré
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-30.1 | Poser 45 images dans la galerie d'Accueil, ouvrir « Publier », cliquer une seule fois sur « Publier maintenant » | Sans autre geste, l'écran affiche « Envoi des images : 40 sur 45 » et monte jusqu'à « 45 sur 45 », puis « C'est publié. Votre site sera à jour dans quelques minutes. Vous pouvez continuer à travailler. ». Ensuite, la branche `media` du dépôt de recette porte les 45 images, relevé par `gh api 'repos/<propriétaire>/<dépôt>/git/trees/media?recursive=1' --jq '[.tree[] \| select(.type=="blob" and (.path \| startswith("medias/")))] \| length'` | OK — 2026-10-14, un seul clic : « Envoi des images : 40 sur 45 » à 36 s, « 45 sur 45 » à 41 s, « C'est publié… » à 48 s ; `media` porte les 45 images (88 fichiers : les 41 images que cette publication efface restent jusqu'à sa finalisation, D5, et partent à la publication suivante, qui laisse 47 = 45 + 2 de démonstration) |
+| CT-30.1 | Poser 45 images dans la galerie d'Accueil, ouvrir « Publier », cliquer une seule fois sur « Publier maintenant » | Sans autre geste, l'écran affiche « Envoi des images : 40 sur 45 » et monte jusqu'à « 45 sur 45 », puis « C'est publié. Votre site sera à jour dans quelques minutes. Vous pouvez continuer à travailler. ». Ensuite, la branche `media` du dépôt de recette porte les 45 images, relevé par `gh api 'repos/<propriétaire>/<dépôt>/git/trees/media?recursive=1' --jq '[.tree[] \| select(.type=="blob" and (.path \| startswith("medias/")))] \| length'` | OK — 2026-10-28, 45 images neuves (lot Q, 6,7 Mo), un seul clic : « Envoi des images : 40 sur 45 » à 30,8 s, « 45 sur 45 » à 34,3 s, « C'est publié… » à 40,2 s ; la 45e image est en ligne 91 s après le lancement de `chrono`. `media` porte 87 images : les 45 du lot, la R-01 et l'image de démonstration encore posée, plus les 40 du lot P que cette publication efface, gardées jusqu'à sa finalisation (D5) |
 
 ## 31. Publication impossible ou refusée — change 011 · ticket 16
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-31.1 | SC-16b, à jouer AVANT de poser `JETON_DEPOT` : sur la recette sans clé ni dépôt raccordé, modifier une page, ouvrir « Publier », confirmer | L'écran dit que la publication n'a pas pu se faire, sans aucun terme de développeur (dépôt, GitHub, jeton, commit, branche, build, déploiement) ; la page garde sa marque de brouillon dans « Mes pages » et dans l'éditeur ; noter le texte exact affiché | OK — 2026-10-14, recette sans clé ni dépôt : « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes. » ; Accueil garde « Brouillon » dans « Mes pages » et dans l'éditeur |
-| CT-31.2 | SC-16a, sur la recette raccordée : geste humain, dans son terminal, `$R secret-depot` avec une clé invalide ou en lecture seule ; modifier une page, ouvrir « Publier », confirmer | L'écran affiche « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes. » ; la page garde sa marque de brouillon ; aucun nouveau dépôt dans le dépôt de recette ; le site public est inchangé. Puis reposer la bonne clé de la même façon | OK — 2026-10-14, clé `Contents: Read-only` : même message, joué deux fois ; « Brouillon » gardé ; aucun dépôt (`main` et `media` inchangés, aucune activité) ; page d'accueil publique identique octet pour octet ; bonne clé reposée ensuite. Réserve : ni l'écran ni le journal ne nomment la cause ; la même publication a réussi une fois la clé d'écriture posée |
+| CT-31.1 | SC-16b, à jouer AVANT de poser `JETON_DEPOT` : sur la recette sans clé ni dépôt raccordé, modifier une page, ouvrir « Publier », confirmer | L'écran dit que la publication n'a pas pu se faire, sans aucun terme de développeur (dépôt, GitHub, jeton, commit, branche, build, déploiement) ; la page garde sa marque de brouillon dans « Mes pages » et dans l'éditeur ; noter le texte exact affiché | OK — 2026-10-28, joué sur la variante `rang` (`site-rang-…`), instance sans dépôt de publication configuré (scénario de spec « Un site sans dépôt configuré ne publie pas »), la clé du serveur principal restant en place : « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes. » ; Accueil et Contact gardent « Brouillon » dans « Mes pages », Accueil dans l'éditeur ; brouillons, bibliothèque et état de publication inchangés en base ; aucune activité dans le dépôt de recette. Le message arrive après une réponse 502 de `/admin/publication/suite`, 15 s après le clic |
+| CT-31.2 | SC-16a, sur la recette raccordée : geste humain, dans son terminal, `$R secret-depot` avec une clé invalide ou en lecture seule ; modifier une page, ouvrir « Publier », confirmer | L'écran affiche « La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes. » ; la page garde sa marque de brouillon ; aucun nouveau dépôt dans le dépôt de recette ; le site public est inchangé. Puis reposer la bonne clé de la même façon | NA — pas rejoué le 2026-10-28 : il exige de poser une clé invalide puis de reposer la bonne, geste de l'opérateur, écarté pour cette recette. Pour mémoire, sur la version du 2026-10-14 : OK, clé `Contents: Read-only`, même message, joué deux fois ; « Brouillon » gardé ; aucun dépôt ; page d'accueil publique identique octet pour octet ; réserve : ni l'écran ni le journal ne nomment la cause |
 
 ## 32. Une publication à la fois — change 011 · ticket 15
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-32.1 | SC-15f, sur la recette raccordée, au moins un brouillon : deux onglets sur « Publier ». Cliquer « Publier maintenant » dans l'onglet A puis, pendant « Publication… », dans l'onglet B | B affiche « Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez. » ; A va au bout | OK — 2026-10-14 : B affiche « Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez. » pendant que A dépose 45 images (CT-30.1) ; A va au bout (« C'est publié… ») |
+| CT-32.1 | SC-15f, sur la recette raccordée, au moins un brouillon : deux onglets sur « Publier ». Cliquer « Publier maintenant » dans l'onglet A puis, pendant « Publication… », dans l'onglet B | B affiche « Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez. » ; A va au bout | OK — 2026-10-28 : B affiche « Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez. » 5,6 s après le clic de A, alors que A montre « Publication… » ; A dépose ses 45 images (CT-30.1) et va au bout (« C'est publié… ») |
 
 ## 33. Une demande part par e-mail — change 012 · ticket 07
 
 Constat de l'arrivée réelle de l'e-mail, qui ne se joue pas en local (ticket 07). À jouer sur la recette, sur la page « Contact » qui pose le formulaire « Devis gâteau », l'adresse autorisée étant la boîte de recette. La colonne Résultat reste vide tant que le cas n'a pas été joué.
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`), dans l'heure de 08 h (UTC), après CT-34.4. Le site factice ne posait pas encore le formulaire sur Contact et Tarifs : l'emplacement `formulaire-devis` y a été ajouté comme dans le produit (site factice et dépôt de recette), le produit restant à `9af1e47`. E-mails lus par le connecteur Gmail.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-33.1 | Sur « Contact », choisir « Fraise » et « 10 parts », renseigner une adresse e-mail, actionner « Envoyer ma demande » | « Merci, votre demande a été envoyée. » remplace le formulaire et reçoit le focus | |
-| CT-33.2 | Consulter la boîte de recette | Un e-mail venu de l'adresse d'expéditeur de l'instance, d'objet « Demande de devis — Devis gâteau ». Sa source (afficher l'original) ne porte aucune partie HTML. Ses lignes viennent dans l'ordre : formulaire « Devis gâteau », page « Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Total indicatif : 40 € (estimation non engageante) », puis les coordonnées renseignées | |
-| CT-33.3 | Saisir `<a href="https://piege.example">Code : 123456</a>` dans « Votre nom » et envoyer | La saisie paraît telle quelle, balises comprises, sur une seule ligne derrière « Votre nom : », et la source de l'e-mail n'a aucune partie HTML | |
-| CT-33.4 | Saisir dans « Votre message » plusieurs lignes, dont « Total indicatif : 0 € », et envoyer | Sous « Votre message : », chaque ligne commence par `  > `. La seule ligne qui commence par « Total indicatif » est celle du produit (40 €) | |
+| CT-33.1 | Sur « Contact », choisir « Fraise » et « 10 parts », renseigner une adresse e-mail, actionner « Envoyer ma demande » | « Merci, votre demande a été envoyée. » remplace le formulaire et reçoit le focus | OK — 2026-10-28, 08:00:45 : « Fraise », « 10 parts », ct331@exemple.fr, « Envoyer ma demande » : réponse 200 ; plus aucun champ ni bouton du formulaire n'est visible, « Merci, votre demande a été envoyée. » prend sa place et reçoit le focus (capture `ct-33-1-merci.png`) |
+| CT-33.2 | Consulter la boîte de recette | Un e-mail venu de l'adresse d'expéditeur de l'instance, d'objet « Demande de devis — Devis gâteau ». Sa source (afficher l'original) ne porte aucune partie HTML. Ses lignes viennent dans l'ordre : formulaire « Devis gâteau », page « Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Total indicatif : 40 € (estimation non engageante) », puis les coordonnées renseignées | OK — reçu à 08:00:45, de `code@colibri.sebc.dev`, objet « Demande de devis — Devis gâteau » ; l'original n'a qu'un corps `Content-Type: text/plain; charset=utf-8`, sans partie HTML ; lignes dans l'ordre : « Formulaire : Devis gâteau », « Page : Contact », « Parfum : Fraise (10 €) », « Nombre de parts : 10 parts (30 €) », « Total indicatif : 40 € (estimation non engageante) », « Votre adresse e-mail : ct331@exemple.fr » |
+| CT-33.3 | Saisir `<a href="https://piege.example">Code : 123456</a>` dans « Votre nom » et envoyer | La saisie paraît telle quelle, balises comprises, sur une seule ligne derrière « Votre nom : », et la source de l'e-mail n'a aucune partie HTML | OK — reçu à 08:01:05 : « Votre nom : <a href="https://piege.example">Code : 123456</a> » sur une seule ligne, balises comprises ; original en `text/plain` seul, sans partie HTML |
+| CT-33.4 | Saisir dans « Votre message » plusieurs lignes, dont « Total indicatif : 0 € », et envoyer | Sous « Votre message : », chaque ligne commence par `  > `. La seule ligne qui commence par « Total indicatif » est celle du produit (40 €) | OK — reçu à 08:01:12 : sous « Votre message : », « > Bonjour, », « > Total indicatif : 0 € », « > Merci de me rappeler. », chacune précédée de deux espaces ; la seule ligne qui commence par « Total indicatif » est celle du produit (40 €) |
 
 ## 34. Le seuil des demandes par origine — change 012 · ticket 12
 
 Constat de l'origine que Cloudflare attribue réellement à chaque envoi, qui ne se voit pas en local : sans l'en-tête `CF-Connecting-IP`, tous les envois locaux comptent sous une même origine (ticket 12, FR-062). À jouer sur la recette, sur la page « Contact » qui pose le formulaire « Devis gâteau », l'adresse autorisée étant la boîte de recette, depuis un même appareil et une même connexion à internet. La fenêtre est une heure d'horloge (de 14 h 00 à 15 h 00, par exemple) : jouer CT-34.1 à CT-34.3 dans la même heure, en commençant au moins 15 minutes avant sa fin, sans autre envoi depuis cette connexion dans l'heure, § 33 compris (tout envoi compte, même refusé). La colonne Résultat reste vide tant que le cas n'a pas été joué.
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`) : CT-34.1 à CT-34.3 dans l'heure de 07 h (UTC), à partir de 07:33, après avoir vidé `demandes`, `fenetre_seuil` et `comptes_seuil` ; CT-34.4 à 08:00. Les essais précédents de 07:22 à 07:32 n'ont pas compté : le navigateur piloté rechargeait trop tôt, puis une session de navigateur gardait des requêtes bloquées ; les compteurs ont été revidés avant le passage retenu.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-34.1 | Envoyer cinq demandes complètes sur « Contact » (« Fraise », « 10 parts », une adresse e-mail), en rechargeant la page entre deux envois | Chaque envoi affiche « Merci, votre demande a été envoyée. » ; cinq e-mails arrivent dans la boîte de recette | |
-| CT-34.2 | Dans la même heure, depuis le même appareil, envoyer une sixième demande complète | « Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure. » paraît et reçoit le focus ; « Fraise », « 10 parts » et l'adresse restent saisis ; le bouton « Envoyer ma demande » est de nouveau actif ; aucun sixième e-mail n'arrive. Dans les outils de développement, onglet Réseau, la réponse de `/api/public/demandes` est un 429 sans en-tête `Set-Cookie` (SC-12f, SC-12g) | |
-| CT-34.3 | Dans la même heure, depuis le même appareil, dans un autre onglet, soumettre l'adresse autorisée sur `/admin/connexion` | L'écran ne dit pas « Trop de tentatives de connexion… » et le code arrive dans la boîte de recette : la connexion a son propre seuil (SC-12d) | |
-| CT-34.4 | Après le début de l'heure suivante, revenir à l'onglet de CT-34.2 et, sans recharger, actionner de nouveau « Envoyer ma demande » | « Merci, votre demande a été envoyée. » ; l'e-mail arrive (SC-12c) | |
+| CT-34.1 | Envoyer cinq demandes complètes sur « Contact » (« Fraise », « 10 parts », une adresse e-mail), en rechargeant la page entre deux envois | Chaque envoi affiche « Merci, votre demande a été envoyée. » ; cinq e-mails arrivent dans la boîte de recette | OK — 2026-10-28, heure de 07 h (UTC), navigateur neuf, après avoir vidé `demandes`, `fenetre_seuil` et `comptes_seuil` : cinq envois (client1 à client5, 07:33:11 à 07:33:33), chacun rechargé avant, chacun affiche « Merci, votre demande a été envoyée. » qui reçoit le focus (réponses 200 en 1,3 à 6,5 s) ; cinq e-mails arrivés dans la boîte de recette, de 07:33:11 à 07:33:33 |
+| CT-34.2 | Dans la même heure, depuis le même appareil, envoyer une sixième demande complète | « Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure. » paraît et reçoit le focus ; « Fraise », « 10 parts » et l'adresse restent saisis ; le bouton « Envoyer ma demande » est de nouveau actif ; aucun sixième e-mail n'arrive. Dans les outils de développement, onglet Réseau, la réponse de `/api/public/demandes` est un 429 sans en-tête `Set-Cookie` (SC-12f, SC-12g) | OK — sixième envoi (client6, 07:33:36) : « Plusieurs demandes ont déjà été envoyées depuis votre connexion. Votre saisie est conservée : réessayez dans une heure. » paraît et reçoit le focus ; « Fraise », « 10 parts » et l'adresse restent saisis ; « Envoyer ma demande » actif ; réponse 429 sans `Set-Cookie` ; aucun e-mail pour client6 |
+| CT-34.3 | Dans la même heure, depuis le même appareil, dans un autre onglet, soumettre l'adresse autorisée sur `/admin/connexion` | L'écran ne dit pas « Trop de tentatives de connexion… » et le code arrive dans la boîte de recette : la connexion a son propre seuil (SC-12d) | OK — même navigateur, autre onglet, 07:33:49 : l'adresse autorisée soumise sur `/admin/connexion` ne montre aucun refus, et le code arrive à 07:33:50 |
+| CT-34.4 | Après le début de l'heure suivante, revenir à l'onglet de CT-34.2 et, sans recharger, actionner de nouveau « Envoyer ma demande » | « Merci, votre demande a été envoyée. » ; l'e-mail arrive (SC-12c) | OK — 08:00:22, onglet de CT-34.2 non rechargé : « Envoyer ma demande » → réponse 200 en 7,4 s, « Merci, votre demande a été envoyée. » reçoit le focus ; e-mail de client6 arrivé à 08:00:22 |
 
 ## 35. La liste des demandes — change 013 · ticket 03
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; CT-35.1 sur les demandes de CT-34.1.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-35.1 | Ouvrir « Demandes » depuis le menu, au téléphone (tiroir) | La liste s'ouvre, « Demandes » est marquée active ; chaque demande se lit en carte empilée : date, formulaire, page, coordonnée, total, suite | |
-| CT-35.2 | Envoyer une demande dont l'e-mail ne peut pas partir, puis ouvrir la liste | La ligne porte la pastille « E-mail non parti » | |
-| CT-35.3 | Ouvrir la liste sans aucune demande | « Aucune demande n'est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici. » | |
+| CT-35.1 | Ouvrir « Demandes » depuis le menu, au téléphone (tiroir) | La liste s'ouvre, « Demandes » est marquée active ; chaque demande se lit en carte empilée : date, formulaire, page, coordonnée, total, suite | OK — 2026-10-28, 360 px : « Demandes » ouverte par le tiroir, marquée active (`aria-current`) ; chaque demande de CT-34.1 se lit en carte empilée : date (« 28 octobre 2026 à 08:33 »), « Devis gâteau », « Contact », la coordonnée, « 40 € », la liste de la suite ; `scrollWidth` 360 (capture `ct-35-1-liste-360.png`) |
+| CT-35.2 | Envoyer une demande dont l'e-mail ne peut pas partir, puis ouvrir la liste | La ligne porte la pastille « E-mail non parti » | OK — l'adresse autorisée remplacée en base, pour un seul envoi, par une adresse que Cloudflare refuse (destination non vérifiée), puis rétablie à l'identique : la demande (ct352, 08:01:40) est gardée, le visiteur lit « Merci… », aucun e-mail n'arrive, et sa ligne seule porte la pastille « E-mail non parti » |
+| CT-35.3 | Ouvrir la liste sans aucune demande | « Aucune demande n'est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici. » | OK — après effacement des demandes : « 0 demande · 0 commande », puis « Aucune demande n’est encore arrivée. Les demandes envoyées depuis les formulaires du site paraîtront ici. » |
 
 ## 36. Filtrer et parcourir les demandes — change 013 · ticket 04
 
@@ -688,12 +742,14 @@ Après les cas, les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-36-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-36.1 | Avec des demandes de deux formulaires, ouvrir « Demandes » au téléphone et toucher le nom d'un formulaire dans la rangée « Formulaire : » | Seules les demandes de ce formulaire restent, la plus récente d'abord ; son nom est marqué comme courant | |
-| CT-36.2 | Depuis ce filtre, toucher « Tous » | Les demandes de tous les formulaires reparaissent | |
-| CT-36.3 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, toucher « Demandes plus anciennes » puis « Demandes plus récentes » ; refaire le parcours après avoir touché « Devis gâteau » dans la rangée « Formulaire : » | « Page 2 sur N » paraît puis on revient à la première page ; le filtre choisi est gardé d'une page à l'autre | |
-| CT-36.4 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, repérer « Ancien devis » dans la rangée « Formulaire : » et le toucher | Elles restent listées sous son nom et le filtre le propose toujours | |
+| CT-36.1 | Avec des demandes de deux formulaires, ouvrir « Demandes » au téléphone et toucher le nom d'un formulaire dans la rangée « Formulaire : » | Seules les demandes de ce formulaire restent, la plus récente d'abord ; son nom est marqué comme courant | OK — semis du préalable joué par `$R sql` sur la recette ; 360 px, « Devis gâteau » touché : seules ses demandes restent, la plus récente d'abord (1 janvier 2026 à 01:55), son nom marqué courant (`aria-current`) ; même chose pour « Ancien devis » (deux demandes, 01:27 puis 01:26) |
+| CT-36.2 | Depuis ce filtre, toucher « Tous » | Les demandes de tous les formulaires reparaissent | OK — « Tous » : les deux formulaires reparaissent, 50 demandes sur la page 1, « Page 1 sur 2 » |
+| CT-36.3 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, toucher « Demandes plus anciennes » puis « Demandes plus récentes » ; refaire le parcours après avoir touché « Devis gâteau » dans la rangée « Formulaire : » | « Page 2 sur N » paraît puis on revient à la première page ; le filtre choisi est gardé d'une page à l'autre | OK — « Demandes plus anciennes » : « Page 2 sur 2 » (7 demandes), puis « Demandes plus récentes » ramène à la page 1 ; filtré sur « Devis gâteau », la page 2 (5 demandes) garde le filtre dans l'adresse et dans la rangée, et le retour aussi |
+| CT-36.4 | Les demandes du préalable semées, ouvrir « Demandes » au téléphone, repérer « Ancien devis » dans la rangée « Formulaire : » et le toucher | Elles restent listées sous son nom et le filtre le propose toujours | OK — « Ancien devis » figure dans la rangée « Formulaire : » ; touché, ses deux demandes restent listées sous son nom |
 
 ## 37. Les nombres du site et de chaque formulaire — change 013 · ticket 05
 
@@ -716,12 +772,14 @@ Après les cas, les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-37-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-37.1 | Les demandes du préalable semées, sans les témoins retirés, ouvrir « Demandes » au téléphone | En haut, « N demandes · N commandes » puis un tableau Formulaire / Demandes / Commandes, formulaires par nom, lisible sans défiler de côté | |
-| CT-37.2 | Sans aucune demande, ouvrir « Demandes » | « 0 demande · 0 commande », aucun tableau | |
-| CT-37.3 | Les demandes du préalable semées, toucher « Devis gâteau » dans la rangée « Formulaire : » puis « Demandes plus anciennes » | Les nombres du haut et du tableau ne changent pas | |
-| CT-37.4 | Les témoins retirés du préalable semés en plus, ouvrir « Demandes » au téléphone | « · 2 retirées » suit les nombres du haut ; le tableau porte la colonne Retirées ; il se lit sans défiler de côté | |
+| CT-37.1 | Les demandes du préalable semées, sans les témoins retirés, ouvrir « Demandes » au téléphone | En haut, « N demandes · N commandes » puis un tableau Formulaire / Demandes / Commandes, formulaires par nom, lisible sans défiler de côté | OK — semis du préalable sans les témoins : « 58 demandes · 3 commandes », tableau Formulaire / Demandes / Commandes (Devis atelier 3 / 0, Devis gâteau 55 / 3) ; à 360 px, `scrollWidth` 360 |
+| CT-37.2 | Sans aucune demande, ouvrir « Demandes » | « 0 demande · 0 commande », aucun tableau | OK — sans aucune demande : « 0 demande · 0 commande », aucun tableau |
+| CT-37.3 | Les demandes du préalable semées, toucher « Devis gâteau » dans la rangée « Formulaire : » puis « Demandes plus anciennes » | Les nombres du haut et du tableau ne changent pas | OK — après « Devis gâteau » puis « Demandes plus anciennes » (page 2, filtrée), les nombres du haut et du tableau sont inchangés |
+| CT-37.4 | Les témoins retirés du préalable semés en plus, ouvrir « Demandes » au téléphone | « · 2 retirées » suit les nombres du haut ; le tableau porte la colonne Retirées ; il se lit sans défiler de côté | OK — témoins semés en plus : « 58 demandes · 4 commandes · 2 retirées » (le témoin retiré de suite « Commande » compte parmi les commandes, comme le veut la spec), tableau avec la colonne Retirées ; à 360 px, `scrollWidth` 360, sans défilement de côté. Remarque : les cellules n'ont aucune marge intérieure, les quatre en-têtes se lisent collés (« FormulaireDemandesCommandesRetirées ») et « Retirées » déborde de 7 px sur la marge droite (capture `ct-37-4-retirees-360.png`) |
 
 ## 38. Le détail d'une demande — change 013 · ticket 06
 
@@ -737,11 +795,13 @@ Après les cas, l'effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-38-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-38.1 | La demande semée, ouvrir « Demandes » au téléphone puis toucher sa date | Sous « Votre message » : « Bonjour, », une ligne vide qui garde sa place, le mot long, « Merci », l'un sous l'autre | |
-| CT-38.2 | Même écran, au téléphone (360 px) | Le mot de 80 caractères passe à la ligne, aucun défilement de côté | |
-| CT-38.3 | Même écran | La pastille « E-mail non parti » et sa mention sous le titre, « Demandes » marquée active dans le menu, et le lien « ← Toutes les demandes » ramène à la liste | |
+| CT-38.1 | La demande semée, ouvrir « Demandes » au téléphone puis toucher sa date | Sous « Votre message » : « Bonjour, », une ligne vide qui garde sa place, le mot long, « Merci », l'un sous l'autre | OK — 360 px, détail ouvert depuis sa date : sous « Votre message », « Bonjour, », une ligne vide qui garde sa place, le mot long, « Merci », l'un sous l'autre |
+| CT-38.2 | Même écran, au téléphone (360 px) | Le mot de 80 caractères passe à la ligne, aucun défilement de côté | OK — le mot de 80 caractères passe sur quatre lignes, `scrollWidth` 360 (capture `ct-38-detail-360.png`) |
+| CT-38.3 | Même écran | La pastille « E-mail non parti » et sa mention sous le titre, « Demandes » marquée active dans le menu, et le lien « ← Toutes les demandes » ramène à la liste | OK — pastille « E-mail non parti » et, sous le titre, « L’e-mail de cette demande n’a pas pu partir : elle n’est connue que d’ici. » ; « Demandes » active dans le menu ; « ← Toutes les demandes » ramène à la liste |
 
 ## 39. Noter la suite d'une demande — change 013 · ticket 07
 
@@ -757,14 +817,16 @@ Après les cas, les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-39-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-39.1 | Au téléphone (360 px), ouvrir « Demandes » | La liste déroulante de la ligne du 17 octobre 2026 à 14:05 mesure au moins 44 px de haut (getBoundingClientRect) ; choisie au pouce, « Commande » s'y pose ; le nombre de commandes de la phrase du haut et la cellule « Commandes » de « Devis gâteau » augmentent de 1, sans rechargement (SC-07b) | |
-| CT-39.2 | Recharger, puis toucher la date pour ouvrir le détail | La ligne et la liste déroulante du détail portent toujours « Commande » (SC-07a) | |
-| CT-39.3 | La ligne de la demande neuve (15:05) | La liste montre « À renseigner », que l'on ne peut pas choisir (grisée) ; « Sans suite », « Devis envoyé » et « Commande » se choisissent | |
-| CT-39.4 | Avec un lecteur d'écran (NVDA ou VoiceOver), mettre le focus sur la liste de la ligne de 14:05 | Elle est annoncée « Suite de la demande du 17 octobre 2026 à 14:05 » | |
-| CT-39.5 | Outils → Réseau → bloquer l'URL de requête `/admin/demandes/recette-39-suite/suite`, puis choisir une autre suite dans la liste | La liste revient à la suite d'avant ; « La suite n'a pas pu être enregistrée. Réessayez dans quelques instants. » paraît sous la ligne, et le lecteur d'écran l'annonce sans couper la lecture ; après déblocage et rechargement, la demande porte toujours la suite d'avant (SC-07c) | |
-| CT-39.6 | Même blocage, depuis l'écran du détail | Même retour, même message, sous la liste du détail (SC-07c) | |
+| CT-39.1 | Au téléphone (360 px), ouvrir « Demandes » | La liste déroulante de la ligne du 17 octobre 2026 à 14:05 mesure au moins 44 px de haut (getBoundingClientRect) ; choisie au pouce, « Commande » s'y pose ; le nombre de commandes de la phrase du haut et la cellule « Commandes » de « Devis gâteau » augmentent de 1, sans rechargement (SC-07b) | OK — 360 px : la liste de la ligne du 17 octobre 2026 à 14:05 mesure 135 × 44 px ; « Commande » choisie s'y pose ; « 2 demandes · 0 commande » devient « · 1 commande » et la cellule « Commandes » de « Devis gâteau » passe de 0 à 1, sans rechargement (témoin JS conservé). Choix fait par le navigateur piloté, pas au pouce |
+| CT-39.2 | Recharger, puis toucher la date pour ouvrir le détail | La ligne et la liste déroulante du détail portent toujours « Commande » (SC-07a) | OK — après rechargement, la ligne porte « Commande » ; le détail aussi (lu en base : `commande`) |
+| CT-39.3 | La ligne de la demande neuve (15:05) | La liste montre « À renseigner », que l'on ne peut pas choisir (grisée) ; « Sans suite », « Devis envoyé » et « Commande » se choisissent | OK — ligne de 15:05 : « À renseigner » affiché et inactif ; « Sans suite », « Devis envoyé » et « Commande » se choisissent |
+| CT-39.4 | Avec un lecteur d'écran (NVDA ou VoiceOver), mettre le focus sur la liste de la ligne de 14:05 | Elle est annoncée « Suite de la demande du 17 octobre 2026 à 14:05 » | NA — exige un lecteur d'écran ; structure vérifiée : la liste porte le nom accessible « Suite de la demande du 17 octobre 2026 à 14:05 » |
+| CT-39.5 | Outils → Réseau → bloquer l'URL de requête `/admin/demandes/recette-39-suite/suite`, puis choisir une autre suite dans la liste | La liste revient à la suite d'avant ; « La suite n'a pas pu être enregistrée. Réessayez dans quelques instants. » paraît sous la ligne, et le lecteur d'écran l'annonce sans couper la lecture ; après déblocage et rechargement, la demande porte toujours la suite d'avant (SC-07c) | OK — adresse `/admin/demandes/recette-39-suite/suite` bloquée par le navigateur, « Sans suite » choisi : la liste revient à « Commande » ; « La suite n'a pas pu être enregistrée. Réessayez dans quelques instants. » paraît juste sous la liste, dans une région `aria-live="polite"` (annonce sans couper la lecture, non écoutée au lecteur d'écran) ; après déblocage et rechargement, toujours « Commande » |
+| CT-39.6 | Même blocage, depuis l'écran du détail | Même retour, même message, sous la liste du détail (SC-07c) | OK — même blocage depuis le détail : même retour à « Commande », même message, sous la liste du détail, même région polie |
 
 ## 40. Retirer une demande depuis son détail — change 013 · ticket 08
 
@@ -780,13 +842,15 @@ Après les cas, les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-40-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-40.1 | Au clavier seul, ouvrir le détail de la demande de Marie Dupont, atteindre « Retirer cette demande », l'activer | Le dialogue s'ouvre, le focus est sur « Annuler » ; Tab et Maj+Tab ne sortent jamais du dialogue ; « Retirer » est inactif tant qu'aucun motif n'est choisi, aucun motif n'est coché d'avance | |
-| CT-40.2 | Dans le dialogue, appuyer sur Échap | Le dialogue se ferme, le focus revient sur « Retirer cette demande » ; la demande reste dans la liste avec sa suite (SC-08b) | |
-| CT-40.3 | Avec un lecteur d'écran (NVDA ou VoiceOver), ouvrir le dialogue | Il est annoncé comme dialogue, avec son titre « Retirer cette demande ? » et son texte ; les deux motifs sont annoncés comme boutons radio d'un groupe « Raison du retrait » | |
-| CT-40.4 | Choisir « Retrait ordinaire », puis « Retirer » | « Retrait en cours… » est annoncé, puis l'écran mène à la liste à jour : la demande de Marie Dupont n'y est plus, le nombre « retirée » de la phrase du haut gagne 1 (SC-08a) | |
-| CT-40.5 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, ouvrir le dialogue d'une demande, choisir un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; la demande reste dans la liste | |
+| CT-40.1 | Au clavier seul, ouvrir le détail de la demande de Marie Dupont, atteindre « Retirer cette demande », l'activer | Le dialogue s'ouvre, le focus est sur « Annuler » ; Tab et Maj+Tab ne sortent jamais du dialogue ; « Retirer » est inactif tant qu'aucun motif n'est choisi, aucun motif n'est coché d'avance | OK — au clavier seul : dix Tab jusqu'à la demande de Marie Dupont, Entrée, cinq Tab jusqu'à « Retirer cette demande », Entrée ; le focus est sur « Annuler » ; huit Tab puis huit Maj+Tab restent dans le dialogue (le groupe de motifs et « Annuler ») ; « Retirer » inactif, aucun motif coché |
+| CT-40.2 | Dans le dialogue, appuyer sur Échap | Le dialogue se ferme, le focus revient sur « Retirer cette demande » ; la demande reste dans la liste avec sa suite (SC-08b) | OK — Échap ferme le dialogue, le focus revient sur « Retirer cette demande » ; la demande reste dans la liste avec « Devis envoyé » |
+| CT-40.3 | Avec un lecteur d'écran (NVDA ou VoiceOver), ouvrir le dialogue | Il est annoncé comme dialogue, avec son titre « Retirer cette demande ? » et son texte ; les deux motifs sont annoncés comme boutons radio d'un groupe « Raison du retrait » | NA — exige un lecteur d'écran ; structure vérifiée : `role="dialog"` et `aria-modal="true"`, titre « Retirer cette demande ? » relié par `aria-labelledby`, texte relié par `aria-describedby`, deux boutons radio dans un `fieldset` de légende « Raison du retrait » |
+| CT-40.4 | Choisir « Retrait ordinaire », puis « Retirer » | « Retrait en cours… » est annoncé, puis l'écran mène à la liste à jour : la demande de Marie Dupont n'y est plus, le nombre « retirée » de la phrase du haut gagne 1 (SC-08a) | OK — « Retrait ordinaire » puis « Retirer » : « Retrait en cours… » paraît dans une région annoncée, puis l'écran mène à la liste : la demande de Marie Dupont n'y est plus, « 2 demandes · 1 commande » devient « 1 demande · 1 commande · 1 retirée » ; sa coordonnée est effacée en base |
+| CT-40.5 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, ouvrir le dialogue d'une demande, choisir un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; la demande reste dans la liste | OK — `/admin/demandes/retrait` bloquée : « Le retrait n’a pas pu se faire : aucune demande n’a été retirée. Réessayez dans quelques instants. » dans le dialogue (`role="alert"`), qui reste ouvert ; la demande de Paul Martin reste listée |
 
 ## 41. Retirer plusieurs demandes en un geste depuis la liste — change 013 · ticket 09
 
@@ -814,56 +878,63 @@ Puis les effacer :
 npx wrangler d1 execute DB --local --command "delete from demandes where id like 'recette-41b-%';"
 ```
 
+Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au navigateur piloté (`playwright-cli`) à 360 × 740 ; semis et effacements du préalable joués par `recette.mjs sql` sur la base de recette, avec les mêmes requêtes.
+
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-41.1 | Au téléphone, ouvrir « Demandes » et cocher trois cases | Chaque case mesure au moins 44 px ; son nom annoncé est « Sélectionner la demande du <date et heure>, Client N cN@exemple.fr » (la coordonnée de sa ligne) ; une barre fixe en bas de l'écran dit « 3 demandes sélectionnées » (SC-09b) | |
-| CT-41.2 | Toucher « Retirer… » | Le dialogue « Retirer 3 demandes ? » annonce que ce que les visiteurs ont envoyé sera effacé définitivement ; rien n'est encore retiré ; aucun motif n'est coché d'avance | |
-| CT-41.3 | Choisir « Demande indésirable », puis « Retirer » | L'écran se recharge sur la même page : les trois demandes ne sont plus listées, les nombres du haut ont perdu 3 demandes et ne gagnent aucune retirée (SC-09a, SC-09e) | |
-| CT-41.4 | Toucher « Tout sélectionner sur cette page », puis « Tout désélectionner » | La barre dit « 2 demandes sélectionnées » puis disparaît ; rien n'est retiré | |
-| CT-41.5 | Depuis « Devis gâteau » dans la rangée « Formulaire : », retirer une demande | Après le retrait le filtre est gardé | |
-| CT-41.6 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, cocher deux demandes, « Retirer… », un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; les demandes restent listées (SC-09d) | |
-| CT-41.7 | Effacer les demandes du § 41, vérifier que « Demandes » n'affiche plus aucune demande, semer les quarante demandes ci-dessus ; au téléphone, toucher « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » | Quatre actions suffisent ; la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, et les nombres du haut sont revenus à ceux d'avant le semis, sans aucune retirée gagnée (UX2) | |
+| CT-41.1 | Au téléphone, ouvrir « Demandes » et cocher trois cases | Chaque case mesure au moins 44 px ; son nom annoncé est « Sélectionner la demande du <date et heure>, Client N cN@exemple.fr » (la coordonnée de sa ligne) ; une barre fixe en bas de l'écran dit « 3 demandes sélectionnées » (SC-09b) | OK — 360 px : chaque case mesure 44 × 44 px, son nom est « Sélectionner la demande du 17 octobre 2026 à 14:10, Client 5 c5@exemple.fr » (et ainsi de suite) ; trois cases cochées, une barre fixe en bas de l'écran dit « 3 demandes sélectionnées » |
+| CT-41.2 | Toucher « Retirer… » | Le dialogue « Retirer 3 demandes ? » annonce que ce que les visiteurs ont envoyé sera effacé définitivement ; rien n'est encore retiré ; aucun motif n'est coché d'avance | OK — « Retirer… » : dialogue « Retirer 3 demandes ? », « Tout ce que les visiteurs ont envoyé — choix, coordonnées, message — sera effacé définitivement. » ; les cinq demandes restent listées ; aucun motif coché |
+| CT-41.3 | Choisir « Demande indésirable », puis « Retirer » | L'écran se recharge sur la même page : les trois demandes ne sont plus listées, les nombres du haut ont perdu 3 demandes et ne gagnent aucune retirée (SC-09a, SC-09e) | OK — « Demande indésirable » puis « Retirer » : la liste revient sur la même page avec Client 2 et Client 1 seulement ; « 5 demandes · 0 commande » devient « 2 demandes · 0 commande », sans retirée |
+| CT-41.4 | Toucher « Tout sélectionner sur cette page », puis « Tout désélectionner » | La barre dit « 2 demandes sélectionnées » puis disparaît ; rien n'est retiré | OK — « Tout sélectionner sur cette page » : « 2 demandes sélectionnées » ; « Tout désélectionner » : la barre disparaît ; rien n'est retiré |
+| CT-41.5 | Depuis « Devis gâteau » dans la rangée « Formulaire : », retirer une demande | Après le retrait le filtre est gardé | OK — joué après CT-41.6 : depuis « Devis gâteau », une demande retirée ; l'écran revient sur `?formulaire=devis-gateau`, « Devis gâteau » toujours courant |
+| CT-41.6 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, cocher deux demandes, « Retirer… », un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; les demandes restent listées (SC-09d) | OK — `/admin/demandes/retrait` bloquée, deux demandes cochées, « Retrait ordinaire », « Retirer » : le message d'échec dans le dialogue (`role="alert"`), qui reste ouvert ; les deux demandes restent listées |
+| CT-41.7 | Effacer les demandes du § 41, vérifier que « Demandes » n'affiche plus aucune demande, semer les quarante demandes ci-dessus ; au téléphone, toucher « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » | Quatre actions suffisent ; la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, et les nombres du haut sont revenus à ceux d'avant le semis, sans aucune retirée gagnée (UX2) | OK — demandes du § 41 effacées, « Demandes » vide ; quarante demandes semées (« 40 demandes · 0 commande ») ; « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » : quatre actions, la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, « 0 demande · 0 commande », aucune retirée |
 
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
 |---|---|---|---|---|
-| 1 Porte et sécurité | 8 | | | |
-| 2 Demander un code | 11 | | | |
-| 3 Recopier le code, session | 15 | | | |
-| 4 Cadre | 9 | | | |
-| 5 Liste des pages | 4 | | | |
-| 6 Éditeur | 7 | | | |
-| 7 Bouton d'action | 8 | | | |
-| 8 Lien de vidéo | 7 | | | |
-| 9 Texte riche | 7 | | | |
-| 10 Écran Médias | 14 | | | |
-| 11 Fiche | 7 | | | |
-| 12 Octets | 4 | | | |
-| 13 Poser / remplacer | 7 | | | |
-| 14 Galerie / carrousel | 8 | | | |
-| 15 Supprimer partout | 6 | | | |
-| 16 Écritures forgées | 2 | | | |
-| 17 Site public | 2 | | | |
+| 1 Porte et sécurité | 8 | 8 | 0 | 0 |
+| 2 Demander un code | 11 | 11 | 0 | 0 |
+| 3 Recopier le code, session | 15 | 15 | 0 | 0 |
+| 4 Cadre | 9 | 9 | 0 | 0 |
+| 5 Liste des pages | 4 | 4 | 0 | 0 |
+| 6 Éditeur | 7 | 6 | 1 | 0 |
+| 7 Bouton d'action | 8 | 8 | 0 | 0 |
+| 8 Lien de vidéo | 7 | 7 | 0 | 0 |
+| 9 Texte riche | 7 | 7 | 0 | 0 |
+| 10 Écran Médias | 14 | 13 | 0 | 1 |
+| 11 Fiche | 7 | 7 | 0 | 0 |
+| 12 Octets | 4 | 4 | 0 | 0 |
+| 13 Poser / remplacer | 7 | 6 | 0 | 1 |
+| 14 Galerie / carrousel | 8 | 8 | 0 | 0 |
+| 15 Supprimer partout | 6 | 5 | 1 | 0 |
+| 16 Écritures forgées | 2 | 2 | 0 | 0 |
+| 17 Site public | 2 | 2 | 0 | 0 |
 | 18 Connexion habillée | 10 | 9 | 0 | 1 |
 | 19 Marque de brouillon | 6 | 6 | 0 | 0 |
 | 20 Mes pages habillé | 8 | 8 | 0 | 0 |
 | 21 Éditeur habillé | 9 | 9 | 0 | 0 |
 | 22 Emplacements d'image habillés | 12 | 12 | 0 | 0 |
-| 23 Code en recette | 5 | 4 | 0 | 1 |
-| 29 Publication sur la vraie chaîne | 9 | 8 | 1 | 0 |
+| 23 Code en recette | 5 | 5 | 0 | 0 |
+| 24 Carte Coordonnées | 7 | 7 | 0 | 0 |
+| 25 Carte Réseaux sociaux | 6 | 6 | 0 | 0 |
+| 26 Carte Mention d'information | 5 | 5 | 0 | 0 |
+| 27 Liste des formulaires | 5 | 5 | 0 | 0 |
+| 28 Écran d'un formulaire | 8 | 8 | 0 | 0 |
+| 29 Publication sur la vraie chaîne | 9 | 9 | 0 | 0 |
 | 30 Images en plusieurs passes | 1 | 1 | 0 | 0 |
-| 31 Publication impossible ou refusée | 2 | 2 | 0 | 0 |
+| 31 Publication impossible ou refusée | 2 | 1 | 0 | 1 |
 | 32 Une publication à la fois | 1 | 1 | 0 | 0 |
-| 33 Une demande part par e-mail | 4 | | | |
-| 34 Seuil des demandes par origine | 4 | | | |
-| 35 Liste des demandes | 3 | | | |
-| 36 Filtre et pages des demandes | 4 | | | |
-| 37 Nombres des demandes | 4 | | | |
-| 38 Détail d'une demande | 3 | | | |
-| 39 Suite d'une demande | 6 | | | |
-| 40 Retrait d'une demande | 5 | | | |
-| 41 Retrait groupé de demandes | 7 | | | |
-| **Total** | **215** | | | |
+| 33 Une demande part par e-mail | 4 | 4 | 0 | 0 |
+| 34 Seuil des demandes par origine | 4 | 4 | 0 | 0 |
+| 35 Liste des demandes | 3 | 3 | 0 | 0 |
+| 36 Filtre et pages des demandes | 4 | 4 | 0 | 0 |
+| 37 Nombres des demandes | 4 | 4 | 0 | 0 |
+| 38 Détail d'une demande | 3 | 3 | 0 | 0 |
+| 39 Suite d'une demande | 6 | 5 | 0 | 1 |
+| 40 Retrait d'une demande | 5 | 4 | 0 | 1 |
+| 41 Retrait groupé de demandes | 7 | 7 | 0 | 0 |
+| **Total** | **260** | **252** | **2** | **6** |
 
-Testé par : ________ · Date : ________ · Commit de `main` : ________ · Navigateur : ________
+Testé par : Claude, au navigateur piloté (`playwright-cli` 0.1.21, Chromium 154) · Date : 2026-10-27 et 2026-10-28 · Commit de `main` : `9af1e47` · Navigateur : Chromium 154, sans tête
