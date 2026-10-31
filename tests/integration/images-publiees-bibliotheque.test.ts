@@ -270,3 +270,39 @@ it("SC-02b — dans l'Écran : Médias, une image publiée dont la base ne garde
   expect(ihdr.getUint32(16)).toBe(fiche?.largeur);
   expect(ihdr.getUint32(20)).toBe(fiche?.hauteur);
 });
+
+/** Les médias que l'éditeur d'une page passe à son emplacement d'image (`data-medias`). */
+function lireMediasDeLEditeur(html: string): MediaEcran[] {
+  const attribut = /data-emplacement-image[^>]*?data-medias="([^"]*)"/.exec(html)?.[1];
+  if (attribut === undefined)
+    throw new Error("l'emplacement d'image est absent de l'éditeur");
+  return JSON.parse(
+    attribut
+      .replaceAll("&quot;", '"')
+      .replaceAll("&#39;", "'")
+      .replaceAll("&lt;", "<")
+      .replaceAll("&gt;", ">")
+      .replaceAll("&amp;", "&"),
+  ) as MediaEcran[];
+}
+
+it("CT-6.3 — dans l'éditeur d'une page, une image publiée dont la base ne garde plus les octets paraît avec la même vignette que dans l'Écran : Médias", async () => {
+  const db = obtenirDB();
+  const vignetteMedias = (await visiterEcranMedias(db)).find(
+    (m) => m.id === "media-fixture-hero",
+  )?.vignette;
+
+  const idSession = await semerSessionValide(db);
+  const reponse = await exports.default.fetch(
+    new Request("https://example.com/admin/pages/accueil", {
+      headers: { cookie: `${NOM_COOKIE_SESSION}=${idSession}` },
+    }),
+  );
+  expect(reponse.status).toBe(200);
+  const medias = lireMediasDeLEditeur(await reponse.text());
+
+  const vignette = medias.find((m) => m.id === "media-fixture-hero")?.vignette;
+  expect(vignette).not.toBe("/admin/medias/media-fixture-hero/octets");
+  expect(vignette?.endsWith(".png")).toBe(true);
+  expect(vignette).toBe(vignetteMedias);
+});
