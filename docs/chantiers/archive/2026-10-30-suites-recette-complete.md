@@ -37,3 +37,12 @@ des nombres, largeur d'« Enregistrer » dans les réglages), un change ou une c
   été rejouée dans le clone de recette, où elle réussissait.
 - Mettre les blocages de 07:24 à 07:28 sur le seul navigateur piloté : curl restait aussi 40 s sans réponse.
 - Noter KO le tableau de CT-37.4 : le critère du cahier (pas de défilement de côté) tenait ; la remarque restait à trancher.
+
+## Issue
+Tout engagé et fusionné le 2026-10-31. Branche `recette/complete-2026-10` supprimée. Change 013 archivé
+par #289 (13 specs vivantes valides, story cochée). Corrections directes : « non parti » à tort par #290
+(envoi et marque confiés à `waitUntil`), images publiées cassées dans l'éditeur par #291, marges du
+tableau des nombres et largeur d'« Enregistrer » par #292. Rejeu sur la recette (`main` `fb1f2db`) :
+CT-6.3 et CT-15.5 passent à OK, remarques de CT-24.7 et CT-37.4 levées ; deux demandes envoyées puis
+quittées à 0,4 s et 1,5 s sont marquées « parti » en 17 s. Les envois restés 40 s sans réponse le 28/10
+ne sont pas engagés : cause non établie, non reproduits.
