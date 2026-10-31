@@ -196,7 +196,7 @@
   {:else}
     <Button type="button" variant="outline" onclick={ajouter} class={`${CLASSE_GESTE} self-start`}>{TEXTE_RESEAUX_AJOUTER}</Button>
   {/if}
-  <Button type="submit" disabled={enCours} class="h-auto self-start rounded-md border-0 px-3 py-2 max-md:min-h-11">
+  <Button type="submit" disabled={enCours} class="h-auto w-full self-start rounded-md border-0 px-3 py-2 max-md:min-h-11 md:w-auto">
     {enCours ? TEXTE_ENREGISTREMENT_EN_COURS : TEXTE_BOUTON_ENREGISTRER}
   </Button>
   {#if messageGeneral}

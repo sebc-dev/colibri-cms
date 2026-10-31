@@ -78,7 +78,7 @@
   {texteNombresDuSite(nombres.site.demandes, nombres.site.commandes, nombres.site.retirees)}
 </p>
 {#if nombres.formulaires.length > 0}
-  <table class="mt-4 w-full text-left" aria-label={TEXTE_NOMBRES_PAR_FORMULAIRE}>
+  <table class="mt-4 w-full text-left [&_th,&_td]:px-1.5 [&_th,&_td]:py-1 [&_tr>*:first-child]:pl-0 [&_tr>*:last-child]:pr-0 [&_thead_th]:text-xs [&_thead_th]:font-semibold" aria-label={TEXTE_NOMBRES_PAR_FORMULAIRE}>
     <thead>
       <tr>
         <th scope="col">{TEXTE_COLONNE_FORMULAIRE}</th>
