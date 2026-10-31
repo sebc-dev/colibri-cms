@@ -248,7 +248,7 @@ Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 |---|---|---|---|
 | CT-6.1 | Lire l'éditeur | Cinq emplacements, dans l'ordre : texte riche · lien de vidéo · bouton d'action · image · galerie — chacun reconnaissable à sa nature | OK — Texte riche · Lien de la vidéo · Bouton d’action · Image · Galerie, chacun titré de sa nature |
 | CT-6.2 | Lire les contenus | Le lien de vidéo montre l'URL YouTube ; le bouton montre « Demander un devis » / `/contact` ; la galerie est vide | OK — bouton « Demander un devis » / `/contact`, vidéo YouTube ; écart d’attendu : l’éditeur montre le contenu publié courant, dont la galerie des 45 images publiées au § 30 d’une passe précédente |
-| CT-6.3 | L'emplacement **image** (son identité de démonstration n'existe pas en bibliothèque) | L'écran ne casse pas ; aucun identifiant technique (`media-fixture-hero`) ni mot « undefined » n'apparaît ; le sélecteur d'image reste utilisable | KO — prémisse vieillie : depuis le change 011 (ticket 02), `media-fixture-hero` est inscrite en bibliothèque comme image publiée, sans octets en base. L’éditeur la montre cassée : `EmplacementImage.svelte` vise toujours `/admin/medias/<id>/octets`, qui répond 200 avec 0 octet, et « media-fixture-hero.png » s’affiche à la place de la vignette (capture). Même défaut pour les 45 images publiées de la galerie et pour les 47 vignettes du sélecteur « Choisir une image ». L’écran Médias montre ces mêmes images (adresse statique `/_astro/…`, ADR-0020). L’écran ne casse pas, aucun « undefined », le sélecteur s’ouvre et reste utilisable |
+| CT-6.3 | L'emplacement **image** (son identité de démonstration n'existe pas en bibliothèque) | L'écran ne casse pas ; aucun identifiant technique (`media-fixture-hero`) ni mot « undefined » n'apparaît ; le sélecteur d'image reste utilisable | OK — rejoué le 2026-10-31 sur `main` `fb1f2db`, après #291 : l'image posée s'affiche par son adresse statique `/_astro/…`, comme dans l'écran Médias ; 0 image cassée sur 46 dans l'éditeur d'Accueil (l'image et la galerie), 0 sur 47 dans « Choisir une image », aucune par la route des octets ; ni « undefined » ni `media-fixture` à l'écran. Le 2026-10-28 : KO — prémisse vieillie : depuis le change 011 (ticket 02), `media-fixture-hero` est inscrite en bibliothèque comme image publiée, sans octets en base. L’éditeur la montre cassée : `EmplacementImage.svelte` vise toujours `/admin/medias/<id>/octets`, qui répond 200 avec 0 octet, et « media-fixture-hero.png » s’affiche à la place de la vignette (capture). Même défaut pour les 45 images publiées de la galerie et pour les 47 vignettes du sélecteur « Choisir une image ». L’écran Médias montre ces mêmes images (adresse statique `/_astro/…`, ADR-0020). L’écran ne casse pas, aucun « undefined », le sélecteur s’ouvre et reste utilisable |
 | CT-6.4 | Actionner le fil de retour | Retour à « Mes pages » | OK — retour à `/admin/mes-pages` |
 | CT-6.5 | Ouvrir **Contact** | texte riche · lien de vidéo (Vimeo) · image · carrousel, dans cet ordre | OK — Texte riche · Lien de la vidéo (`https://vimeo.com/76979871`) · Image · Carrousel |
 | CT-6.6 | Ouvrir **Tarifs** | texte riche · bouton d'action | OK — Texte riche · Bouton d’action |
@@ -363,7 +363,7 @@ Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 
 | ID | Étapes | Attendu | Résultat |
 |---|---|---|---|
-| CT-13.1 | Ouvrir le sélecteur d'image | Il présente les images de la bibliothèque, par leur **nom d'affichage** (« Façade de l'atelier », pas `photo.jpg` ni un identifiant) | OK — « Choisir une image » nomme chaque image par son nom d'affichage (« Poser l'image Façade de l'atelier »), jamais `photo.jpg` ni un identifiant ; le nom est porté par le texte de remplacement et le bouton, la grille ne montre que les vignettes. Les 47 images publiées y sont cassées (défaut de CT-6.3) |
+| CT-13.1 | Ouvrir le sélecteur d'image | Il présente les images de la bibliothèque, par leur **nom d'affichage** (« Façade de l'atelier », pas `photo.jpg` ni un identifiant) | OK — « Choisir une image » nomme chaque image par son nom d'affichage (« Poser l'image Façade de l'atelier »), jamais `photo.jpg` ni un identifiant ; le nom est porté par le texte de remplacement et le bouton, la grille ne montre que les vignettes. Les 47 images publiées y sont cassées (défaut de CT-6.3). Rejoué le 2026-10-31 après #291 : les 47 vignettes s'affichent, aucune cassée ; le nom d'affichage n'est pas rejoué, aucune des 47 images de la base n'en ayant reçu (elles portent leur nom de fichier, « Poser l'image Q-45.jpg ») |
 | CT-13.2 | Choisir « Façade de l'atelier » | L'emplacement montre l'image ; pastille brouillon ; **aucun** téléversement dans l'onglet Réseau ; en base, le brouillon de l'emplacement porte l'`id` de l'image | OK — l'image s'affiche (servie par `/octets`) ; pastille « Brouillon » ; un seul envoi, vers `…/emplacements/image-hero`, aucun téléversement ; en base `mediaId` = l'identité de l'image |
 | CT-13.3 | Remplacer par `logo.png` | La nouvelle image est montrée à la place ; le brouillon porte le nouvel `id` et plus l'ancien | OK — `logo.png` montrée ; en base `mediaId` = celle de `logo.png`, plus l'ancienne |
 | CT-13.4 | Recharger l'éditeur | L'image posée est retrouvée | OK — `logo.png` retrouvée |
@@ -405,7 +405,7 @@ Joué le 2026-10-27 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | CT-15.2 | « Annuler » | Rien ne change : A toujours posée aux deux endroits | OK — aucun envoi ; A toujours dans les deux brouillons |
 | CT-15.3 | « Supprimer… » puis « Supprimer » | A est retirée de la galerie d'Accueil **et** du carrousel de Contact ; leurs brouillons sont mis à jour en base ; Accueil et Contact portent la pastille ; Tarifs non | OK — un envoi `…/supprimer` (200) ; A retirée des brouillons de la galerie (46 images) et du carrousel (1) ; Accueil et Contact portent « Brouillon », Tarifs garde son seul brouillon |
 | CT-15.4 | Fiche de A après suppression | « Cette image n'est posée dans aucun emplacement. » + marque « sera effacée à la prochaine publication » ; A **reste** dans la grille (l'effacement réel attend la publication) | OK — « Cette image n'est posée dans aucun emplacement. » et la marque « sera effacée à la prochaine publication » ; A reste en bibliothèque |
-| CT-15.5 | Ouvrir l'éditeur d'Accueil et de Contact | Aucun emplacement ne montre d'image cassée ni d'identifiant ; l'ordre des autres images de la galerie est conservé | KO — même défaut que CT-6.3, aucun défaut nouveau. La suppression ne laisse ni trou ni reste de A : la galerie garde ses 45 images publiées dans leur ordre puis C, le carrousel garde C. Mais les images publiées sans octets s'affichent cassées : la galerie d'Accueil (24 cassées à la mesure, les autres pas encore chargées) et l'image de Contact, où « media-fixture-equipe.png » s'affiche à la place de la vignette |
+| CT-15.5 | Ouvrir l'éditeur d'Accueil et de Contact | Aucun emplacement ne montre d'image cassée ni d'identifiant ; l'ordre des autres images de la galerie est conservé | OK — rejoué le 2026-10-31 après #291, sans reconstituer la suppression du préalable : 0 image cassée sur 46 dans l'éditeur d'Accueil, 0 sur 1 dans celui de Contact, aucun identifiant ; l'ordre de la galerie était OK le 2026-10-28. Le 2026-10-28 : KO — même défaut que CT-6.3, aucun défaut nouveau. La suppression ne laisse ni trou ni reste de A : la galerie garde ses 45 images publiées dans leur ordre puis C, le carrousel garde C. Mais les images publiées sans octets s'affichent cassées : la galerie d'Accueil (24 cassées à la mesure, les autres pas encore chargées) et l'image de Contact, où « media-fixture-equipe.png » s'affiche à la place de la vignette |
 | CT-15.6 | « Supprimer… » sur une image posée nulle part | La confirmation dit « Cette image n'est posée dans aucun emplacement. » ; confirmer ne touche aucun brouillon (aucune nouvelle pastille, aucune ligne modifiée en base) | OK — sur B (`paris-brest.webp`) : « Cette image n'est posée dans aucun emplacement. » ; confirmer envoie `…/supprimer` (200) ; empreinte de tous les brouillons identique avant et après, aucune pastille nouvelle |
 
 ## 16. Écritures forgées depuis une autre origine — `pages-et-emplacements`
@@ -595,7 +595,7 @@ recette, connectée (§ 0.3), à 1280 px puis à 360 px.
 | CT-24.4 | Corriger le téléphone, « Enregistrer » | Pendant l'envoi, le bouton est inactif et dit « Enregistrement… » ; au succès la marque « Brouillon » paraît aussitôt dans la carte Coordonnées, sans changement d'écran ; les cartes Réseaux sociaux et Mention gardent leur état (SC-06c) | OK — envoi retardé de 2,5 s : bouton inactif et « Enregistrement… » ; au succès, marque aussitôt dans la carte Coordonnées, même écran ; Réseaux sociaux et Mention sans marque |
 | CT-24.5 | Recharger l'écran | La carte Coordonnées garde la marque et les valeurs saisies (SC-06c) | OK — après rechargement : marque et « 04 11 22 33 44 » (lu aussi en base) |
 | CT-24.6 | Couper la connexion, « Enregistrer » | Message « La connexion a échoué… » ; la saisie est gardée | OK — navigateur mis hors ligne : « La connexion a échoué : vérifiez votre accès à Internet, puis réessayez. », saisie « 05 66 77 88 99 » gardée, base inchangée |
-| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | OK — 360 px : champs 44, 44 et 90 px de haut, « Enregistrer » 102 × 44 px (il n'occupe plus la largeur de la carte, contrairement aux cartes des pages), `scrollWidth` 360, console vide |
+| CT-24.7 | À 360 px | Champs et bouton mesurent au moins 44 px de haut ; console : aucune violation CSP | OK — 360 px : champs 44, 44 et 90 px de haut, « Enregistrer » 102 × 44 px (il n'occupe plus la largeur de la carte, contrairement aux cartes des pages), `scrollWidth` 360, console vide. Rejoué le 2026-10-31 après #292 : « Enregistrer » occupe la largeur des trois cartes (Coordonnées, Réseaux sociaux, Mention), 262 × 44 px, comme dans les cartes des pages ; champs 44, 44, 90 px et plus ; `scrollWidth` 360, console vide |
 
 ## 25. La carte Réseaux sociaux — change 008 · ticket 07
 
@@ -779,7 +779,7 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | CT-37.1 | Les demandes du préalable semées, sans les témoins retirés, ouvrir « Demandes » au téléphone | En haut, « N demandes · N commandes » puis un tableau Formulaire / Demandes / Commandes, formulaires par nom, lisible sans défiler de côté | OK — semis du préalable sans les témoins : « 58 demandes · 3 commandes », tableau Formulaire / Demandes / Commandes (Devis atelier 3 / 0, Devis gâteau 55 / 3) ; à 360 px, `scrollWidth` 360 |
 | CT-37.2 | Sans aucune demande, ouvrir « Demandes » | « 0 demande · 0 commande », aucun tableau | OK — sans aucune demande : « 0 demande · 0 commande », aucun tableau |
 | CT-37.3 | Les demandes du préalable semées, toucher « Devis gâteau » dans la rangée « Formulaire : » puis « Demandes plus anciennes » | Les nombres du haut et du tableau ne changent pas | OK — après « Devis gâteau » puis « Demandes plus anciennes » (page 2, filtrée), les nombres du haut et du tableau sont inchangés |
-| CT-37.4 | Les témoins retirés du préalable semés en plus, ouvrir « Demandes » au téléphone | « · 2 retirées » suit les nombres du haut ; le tableau porte la colonne Retirées ; il se lit sans défiler de côté | OK — témoins semés en plus : « 58 demandes · 4 commandes · 2 retirées » (le témoin retiré de suite « Commande » compte parmi les commandes, comme le veut la spec), tableau avec la colonne Retirées ; à 360 px, `scrollWidth` 360, sans défilement de côté. Remarque : les cellules n'ont aucune marge intérieure, les quatre en-têtes se lisent collés (« FormulaireDemandesCommandesRetirées ») et « Retirées » déborde de 7 px sur la marge droite (capture `ct-37-4-retirees-360.png`) |
+| CT-37.4 | Les témoins retirés du préalable semés en plus, ouvrir « Demandes » au téléphone | « · 2 retirées » suit les nombres du haut ; le tableau porte la colonne Retirées ; il se lit sans défiler de côté | OK — témoins semés en plus : « 58 demandes · 4 commandes · 2 retirées » (le témoin retiré de suite « Commande » compte parmi les commandes, comme le veut la spec), tableau avec la colonne Retirées ; à 360 px, `scrollWidth` 360, sans défilement de côté. Remarque : les cellules n'ont aucune marge intérieure, les quatre en-têtes se lisent collés (« FormulaireDemandesCommandesRetirées ») et « Retirées » déborde de 7 px sur la marge droite (capture `ct-37-4-retirees-360.png`). Rejoué le 2026-10-31 après #292, mêmes semis : « 63 demandes · 4 commandes · 2 retirées » (5 demandes du § 33 en plus), colonne Retirées ; en-têtes séparés (12 px, 6 px de marge par côté), le tableau finit au bord du contenu (328 px sur 328) au lieu de déborder ; `scrollWidth` 360, console vide |
 
 ## 38. Le détail d'une demande — change 013 · ticket 06
 
@@ -899,7 +899,7 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | 3 Recopier le code, session | 15 | 15 | 0 | 0 |
 | 4 Cadre | 9 | 9 | 0 | 0 |
 | 5 Liste des pages | 4 | 4 | 0 | 0 |
-| 6 Éditeur | 7 | 6 | 1 | 0 |
+| 6 Éditeur | 7 | 7 | 0 | 0 |
 | 7 Bouton d'action | 8 | 8 | 0 | 0 |
 | 8 Lien de vidéo | 7 | 7 | 0 | 0 |
 | 9 Texte riche | 7 | 7 | 0 | 0 |
@@ -908,7 +908,7 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | 12 Octets | 4 | 4 | 0 | 0 |
 | 13 Poser / remplacer | 7 | 6 | 0 | 1 |
 | 14 Galerie / carrousel | 8 | 8 | 0 | 0 |
-| 15 Supprimer partout | 6 | 5 | 1 | 0 |
+| 15 Supprimer partout | 6 | 6 | 0 | 0 |
 | 16 Écritures forgées | 2 | 2 | 0 | 0 |
 | 17 Site public | 2 | 2 | 0 | 0 |
 | 18 Connexion habillée | 10 | 9 | 0 | 1 |
@@ -935,6 +935,8 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | 39 Suite d'une demande | 6 | 5 | 0 | 1 |
 | 40 Retrait d'une demande | 5 | 4 | 0 | 1 |
 | 41 Retrait groupé de demandes | 7 | 7 | 0 | 0 |
-| **Total** | **260** | **252** | **2** | **6** |
+| **Total** | **260** | **254** | **0** | **6** |
 
 Testé par : Claude, au navigateur piloté (`playwright-cli` 0.1.21, Chromium 154) · Date : 2026-10-27 et 2026-10-28 · Commit de `main` : `9af1e47` · Navigateur : Chromium 154, sans tête
+
+Rejeu du 2026-10-31 sur `main` `fb1f2db` (après #290 à #292) : CT-6.3 et CT-15.5 passent de KO à OK ; CT-13.1, CT-24.7 et CT-37.4 rejoués pour leurs remarques, levées.
