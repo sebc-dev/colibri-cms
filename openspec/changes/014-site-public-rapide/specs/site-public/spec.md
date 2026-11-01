@@ -15,8 +15,10 @@ selon la nature de son emplacement (attribut `sizes`) : toute la largeur du cont
 par défaut de l'image DOIT être l'une de ses variantes. Le texte de remplacement et les dimensions
 déclarées restent ceux de l'image.
 
-Le fichier déposé par l'éditrice NE DOIT être chargé par aucune page publique, et le site produit NE
-DOIT pas le contenir. Une seule exception existe : une image dont la reconstruction ne sait pas réduire
+Le fichier déposé par l'éditrice NE DOIT être ni référencé ni chargé par aucune page publique. Le site
+produit le garde, à une adresse qu'aucune page ne cite : la publication y relit l'original d'une image
+posée au départ pour le déposer sur la branche des images, et l'administration en tire ses vignettes.
+Une seule exception existe : une image dont la reconstruction ne sait pas réduire
 les octets paraît telle que déposée. La reconstruction aboutit alors et nomme cette image dans son
 compte rendu. Une image impossible à réduire NE DOIT jamais faire échouer la reconstruction.
 
@@ -38,7 +40,7 @@ compte rendu. Une image impossible à réduire NE DOIT jamais faire échouer la 
 
 #### Scenario: Le fichier déposé n'est jamais envoyé aux visiteurs
 - **WHEN** le site est reconstruit avec des images publiées que la reconstruction sait réduire
-- **THEN** aucune page publique ne référence le fichier déposé de ces images, et le site produit ne contient, pour chacune, que ses variantes
+- **THEN** aucune page publique ne référence le fichier déposé de ces images, et chacune n'y est proposée que par ses variantes
 
 #### Scenario: Une image impossible à réduire paraît quand même
 - **WHEN** la reconstruction trouve une image publiée dont les octets ne se laissent pas réduire

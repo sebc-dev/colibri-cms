@@ -22,7 +22,9 @@ statique, et seul l'envoi d'une demande déclenche un traitement serveur.
   plus petite variante qui suffit à l'écran du visiteur.
 - Le fichier déposé par l'éditrice (l'**original**) n'est plus envoyé aux visiteurs. Il reste la
   référence que la publication dépose (budget de 42 images par publication inchangé), et la
-  reconstruction en tire les variantes.
+  reconstruction en tire les variantes. Le site le garde, à une adresse qu'aucune page ne cite : la
+  publication y relit l'original d'une image posée au départ, et l'administration en tire ses
+  vignettes.
 - La **première image de la page** est demandée dès la lecture du document, en priorité haute. Toutes
   les autres images se chargent à l'approche de l'écran, comme aujourd'hui.
 - Une image que la reconstruction ne sait pas réduire paraît quand même, telle que déposée. La
@@ -39,8 +41,9 @@ Le détail et les chiffres sont dans `design.md` § Decisions.
 
 1. **Un seul format, WebP.** Toutes les variantes sont en WebP. Aucun navigateur courant ne le refuse,
    et un deuxième format doublerait les fichiers sans gain sur SC-005. Une photo produit au plus
-   **3 fichiers** sur le site, contre 1 aujourd'hui. Le plafond de la plateforme (20 000 fichiers) est
-   donc atteint vers 6 600 photos, et l'alerte à 15 000 fichiers vers 5 000 photos.
+   **4 fichiers** sur le site (3 variantes et l'original, point 5), contre 1 aujourd'hui. Le plafond
+   de la plateforme (20 000 fichiers) est donc atteint vers 5 000 photos, et l'alerte à 15 000 fichiers
+   vers 3 750 photos.
 2. **Largeurs : 360, 720 et 1 080 pixels.** Elles sont calculées sur la mise en page réelle du site
    (`src/site/site.css`) et sur l'écran du test mobile de Lighthouse (412 px, densité 1,75). Une case
    de galerie demande 322 pixels réels, servis par la variante à 360 px. Une image ou un carrousel
@@ -55,6 +58,14 @@ Le détail et les chiffres sont dans `design.md` § Decisions.
    de toute image déjà publiée. Une image pas encore publiée n'a pas de variante : elle paraît entière,
    avec les mêmes dimensions déclarées. C'est déjà la seule différence que la spec `apercu` admet pour
    les images.
+5. **L'original reste dans le site, sans qu'aucune page ne le cite.** L'intégrateur livre chaque site
+   avec des images posées au départ, que la bibliothèque inscrit sans en garder les octets. La première
+   publication les dépose toutes sur la branche des images, et elle relit leur original dans le site
+   en service. Sans l'original, cette première publication s'arrêterait faute d'octets, ou déposerait
+   une variante réduite à la place du fichier d'origine, alors que la spec `publication` exige des
+   octets inchangés. La bibliothèque tire aussi ses vignettes de cet original. Le visiteur ne le charge
+   jamais, puisqu'aucune page ne le cite. Le prix est un quatrième fichier par photo (point 1) et des
+   métadonnées encore téléchargeables à l'adresse de l'original (`security-review.md`).
 
 ## Préalable aux tickets — geste humain
 
@@ -62,10 +73,15 @@ Le candidat `docs/adr/_candidates/pipeline-d-images-variantes-au-build.md` doit 
 `docs/adr/`. Il faut l'amender des points tranchés ci-dessus avant de le promouvoir. Le candidat décrit
 aujourd'hui les réglages d'images d'Astro (`image.layout: 'constrained'`, `breakpoints: [640, 960, 1280]`,
 composant `<Image>`). Ce change produit les variantes par une étape de construction propre au projet,
-en WebP seul, à 360, 720 et 1 080 px, sans original servi, avec au plus 3 fichiers par photo. Promu tel
-quel, l'ADR serait contredit par ce design. La promotion doit aussi reprendre le coût mesuré de
-production des variantes (`design.md` § Risks), qui remplace la réserve « minutes de build bornées par
-rien de mesuré ». Le numéro 2.x est attribué à la promotion. Ce change ne l'écrit pas.
+en WebP seul, à 360, 720 et 1 080 px, sans original cité par les pages, avec au plus 4 fichiers par
+photo (3 variantes et l'original). Promu tel quel, l'ADR serait contredit par ce design. La promotion
+doit aussi reprendre le coût de production des variantes mesuré en local (`design.md` § Context), qui
+remplace la réserve « minutes de build bornées par rien de mesuré ». Le numéro 2.x est attribué à la
+promotion. Ce change ne l'écrit pas.
+
+Un ADR accepté ne se modifie plus. Les chiffres que la recette relèvera après la promotion (coût par
+photo sur Workers Builds, qualité WebP retenue) sont donc consignés dans le cahier de recette, pas dans
+l'ADR. Si le coût mesuré sur Workers Builds dépasse 0,5 s par photo, un nouvel ADR remplace celui-ci.
 
 ## Capabilities
 
@@ -84,20 +100,27 @@ Aucune.
 La capacité `apercu` ne change pas. Son exigence « Même rendu que la page publique » admet déjà, pour
 une image que le site en service ne porte pas encore, une autre adresse pour ses octets.
 
+Les capacités `publication` et `bibliotheque-de-medias` ne changent pas non plus : elles lisent toujours
+l'original, que le site garde (point tranché 5).
+
 ## Impact
 
 - **Construction du site** : une étape nouvelle produit les variantes avant l'assemblage, dans toute
   construction qui passe par `astro.config.ts` : `npm run build`, les sites jetables des tests, le site
   factice, Workers Builds. Elle s'appuie sur `sharp`, qui devient une dépendance de développement
   directe. Il est déjà installé dans l'arbre comme dépendance optionnelle d'Astro, en version 0.35.4.
-- **Code** : `src/platform/contenu/medias.ts` empaquette les variantes au lieu des originaux.
+- **Code** : `src/platform/contenu/medias.ts` empaquette les variantes en plus des originaux. Les
+  originaux ne servent plus qu'à l'administration et à la publication, qui ne changent pas.
   `src/core/rendu/page.ts` porte les variantes de chaque image et marque la première image posée.
   `src/render/Image.astro`, `Galerie.astro` et `Carrousel.astro` écrivent les variantes, la place de
   l'image selon la nature de l'emplacement, et la priorité. `src/pages/admin/apercu/[...slug].astro`
   garde ses sources. `astro.config.ts` reçoit l'étape de construction, et son bloc `image`, devenu
   sans effet, est retiré.
 - **Tests** : `tests/static/images-publiques-statique.test.ts`, `tests/unit/rendu/*` et
-  `scripts/batir-site-jetable.mjs` (les fixtures d'images doivent sortir en variantes).
+  `scripts/batir-site-jetable.mjs` (les fixtures d'images doivent sortir en variantes). Deux tests
+  existants sont à retoucher (`design.md` § Risks, « Tests existants ») : la liste exacte des attributs
+  de `<img>` (`tests/static/images-publiques-statique.test.ts`, ligne 144) et les images composées
+  comparées à l'identique (`tests/unit/rendu/images.test.ts`).
 - **Durée de construction** : environ 0,3 s par photo mesurée en local. Ce coût s'ajoute au délai de
   mise en ligne (SC-004 : moins de 5 minutes). Il se mesure sur Workers Builds pendant la recette.
 - **Hors périmètre** : réduire l'image au dépôt (le plafond de 2 Mio est inchangé), un deuxième format

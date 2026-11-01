@@ -48,11 +48,18 @@
 
 ## Données
 
-- **Amélioration : les métadonnées ne sont plus publiées.** Aujourd'hui, l'original est servi tel que
-  déposé, avec ses métadonnées EXIF : position GPS de la prise de vue, appareil, date. Une photo prise
-  dans l'atelier de l'éditrice peut donc publier son adresse. Les variantes sont écrites sans
-  métadonnées (D2). Seule une image servie telle que déposée par le repli (D6) les garde encore. Ce
-  résidu est signalé ici, sans être traité dans ce change.
+- **Amélioration partielle : les pages ne citent plus de métadonnées.** Aujourd'hui, l'original est
+  servi tel que déposé, avec ses métadonnées EXIF : position GPS de la prise de vue, appareil, date. Une
+  photo prise dans l'atelier de l'éditrice peut donc publier son adresse. Les variantes sont écrites
+  sans métadonnées (D2), et aucune page ne cite plus l'original. Deux résidus restent :
+  - l'original reste dans le site (design D1, la publication et la bibliothèque le lisent). Quiconque
+    connaît son adresse peut le télécharger avec ses métadonnées. Cette adresse porte une empreinte du
+    contenu (`/_astro/<id>.<empreinte>.<ext>`) : aucune page ne la cite, et elle ne se devine pas sans
+    le fichier ;
+  - une image servie telle que déposée par le repli (D6) garde ses métadonnées dans la page.
+
+  Ces résidus sont signalés ici, sans être traités dans ce change. Retirer l'original du site
+  demanderait de changer la publication (design D1, alternatives écartées).
 - Aucune donnée de visiteur n'est touchée.
 
 ## Observation hors périmètre — la route `/_image`
