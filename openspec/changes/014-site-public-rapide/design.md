@@ -14,6 +14,17 @@ Voir `proposal.md` § Why pour la motivation. Le design part de l'état suivant,
   un petit fichier en `data:` dans la page, ce que la politique `img-src` du site refuserait. Le dossier
   `./medias` est rempli avant le build par `scripts/recuperer-images-publiees.mjs` (`prebuild`), qui le
   vide puis y extrait la branche `media` du dépôt.
+- **Lecteurs de l'original.** `adressesOriginalesEmpaquetees()` (`src/platform/contenu/medias.ts`) donne
+  l'adresse de l'original empaqueté de chaque image. Six usages en dépendent, hors du rendu public : la
+  bibliothèque (`src/pages/admin/medias.astro`, vignettes), la fiche d'une image
+  (`src/pages/admin/medias/[id].astro`), l'éditeur de page (`src/pages/admin/pages/[slug].astro`), et
+  trois usages de la publication (`src/platform/publication/publier.ts`) : le récapitulatif, le vidage
+  des octets en base quand le site porte l'image (ADR-0020), et `lecteurDesOriginalesEmpaquetees`. Ce
+  dernier relit par la liaison `ASSETS` l'original d'une image posée au départ par l'intégrateur. Une
+  telle image est inscrite en base sans octets ni empreinte de dépôt. La première publication la
+  dépose, quoi que l'éditrice ait modifié, puisque le contenu de départ compte comme publié
+  (`referencesDuContenuCourant`, `src/core/medias/references.ts`). Sans original lisible, le dépôt
+  s'arrête sur `octets-manquants` (`src/core/publication/passes.ts`).
 - **Configuration Astro.** `astro.config.ts` déclare `imageService: 'compile'`, `image.layout:
   'constrained'` et `image.breakpoints: [640, 960, 1280]`. Aucun fichier de `src/` n'importe
   `astro:assets` : ces réglages n'agissent sur rien.
@@ -47,10 +58,10 @@ Voir `proposal.md` § Why pour la motivation. Le design part de l'état suivant,
 - Faire écrire au rendu partagé (I3) `srcset`, `sizes` selon la nature de l'emplacement, et la priorité
   de la première image. Le site publié et l'aperçu passent par le même composant et la même
   composition.
-- Ne plus servir l'original. Ne jamais faire échouer une construction pour une image impossible à
-  réduire.
-- Mesurer SC-005 sur la variante photos-lourdes, et mesurer le coût des variantes par photo pour la
-  promotion de l'ADR.
+- Ne plus faire charger l'original par aucune page, tout en le gardant dans le site pour la publication
+  et l'administration. Ne jamais faire échouer une construction pour une image impossible à réduire.
+- Mesurer SC-005 sur la variante photos-lourdes, et consigner dans le cahier de recette le coût des
+  variantes par photo mesuré sur Workers Builds.
 
 **Non-Goals :**
 - Réduire l'image au dépôt, ou changer le plafond de 2 Mio de `src/core/medias/ingestion.ts`.
@@ -79,16 +90,21 @@ Workers Builds.
   de `src/platform/medias/`, importé par `astro.config.ts` seul. C'est le patron déjà suivi par
   `src/platform/publication/forge-github.ts` et `src/platform/instance/expediteur.ts`. Aucun code du
   Worker ne l'importe.
-- **Empaquetage.** `src/platform/contenu/medias.ts` remplace le motif des originaux par
-  `/medias/variantes/*.{webp,png,jpg,jpeg}`, toujours en `?no-inline`. Les extensions autres que `webp`
-  servent au repli (D6). `ImageRendue` gagne `variantes: readonly { adresse: string; largeur: number }[]`,
+- **Empaquetage.** `src/platform/contenu/medias.ts` garde le motif des originaux, inchangé, et lui
+  ajoute `/medias/variantes/*.{webp,png,jpg,jpeg}`, toujours en `?no-inline`. `imagesPubliees()`, que
+  lisent les pages publiques et l'aperçu, ne tire plus ses sources que des variantes. Les extensions
+  autres que `webp` servent au repli (D6). `ImageRendue` gagne `variantes: readonly { adresse: string; largeur: number }[]`,
   triées par largeur croissante. `source` devient la plus grande variante qui ne dépasse pas 720 px, ou à
   défaut la plus petite. Une image publiée sans aucune variante est traitée comme aujourd'hui une image
   sans octets : la construction échoue en la nommant (exigence « Une page publiée n'affiche jamais
   d'image manquante », inchangée).
-- **Original absent du site.** Plus aucun module n'importe les originaux. Vite ne les émet donc plus
-  dans `/_astro/`. La publication continue de déposer l'original seul sur la branche `media`. Le budget
-  de 42 images par publication (ADR-0021) ne bouge pas.
+- **L'original reste dans le site, sans être cité.** Vite continue d'émettre l'original dans `/_astro/`,
+  mais aucune page publique ne le référence plus : le rendu ne lit que les variantes. Les six lecteurs
+  de l'original (§ Context) ne changent pas, et la première publication d'un site livré relit toujours
+  l'original de ses images posées au départ. La publication continue de déposer l'original seul sur la
+  branche `media`. Le budget de 42 images par publication (ADR-0021) ne bouge pas. Le prix est un
+  quatrième fichier par photo, et des métadonnées encore téléchargeables à l'adresse de l'original
+  (`security-review.md`, § Données).
 
 *Alternatives écartées :*
 - **Le pipeline d'images d'Astro** (`getImage()` d'`astro:assets` au prérendu, `imageService:
@@ -108,6 +124,13 @@ Workers Builds.
   périmètre.
 - **Cloudflare Images ou une transformation à la demande.** Le site ferait un traitement serveur à
   chaque consultation (contraire à FR-096) et dépendrait d'un service limité du compte client.
+- **Retirer l'original du site, et le faire relire à la publication sur la branche `media`.** Chaque
+  image posée au départ coûterait des sous-requêtes de lecture au dépôt, prises sur le budget d'une
+  publication (ADR-0021). Il faudrait changer la publication pour un gain qui ne touche pas SC-005.
+- **Retirer l'original du site, et calculer à la construction l'empreinte de chaque original** pour que
+  la publication n'ait plus à redéposer une image posée au départ. La construction de l'arbre des images
+  dépendrait alors de ce que `prebuild` a lu sur la branche. Cette voie touche ADR-0021 et ADR-0023, et
+  demanderait un ADR neuf.
 
 ### D2 — Un seul format : WebP, qualité 80
 
@@ -117,7 +140,7 @@ argument), puis écrite **sans métadonnées**. Le navigateur appliquait déjà 
 l'original : sans cette étape, une variante sans EXIF paraîtrait pivotée.
 
 *Alternative écartée :* deux formats dans un `<picture>`, AVIF et WebP, ou WebP et JPEG. Il faudrait
-6 fichiers par photo, et le mur des 20 000 fichiers serait atteint vers 3 300 photos. L'encodage AVIF
+7 fichiers par photo avec l'original, et le mur des 20 000 fichiers serait atteint vers 2 850 photos. L'encodage AVIF
 est aussi plusieurs fois plus lent, ce qui allonge chaque construction. WebP suffit à SC-005 : l'audit
 « Improve image delivery » vise des images servies en pleine taille et dans un format ancien.
 
@@ -126,7 +149,7 @@ est aussi plusieurs fois plus lent, ce qui allonge chaque construction. WebP suf
 Pour une image de largeur `L`, les largeurs produites sont `{ w ∈ [360, 720, 1080] | w < L } ∪
 { min(L, 1080) }`. Les hauteurs sont proportionnelles et arrondies. Exemples : 2 000 → 360, 720, 1 080 ;
 1 080 → 360, 720, 1 080 ; 960 → 360, 720, 960 ; 720 → 360, 720 ; 300 → 300. Une image produit au plus
-3 fichiers.
+3 variantes, auxquelles s'ajoute l'original gardé dans le site (D1).
 
 Le calcul part de `src/site/site.css`, où `box-sizing` vaut `border-box`, `main` a une largeur maximale
 de 70ch et un padding de 1rem, et la galerie est `repeat(auto-fill, minmax(10rem, 1fr))` avec un
@@ -186,7 +209,9 @@ garderait que la première image), ou l'écriture échoue. Dans ces cas, elle co
 `[variantes] <id> servie telle que déposée : <raison>` dans la sortie de construction. La page
 présente alors l'image entière, sans `srcset` à plusieurs entrées. Une image publiée reste ainsi
 toujours visible. C'est la raison de ce choix : l'éditrice ne lit pas la sortie de construction et ne
-saurait pas quelle image retire une publication bloquée.
+saurait pas quelle image retire une publication bloquée. La copie double l'original dans le site, qui
+le garde déjà (D1) ; le repli reste rare, et le rendu lit ainsi un seul motif d'empaquetage, celui des
+variantes.
 
 Le repli ne vaut que pour un fichier admis par l'ingestion. Avant tout décodage, l'étape relit l'en-tête
 avec le lecteur de `src/core/medias/ingestion.ts`. Elle ne traite que les noms de la forme
@@ -257,16 +282,18 @@ consultation.
   est de 0,32 s par photo pour les trois largeurs, sur 12 cœurs, en séquentiel. Avec 2 vCPU, une
   bibliothèque de quelques centaines de photos pourrait ajouter plusieurs minutes et menacer SC-004
   (mise en ligne en moins de 5 minutes) bien avant le mur des 20 minutes. → Mitigation : décodage
-  unique et parallélisme (D9). La recette mesure le coût réel par photo sur Workers Builds, et ce
-  chiffre est reporté dans l'ADR promu. Si le coût mesuré dépasse 0,5 s par photo, le cache (Open
+  unique et parallélisme (D9). La recette mesure le coût réel par photo sur Workers Builds et le
+  consigne dans le cahier de recette. L'ADR, promu avant les tickets avec la mesure locale, ne se
+  modifie plus. Si le coût mesuré dépasse 0,5 s par photo, un nouvel ADR le remplace, et le cache (Open
   Questions) devient le change suivant.
-- **[Mur des fichiers]** Une photo produit au plus 3 fichiers. L'alerte à 15 000 fichiers (`docs/ci.md`,
-  job `build`) arrive vers 5 000 photos, et le mur à 20 000 vers 6 600 photos. → Mitigation : le
-  garde-fou de la CI compte déjà les fichiers de `dist/`. La limite est reportée dans l'ADR promu.
+- **[Mur des fichiers]** Une photo produit au plus 4 fichiers : 3 variantes et l'original (D1).
+  L'alerte à 15 000 fichiers (`docs/ci.md`, job `build`) arrive vers 3 750 photos, et le mur à 20 000
+  vers 5 000 photos. → Mitigation : le garde-fou de la CI compte déjà les fichiers de `dist/`. La limite
+  est reprise dans l'ADR promu.
 - **[SC-005 manqué sur le pire cas]** La photo de tête à 720 px pèse 150 Kio en qualité 80, parce que
   les photos de la recette sont du bruit. → Leviers, dans l'ordre et sans changer les specs : qualité 70
   (122 Kio mesurés), puis une qualité propre à la variante à 720 px. La mesure décide, et la valeur
-  retenue est reportée dans l'ADR.
+  retenue est consignée dans le cahier de recette.
 - **[Place annoncée approximative]** 70ch varie avec la police, à ±5 %. → Les marges de D3 (8 % et
   12 %) l'absorbent. Le test vérifie la règle à 412 px, pas un pixel exact.
 - **[Orientation EXIF]** L'ingestion lit les dimensions dans l'en-tête, sans tenir compte de
@@ -274,11 +301,23 @@ consultation.
   inversées, puis se recale au chargement. C'est déjà le cas aujourd'hui ; les variantes orientées (D2)
   ne l'aggravent pas. → Hors périmètre, signalé.
 - **[Images animées]** → Repli de D6 : l'image est servie telle que déposée et garde son animation.
-- **[Tests existants]** SC-06b (`tests/static/images-publiques-statique.test.ts`) attend `src`
-  contenant `media-fixture-hero`. Le nom de la variante garde l'identifiant, donc le test tient.
-  SC-06e compte une seule balise `<img>`, et les variantes ne changent pas ce compte. Aucun test ne fixe
-  `loading="lazy"`. → Aucun test existant à retoucher n'est attendu. Si un test devait l'être, il serait
-  déclaré au ticket.
+- **[Tests existants]** Deux tests existants contredisent le nouveau rendu et sont à retoucher, chaque
+  retouche déclarée au ticket qui la cause :
+  - `tests/static/images-publiques-statique.test.ts`, cas « Sécurité (mitigation 3) », ligne 144 : il
+    attend la liste exacte des attributs de l'unique `<img>` du site jetable à images,
+    `['src', 'width', 'height', 'alt', 'loading', 'decoding']`. Les variantes y ajoutent `srcset` et
+    `sizes`. La priorité y remplace `loading` et `decoding` par `fetchpriority`, puisque cette image
+    est la première de sa page. Les autres assertions du cas, sur le texte de remplacement piégé, ne
+    changent pas.
+  - `tests/unit/rendu/images.test.ts` : les images d'exemple des lignes 19 à 21 sont des `ImageRendue`
+    sans `variantes`, et les lignes 55, 76 et 114 comparent les images composées à l'identique
+    (`toEqual`). Les variantes ajoutent une liste vide aux images d'exemple. La priorité ajoute sa
+    marque aux valeurs attendues.
+
+  Les autres tests tiennent. SC-06b attend un `src` contenant `media-fixture-hero`, et le nom de la
+  variante garde l'identifiant. SC-06e compte une seule balise `<img>`, et les variantes ne changent pas
+  ce compte. `tests/integration/images-publiees-bibliotheque.test.ts` et les tests de la publication
+  lisent `adressesOriginalesEmpaquetees()`, qui ne change pas (D1).
 
 ## Migration Plan
 

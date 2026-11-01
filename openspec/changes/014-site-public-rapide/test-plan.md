@@ -23,7 +23,7 @@
 | Une image plus étroite n'est jamais agrandie | `media-fixture-equipe.png` (960 × 640), posée dans un site jetable (la démo ne la pose pas) : entrées `360w`, `720w`, `960w`, aucune au-delà |
 | Une petite image garde sa taille | Une fixture de 300 px : une seule entrée `300w`, en WebP |
 | La place annoncée suit la nature | Le module des places porte une forme structurée (seuil, part de l'écran, retrait), que le rendu sérialise. Le test l'évalue à 412 px avec 1rem = 16 px : image et carrousel valent 380 px, galerie moins de 190 px. Le test statique vérifie que la page bâtie porte, pour chaque nature, la chaîne sérialisée de cette forme |
-| Le fichier déposé n'est jamais envoyé | Aucune page de `.wrangler/test-worker/client` ne référence `<id>.<empreinte>.png` ; `_astro/` ne contient aucun fichier dont le nom commence par `media-fixture-hero.` sans suffixe de largeur |
+| Le fichier déposé n'est jamais envoyé | Aucune page de `.wrangler/test-worker/client` ne référence l'original `media-fixture-hero.<empreinte>.png`, et chaque adresse de `src` et de `srcset` de chaque `<img>` est une variante WebP (`media-fixture-hero-<largeur>.<empreinte>.webp`). L'original reste servi à son adresse : la publication et la bibliothèque le lisent (design D1) |
 | Une image impossible à réduire paraît quand même | Un site jetable dont une image a un en-tête PNG valide et un corps tronqué : la construction aboutit, la page présente l'image avec sa description, et la sortie de construction (`resultat.json`) contient `[variantes] <id> servie telle que déposée` |
 | La photo de tête est prioritaire | Accueil du site de démo bâti : la première `<img>` porte `fetchpriority="high"` et aucun attribut `loading` ; toutes les autres portent `loading="lazy"` |
 | La première image est dans une galerie, dans un carrousel ; emplacement vide ; une seule prioritaire | Tests unitaires de `composerPage` sur des pages composées à la main : exactement une image a `prioritaire: true`, et c'est celle attendue |
@@ -66,9 +66,17 @@ test d'aperçu sème la base comme `tests/integration/apercu-avec-brouillons.tes
   effectivement chargée (360 px pour la galerie, 720 px pour l'image de tête à 412 px).
 - **Coût de construction** : relevé de la ligne `[variantes] <n> photos, <f> fichiers, <s> s` dans la
   sortie de Workers Builds de `colibri.sebc.dev` (mémoire `recette-raccordee-workers-builds`) et dans
-  un build local de la variante photos-lourdes. Le coût par photo est reporté dans l'ADR promu.
+  un build local de la variante photos-lourdes. Le coût par photo est consigné dans le cahier de
+  recette ; l'ADR promu ne se modifie plus.
 - **Qualité visuelle des variantes** : `humanCheckRequired`. Il faut regarder la photo de tête et une
   case de galerie sur un téléphone ; ni Lighthouse ni un test ne jugent le flou ou les artefacts de
   compression.
 - **Nombre de fichiers** : `find dist -type f | wc -l` avant et après, sur le site de démo (119
-  fichiers aujourd'hui, 2 originaux) ; attendu : +4 fichiers (3 + 3 variantes − 2 originaux).
+  fichiers aujourd'hui, 2 originaux) ; attendu : +6 fichiers (3 + 3 variantes, originaux gardés).
+
+## Non-régression
+
+- **Publication d'une image posée au départ** : la publication relit l'original empaqueté par la
+  liaison `ASSETS` (design § Context, « Lecteurs de l'original »). Les tests existants qui l'exercent
+  (`tests/integration/outils-publication.ts` et ses appelants) et
+  `tests/integration/images-publiees-bibliotheque.test.ts` restent verts sans retouche.
