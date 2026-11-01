@@ -168,20 +168,50 @@ function composer(nom) {
   console.log(`→ variante ${nom} : ${pages.length ? pages.join(', ') : 'aucune page'}`);
 }
 
-function batir(nom) {
-  lireVariante(nom);
+/**
+ * Les photos d'une variante (`photos` de son variante.json) : pour chacune, une
+ * fiche dans `content/medias/` et ses octets dans `medias/` — ce que la
+ * construction empaquette (`src/platform/contenu/medias.ts`). À déposer APRÈS
+ * `prebuild`, qui vide `medias/` puis le remplit depuis la branche `media`.
+ */
+async function deposerPhotos(photos) {
+  if (!photos) return;
+  const { prefixe, nombre, genere, poidsMin, poidsMax } = photos;
+  let total = 0;
+  for (let n = 1; n <= nombre; n++) {
+    const id = `${prefixe}-${String(n).padStart(2, '0')}`;
+    const octets = await genererImage(genere);
+    if (octets.length < poidsMin || octets.length > poidsMax) {
+      echouer(`${id} : ${octets.length} octets, hors de [${poidsMin}, ${poidsMax}].`);
+    }
+    const fichier = `${id}.${genere.format}`;
+    writeFileSync(`${ARBRE}/medias/${fichier}`, octets);
+    const fiche = { id, nomOrigine: fichier, format: genere.format, largeur: genere.largeur, hauteur: genere.hauteur, description: '' };
+    writeFileSync(`${ARBRE}/content/medias/${id}.json`, `${JSON.stringify(fiche, null, 2)}\n`);
+    total += octets.length;
+  }
+  console.log(`→ ${nombre} photos déposées, ${(total / 1024 / 1024).toFixed(1)} Mio`);
+}
+
+async function batir(nom) {
+  const variante = lireVariante(nom);
   avertirSiCodeNonCommite();
   preparerArbre();
   composer(nom);
   lancer('node', [RECETTE, 'instance', '--racine', ARBRE]);
-  lancer('npm', ['run', 'build'], { cwd: ARBRE });
+  // Le cycle de `npm run build` déroulé à la main, pour glisser les photos
+  // entre `prebuild` et `astro build`.
+  lancer('npm', ['run', 'prebuild'], { cwd: ARBRE });
+  await deposerPhotos(variante.photos);
+  lancer('npm', ['run', 'build', '--ignore-scripts'], { cwd: ARBRE });
+  lancer('npm', ['run', 'postbuild'], { cwd: ARBRE });
 }
 
-function deployer(nom, principal) {
+async function deployer(nom, principal) {
   if (principal && nom !== VARIANTE_PRINCIPALE) {
     echouer(`seule la variante ${VARIANTE_PRINCIPALE} va sur le serveur principal ; ${nom} passe par une adresse d'aperçu.`);
   }
-  batir(nom);
+  await batir(nom);
   const args = [RECETTE, 'deployer', '--racine', ARBRE];
   lancer('node', principal ? [...args, '--principal'] : [...args, '--alias', `site-${nom}`]);
 }
@@ -226,10 +256,10 @@ switch (commande) {
     await images(option('--sortie') ?? IMAGES);
     break;
   case 'batir':
-    batir(variante);
+    await batir(variante);
     break;
   case 'deployer':
-    deployer(variante, args.includes('--principal'));
+    await deployer(variante, args.includes('--principal'));
     break;
   case 'semer-bibliotheque':
     await semerBibliotheque(option('--hote'));

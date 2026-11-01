@@ -1,0 +1,11 @@
+{
+  "description": "Accueil porte des photos de poids réaliste (~1 Mio, sous le plafond de 2 Mio du téléversement) : l'image d'accueil et une galerie de 45 photos. La mesure Lighthouse de SC-005 s'y joue : les images légères de la base la font passer à tort.",
+  "cas": ["SC-005 · Lighthouse Performance mobile"],
+  "photos": {
+    "prefixe": "photo-lourde",
+    "nombre": 46,
+    "genere": { "format": "jpeg", "largeur": 2000, "hauteur": 1500, "bruit": true, "qualite": 45 },
+    "poidsMin": 786432,
+    "poidsMax": 2097152
+  }
+}
