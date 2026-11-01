@@ -22,6 +22,7 @@ medias/jeu.json                 le jeu d'images, décrit — le skill les génè
 | `titres-longs` | Tarifs à 80 signes sans espace, Accueil à 120 avec espaces (CT-20.5, CT-21.6) | `site-titres-longs-…` |
 | `vide` | aucune page (CT-5.4, CT-20.8) | `site-vide-…` |
 | `sans-formulaire` | aucun formulaire déclaré (§ 27, écran « Formulaires » vide) | `site-sans-formulaire-…` |
+| `photos-lourdes` | Accueil en photos de ~1 Mio, image d'accueil et galerie de 45 (mesure Lighthouse de SC-005) | `site-photos-lourdes-…` |
 
 Les cas du cahier qui demandent de **modifier `content/pages/` puis rebâtir** se jouent en ouvrant
 l'adresse de la variante correspondante — plus besoin de toucher au dépôt ni de `git restore`.
@@ -38,6 +39,10 @@ sur une variante se retrouvent sur les autres.
 - **Le schéma d'une page change** (par exemple le change `006-nom-des-emplacements`, qui donne un
   nom à chaque emplacement) → mettre à jour `pages/` **et** chaque `variantes/*/pages/…/page.json`
   qui recopie une page entière. Le schéma fait foi dans `src/core/pages/declaration.ts`.
+- **Des images publiées propres à une variante** → une clé `photos` dans son `variante.json`
+  (`prefixe`, `nombre`, `genere` comme ci-dessous, `poidsMin`, `poidsMax`) : le skill génère
+  `<prefixe>-01` à `<prefixe>-<nombre>`, fiche et octets, comme si elles avaient été publiées ;
+  les pages de la variante les posent par ces identifiants.
 - **Une image de plus** → une entrée dans `medias/jeu.json` : `genere` (format, largeur, hauteur,
   fond, texte), `copieDe` (mêmes octets sous un autre nom), `tronquerA` (n premiers octets),
   `texte` (fichier texte brut), `poidsMin` (échoue si le fichier généré est plus léger).

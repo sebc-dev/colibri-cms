@@ -1,0 +1,78 @@
+{
+  "titre": "Accueil",
+  "rang": 0,
+  "emplacements": [
+    { "id": "presentation", "nature": "texte-riche", "rang": 0 },
+    {
+      "id": "video-presentation",
+      "nature": "lien-video",
+      "rang": 1,
+      "lien": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    },
+    {
+      "id": "bouton-devis",
+      "nature": "bouton-action",
+      "rang": 2,
+      "libelle": "Demander un devis",
+      "destination": "/contact"
+    },
+    {
+      "id": "image-hero",
+      "nature": "image",
+      "rang": 3,
+      "mediaId": "photo-lourde-01"
+    },
+    {
+      "id": "galerie-realisations",
+      "nature": "galerie",
+      "rang": 4,
+      "mediaIds": [
+        "photo-lourde-02",
+        "photo-lourde-03",
+        "photo-lourde-04",
+        "photo-lourde-05",
+        "photo-lourde-06",
+        "photo-lourde-07",
+        "photo-lourde-08",
+        "photo-lourde-09",
+        "photo-lourde-10",
+        "photo-lourde-11",
+        "photo-lourde-12",
+        "photo-lourde-13",
+        "photo-lourde-14",
+        "photo-lourde-15",
+        "photo-lourde-16",
+        "photo-lourde-17",
+        "photo-lourde-18",
+        "photo-lourde-19",
+        "photo-lourde-20",
+        "photo-lourde-21",
+        "photo-lourde-22",
+        "photo-lourde-23",
+        "photo-lourde-24",
+        "photo-lourde-25",
+        "photo-lourde-26",
+        "photo-lourde-27",
+        "photo-lourde-28",
+        "photo-lourde-29",
+        "photo-lourde-30",
+        "photo-lourde-31",
+        "photo-lourde-32",
+        "photo-lourde-33",
+        "photo-lourde-34",
+        "photo-lourde-35",
+        "photo-lourde-36",
+        "photo-lourde-37",
+        "photo-lourde-38",
+        "photo-lourde-39",
+        "photo-lourde-40",
+        "photo-lourde-41",
+        "photo-lourde-42",
+        "photo-lourde-43",
+        "photo-lourde-44",
+        "photo-lourde-45",
+        "photo-lourde-46"
+      ]
+    }
+  ]
+}
