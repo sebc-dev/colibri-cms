@@ -17,7 +17,7 @@ règle de lecture tient en une ligne :
 > **Un `ADR-00NN` cité DANS le corps d'un ADR promu désigne le numéro 1.x.**
 > Le numéro 2.x est celui du nom de fichier.
 
-Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, puis 0028–0029. À partir de
+Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, 0028–0029, puis 0031. À partir de
 0019, chaque renvoi à l'ancien cycle porte en plus la mention « (1.x) » dans son libellé
 (`ADR-0015 (1.x)`) : il se lit sans la règle. Dans le texte qu'un amendement ou un complément de
 promotion ajoute — les points marqués *(amendé)* ou *(ajouté)* —, un numéro sans mention est un
@@ -57,6 +57,7 @@ numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030) citent des num�
 | [0028](./0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md) | 0012 | Anti-abus — compteur de fréquence en D1, à empreintes de fenêtre, sans Turnstile — **amendé** : Turnstile retiré, D1 au lieu d'un Durable Object ; retire `I7` |
 | [0029](./0029-svelte-pour-l-administration-formulaire-public-sans-framework.md) | 0011 | Îlots Svelte 5 pour l'administration ; le formulaire public, un document complet amélioré par un module du site — **amendé** : le site public n'a pas d'îlot ; crée `I16` |
 | [0030](./0030-retrait-d-une-demande-temoin-tenu-par-la-base.md) | — | Le retrait d'une demande — un témoin réduit à son formulaire et à sa suite, tenu par la base ; aucun effacement d'office ; crée `I17` |
+| [0031](./0031-pipeline-d-images-variantes-au-build.md) | 0019 (1.x) | Pipeline d'images — les variantes WebP de 360, 720 et 1 080 px sont produites au build ; l'original n'est plus cité par le site public — **amendé** : remplace `image.layout`/`breakpoints` par une intégration `sharp` |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -115,7 +116,7 @@ avec la table sous les yeux.
 
 ## Ce qui n'est pas encore promu
 
-**16 décisions du cycle 1.x attendent encore** dans
+**15 décisions du cycle 1.x attendent encore** dans
 [`docs/adr/_candidates/`](./_candidates/). Elles restent des candidats : `CLAUDE.md` dit « ne
 pas contredire un ADR accepté », et un candidat n'en est pas un. Un renvoi vers un numéro 1.x
 absent de la table ci-dessus pointe donc vers une décision **non promue** — la lire dans

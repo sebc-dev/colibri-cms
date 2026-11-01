@@ -7,6 +7,7 @@ import svelte from '@astrojs/svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { depotValide } from './src/platform/publication/forge-github.ts';
 import { exigerAdresseExpediteur } from './src/platform/instance/expediteur.ts';
+import { produireLesVariantes } from './src/platform/medias/variantes.ts';
 
 // FR-012, FR-024 (plan § décision 4) : la route de sonde (`src/platform/d1/
 // sonde-dev.ts`) ne doit exister qu'en développement — jamais dans
@@ -44,6 +45,22 @@ function entetesAdmin(): AstroIntegration {
           entrypoint: new URL('./src/platform/entetes/middleware.ts', import.meta.url),
           order: 'post',
         });
+      },
+    },
+  };
+}
+
+// ADR-0031 : à chaque démarrage (construction ou développement), chaque image
+// publiée de `./medias` est déclinée en variantes WebP de 360, 720 et 1 080 px
+// dans `./medias/variantes` ; le site public ne cite que ces variantes.
+// `./medias` absent : rien à produire. Une image refusée fait échouer la
+// construction en la nommant.
+function variantesDImages(): AstroIntegration {
+  return {
+    name: 'variantes-d-images',
+    hooks: {
+      'astro:config:setup': async ({ config }) => {
+        await produireLesVariantes(fileURLToPath(config.root));
       },
     },
   };
@@ -92,11 +109,11 @@ export default defineConfig({
   // une liaison KV `SESSION` qu'aucun ADR n'a arbitrée et que
   // wrangler.jsonc ne déclare pas.
   session: false,
-  // ADR-0019 : le défaut de l'adaptateur est `imageService: 'cloudflare-binding'`
+  // ADR-0031 : le défaut de l'adaptateur est `imageService: 'cloudflare-binding'`
   // (transformation à l'exécution par la liaison IMAGES de Cloudflare Images) ;
-  // `'compile'` est ce qui produit réellement les variantes au build, comme
-  // ADR-0019 le décide (le calcul des 5 fichiers par photographie y suppose
-  // un service d'images local).
+  // `'compile'` garde le service local, sans transformation à l'exécution. Les
+  // variantes du site public ne passent plus par lui : elles sont produites
+  // par l'intégration `variantesDImages` ci-dessus (360, 720 et 1 080 px).
   // `configPath` : Astro (dev et build) lit `wrangler.astro.jsonc`, jamais
   // `wrangler.jsonc` (racine) — ticket 01 (la porte close). La racine porte
   // en plus `main`/`assets`, lus par `@cloudflare/vitest-plugin` seul
@@ -104,12 +121,6 @@ export default defineConfig({
   // depuis ce champ au lieu de son propre graphe de pages (mesuré : voir
   // `scripts/preparer-worker-de-test.mjs`).
   adapter: cloudflare({ imageService: 'compile', configPath: './wrangler.astro.jsonc' }),
-  // ADR-0019 : les variantes d'images sont produites au build, un seul
-  // format, sur les trois largeurs mesurées contre le garde-fou C5.
-  image: {
-    layout: 'constrained',
-    breakpoints: [640, 960, 1280],
-  },
   // ADR-0009 : Svelte 5 entre dans la chaîne de build pour la seule
   // administration (ticket 01, specs/002-socle-ilots-admin). L'intégration
   // n'ouvre ici que la compilation des fichiers `.svelte` par Vite — aucun
@@ -120,7 +131,7 @@ export default defineConfig({
   // `<script>` de module qu'Astro/Vite bundle lui-même en un fichier séparé
   // (jamais `is:inline`), et c'est ce fichier bundlé, jamais du script en
   // ligne, que `<script src>` charge dans la page.
-  integrations: [sondeDev(), entetesAdmin(), svelte()],
+  integrations: [sondeDev(), entetesAdmin(), variantesDImages(), svelte()],
   // ADR-0009 : Tailwind CSS (v4, CSS-first — aucun `tailwind.config.js`)
   // entre dans la chaîne de build pour la seule administration (ticket 02).
   // Le plugin Vite transforme le `@import 'tailwindcss'` posé par

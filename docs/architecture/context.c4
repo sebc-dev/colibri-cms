@@ -35,7 +35,7 @@ model {
 
   workers-builds = system 'Workers Builds' {
     #external
-    description "La reconstruction automatique du compte client : à chaque dépôt sur la branche principale, bâtit le site, récupère les images publiées et le déploie."
+    description "La reconstruction automatique du compte client : à chaque dépôt sur la branche principale, bâtit le site, récupère les images publiées, en produit les variantes réduites et le déploie."
     // trace : scripts/recuperer-images-publiees.mjs — extrait la branche des images avant le build ; branchée sur la seule branche principale (FR-089)
   }
 
@@ -52,7 +52,7 @@ model {
   email-routing -[async]-> editrice 'remet la demande'
   colibri-cms.worker.platform -[sync]-> github 'dépose le contenu et les images publiés'
   github -[async]-> workers-builds 'déclenche la reconstruction (branche principale seule)'
-  workers-builds -[async]-> colibri-cms.worker 'bâtit, récupère les images, déploie'
+  workers-builds -[async]-> colibri-cms.worker 'bâtit, récupère les images, en produit les variantes, déploie'
 }
 
 views {

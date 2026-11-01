@@ -12,8 +12,9 @@
  * littéraux (Vite n'accepte rien d'autre) et soustraits à la mutation, comme
  * dans `pages.ts` : un motif muté ne résout plus rien, en silence.
  */
-import type { ImagesConnues, ImageRendue } from '../../core/rendu/page.ts';
+import type { ImagesConnues, ImageRendue, VarianteRendue } from '../../core/rendu/page.ts';
 import { lireFicheMedia, type FicheMedia } from '../../core/medias/fiche.ts';
+import { largeurParDefaut, lireNomDeVariante } from '../../core/medias/variantes.ts';
 
 // Stryker disable all
 const MODULES_FICHES = import.meta.glob('/content/medias/*.json', {
@@ -22,6 +23,14 @@ const MODULES_FICHES = import.meta.glob('/content/medias/*.json', {
 });
 
 const ADRESSES_ORIGINALES = import.meta.glob('/medias/*.{png,jpg,jpeg,webp}', {
+  eager: true,
+  query: '?no-inline',
+  import: 'default',
+});
+
+// Les variantes réduites produites au build (ticket 02 de 014, ADR-0031) :
+// seules sources que le site public cite.
+const ADRESSES_VARIANTES = import.meta.glob('/medias/variantes/*.{webp,png,jpg,jpeg}', {
   eager: true,
   query: '?no-inline',
   import: 'default',
@@ -45,18 +54,38 @@ export function adressesOriginalesEmpaquetees(): ReadonlyMap<string, string> {
   return adresses;
 }
 
-/** Les images publiées que le rendu peut poser : fiche ET octets empaquetés ; une fiche sans octets n'en fait pas partie. */
+/** Les variantes empaquetées de chaque image, par identité, triées par largeur croissante. */
+function variantesEmpaquetees(): ReadonlyMap<string, VarianteRendue[]> {
+  const parImage = new Map<string, VarianteRendue[]>();
+  for (const [chemin, adresse] of Object.entries(ADRESSES_VARIANTES)) {
+    const lue = lireNomDeVariante(chemin.slice(chemin.lastIndexOf('/') + 1));
+    if (lue === null) continue;
+    const liste = parImage.get(lue.id) ?? [];
+    liste.push({ adresse: String(adresse), largeur: lue.largeur });
+    parImage.set(lue.id, liste);
+  }
+  for (const liste of parImage.values()) liste.sort((a, b) => a.largeur - b.largeur);
+  return parImage;
+}
+
+/** Les images publiées que le rendu peut poser : fiche ET variantes empaquetées ; une fiche sans octets n'en fait pas partie, une image dont les octets sont là sans aucune variante fait échouer la construction. */
 export function imagesPubliees(): ImagesConnues {
-  const adresses = adressesOriginalesEmpaquetees();
+  const originaux = adressesOriginalesEmpaquetees();
+  const variantes = variantesEmpaquetees();
   const images = new Map<string, ImageRendue>();
   for (const fiche of listerFichesMedias()) {
-    const source = adresses.get(fiche.id);
-    if (source === undefined) continue;
+    if (!originaux.has(fiche.id)) continue;
+    const siennes = variantes.get(fiche.id);
+    if (siennes === undefined || siennes.length === 0) {
+      throw new Error(`L'image publiée « ${fiche.id} » n'a aucune variante réduite : la construction ne peut pas la proposer.`);
+    }
+    const source = siennes.find((v) => v.largeur === largeurParDefaut(siennes.map((w) => w.largeur)));
     images.set(fiche.id, {
-      source,
+      source: (source ?? siennes[0]).adresse,
       largeur: fiche.largeur,
       hauteur: fiche.hauteur,
       description: fiche.description,
+      variantes: siennes,
     });
   }
   return images;

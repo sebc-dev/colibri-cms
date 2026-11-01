@@ -59,6 +59,7 @@
     "eslint-plugin-sonarjs": "^4.2.0",
     "jscpd": "^5.1.2",
     "knip": "^6.32.0",
+    "sharp": "0.35.4",
     "svelte-check": "^4.7.6",
     "svelte-eslint-parser": "^1.8.1",
     "tailwindcss": "^4.3.3",

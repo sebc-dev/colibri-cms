@@ -6,16 +6,23 @@
  * publiée et celle de l'aperçu (I3, ADR-0024). Aucun balisage interprété.
  */
 import type { ImageRendue } from '../core/rendu/page.ts';
+import { PLACE_COLONNE, sizesDe } from './places.ts';
 
 interface Props {
   image: ImageRendue;
 }
 
 const { image } = Astro.props;
+const variantes = image.variantes ?? [];
+const avecVariantes = variantes.length > 0;
+const srcset = avecVariantes ? variantes.map((v) => `${v.adresse} ${v.largeur}w`).join(', ') : undefined;
+const sizes = avecVariantes ? sizesDe(PLACE_COLONNE) : undefined;
 ---
 
 <img
   src={image.source}
+  srcset={srcset}
+  sizes={sizes}
   width={image.largeur}
   height={image.hauteur}
   alt={image.description}
