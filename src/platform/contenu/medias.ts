@@ -14,7 +14,7 @@
  */
 import type { ImagesConnues, ImageRendue, VarianteRendue } from '../../core/rendu/page.ts';
 import { lireFicheMedia, type FicheMedia } from '../../core/medias/fiche.ts';
-import { largeurParDefaut, lireNomDeVariante } from '../../core/medias/variantes.ts';
+import { largeurParDefaut, lireNomEmpaquete } from '../../core/medias/variantes.ts';
 
 // Stryker disable all
 const MODULES_FICHES = import.meta.glob('/content/medias/*.json', {
@@ -58,7 +58,7 @@ export function adressesOriginalesEmpaquetees(): ReadonlyMap<string, string> {
 function variantesEmpaquetees(): ReadonlyMap<string, VarianteRendue[]> {
   const parImage = new Map<string, VarianteRendue[]>();
   for (const [chemin, adresse] of Object.entries(ADRESSES_VARIANTES)) {
-    const lue = lireNomDeVariante(chemin.slice(chemin.lastIndexOf('/') + 1));
+    const lue = lireNomEmpaquete(chemin.slice(chemin.lastIndexOf('/') + 1));
     if (lue === null) continue;
     const liste = parImage.get(lue.id) ?? [];
     liste.push({ adresse: String(adresse), largeur: lue.largeur });

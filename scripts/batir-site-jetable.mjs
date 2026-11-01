@@ -24,11 +24,16 @@
  * Idempotent : `.wrangler/site-jetable/` est vidé à chaque passe. Une
  * construction échouée sort en code non nul.
  *
- * Quatre autres constructions suivent, chacune dans son répertoire
+ * Cinq autres constructions suivent, chacune dans son répertoire
  * `.wrangler/` vidé à chaque passe :
  * - `site-jetable-images/` (fixture `site-jetable-images/`, avec ses octets
  *   copiés en `medias/`, ticket 06) : attendue en SUCCÈS, sortie copiée vers
  *   `client/` ;
+ * - `site-jetable-image-irreductible/` (change 014, ticket 03, SC-03a) : images
+ *   que `sharp` ne sait pas réduire (PNG tronqué, WebP animé, en-tête au-delà
+ *   de la limite de pixels). Attendue en SUCCÈS, mais consignée dans
+ *   `resultat.json` (code, sortie, pages produites) et sortie copiée vers
+ *   `client/` : c'est le test qui juge ;
  * - `site-jetable-image-manquante/` (ticket 06) : attendue en ÉCHEC (image
  *   posée sans octets, SC-06f) ;
  * - `site-jetable-formulaire-inconnu/` et
@@ -140,6 +145,13 @@ function pagesProduites(arbre) {
     .filter((chemin) => chemin.endsWith('.html') && chemin !== '404.html');
 }
 
+/** Construction dont le test juge l'issue : comme `batirEnEchec`, et la sortie statique, si elle existe, est copiée vers `<dossier>/client/`. */
+function batirEtConsigner(arbre, dossier) {
+  batirEnEchec(arbre, dossier);
+  const sortie = resolve(arbre, 'dist/client');
+  if (existsSync(sortie)) cpSync(sortie, resolve(dossier, 'client'), { recursive: true });
+}
+
 /** Construction attendue en échec : consigne le code, la sortie et les pages produites, sans jamais échouer. */
 function batirEnEchec(arbre, dossier) {
   const astro = resoudreAstro(arbre);
@@ -168,6 +180,13 @@ batir(
   resolve(AVEC_IMAGES, 'client'),
 );
 globalThis.console.log(`✔ site jetable à images bâti dans ${resolve(AVEC_IMAGES, 'client')}`);
+
+const IRREDUCTIBLE = resolve(RACINE, '.wrangler/site-jetable-image-irreductible');
+batirEtConsigner(
+  preparerArbre(resolve(RACINE, 'tests/static/fixtures/site-jetable-image-irreductible'), IRREDUCTIBLE, true),
+  IRREDUCTIBLE,
+);
+globalThis.console.log(`✔ construction à images irréductibles consignée dans ${resolve(IRREDUCTIBLE, 'resultat.json')}`);
 
 const IMAGE_MANQUANTE = resolve(RACINE, '.wrangler/site-jetable-image-manquante');
 batirEnEchec(
