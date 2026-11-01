@@ -52,7 +52,7 @@ describe('composerPage — les images', () => {
   it('SC-06b — l’image posée porte sa description et ses dimensions', () => {
     const page = composer([{ id: 'a', nature: 'image', rang: 0, mediaId: 'gateau' }]);
 
-    expect(page.emplacements[0]).toEqual({ id: 'a', nature: 'image', image: GATEAU });
+    expect(page.emplacements[0]).toEqual({ id: 'a', nature: 'image', image: { ...GATEAU, prioritaire: true } });
     const emplacement = page.emplacements[0];
     const image = emplacement.nature === 'image' ? emplacement.image : undefined;
     expect(image?.description).toBe("Gâteau d'anniversaire à la fraise");
@@ -74,8 +74,8 @@ describe('composerPage — les images', () => {
     ]);
 
     expect(page.emplacements).toEqual([
-      { id: 'g', nature: 'galerie', images: [GATEAU, SANS_TEXTE, TARTE] },
-      { id: 'c', nature: 'carrousel', images: [TARTE, SANS_TEXTE, GATEAU] },
+      { id: 'g', nature: 'galerie', images: [{ ...GATEAU, prioritaire: true }, { ...SANS_TEXTE, prioritaire: false }, { ...TARTE, prioritaire: false }] },
+      { id: 'c', nature: 'carrousel', images: [{ ...TARTE, prioritaire: false }, { ...SANS_TEXTE, prioritaire: false }, { ...GATEAU, prioritaire: false }] },
     ]);
   });
 
@@ -112,8 +112,8 @@ describe('composerPage — les images', () => {
     ]);
 
     expect(page.emplacements).toEqual([
-      { id: 'a', nature: 'image', image: GATEAU },
-      { id: 'c', nature: 'carrousel', images: [SANS_TEXTE, TARTE] },
+      { id: 'a', nature: 'image', image: { ...GATEAU, prioritaire: true } },
+      { id: 'c', nature: 'carrousel', images: [{ ...SANS_TEXTE, prioritaire: false }, { ...TARTE, prioritaire: false }] },
     ]);
   });
 });

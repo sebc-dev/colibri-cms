@@ -20,6 +20,7 @@ const { image } = Astro.props;
   height={image.hauteur}
   alt={image.description}
   role={image.description === '' ? 'presentation' : undefined}
-  loading="lazy"
-  decoding="async"
+  fetchpriority={image.prioritaire ? 'high' : undefined}
+  loading={image.prioritaire ? undefined : 'lazy'}
+  decoding={image.prioritaire ? undefined : 'async'}
 />

@@ -141,7 +141,7 @@ describe('images sur les pages publiques bâties', () => {
     const images = await relever(corps, 'img');
     expect(images).toHaveLength(1);
     expect(await relever(corps, 'script')).toHaveLength(0);
-    expect(images[0].map(([nom]) => nom)).toEqual(['src', 'width', 'height', 'alt', 'loading', 'decoding']);
+    expect(images[0].map(([nom]) => nom)).toEqual(['src', 'width', 'height', 'alt', 'fetchpriority']);
     expect(decoder(new Map(images[0]).get('alt') ?? '')).toBe(piege);
     expect(corps).toContain('alt="&quot;>');
   });

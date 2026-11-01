@@ -1,0 +1,8 @@
+{
+  "titre": "Galerie longue",
+  "rang": 1,
+  "emplacements": [
+    { "id": "image-de-tete", "nature": "image", "rang": 0, "mediaId": "tete" },
+    { "id": "galerie-photos", "nature": "galerie", "rang": 1, "mediaIds": ["photo-01", "photo-02", "photo-03", "photo-04", "photo-05", "photo-06", "photo-07", "photo-08", "photo-09", "photo-10", "photo-11", "photo-12", "photo-13", "photo-14", "photo-15", "photo-16", "photo-17", "photo-18", "photo-19", "photo-20", "photo-21", "photo-22", "photo-23", "photo-24", "photo-25", "photo-26", "photo-27", "photo-28", "photo-29", "photo-30", "photo-31", "photo-32", "photo-33", "photo-34", "photo-35", "photo-36", "photo-37", "photo-38", "photo-39", "photo-40", "photo-41", "photo-42", "photo-43", "photo-44", "photo-45"] }
+  ]
+}

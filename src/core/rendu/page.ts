@@ -73,6 +73,12 @@ export interface ImageRendue {
   readonly largeur: number;
   readonly hauteur: number;
   readonly description: string;
+  /**
+   * Posée par la composition seule : vraie pour la première image posée de la
+   * page (demandée sans attendre), fausse pour les autres. Absente des images
+   * connues, qui ne portent pas la marque.
+   */
+  readonly prioritaire?: boolean;
 }
 
 /** Une image connue du rendu, par identité stable. */
@@ -247,7 +253,10 @@ function composerImage(
   return {
     id: emplacement.id,
     nature: 'image',
-    image: images === undefined || mediaId === '' ? null : imageDe(mediaId, slug, images),
+    image:
+      images === undefined || mediaId === ''
+        ? null
+        : { ...imageDe(mediaId, slug, images), prioritaire: false },
   };
 }
 
@@ -261,7 +270,10 @@ function composerEnsemble(
   return {
     id: emplacement.id,
     nature: emplacement.nature,
-    images: images === undefined ? [] : mediaIds.map((mediaId) => imageDe(mediaId, slug, images)),
+    images:
+      images === undefined
+        ? []
+        : mediaIds.map((mediaId) => ({ ...imageDe(mediaId, slug, images), prioritaire: false })),
   };
 }
 
@@ -390,6 +402,23 @@ function composerPied(reglages: ReglagesDeclares): PiedRendu {
   return { coordonnees, reseaux };
 }
 
+/** Pose `prioritaire` sur la première image posée, dans l'ordre des emplacements ; les autres restent à `false`. */
+function avecPremiereImagePrioritaire(emplacements: readonly EmplacementRendu[]): EmplacementRendu[] {
+  let trouvee = false;
+  return emplacements.map((e): EmplacementRendu => {
+    if (trouvee) return e;
+    if (e.nature === 'image' && e.image !== null) {
+      trouvee = true;
+      return { ...e, image: { ...e.image, prioritaire: true } };
+    }
+    if ((e.nature === 'galerie' || e.nature === 'carrousel') && e.images.length > 0) {
+      trouvee = true;
+      return { ...e, images: e.images.map((image, i) => (i === 0 ? { ...image, prioritaire: true } : image)) };
+    }
+    return e;
+  });
+}
+
 /** Compose la page publique : titre, navigation, emplacements, pied de page. */
 export function composerPage(entree: EntreeComposition): PageComposee {
   return {
@@ -399,9 +428,11 @@ export function composerPage(entree: EntreeComposition): PageComposee {
       adresse: adresseDeLaPage(p.slug),
       courante: p.slug === entree.slug,
     })),
-    emplacements: entree.page.emplacements
-      .map((e) => composerEmplacement(e, entree))
-      .filter((e): e is EmplacementRendu => e !== null),
+    emplacements: avecPremiereImagePrioritaire(
+      entree.page.emplacements
+        .map((e) => composerEmplacement(e, entree))
+        .filter((e): e is EmplacementRendu => e !== null),
+    ),
     pied: composerPied(entree.reglages),
   };
 }
