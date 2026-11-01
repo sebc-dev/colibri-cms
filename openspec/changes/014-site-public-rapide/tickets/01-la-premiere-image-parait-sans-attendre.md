@@ -68,8 +68,8 @@ retouche est commitée seule sur la branche du ticket, puis le run est repris.
 - le préchargement par `<link rel="preload">`, et toute image posée en CSS.
 
 ## Critères
-- [ ] Quand la page « Accueil » pose une image de tête, puis une galerie de 45 photos, l'image de tête est demandée sans attendre et en priorité haute, et les 45 photos de la galerie se chargent à l'approche de l'écran   (SC-01a)
-- [ ] Quand le premier emplacement d'images d'une page est une galerie de trois images, suivie d'un emplacement d'image, seule la première image de la galerie est prioritaire, et les deux autres images de la galerie comme l'image suivante se chargent à l'approche de l'écran   (SC-01b)
-- [ ] Quand le premier emplacement d'images d'une page est un carrousel de trois images, seule la première image du carrousel est prioritaire, et les deux autres se chargent à l'approche de l'écran   (SC-01c)
-- [ ] Quand une page pose un emplacement d'image sans image, puis une galerie de deux images, la première image de la galerie est prioritaire   (SC-01d)
-- [ ] Quand une page pose deux galeries de trois images chacune, seule la première image de la première galerie est prioritaire, et les cinq autres se chargent à l'approche de l'écran   (SC-01e)
+- [x] Quand la page « Accueil » pose une image de tête, puis une galerie de 45 photos, l'image de tête est demandée sans attendre et en priorité haute, et les 45 photos de la galerie se chargent à l'approche de l'écran   (SC-01a)
+- [x] Quand le premier emplacement d'images d'une page est une galerie de trois images, suivie d'un emplacement d'image, seule la première image de la galerie est prioritaire, et les deux autres images de la galerie comme l'image suivante se chargent à l'approche de l'écran   (SC-01b)
+- [x] Quand le premier emplacement d'images d'une page est un carrousel de trois images, seule la première image du carrousel est prioritaire, et les deux autres se chargent à l'approche de l'écran   (SC-01c)
+- [x] Quand une page pose un emplacement d'image sans image, puis une galerie de deux images, la première image de la galerie est prioritaire   (SC-01d)
+- [x] Quand une page pose deux galeries de trois images chacune, seule la première image de la première galerie est prioritaire, et les cinq autres se chargent à l'approche de l'écran   (SC-01e)
