@@ -1,0 +1,18 @@
+{
+  "titre": "Variantes spéciales",
+  "rang": 3,
+  "emplacements": [
+    {
+      "id": "image-variantes-alpha",
+      "nature": "image",
+      "rang": 0,
+      "mediaId": "variantes-alpha"
+    },
+    {
+      "id": "image-variantes-exif",
+      "nature": "image",
+      "rang": 1,
+      "mediaId": "variantes-exif"
+    }
+  ]
+}

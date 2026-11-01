@@ -62,6 +62,12 @@ export interface TexteRicheRendu {
   readonly document: NoeudDocument;
 }
 
+/** Une variante réduite d'une image : l'adresse où le site la sert et sa largeur en pixels. */
+export interface VarianteRendue {
+  readonly adresse: string;
+  readonly largeur: number;
+}
+
 /**
  * Une image telle que le rendu la reçoit : `source` est l'adresse que le
  * gabarit écrit (image empaquetée à la construction, ou adresse gardée de
@@ -73,6 +79,12 @@ export interface ImageRendue {
   readonly largeur: number;
   readonly hauteur: number;
   readonly description: string;
+  /**
+   * Les variantes réduites proposées au navigateur, par largeur croissante ;
+   * vide ou absent pour une image qui n'en a pas (l'aperçu d'une image pas encore
+   * empaquetée) : ni `srcset` ni `sizes` ne sont alors écrits.
+   */
+  readonly variantes?: readonly VarianteRendue[];
   /**
    * Posée par la composition seule : vraie pour la première image posée de la
    * page (demandée sans attendre), fausse pour les autres. Absente des images

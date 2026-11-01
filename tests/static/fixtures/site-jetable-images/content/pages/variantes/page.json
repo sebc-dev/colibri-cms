@@ -1,0 +1,24 @@
+{
+  "titre": "Variantes",
+  "rang": 2,
+  "emplacements": [
+    {
+      "id": "image-variantes-grande",
+      "nature": "image",
+      "rang": 0,
+      "mediaId": "variantes-grande"
+    },
+    {
+      "id": "image-variantes-moyenne",
+      "nature": "image",
+      "rang": 1,
+      "mediaId": "variantes-moyenne"
+    },
+    {
+      "id": "image-variantes-petite",
+      "nature": "image",
+      "rang": 2,
+      "mediaId": "variantes-petite"
+    }
+  ]
+}

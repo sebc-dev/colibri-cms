@@ -141,7 +141,7 @@ retouche est commitée seule sur la branche du ticket, puis le run est repris.
 - la route `/_image` qu'Astro injecte (`security-review.md`).
 
 ## Critères
-- [ ] Quand une image de 2 000 × 1 500 pixels est publiée et posée dans un emplacement d'image, la page propose trois variantes WebP de 360 × 270, 720 × 540 et 1 080 × 810 pixels, chacune annoncée avec sa largeur, et aucune variante plus large   (SC-02a)
-- [ ] Quand une image de 960 pixels de large est publiée et posée, la page propose ses variantes de 360, 720 et 960 pixels de large, et aucune plus large que 960   (SC-02b)
-- [ ] Quand une image de 300 pixels de large est publiée et posée, la page en propose une seule variante WebP, de 300 pixels de large   (SC-02c)
-- [ ] Quand le site est reconstruit avec des images publiées que la reconstruction sait réduire, aucune page publique ne référence le fichier déposé de ces images, et chacune n'y est proposée que par ses variantes   (SC-02d)
+- [x] Quand une image de 2 000 × 1 500 pixels est publiée et posée dans un emplacement d'image, la page propose trois variantes WebP de 360 × 270, 720 × 540 et 1 080 × 810 pixels, chacune annoncée avec sa largeur, et aucune variante plus large   (SC-02a)
+- [x] Quand une image de 960 pixels de large est publiée et posée, la page propose ses variantes de 360, 720 et 960 pixels de large, et aucune plus large que 960   (SC-02b)
+- [x] Quand une image de 300 pixels de large est publiée et posée, la page en propose une seule variante WebP, de 300 pixels de large   (SC-02c)
+- [x] Quand le site est reconstruit avec des images publiées que la reconstruction sait réduire, aucune page publique ne référence le fichier déposé de ces images, et chacune n'y est proposée que par ses variantes   (SC-02d)
