@@ -16,9 +16,9 @@ import type { ReglagesDeclares } from '../../../src/core/reglages/declaration.ts
 
 const REGLAGES: ReglagesDeclares = { coordonnees: [], reseaux: [], mention: '' };
 
-const GATEAU: ImageRendue = { source: '/m/gateau.png', largeur: 800, hauteur: 600, description: "Gâteau d'anniversaire à la fraise" };
-const SANS_TEXTE: ImageRendue = { source: '/m/deco.png', largeur: 400, hauteur: 300, description: '' };
-const TARTE: ImageRendue = { source: '/m/tarte.png', largeur: 640, hauteur: 480, description: 'Tarte' };
+const GATEAU: ImageRendue = { source: '/m/gateau.png', largeur: 800, hauteur: 600, description: "Gâteau d'anniversaire à la fraise", variantes: [] };
+const SANS_TEXTE: ImageRendue = { source: '/m/deco.png', largeur: 400, hauteur: 300, description: '', variantes: [] };
+const TARTE: ImageRendue = { source: '/m/tarte.png', largeur: 640, hauteur: 480, description: 'Tarte', variantes: [] };
 
 const IMAGES: ImagesConnues = new Map([
   ['gateau', GATEAU],
