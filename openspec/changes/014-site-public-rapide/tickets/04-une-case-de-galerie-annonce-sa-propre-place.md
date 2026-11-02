@@ -48,4 +48,4 @@ emplacement :
 - une place exacte au pixel près, ou d'autres tailles d'écran que celles que fixent les règles CSS.
 
 ## Critères
-- [ ] Quand une même image est posée dans un emplacement d'image, dans une galerie et dans un carrousel d'une page publiée, l'image et le carrousel annoncent toute la largeur du contenu de la page, la galerie annonce celle d'une case de sa grille, et, pour un écran de 412 pixels de large, la place annoncée par la galerie est inférieure à la moitié de celle annoncée par l'image   (SC-04a)
+- [x] Quand une même image est posée dans un emplacement d'image, dans une galerie et dans un carrousel d'une page publiée, l'image et le carrousel annoncent toute la largeur du contenu de la page, la galerie annonce celle d'une case de sa grille, et, pour un écran de 412 pixels de large, la place annoncée par la galerie est inférieure à la moitié de celle annoncée par l'image   (SC-04a)
