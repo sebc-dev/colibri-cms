@@ -65,4 +65,4 @@ moins de 5 minutes).
 - les pages aux images légères, qui obtenaient déjà 97.
 
 ## Critères
-- [ ] Quand on mesure trois fois, en mobile, chaque page d'un site publié dont l'accueil pose une photo de tête et une galerie de 45 photos d'environ 1 Mio chacune, la médiane du score Performance de chaque page est d'au moins 95   (SC-05a)
+- [x] Quand on mesure trois fois, en mobile, chaque page d'un site publié dont l'accueil pose une photo de tête et une galerie de 45 photos d'environ 1 Mio chacune, la médiane du score Performance de chaque page est d'au moins 95   (SC-05a)
