@@ -49,7 +49,9 @@ pilotées. Le site public reste statique — un seul traitement serveur, l'envoi
       avant FR-063 et FR-064 (l'acheminement par e-mail et son contenu)
 - [x] **013 — Réception et suivi des demandes** · *livrée* (FR-063→079 · SC-007, SC-019) — FR-063 et
       FR-064 étaient déjà livrées par 012 ; 013 a gardé chaque demande et ouvert son suivi
-- [ ] Site public rapide et complet (FR-095→097 · SC-005)
+- [x] **014 — Site public rapide et complet** · *livrée* (FR-095→097 · SC-005) — variantes
+      réduites des images, première image prioritaire, Lighthouse mobile ≥ 95 constaté sur des
+      photos d'environ 1 Mio
 
 ## Epic C — Filets & reprise · Later
 
