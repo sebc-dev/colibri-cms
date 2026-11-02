@@ -1,7 +1,7 @@
 # Run bloqué : une image impossible à réduire paraît quand même
 
 Portée : 014-site-public-rapide · ticket 03
-Ouvert le 2026-11-01 · Actualisé le 2026-11-01 · branche `impl/une-image-impossible-a-reduire-parait-quand-meme-03` · HEAD `f325c47`
+Ouvert le 2026-11-01 · Actualisé le 2026-11-02 · branche `impl/une-image-impossible-a-reduire-parait-quand-meme-03` · HEAD `f325c47`
 Worktree : `/home/negus/projets/colibri-cms/.git/scd-worktrees/une-image-impossible-a-reduire-parait-quand-meme-03`
 
 ## Objectif
@@ -39,3 +39,14 @@ Record : seules la description et la PR auraient tourné. Hors de cette session 
 
 ## Écarté
 - Relancer avec `rerun: "2"` : tout l'aval du code aurait été rejoué, relecture comprise, pour huit fichiers oubliés.
+
+## Issue
+Run abouti le 2026-11-02, PR #299, en une reprise, puis complété à la main avec accord humain. J'avais commité les
+données seules (`51c067f`) et repris avec, dans la copie locale du script, `args.verifiedPorcelainAfter` à la place du
+`porcelainAfter` du Record. Contrairement à ce que j'attendais, l'agent `quality:knip` du 03 avait été rejoué malgré une
+clé identique, et toute la suite avec lui : relecture, second tri, correction. Ce second tri avait retenu trois
+remarques, absentes de la PR : `change-F-4` (le correcteur avait visé la ligne 62 au lieu de la 61, sans rien
+modifier), `coverage-F-1` et `change-F-1` (tests interdits au correcteur). Je les avais faites en trois commits
+(`c9e140a`, `2c02a84`, `9421792`). La valeur des tests ajoutés avait été prouvée par panne volontaire : motif sans
+`jpe?g` (4 rouges), `nomDeRepli` sans extension (1 rouge), compte rendu piégé (bilan du 05 vert, ligne de repli
+retirée ou ajoutée rouge).
