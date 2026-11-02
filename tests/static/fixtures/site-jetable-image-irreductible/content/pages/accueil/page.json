@@ -1,0 +1,9 @@
+{
+  "titre": "Accueil",
+  "rang": 0,
+  "emplacements": [
+    { "id": "image-tronque", "nature": "image", "rang": 0, "mediaId": "tronque" },
+    { "id": "image-anime", "nature": "image", "rang": 1, "mediaId": "anime" },
+    { "id": "image-enorme", "nature": "image", "rang": 2, "mediaId": "enorme" }
+  ]
+}

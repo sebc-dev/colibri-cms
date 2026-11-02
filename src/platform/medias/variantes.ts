@@ -11,10 +11,10 @@
  * `path.join` sur le nom validé ; les photos passent une à une.
  */
 import { mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { extname, join } from 'node:path';
 import sharp from 'sharp';
 import { analyserImage } from '../../core/medias/ingestion.ts';
-import { largeursDeVariantes, nomDeVariante } from '../../core/medias/variantes.ts';
+import { largeursDeVariantes, nomDeRepli, nomDeVariante } from '../../core/medias/variantes.ts';
 
 const NOM_ADMIS = /^([A-Za-z0-9-]+)\.(png|jpe?g|webp)$/;
 const EXTENSION_DEPOSEE = /\.(png|jpe?g|webp)$/i;
@@ -49,33 +49,49 @@ export async function produireLesVariantes(racine: string): Promise<number> {
     const analyse = analyserImage({ octets });
     if (!analyse.admise) throw new Error(`Image refusée « ${nom} » : ni JPEG, ni PNG, ni WebP lisible (${analyse.motif}).`);
 
-    ecrits += await ecrireLesVariantes(octets, analyse.dimensions.largeur, id, nom, sortie);
+    ecrits += await ecrireOuRepli(octets, analyse.dimensions.largeur, id, nom, sortie);
   }
   return ecrits;
 }
 
-/** Écrit, une à une, les variantes d'une image admise ; renvoie leur nombre. Échoue en nommant le fichier que `sharp` ne sait pas réduire. */
-async function ecrireLesVariantes(
+/**
+ * Écrit les variantes d'une image admise ; si `sharp` ne sait pas la réduire
+ * (décodage impossible, image animée, écriture en échec), l'image est copiée
+ * telle que déposée sous `<id>-<largeur>.<extension d'origine>` et la raison
+ * est consignée en sortie. Ne lève jamais pour une image admise (design D6 du
+ * change 014-site-public-rapide).
+ */
+async function ecrireOuRepli(
   octets: Uint8Array,
   largeurOrigine: number,
   id: string,
   nom: string,
   sortie: string,
 ): Promise<number> {
-  let ecrits = 0;
+  const ecrits: string[] = [];
+  let raison: string;
   try {
-    for (const largeur of largeursDeVariantes(largeurOrigine)) {
-      const variante = await sharp(octets)
-        .rotate()
-        .resize({ width: largeur, withoutEnlargement: true })
-        .webp({ quality: QUALITE_WEBP })
-        .toBuffer();
-      writeFileSync(join(sortie, nomDeVariante(id, largeur)), variante);
-      ecrits += 1;
+    const metadonnees = await sharp(octets).metadata();
+    if ((metadonnees.pages ?? 1) > 1) {
+      raison = 'image animée';
+    } else {
+      for (const largeur of largeursDeVariantes(largeurOrigine)) {
+        const variante = await sharp(octets)
+          .rotate()
+          .resize({ width: largeur, withoutEnlargement: true })
+          .webp({ quality: QUALITE_WEBP })
+          .toBuffer();
+        const fichier = join(sortie, nomDeVariante(id, largeur));
+        ecrits.push(fichier);
+        writeFileSync(fichier, variante);
+      }
+      return ecrits.length;
     }
   } catch (erreur) {
-    const cause = erreur instanceof Error ? erreur.message : String(erreur);
-    throw new Error(`Image « ${nom} » impossible à réduire : ${cause}`, { cause: erreur });
+    raison = (erreur instanceof Error ? erreur.message : String(erreur)).replace(/\s+/g, ' ');
   }
-  return ecrits;
+  for (const fichier of ecrits) rmSync(fichier, { force: true });
+  writeFileSync(join(sortie, nomDeRepli(id, largeurOrigine, extname(nom).toLowerCase().slice(1))), octets);
+  globalThis.console.log(`[variantes] ${id} servie telle que déposée : ${raison}`);
+  return 1;
 }

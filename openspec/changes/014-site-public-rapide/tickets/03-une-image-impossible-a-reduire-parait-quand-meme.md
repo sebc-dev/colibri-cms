@@ -54,4 +54,4 @@ bloquée.
 - signaler le repli à l'éditrice dans l'administration.
 
 ## Critères
-- [ ] Quand la reconstruction trouve une image publiée dont les octets ne se laissent pas réduire, le site est produit, la page présente cette image telle que déposée, avec sa description et ses dimensions, et la reconstruction nomme cette image dans son compte rendu   (SC-03a)
+- [x] Quand la reconstruction trouve une image publiée dont les octets ne se laissent pas réduire, le site est produit, la page présente cette image telle que déposée, avec sa description et ses dimensions, et la reconstruction nomme cette image dans son compte rendu   (SC-03a)
