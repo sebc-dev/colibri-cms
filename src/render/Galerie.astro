@@ -15,7 +15,7 @@ const { images } = Astro.props;
     <ul class="galerie">
       {images.map((image) => (
         <li>
-          <Image image={image} />
+          <Image image={image} nature="galerie" />
         </li>
       ))}
     </ul>

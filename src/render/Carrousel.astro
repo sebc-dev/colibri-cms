@@ -15,7 +15,7 @@ const { images } = Astro.props;
     <ul class="carrousel">
       {images.map((image) => (
         <li>
-          <Image image={image} />
+          <Image image={image} nature="carrousel" />
         </li>
       ))}
     </ul>

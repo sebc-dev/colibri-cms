@@ -1,0 +1,9 @@
+{
+  "titre": "Places",
+  "rang": 3,
+  "emplacements": [
+    { "id": "image-places", "nature": "image", "rang": 0, "mediaId": "variantes-grande" },
+    { "id": "galerie-places", "nature": "galerie", "rang": 1, "mediaIds": ["variantes-grande"] },
+    { "id": "carrousel-places", "nature": "carrousel", "rang": 2, "mediaIds": ["variantes-grande"] }
+  ]
+}
