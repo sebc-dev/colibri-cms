@@ -58,7 +58,8 @@ export async function produireLesVariantes(racine: string): Promise<number> {
  * Écrit les variantes d'une image admise ; si `sharp` ne sait pas la réduire
  * (décodage impossible, image animée, écriture en échec), l'image est copiée
  * telle que déposée sous `<id>-<largeur>.<extension d'origine>` et la raison
- * est consignée en sortie. Ne lève jamais pour une image admise (ADR-0031).
+ * est consignée en sortie. Ne lève jamais pour une image admise (design D6 du
+ * change 014-site-public-rapide).
  */
 async function ecrireOuRepli(
   octets: Uint8Array,
