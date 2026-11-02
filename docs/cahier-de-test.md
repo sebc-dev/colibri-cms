@@ -19,8 +19,8 @@ qu'un test dans `workerd` ne voit pas — le rendu au navigateur, la CSP réelle
 
 **Hors périmètre** (pas encore livré, ne pas tester) : le retour à la dernière version publiée, le
 moyen de reprise, le remplacement de l'adresse autorisée, le déploiement d'une instance au nom du
-client et de ses nouvelles versions, la reconstruction du site sans le CMS, le dossier d'instance,
-et la rapidité du site public (SC-005). Sur le serveur de recette, la révocation des accès
+client et de ses nouvelles versions, la reconstruction du site sans le CMS et le dossier
+d'instance. La rapidité du site public (SC-005) se recette au § 42. Sur le serveur de recette, la révocation des accès
 d'Isometria (SC-012, SC-013) ne se recette pas : le compte est celui de l'opérateur.
 
 ---
@@ -890,6 +890,19 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | CT-41.6 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, cocher deux demandes, « Retirer… », un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; les demandes restent listées (SC-09d) | OK — `/admin/demandes/retrait` bloquée, deux demandes cochées, « Retrait ordinaire », « Retirer » : le message d'échec dans le dialogue (`role="alert"`), qui reste ouvert ; les deux demandes restent listées |
 | CT-41.7 | Effacer les demandes du § 41, vérifier que « Demandes » n'affiche plus aucune demande, semer les quarante demandes ci-dessus ; au téléphone, toucher « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » | Quatre actions suffisent ; la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, et les nombres du haut sont revenus à ceux d'avant le semis, sans aucune retirée gagnée (UX2) | OK — demandes du § 41 effacées, « Demandes » vide ; quarante demandes semées (« 40 demandes · 0 commande ») ; « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » : quatre actions, la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, « 0 demande · 0 commande », aucune retirée |
 
+## 42. Le site reste rapide avec des photos lourdes — change 014 · ticket 05
+
+Préalable : redéployer la variante factice `photos-lourdes` (skill `site-factice`) sur `https://colibri.sebc.dev` (photo de tête + galerie de 45 photos d'environ 1 Mio). Mesures consignées ici : scores, coût par photo, qualité retenue (jamais dans l'ADR 0031).
+
+Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variante `photos-lourdes` est déployée par `site.mjs deployer photos-lourdes` sous `taskset -c 0,1` (2 cœurs, comme Workers Builds gratuit) à l'adresse `https://site-photos-lourdes-colibri-recette.chauveau-sebastien.workers.dev/`. Le serveur principal `https://colibri.sebc.dev` est rebâti depuis ce même commit (`recette.mjs depot`, commit `8092987` du dépôt de recette). Navigateur : `playwright-cli` 0.1.21. Qualité WebP retenue : 80, aucun levier appliqué.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-42.1 | `npx lighthouse@13` (Chromium Playwright), mobile, 3 passes sur Accueil, Tarifs, Contact | La médiane du score Performance de chaque page est d'au moins 95 (SC-05a) ; relever les 9 scores, les 3 médianes, les audits « LCP request discovery » et « Improve image delivery » | OK — Lighthouse 13.5.0 (la 13.6.0, publiée il y a moins de 7 jours, est refusée par le délai de sécurité de npm), mobile, ralentissement simulé. Accueil 98 / 99 / 99, médiane 99 (75 / 75 / 75 avant le change) ; Tarifs 99 / 98 / 98, médiane 98 ; Contact 94 / 99 / 99, médiane 99. « LCP request discovery » réussi sur Accueil et Contact (`fetchpriority=high`, image découvrable dans le document, pas en `lazy`), sans objet sur Tarifs. « Improve image delivery » : sur l'Accueil, 1 024 Kio d'économie estimée sur 45 images (compression plus forte possible ; 44 cases de 360 px affichées en 184 × 138, tête de 720 px affichée en 380 × 285), gain estimé de 600 à 1 050 ms sur le LCP ; rien sur Tarifs et Contact |
+| CT-42.2 | `playwright-cli` à 412 px sur l'Accueil et son aperçu | Aucun refus `img-src` en console ; variante de 360 px chargée pour la galerie, de 720 px pour la photo de tête | OK — 412 × 915, densité 1. Accueil de la variante : la tête charge `photo-lourde-01-720` (affichée en 380 px), les 45 cases chargent leur variante de 360 px (affichées en 184 px), aucune image vide, `scrollWidth` 412. Aperçu d'Accueil sur `colibri.sebc.dev` : bandeau « Aperçu — cette page n'est pas encore en ligne. », 46 images avec `srcset`, 45 cases en 360 px, tête en 640 px (l'original posé par ce brouillon mesure 640 × 480 et aucune variante n'est plus large que lui), aucune image vide. Console des deux pages : aucun refus `img-src`, seul le 404 de `favicon.ico`. Sur l'adresse de la variante, l'aperçu ne montre pas les photos de la variante : la base est partagée et les brouillons d'Accueil posent les images publiées du serveur principal, absentes de la construction de la variante, dont la route des médias sert alors 0 octet (attendu, pas un défaut du change) |
+| CT-42.3 | Lire la ligne `[variantes] <n> photos, <f> fichiers, <s> s` de la construction (Workers Builds et locale) ; `find dist -type f \| wc -l` avant/après | Coût par photo relevé (signaler si > 0,5 s/photo) ; mise en ligne < 5 min (SC-004) ; 6 fichiers de plus qu'avant (119 dont 2 originaux) | OK — Workers Builds (construction `1eeafae9-…` du serveur principal, ligne relevée par l'opérateur dans le tableau de bord) : `[variantes] 87 photos, 175 fichiers, 2.5 s`, soit 0,03 s par photo de 640 × 480 px. Les mêmes 87 images rejouées en local sur 2 cœurs : 3,5 s (3,7 / 3,5 / 3,5), donc le local est environ 1,4 fois plus lent que Workers Builds et sert de borne haute. Pour les photos lourdes, environ 0,12 s par photo attendues sur Workers Builds (0,17 × 2,5 / 3,5), sous le seuil de 0,5 s : aucun signalement, l'ADR 0031 tient. Détail des mesures locales — en local sur 2 cœurs : `[variantes] 48 photos, 144 fichiers, 8.3 s`, soit 0,17 s par photo de 2000 × 1500 px (~1 Mio) ; construction et déploiement de la variante en 78 s. Site de démonstration : 118 fichiers à `5e633d1` (avant le change), 124 à `96b71c1`, soit +6 (les 6 variantes WebP ; les 2 originaux PNG sont présents des deux côtés) ; la base était 118, pas 119. Workers Builds : la construction `1eeafae9-663f-4067-9a59-01c222a9df41` du serveur principal (87 images publiées) a réussi, terminée 65 s après l'envoi (11:40:57 → 11:42:02). Son journal n'est pas lisible depuis la machine de recette (l'API Cloudflare refuse la connexion wrangler : « Forbidden ») : la ligne de bilan a été relevée par l'opérateur (ci-dessus) |
+| CT-42.4 | Sur téléphone, regarder la photo de tête et une case de galerie | Image nette, sans artefacts | OK — 2026-11-02, sur le téléphone Android de l'opérateur (Chrome), Accueil de `https://colibri.sebc.dev` rebâti depuis `96b71c1` ; capture d'écran envoyée par l'opérateur et lue par Claude. Les lettres « R-01 » de la tête et « Q-01 », « Q-02 » des cases sont lisibles, à bords francs, sans halo ni taches de compression ; le grain du fond reste visible. La tête est un peu moins piquée que les cases : son original ne mesure que 640 × 480 px et s'affiche plus large que lui, la réduction n'y est pour rien. Les photos de la variante `photos-lourdes` (bruit aléatoire, sans contour) ne permettent pas de juger la netteté : sur téléphone, leurs cases paraissent grises et lisses, ce qui est l'effet attendu de la réduction d'un bruit. Aucune vraie photo n'a été regardée : la recette n'en contient pas |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
@@ -935,8 +948,11 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | 39 Suite d'une demande | 6 | 5 | 0 | 1 |
 | 40 Retrait d'une demande | 5 | 4 | 0 | 1 |
 | 41 Retrait groupé de demandes | 7 | 7 | 0 | 0 |
-| **Total** | **260** | **254** | **0** | **6** |
+| 42 Site rapide, photos lourdes | 4 | 4 | 0 | 0 |
+| **Total** | **264** | **258** | **0** | **6** |
 
 Testé par : Claude, au navigateur piloté (`playwright-cli` 0.1.21, Chromium 154) · Date : 2026-10-27 et 2026-10-28 · Commit de `main` : `9af1e47` · Navigateur : Chromium 154, sans tête
 
 Rejeu du 2026-10-31 sur `main` `fb1f2db` (après #290 à #292) : CT-6.3 et CT-15.5 passent de KO à OK ; CT-13.1, CT-24.7 et CT-37.4 rejoués pour leurs remarques, levées.
+
+§ 42 joué le 2026-11-02 sur la branche du ticket 05 du change 014 (`96b71c1`, PR #301) : Lighthouse 13.5.0, `playwright-cli` 0.1.21, téléphone Android de l'opérateur pour CT-42.4.
