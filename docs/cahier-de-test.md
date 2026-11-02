@@ -890,6 +890,17 @@ Joué le 2026-10-28 sur `https://colibri.sebc.dev` (`main` `9af1e47`), au naviga
 | CT-41.6 | Outils → Réseau → bloquer l'URL `/admin/demandes/retrait`, cocher deux demandes, « Retirer… », un motif, « Retirer » | Le message « Le retrait n'a pas pu se faire : aucune demande n'a été retirée. Réessayez dans quelques instants. » est annoncé dans le dialogue, qui reste ouvert ; les demandes restent listées (SC-09d) | OK — `/admin/demandes/retrait` bloquée, deux demandes cochées, « Retrait ordinaire », « Retirer » : le message d'échec dans le dialogue (`role="alert"`), qui reste ouvert ; les deux demandes restent listées |
 | CT-41.7 | Effacer les demandes du § 41, vérifier que « Demandes » n'affiche plus aucune demande, semer les quarante demandes ci-dessus ; au téléphone, toucher « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » | Quatre actions suffisent ; la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, et les nombres du haut sont revenus à ceux d'avant le semis, sans aucune retirée gagnée (UX2) | OK — demandes du § 41 effacées, « Demandes » vide ; quarante demandes semées (« 40 demandes · 0 commande ») ; « Tout sélectionner sur cette page », « Retirer… », « Demande indésirable », « Retirer » : quatre actions, la barre dit « 40 demandes sélectionnées » ; après le rechargement la liste est vide, « 0 demande · 0 commande », aucune retirée |
 
+## 42. Le site reste rapide avec des photos lourdes — change 014 · ticket 05
+
+Préalable : redéployer la variante factice `photos-lourdes` (skill `site-factice`) sur `https://colibri.sebc.dev` (photo de tête + galerie de 45 photos d'environ 1 Mio). Mesures consignées ici : scores, coût par photo, qualité retenue (jamais dans l'ADR 0031).
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-42.1 | `npx lighthouse@13` (Chromium Playwright), mobile, 3 passes sur Accueil, Tarifs, Contact | La médiane du score Performance de chaque page est d'au moins 95 (SC-05a) ; relever les 9 scores, les 3 médianes, les audits « LCP request discovery » et « Improve image delivery » | À jouer |
+| CT-42.2 | `playwright-cli` à 412 px sur l'Accueil et son aperçu | Aucun refus `img-src` en console ; variante de 360 px chargée pour la galerie, de 720 px pour la photo de tête | À jouer |
+| CT-42.3 | Lire la ligne `[variantes] <n> photos, <f> fichiers, <s> s` de la construction (Workers Builds et locale) ; `find dist -type f \| wc -l` avant/après | Coût par photo relevé (signaler si > 0,5 s/photo) ; mise en ligne < 5 min (SC-004) ; 6 fichiers de plus qu'avant (119 dont 2 originaux) | À jouer |
+| CT-42.4 | Sur téléphone, regarder la photo de tête et une case de galerie | Image nette, sans artefacts | À jouer (regard humain) |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
