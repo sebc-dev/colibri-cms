@@ -1,7 +1,7 @@
 # Run bloqué : une case de galerie annonce sa propre place
 
 Portée : 014-site-public-rapide · ticket 04
-Ouvert le 2026-11-01 · Actualisé le 2026-11-01 · branche `impl/une-case-de-galerie-annonce-sa-propre-place-04` · HEAD `cff23ab`
+Ouvert le 2026-11-01 · Actualisé le 2026-11-02 · branche `impl/une-case-de-galerie-annonce-sa-propre-place-04` · HEAD `cff23ab`
 Worktree : `/home/negus/projets/colibri-cms/.git/scd-worktrees/une-case-de-galerie-annonce-sa-propre-place-04`
 
 ## Objectif
@@ -33,3 +33,10 @@ le test commité portait les retouches. Hors de cette session : retouches, `git 
 
 ## Écarté
 - Toucher `eslint.config.analyse.js` ou poser un `eslint-disable` : interdit, et la règle avait raison sur la forme.
+
+## Issue
+Run abouti le 2026-11-02, PR #300, en une reprise. J'avais remplacé les trois expressions par les découpages
+littéraux proposés ; `analyse` et `lint` étaient sortis en 0 et le test passait. Après `git add` des tests, la reprise
+`rerun: "2"` (copie locale de `implement-parallel.js` complétée de `rerun: step.rerun`) avait rejoué le code, la
+ceinture, la gate et la relecture sans arrêt. Le tri avait écarté les quatre remarques. Le test commité portait la
+retouche : même empreinte (`cee77eb3…`) que ma copie d'avant la reprise.
