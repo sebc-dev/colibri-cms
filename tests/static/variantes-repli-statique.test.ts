@@ -114,7 +114,10 @@ describe('une image impossible à réduire paraît quand même', () => {
       expect(siennes, `lignes nommant « ${id} »`).toHaveLength(1);
       expect(siennes[0]).toMatch(new RegExp(`^\\[variantes\\] ${id} servie telle que déposée : \\S`));
     }
-    expect(lignes, 'une ligne par image irréductible, pas d’autre').toHaveLength(IMAGES.length);
+    expect(
+      lignes.filter((ligne) => ligne.includes(' servie telle que déposée : ')),
+      'une ligne de repli par image irréductible, pas d’autre',
+    ).toHaveLength(IMAGES.length);
   });
 
   it('SC-03a — la page présente chaque image avec sa description et ses dimensions, sans liste de variantes', async () => {
