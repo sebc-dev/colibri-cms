@@ -9,6 +9,8 @@ import {
   hauteurDeVariante,
   nomDeVariante,
   lireNomDeVariante,
+  lireNomEmpaquete,
+  nomDeRepli,
   largeurParDefaut,
 } from '../../../src/core/medias/variantes.ts';
 
@@ -108,4 +110,34 @@ describe('largeurParDefaut — la source par défaut', () => {
   it('SC-02a — dont la plus petite dépasse 720 : la plus petite', () => {
     expect(largeurParDefaut([800, 1000])).toBe(800);
   });
+});
+
+describe('nom d’une copie de repli et des fichiers empaquetés (ticket 03)', () => {
+  it('SC-03a — la copie de repli se nomme avec l’identifiant, la largeur d’origine et l’extension d’origine', () => {
+    expect(nomDeRepli('tronque', 240, 'png')).toBe('tronque-240.png');
+    expect(nomDeRepli('photo-01', 1600, 'jpeg')).toBe('photo-01-1600.jpeg');
+  });
+
+  it.each([
+    ['hero-720.webp', 'hero', 720],
+    ['tronque-240.png', 'tronque', 240],
+    ['photo-01-1600.jpg', 'photo-01', 1600],
+    ['photo-01-1600.jpeg', 'photo-01', 1600],
+  ])('SC-03a — le fichier empaqueté %s se relit en %s, %i px', (nom, id, largeur) => {
+    expect(lireNomEmpaquete(nom)).toEqual({ id, largeur });
+  });
+
+  it.each(['webp', 'png', 'jpg', 'jpeg'])(
+    'SC-03a — une copie de repli en .%s se relit à l’identique de ce qui a été formé',
+    (extension) => {
+      expect(lireNomEmpaquete(nomDeRepli('anime-x', 120, extension))).toEqual({ id: 'anime-x', largeur: 120 });
+    },
+  );
+
+  it.each(['tronque.png', 'hero-abc.png', 'hero-7.5.jpg', 'hero-0.webp', '-720.png', 'hero-720.gif', 'hero-720.svg'])(
+    'SC-03a — le fichier %s, sans largeur entière lisible ou d’un format non admis, est ignoré',
+    (nom) => {
+      expect(lireNomEmpaquete(nom)).toBeNull();
+    },
+  );
 });
