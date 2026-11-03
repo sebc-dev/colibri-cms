@@ -40,6 +40,8 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { verifierSession } from '../../../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../../../platform/contenu/pages.ts';
+import { listerFichesMedias } from '../../../../../platform/contenu/medias.ts';
+import { imagesAbsentes } from '../../../../../platform/medias/magasin.ts';
 import {
   enregistrerCorrectionBoutonAction,
   enregistrerCorrectionLienVideo,
@@ -82,6 +84,21 @@ export const POST: APIRoute = async ({ params, request }) => {
   // `enregistrerCorrectionBoutonAction` par défaut.
   const emplacementDeclare = page.emplacements.find((emplacement) => emplacement.id === id);
 
+  // Une pose d'image ne vise que des images de la bibliothèque (spec `pages-et-emplacements`) :
+  // une identité absente — sélecteur resté ouvert sur une image effacée depuis, ou requête
+  // forgée — est refusée sans rien écrire, sans quoi la publication déposerait une page qui
+  // pose une image manquante. Une image posée au départ, que le site empaquette, compte comme
+  // présente même si aucun écran ne l'a encore inscrite. 404 : l'îlot dit que l'écran n'est
+  // plus à jour.
+  const nature = emplacementDeclare?.nature;
+  if (nature === 'image' || nature === 'galerie' || nature === 'carrousel') {
+    const empaquetees = new Set(listerFichesMedias().map((fiche) => fiche.id));
+    const visees = identitesVisees(corpsBrut).filter((idImage) => !empaquetees.has(idImage));
+    if ((await imagesAbsentes(env.DB, visees)).length > 0) {
+      return Response.json({ ok: false, raison: 'image-introuvable' }, { status: 404 });
+    }
+  }
+
   let resultat: ResultatCorrection;
   if (emplacementDeclare?.nature === 'lien-video') {
     resultat = await enregistrerCorrectionLienVideo(env.DB, slug, page.emplacements, id, corpsBrut, Date.now());
@@ -106,3 +123,12 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   return Response.json({ ok: true, porteUnBrouillon: pagePorteUnBrouillon(resultat.brouillon) });
 };
+
+/** Les identités d'images qu'une pose vise : `mediaId` d'une image, `mediaIds` d'une galerie ou d'un carrousel. La forme reste jugée par `core/`. */
+function identitesVisees(corps: unknown): string[] {
+  if (typeof corps !== 'object' || corps === null) return [];
+  const { mediaId, mediaIds } = corps as { mediaId?: unknown; mediaIds?: unknown };
+  if (typeof mediaId === 'string') return [mediaId];
+  if (Array.isArray(mediaIds)) return mediaIds.filter((id): id is string => typeof id === 'string');
+  return [];
+}
