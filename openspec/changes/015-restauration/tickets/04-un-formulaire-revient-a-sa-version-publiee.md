@@ -2,7 +2,7 @@
 
 **Bloqué par :** 03
 **Vérif :** tdd
-**Fichiers :** `migrations/0014_numeros_options.sql`, `src/pages/admin/formulaires/[id]/revenir.ts`, `src/platform/formulaires/magasin.ts`, `src/core/formulaires/options.ts`, `src/pages/admin/formulaires/[id].astro`, `src/admin/ilots-svelte-5/monter.ts`, `src/admin/textes.ts`, `tests/unit/formulaires/numeros-options.test.ts`, `tests/integration/revenir-formulaire.test.ts`, `tests/integration/revenir-garde-fous.test.ts`
+**Fichiers :** `migrations/0015_numeros_options.sql`, `src/pages/admin/formulaires/[id]/revenir.ts`, `src/platform/formulaires/magasin.ts`, `src/core/formulaires/options.ts`, `src/pages/admin/formulaires/[id].astro`, `src/admin/ilots-svelte-5/monter.ts`, `src/admin/textes.ts`, `tests/unit/formulaires/numeros-options.test.ts`, `tests/integration/revenir-formulaire.test.ts`, `tests/integration/revenir-garde-fous.test.ts`
 
 ## Ce que ça livre
 
@@ -19,7 +19,7 @@ d'un formulaire, à côté de sa marque, révélé par l'événement `brouillon-
 **Un identifiant d'option ne revient jamais** (ADR-0018, ADR-0026 ; design D3). Le compteur
 `derniersNumeros` vit dans le brouillon et dans l'état publié ; supprimer le brouillon perdrait les
 numéros qu'il était seul à porter. D'où :
-- une migration additive `migrations/0014_numeros_options.sql` crée `numeros_options(formulaire, champ,
+- une migration additive `migrations/0015_numeros_options.sql` crée `numeros_options(formulaire, champ,
   dernier, primary key (formulaire, champ))`, recréée aussi paresseusement par le magasin, comme
   `brouillons_formulaires` ;
 - une fonction pure de `src/core/formulaires/options.ts` calcule, pour un brouillon, le plus grand numéro
