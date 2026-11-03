@@ -7,6 +7,7 @@
  * Zone `platform` : n'importe que `core/` et les magasins voisins (I1).
  */
 import { listerSlugsAvecBrouillon } from '../brouillons/magasin.ts';
+import { assurerTableMedias } from '../medias/magasin.ts';
 import { obtenirBrouillonsFormulaires } from '../formulaires/magasin.ts';
 import { obtenirBrouillonsReglages } from '../reglages/magasin.ts';
 import { obtenirPubliesReglages, obtenirPublieEmplacements, obtenirPublieFormulaire } from './magasin-publie.ts';
@@ -220,6 +221,7 @@ export async function finaliser(db: DB, finalisation: Finalisation): Promise<voi
   await obtenirPublieEmplacements(db, '');
   await obtenirPubliesReglages(db);
   await obtenirPublieFormulaire(db, '');
+  await assurerTableMedias(db);
   const { maintenant, objets } = finalisation;
   const instructions: unknown[] = [];
   for (const l of objets.pages) {
@@ -267,6 +269,7 @@ export async function finaliser(db: DB, finalisation: Finalisation): Promise<voi
            where id = ?4`,
         )
         .bind(maintenant, image.description, image.empreinte, image.id),
+      db.prepare('delete from medias_effacees where id = ?1').bind(image.id),
     );
   }
   for (const id of finalisation.imagesEffacees) {
@@ -275,6 +278,11 @@ export async function finaliser(db: DB, finalisation: Finalisation): Promise<voi
         or exists (select 1 from json_each(b.contenu, '$.mediaIds') where value = ?1))`;
     instructions.push(
       db.prepare(`delete from medias where id = ?1 and not ${reposee}`).bind(id),
+      // Trace de l'effacement : le site en service empaquette encore la fiche jusqu'à sa reconstruction,
+      // et la réinscription des images empaquetées ne doit pas la rendre à la bibliothèque.
+      db
+        .prepare(`insert or replace into medias_effacees (id, effacee_le) select ?1, ?2 where not ${reposee}`)
+        .bind(id, maintenant),
       db
         .prepare(
           `update medias set publiee_le = null, description_publiee = null, empreinte_depot = null

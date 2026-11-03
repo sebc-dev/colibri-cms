@@ -48,6 +48,7 @@ import type { FicheMedia } from '../../core/medias/fiche.ts';
 import ddlMediasBrouillon from '../../../migrations/0005_medias_brouillon.sql?raw';
 import ddlMediasBrouillonAffichage from '../../../migrations/0006_medias_brouillon_affichage.sql?raw';
 import ddlMedias from '../../../migrations/0009_medias.sql?raw';
+import ddlMediasEffacees from '../../../migrations/0014_medias_effacees.sql?raw';
 
 const TABLE_MEDIAS = 'medias';
 
@@ -102,13 +103,14 @@ function separerRequetes(sql: string): string[] {
  * énoncé par énoncé, échecs avalés : le renommage échoue sans effet quand
  * `medias` existe déjà, chaque `alter table` quand sa colonne est posée.
  */
-async function assurerTableMedias(db: DB): Promise<void> {
+export async function assurerTableMedias(db: DB): Promise<void> {
   schemaMediasAssure ??= (async () => {
     if (!(await tableExiste(db, TABLE_MEDIAS))) {
       await db.prepare(ddlMediasBrouillon).bind().run();
       await rejouerEnAvalantLesEchecs(db, ddlMediasBrouillonAffichage);
     }
     await rejouerEnAvalantLesEchecs(db, ddlMedias);
+    await rejouerEnAvalantLesEchecs(db, ddlMediasEffacees);
   })();
   await schemaMediasAssure;
 }
@@ -280,7 +282,10 @@ interface LigneMediaListeBrute {
  * table `medias` (change 011, ticket 02) : sans octets (BLOB de longueur
  * nulle, la colonne reste `NOT NULL`), marquées publiées (`publiee_le`,
  * `description_publiee` reprise de la fiche). Idempotente : une image déjà
- * inscrite — posée au départ ou téléversée — n'est jamais retouchée.
+ * inscrite — posée au départ ou téléversée — n'est jamais retouchée. Une
+ * image qu'une publication a effacée (`medias_effacees`) n'est jamais
+ * réinscrite : le site en service empaquette encore sa fiche jusqu'à sa
+ * reconstruction (défaut de recette du 2026-11-03).
  */
 export async function inscrireImagesDeDepart(
   db: DB,
@@ -293,7 +298,8 @@ export async function inscrireImagesDeDepart(
       .prepare(
         `insert or ignore into ${TABLE_MEDIAS}
            (id, nom_origine, format, largeur, hauteur, poids_octets, octets, creee_le, description, publiee_le, description_publiee)
-         values (?1, ?2, ?3, ?4, ?5, 0, x'', ?6, ?7, ?6, ?7)`,
+         select ?1, ?2, ?3, ?4, ?5, 0, x'', ?6, ?7, ?6, ?7
+         where not exists (select 1 from medias_effacees where id = ?1)`,
       )
       .bind(fiche.id, fiche.nomOrigine, fiche.format, fiche.largeur, fiche.hauteur, maintenant, fiche.description)
       .run();
