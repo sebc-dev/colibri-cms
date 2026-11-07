@@ -241,3 +241,33 @@ it('SC-01i — sans session ouverte, le retour est refusé et le brouillon est i
   expect(reponse.status).toBe(401);
   expect(await compter(db, 'brouillons_emplacements', 'page_slug = ?1', 'tarifs')).toBe(1);
 });
+
+it('une page que la déclaration ne porte pas répond 404 et aucun brouillon ne bouge', async () => {
+  // Arrange
+  const db = obtenirDB();
+  const cookie = await semerSession(db);
+  await semerBrouillonEmplacement(db, 'page-inconnue', 'presentation', texte('Brouillon orphelin.'));
+  await semerBrouillonEmplacement(db, 'tarifs', 'presentation', texte('Tarifs en brouillon.'));
+
+  // Act
+  const reponse = await revenir('page-inconnue', cookie);
+
+  // Assert
+  expect(reponse.status).toBe(404);
+  expect(await reponse.json()).toEqual({ ok: false, raison: 'introuvable' });
+  expect(await compter(db, 'brouillons_emplacements')).toBe(2);
+});
+
+it('le retour supprime aussi la ligne d’un emplacement que la déclaration ne porte plus', async () => {
+  // Arrange
+  const db = obtenirDB();
+  const cookie = await semerSession(db);
+  await semerBrouillonEmplacement(db, 'tarifs', 'emplacement-retire', texte('Ligne sans déclaration.'));
+
+  // Act
+  const reponse = await revenir('tarifs', cookie);
+
+  // Assert
+  expect(reponse.status).toBe(200);
+  expect(await compter(db, 'brouillons_emplacements', 'page_slug = ?1', 'tarifs')).toBe(0);
+});

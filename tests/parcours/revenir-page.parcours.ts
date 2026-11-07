@@ -18,6 +18,7 @@ const TITRE_ECHAPPE = TITRE_HOSTILE.replace(/&/g, "&amp;")
   .replace(/"/g, "&quot;")
   .replace(/'/g, "&#39;");
 const OFFRE = "Revenir à la version publiée";
+const ROUTE_REVENIR = "**/admin/pages/tarifs/revenir";
 
 async function ouvrirContexte(
   browser: import("@playwright/test").Browser,
@@ -64,9 +65,12 @@ test.describe("retour d’une page à sa version publiée", () => {
       await offre.click();
       const dialogue = page.getByRole("dialog");
       await expect(dialogue).toContainText("seront perdues");
-      await dialogue
+      // La croix porte le même nom et la précède : `.last()` vise le bouton visible.
+      const garder = dialogue
         .getByRole("button", { name: "Garder mes modifications" })
-        .click();
+        .last();
+      await expect(garder).toBeFocused();
+      await garder.click();
       await expect(dialogue).toHaveCount(0);
       await expect(page.getByText("Brouillon", { exact: true })).toBeVisible();
 
@@ -133,6 +137,72 @@ test.describe("retour d’une page à sa version publiée", () => {
       // Remise à neuf : la page repart sans brouillon.
       await dialogue.getByRole("button", { name: OFFRE }).click();
       await expect(page.getByText("Brouillon", { exact: true })).toHaveCount(0);
+    } finally {
+      garde.verifier();
+      await contexte.close();
+    }
+  });
+
+  test("un échec réseau garde la confirmation ouverte, et Échap ne la ferme pas pendant l’envoi", async ({
+    browser,
+  }) => {
+    const contexte = await ouvrirContexte(browser);
+    const garde = await poserGardePolitique(contexte);
+    try {
+      const page = await contexte.newPage();
+      await page.goto(CHEMIN);
+      const champ = page.getByRole("textbox", { name: "Libellé" });
+      await champ.fill(LIBELLE_CORRIGE);
+      await page
+        .locator("form")
+        .filter({ has: champ })
+        .getByRole("button", { name: "Enregistrer" })
+        .click();
+      const marque = page.getByText("Brouillon", { exact: true });
+      await expect(marque).toBeVisible();
+
+      // Échec réseau : la confirmation reste ouverte, dit le message, et le geste reste possible.
+      await page.route(ROUTE_REVENIR, (route) => route.abort());
+      await page.getByRole("button", { name: OFFRE }).click();
+      const dialogue = page.getByRole("dialog");
+      const confirmer = dialogue.getByRole("button", { name: OFFRE });
+      const garder = dialogue
+        .getByRole("button", { name: "Garder mes modifications" })
+        .last();
+      await confirmer.click();
+      await expect(dialogue.getByRole("alert")).toContainText(
+        "La connexion a échoué",
+      );
+      await expect(dialogue).toBeVisible();
+      await expect(confirmer).toBeEnabled();
+      await expect(garder).toBeEnabled();
+      await expect(marque).toBeVisible();
+      await page.unroute(ROUTE_REVENIR);
+
+      // Pendant l'envoi : réponse retenue, boutons inactifs, Échap sans effet.
+      let liberer = (): void => undefined;
+      const liberation = new Promise<void>((resolve) => {
+        liberer = resolve;
+      });
+      await page.route(ROUTE_REVENIR, async (route) => {
+        await liberation;
+        await route.continue();
+      });
+      await confirmer.click();
+      const enCours = dialogue.getByRole("button", {
+        name: "Retour en cours…",
+      });
+      await expect(enCours).toBeDisabled();
+      await expect(garder).toBeDisabled();
+      await page.keyboard.press("Escape");
+      await expect(dialogue).toBeVisible();
+
+      // La réponse libérée, le retour aboutit : la page repart sans brouillon.
+      liberer();
+      await expect(marque).toHaveCount(0);
+      await expect(
+        page.getByRole("textbox", { name: "Libellé" }),
+      ).toHaveValue(LIBELLE_ORIGINE);
     } finally {
       garde.verifier();
       await contexte.close();
