@@ -13,6 +13,7 @@
     TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE,
     TEXTE_BOUTON_GARDER_MODIFICATIONS,
     TEXTE_REVENIR_EN_COURS,
+    TEXTE_REVENIR_PUBLICATION_EN_COURS,
     TEXTE_TITRE_CONFIRMATION_REVENIR,
     texteAvertissementRevenir,
   } from '../textes.ts';
@@ -30,6 +31,7 @@
   let ouverte = $state(false);
   let enCours = $state(false);
   let erreur = $state<string | null>(null);
+  let refuse = $state(false);
   let garder = $state<HTMLElement | null>(null);
 
   function focusSurGarder(evenement: Event): void {
@@ -39,6 +41,7 @@
 
   function ouvrir(): void {
     erreur = null;
+    refuse = false;
     ouverte = true;
   }
 
@@ -51,6 +54,15 @@
       if (reponse.ok) {
         location.reload();
         return;
+      }
+      if (reponse.status === 409) {
+        const corps: unknown = await reponse.json().catch(() => null);
+        if (typeof corps === 'object' && corps !== null && 'raison' in corps && corps.raison === 'publication-en-cours') {
+          refuse = true;
+          erreur = TEXTE_REVENIR_PUBLICATION_EN_COURS;
+          enCours = false;
+          return;
+        }
       }
       erreur = messageErreurCorrection(reponse.status);
     } catch {
@@ -109,6 +121,7 @@
             >
               {TEXTE_BOUTON_GARDER_MODIFICATIONS}
             </Button>
+            {#if !refuse}
             <Button
               type="button"
               variant="destructive"
@@ -118,6 +131,7 @@
             >
               {enCours ? TEXTE_REVENIR_EN_COURS : TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE}
             </Button>
+            {/if}
           </div>
         </div>
       </DialogPrimitive.Content>

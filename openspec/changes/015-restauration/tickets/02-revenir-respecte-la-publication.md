@@ -48,11 +48,11 @@ suivante. Le verrou se sème directement dans la table `publication`.
 avant l'erreur et après le retour puis une publication.
 
 ## Critères
-- [ ] pendant qu'une publication confirmée dépose ses images, le retour d'une page confirmé depuis un autre onglet est refusé avec un message disant qu'une publication est en cours, et le brouillon de la page est intact   (SC-02a)
-- [ ] après qu'une publication a fini de déposer, l'éditrice corrige une page et revient à la version publiée : le geste aboutit, et la page présente la version qui vient d'être publiée   (SC-02b)
-- [ ] « Accueil » et « Tarifs » portent un brouillon ; après le retour de « Tarifs », l'écran Publier présente « Accueil » parmi les pages, et ne présente pas « Tarifs »   (SC-02c)
+- [x] pendant qu'une publication confirmée dépose ses images, le retour d'une page confirmé depuis un autre onglet est refusé avec un message disant qu'une publication est en cours, et le brouillon de la page est intact   (SC-02a)
+- [x] après qu'une publication a fini de déposer, l'éditrice corrige une page et revient à la version publiée : le geste aboutit, et la page présente la version qui vient d'être publiée   (SC-02b)
+- [x] « Accueil » et « Tarifs » portent un brouillon ; après le retour de « Tarifs », l'écran Publier présente « Accueil » parmi les pages, et ne présente pas « Tarifs »   (SC-02c)
 - [ ] l'éditrice écrase par erreur le texte de « Tarifs », revient à la version publiée, corrige « Accueil » puis publie : le dépôt réécrit les fichiers d'« Accueil » et aucun fichier de « Tarifs », et la page publique « Tarifs » est identique à ce qu'elle était avant l'erreur   (SC-02d)
-- [ ] le retour d'une page ne dépose rien dans le dépôt du client, et le contenu publié de cette page est inchangé   (SC-02e)
-- [ ] « Tarifs » publiée deux fois avec deux textes différents, puis corrigée et revenue : l'éditeur présente le texte de la seconde publication, et aucun écran n'offre le texte de la première   (SC-02f)
-- [ ] une image téléversée, posée dans l'emplacement d'image de « Tarifs », puis « Tarifs » revenue : l'image est toujours dans la bibliothèque, et le récapitulatif la présente parmi les images qui seront définitivement effacées   (SC-02g)
-- [ ] une image que seule la version publiée de « Tarifs » pose, supprimée depuis l'écran Médias, puis « Tarifs » revenue : l'image est de nouveau posée par « Tarifs », et le récapitulatif ne la présente plus parmi les images qui seront effacées   (SC-02h)
+- [x] le retour d'une page ne dépose rien dans le dépôt du client, et le contenu publié de cette page est inchangé   (SC-02e)
+- [x] « Tarifs » publiée deux fois avec deux textes différents, puis corrigée et revenue : l'éditeur présente le texte de la seconde publication, et aucun écran n'offre le texte de la première   (SC-02f)
+- [x] une image téléversée, posée dans l'emplacement d'image de « Tarifs », puis « Tarifs » revenue : l'image est toujours dans la bibliothèque, et le récapitulatif la présente parmi les images qui seront définitivement effacées   (SC-02g)
+- [x] une image que seule la version publiée de « Tarifs » pose, supprimée depuis l'écran Médias, puis « Tarifs » revenue : l'image est de nouveau posée par « Tarifs », et le récapitulatif ne la présente plus parmi les images qui seront effacées   (SC-02h)

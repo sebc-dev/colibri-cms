@@ -8,7 +8,7 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { verifierSession } from '../../../../platform/session/index.ts';
 import { obtenirPageAvecEmplacements } from '../../../../platform/contenu/pages.ts';
-import { abandonnerBrouillonPage } from '../../../../platform/brouillons/magasin.ts';
+import { abandonnerBrouillonPageSiLibre } from '../../../../platform/brouillons/magasin.ts';
 
 export const POST: APIRoute = async ({ request, params }) => {
   const session = await verifierSession(env.DB, request);
@@ -21,6 +21,9 @@ export const POST: APIRoute = async ({ request, params }) => {
     return Response.json({ ok: false, raison: 'introuvable' }, { status: 404 });
   }
 
-  await abandonnerBrouillonPage(env.DB, slug);
+  const issue = await abandonnerBrouillonPageSiLibre(env.DB, slug);
+  if (issue === 'publication-en-cours') {
+    return Response.json({ ok: false, raison: 'publication-en-cours' }, { status: 409 });
+  }
   return Response.json({ ok: true });
 };

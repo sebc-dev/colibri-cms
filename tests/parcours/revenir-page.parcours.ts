@@ -219,4 +219,49 @@ test.describe("retour d’une page à sa version publiée", () => {
       await contexte.close();
     }
   });
+
+  test("SC-02a — une publication en cours refuse le retour : la confirmation reste ouverte, dit la phrase, sans bouton de confirmation", async ({
+    browser,
+  }) => {
+    const contexte = await ouvrirContexte(browser);
+    const garde = await poserGardePolitique(contexte);
+    try {
+      const page = await contexte.newPage();
+      await page.goto(CHEMIN);
+      const champ = page.getByRole("textbox", { name: "Libellé" });
+      await champ.fill(LIBELLE_CORRIGE);
+      await page
+        .locator("form")
+        .filter({ has: champ })
+        .getByRole("button", { name: "Enregistrer" })
+        .click();
+      const marque = page.getByText("Brouillon", { exact: true });
+      await expect(marque).toBeVisible();
+
+      // Le serveur refuse : une publication confirmée n'a pas fini de déposer.
+      await page.route(ROUTE_REVENIR, (route) =>
+        route.fulfill({
+          status: 409,
+          contentType: "application/json",
+          body: JSON.stringify({ ok: false, raison: "publication-en-cours" }),
+        }),
+      );
+      await page.getByRole("button", { name: OFFRE }).click();
+      const dialogue = page.getByRole("dialog");
+      await dialogue.getByRole("button", { name: OFFRE }).click();
+
+      await expect(dialogue).toBeVisible();
+      await expect(dialogue).toContainText(
+        "Une publication est en cours. Vous pourrez revenir à la version publiée quand elle sera terminée.",
+      );
+      await expect(dialogue).not.toContainText("L'enregistrement a échoué");
+      await expect(dialogue.getByRole("button", { name: OFFRE })).toHaveCount(
+        0,
+      );
+      await expect(marque).toBeVisible();
+    } finally {
+      garde.verifier();
+      await contexte.close();
+    }
+  });
 });
