@@ -58,12 +58,12 @@ const DEFINITIONS = [
   'insert or ignore into publication (id) values (1)',
 ];
 
-/** Condition SQL : aucune publication confirmée n'a fini de déposer (verrou sans instantané). Réutilisée par les gestes qui doivent s'effacer devant une publication (change 015). */
-export const CONDITION_AUCUNE_PUBLICATION_EN_COURS =
+/** Condition SQL : aucune publication confirmée n'a fini de déposer (verrou sans instantané). */
+const CONDITION_AUCUNE_PUBLICATION_EN_COURS =
   'not exists (select 1 from publication where id = 1 and instantane is not null)';
 
 /** Lecture jumelle de la condition, pour le second ordre du lot : 1 si une publication est en cours. */
-export const LECTURE_PUBLICATION_EN_COURS =
+const LECTURE_PUBLICATION_EN_COURS =
   'select (instantane is not null) as en_cours from publication where id = 1';
 
 let schemaAssure: Promise<void> | null = null;
@@ -82,6 +82,27 @@ export async function assurerTablePublication(db: DB): Promise<void> {
     },
   );
   await schemaAssure;
+}
+
+/**
+ * Le retour à la version publiée devant la publication (change 015) : la
+ * suppression et la lecture du verrou partent en un seul lot, la suppression ne
+ * s'exécutant que si aucune publication confirmée n'attend de finir (ADR-0023).
+ * `suppression` est un `delete … where …` à paramètres liés, complété ici par
+ * la condition. Sans ligne à supprimer, c'est un succès sans effet.
+ */
+export async function supprimerSiAucunePublicationEnCours(
+  db: DB,
+  suppression: string,
+  ...valeurs: unknown[]
+): Promise<'ok' | 'publication-en-cours'> {
+  await assurerTablePublication(db);
+  const lot = await db.batch([
+    db.prepare(`${suppression} and ${CONDITION_AUCUNE_PUBLICATION_EN_COURS}`).bind(...valeurs),
+    db.prepare(LECTURE_PUBLICATION_EN_COURS).bind(),
+  ]);
+  const lecture = lot[1] as { results?: { en_cours?: number }[] } | undefined;
+  return lecture?.results?.[0]?.en_cours === 1 ? 'publication-en-cours' : 'ok';
 }
 
 interface LignePageBrute {

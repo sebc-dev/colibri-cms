@@ -1,0 +1,38 @@
+---
+/**
+ * L'en-tête d'une carte de l'`Écran : Réglages` : son titre et la cible de
+ * « Revenir à la version publiée » (change 015, ticket 03), montée par
+ * `monterRevenirReglages`. Le bouton pré-rendu occupe la place quand le réglage
+ * porte un brouillon, jusqu'au montage de l'îlot.
+ */
+import { TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE } from './textes.ts';
+
+interface Props {
+  reglage: string;
+  titre: string;
+  jamaisPubliee: boolean;
+  avecBrouillon: boolean;
+}
+
+const { reglage, titre, jamaisPubliee, avecBrouillon } = Astro.props;
+---
+
+<div class="flex flex-wrap items-center justify-between gap-2">
+  <h2 id={`carte-${reglage}`} class="text-lg font-medium">{titre}</h2>
+  <div
+    data-revenir-reglage
+    data-reglage={reglage}
+    data-nom={titre}
+    data-nature=""
+    data-jamais-publiee={jamaisPubliee ? '' : undefined}
+    data-avec-brouillon={avecBrouillon ? '' : undefined}
+  >
+    {
+      avecBrouillon && (
+        <button type="button" class="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-ink">
+          {TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE}
+        </button>
+      )
+    }
+  </div>
+</div>

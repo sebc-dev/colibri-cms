@@ -12,6 +12,7 @@ import {
 } from '../../core/reglages/coordonnees.ts';
 import { appliquerListeReseaux, type ResultatReseaux } from '../../core/reglages/reseaux.ts';
 import { appliquerMention, type ResultatMention } from '../../core/reglages/mention.ts';
+import { supprimerSiAucunePublicationEnCours, type DB as DBPublication } from '../publication/magasin.ts';
 import type { CoordonneeDeclaree } from '../../core/reglages/declaration.ts';
 
 export type NomReglage = 'coordonnees' | 'reseaux' | 'mention';
@@ -128,4 +129,18 @@ export async function enregistrerMention(db: DB, corpsBrut: unknown, maintenant:
       .run();
   }
   return resultat;
+}
+
+/**
+ * Le retour d'un réglage à sa version publiée (change 015, ticket 03) : le
+ * brouillon est supprimé, rien n'est recopié (ADR-0019). Suppression et lecture
+ * du verrou dans un seul lot : refusé pendant une publication (ADR-0023). Sans
+ * brouillon, c'est un succès sans effet.
+ */
+export async function revenirReglageSiLibre(
+  db: DB & DBPublication,
+  reglage: NomReglage,
+): Promise<'ok' | 'publication-en-cours'> {
+  await assurerTableBrouillonsReglages(db);
+  return supprimerSiAucunePublicationEnCours(db, 'delete from brouillons_reglages where reglage = ?1', reglage);
 }

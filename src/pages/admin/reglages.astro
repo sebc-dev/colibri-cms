@@ -12,6 +12,7 @@
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
 import { verifierSession } from '../../platform/session/index.ts';
+import EnTeteCarteReglage from '../../admin/EnTeteCarteReglage.astro';
 import MarqueBrouillon from '../../admin/MarqueBrouillon.astro';
 import MontageCarteCoordonnees from '../../admin/MontageCarteCoordonnees.astro';
 import { lireReglagesDeLaDeclaration } from '../../platform/contenu/reglages.ts';
@@ -79,7 +80,6 @@ const cartesCoordonnees = coordonnees.map((c) => ({
 }));
 
 const CLASSE_CARTE = 'flex flex-col gap-4 rounded-lg border border-border bg-card p-4';
-const CLASSE_TITRE = 'text-lg font-medium';
 const CLASSE_CHAMP =
   'w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground';
 const CLASSE_BOUTON =
@@ -97,7 +97,12 @@ const donneesReseaux = JSON.stringify(reseaux.map((r) => ({ nom: r.nom, lien: r.
   <h1>{TEXTE_TITRE_REGLAGES}</h1>
   <div class="mt-6 flex flex-col gap-6">
     <section class={CLASSE_CARTE} aria-labelledby="carte-coordonnees">
-      <h2 id="carte-coordonnees" class={CLASSE_TITRE}>{TEXTE_CARTE_COORDONNEES}</h2>
+      <EnTeteCarteReglage
+        reglage="coordonnees"
+        titre={TEXTE_CARTE_COORDONNEES}
+        jamaisPubliee={publies.coordonnees === undefined}
+        avecBrouillon={brouillons.coordonnees !== undefined}
+      />
       <div data-zone-marque-brouillon>{brouillons.coordonnees !== undefined && <MarqueBrouillon />}</div>
       <div data-carte-coordonnees data-coordonnees={donneesCarte} class="flex flex-col gap-4">
       {
@@ -135,7 +140,12 @@ const donneesReseaux = JSON.stringify(reseaux.map((r) => ({ nom: r.nom, lien: r.
     </section>
 
     <section class={CLASSE_CARTE} aria-labelledby="carte-reseaux">
-      <h2 id="carte-reseaux" class={CLASSE_TITRE}>{TEXTE_CARTE_RESEAUX}</h2>
+      <EnTeteCarteReglage
+        reglage="reseaux"
+        titre={TEXTE_CARTE_RESEAUX}
+        jamaisPubliee={publies.reseaux === undefined}
+        avecBrouillon={brouillons.reseaux !== undefined}
+      />
       <div data-zone-marque-brouillon>{brouillons.reseaux !== undefined && <MarqueBrouillon />}</div>
       <div data-carte-reseaux data-reseaux={donneesReseaux} class="flex flex-col gap-4">
       {
@@ -157,7 +167,12 @@ const donneesReseaux = JSON.stringify(reseaux.map((r) => ({ nom: r.nom, lien: r.
     </section>
 
     <section class={CLASSE_CARTE} aria-labelledby="carte-mention">
-      <h2 id="carte-mention" class={CLASSE_TITRE}>{TEXTE_CARTE_MENTION}</h2>
+      <EnTeteCarteReglage
+        reglage="mention"
+        titre={TEXTE_CARTE_MENTION}
+        jamaisPubliee={publies.mention === undefined}
+        avecBrouillon={brouillons.mention !== undefined}
+      />
       <div data-zone-marque-brouillon>{brouillons.mention !== undefined && <MarqueBrouillon />}</div>
       <p class="text-sm text-ink-muted">{TEXTE_AIDE_MENTION}</p>
       <div data-carte-mention data-markdown={mention} class="flex flex-col gap-4">

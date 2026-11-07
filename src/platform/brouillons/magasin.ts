@@ -68,11 +68,7 @@ import {
   type ResultatCorrection,
 } from '../../core/pages/brouillon.ts';
 import type { Emplacement } from '../../core/pages/declaration.ts';
-import {
-  assurerTablePublication,
-  CONDITION_AUCUNE_PUBLICATION_EN_COURS,
-  LECTURE_PUBLICATION_EN_COURS,
-} from '../publication/magasin.ts';
+import { supprimerSiAucunePublicationEnCours, type DB as DBPublication } from '../publication/magasin.ts';
 
 const TABLE_BROUILLONS = 'brouillons_emplacements';
 
@@ -456,17 +452,6 @@ export function enregistrerCorrectionCarrousel(
   );
 }
 
-/** Le sous-ensemble de D1 nécessaire au retour atomique (lot). */
-export interface DBLot extends DB {
-  prepare(query: string): {
-    bind(...valeurs: unknown[]): {
-      run(): Promise<unknown>;
-      all(): Promise<{ results: unknown[] }>;
-    };
-  };
-  batch(instructions: readonly unknown[]): Promise<unknown[]>;
-}
-
 /**
  * Retour d'une page à sa version publiée devant la publication (change 015,
  * tickets 01 et 02) : la suppression du brouillon et la lecture du verrou partent
@@ -479,17 +464,9 @@ export interface DBLot extends DB {
  * publiée. Sans brouillon, c'est un succès sans effet. Slug en paramètre lié.
  */
 export async function abandonnerBrouillonPageSiLibre(
-  db: DBLot,
+  db: DB & DBPublication,
   slugPage: string,
 ): Promise<'ok' | 'publication-en-cours'> {
   await assurerTableBrouillons(db);
-  await assurerTablePublication(db as unknown as Parameters<typeof assurerTablePublication>[0]);
-  const lot = await db.batch([
-    db
-      .prepare(`delete from ${TABLE_BROUILLONS} where page_slug = ?1 and ${CONDITION_AUCUNE_PUBLICATION_EN_COURS}`)
-      .bind(slugPage),
-    db.prepare(LECTURE_PUBLICATION_EN_COURS).bind(),
-  ]);
-  const lecture = lot[1] as { results?: { en_cours?: number }[] } | undefined;
-  return lecture?.results?.[0]?.en_cours === 1 ? 'publication-en-cours' : 'ok';
+  return supprimerSiAucunePublicationEnCours(db, `delete from ${TABLE_BROUILLONS} where page_slug = ?1`, slugPage);
 }
