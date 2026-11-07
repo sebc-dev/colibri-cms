@@ -53,12 +53,12 @@ départ) fait reparaître la version publiée sur l'éditeur, la liste des pages
 écran de 360 px : une colonne, boutons de 44 px de haut au moins.
 
 ## Critères
-- [ ] la page « Tarifs » publiée, puis corrigée dans son texte de présentation et son bouton d'action, revient à sa version publiée : l'éditeur présente le texte et le bouton publiés, sans marque de brouillon ni dans l'éditeur ni dans la liste des pages, et l'aperçu présente la version publiée   (SC-01a)
-- [ ] la page « Contact », jamais publiée, dont le texte de présentation est corrigé puis revenu, présente le texte de départ posé par l'intégrateur, sans marque de brouillon   (SC-01b)
-- [ ] dès que l'éditrice enregistre la première correction d'une page sans brouillon, l'éditeur offre « Revenir à la version publiée », sans changement d'écran   (SC-01c)
-- [ ] l'éditrice actionne « Revenir à la version publiée » sur « Tarifs », puis choisit de garder ses modifications : la confirmation se ferme, le brouillon est intact et porte toujours sa marque   (SC-01d)
-- [ ] sur une page dont le titre contient `<`, `>`, `&` ou des guillemets, la confirmation présente ce titre comme du texte, sans balisage interprété, et dit que les modifications de cette page seront perdues   (SC-01e)
-- [ ] le retour d'une même page confirmé depuis deux onglets, l'un après l'autre : les deux gestes aboutissent, et la page présente sa version publiée sans marque de brouillon   (SC-01f)
-- [ ] « Accueil », « Tarifs », la mention d'information et « Devis gâteau » portent un brouillon ; après le retour de « Tarifs », les trois autres portent toujours leur brouillon, inchangé, et seul « Tarifs » n'en porte plus   (SC-01g)
-- [ ] après un retour confirmé sur une page, aucun geste de l'administration ne rend le brouillon abandonné   (SC-01h)
-- [ ] le geste de retour d'une page soumis sans session ouverte est refusé, et le brouillon de la page est intact   (SC-01i)
+- [x] la page « Tarifs » publiée, puis corrigée dans son texte de présentation et son bouton d'action, revient à sa version publiée : l'éditeur présente le texte et le bouton publiés, sans marque de brouillon ni dans l'éditeur ni dans la liste des pages, et l'aperçu présente la version publiée   (SC-01a)
+- [x] la page « Contact », jamais publiée, dont le texte de présentation est corrigé puis revenu, présente le texte de départ posé par l'intégrateur, sans marque de brouillon   (SC-01b)
+- [x] dès que l'éditrice enregistre la première correction d'une page sans brouillon, l'éditeur offre « Revenir à la version publiée », sans changement d'écran   (SC-01c)
+- [x] l'éditrice actionne « Revenir à la version publiée » sur « Tarifs », puis choisit de garder ses modifications : la confirmation se ferme, le brouillon est intact et porte toujours sa marque   (SC-01d)
+- [x] sur une page dont le titre contient `<`, `>`, `&` ou des guillemets, la confirmation présente ce titre comme du texte, sans balisage interprété, et dit que les modifications de cette page seront perdues   (SC-01e)
+- [x] le retour d'une même page confirmé depuis deux onglets, l'un après l'autre : les deux gestes aboutissent, et la page présente sa version publiée sans marque de brouillon   (SC-01f)
+- [x] « Accueil », « Tarifs », la mention d'information et « Devis gâteau » portent un brouillon ; après le retour de « Tarifs », les trois autres portent toujours leur brouillon, inchangé, et seul « Tarifs » n'en porte plus   (SC-01g)
+- [x] après un retour confirmé sur une page, aucun geste de l'administration ne rend le brouillon abandonné   (SC-01h)
+- [x] le geste de retour d'une page soumis sans session ouverte est refusé, et le brouillon de la page est intact   (SC-01i)

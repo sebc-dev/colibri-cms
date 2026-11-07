@@ -450,3 +450,15 @@ export function enregistrerCorrectionCarrousel(
     maintenant,
   );
 }
+
+/**
+ * Change 015, ticket 01 : abandonne le brouillon d'une page. Supprime TOUTES
+ * les lignes `brouillons_emplacements` de la page (même celles d'emplacements
+ * que la déclaration ne connaît plus) ; rien n'est recopié depuis le publié,
+ * la superposition brouillon / publié / départ refait paraître la version
+ * publiée. Sans brouillon, c'est un succès sans effet. Slug en paramètre lié.
+ */
+export async function abandonnerBrouillonPage(db: DB, slugPage: string): Promise<void> {
+  await assurerTableBrouillons(db);
+  await db.prepare(`delete from ${TABLE_BROUILLONS} where page_slug = ?1`).bind(slugPage).run();
+}
