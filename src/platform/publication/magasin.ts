@@ -58,10 +58,18 @@ const DEFINITIONS = [
   'insert or ignore into publication (id) values (1)',
 ];
 
+/** Condition SQL : aucune publication confirmée n'a fini de déposer (verrou sans instantané). Réutilisée par les gestes qui doivent s'effacer devant une publication (change 015). */
+export const CONDITION_AUCUNE_PUBLICATION_EN_COURS =
+  'not exists (select 1 from publication where id = 1 and instantane is not null)';
+
+/** Lecture jumelle de la condition, pour le second ordre du lot : 1 si une publication est en cours. */
+export const LECTURE_PUBLICATION_EN_COURS =
+  'select (instantane is not null) as en_cours from publication where id = 1';
+
 let schemaAssure: Promise<void> | null = null;
 
 /** Recrée la table de la publication et sa ligne unique si absentes — mêmes définitions que la migration 0011. */
-async function assurerTablePublication(db: DB): Promise<void> {
+export async function assurerTablePublication(db: DB): Promise<void> {
   schemaAssure ??= (async () => {
     for (const definition of DEFINITIONS) {
       await db.prepare(definition).bind().run();

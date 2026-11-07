@@ -68,6 +68,11 @@ import {
   type ResultatCorrection,
 } from '../../core/pages/brouillon.ts';
 import type { Emplacement } from '../../core/pages/declaration.ts';
+import {
+  assurerTablePublication,
+  CONDITION_AUCUNE_PUBLICATION_EN_COURS,
+  LECTURE_PUBLICATION_EN_COURS,
+} from '../publication/magasin.ts';
 
 const TABLE_BROUILLONS = 'brouillons_emplacements';
 
@@ -451,14 +456,40 @@ export function enregistrerCorrectionCarrousel(
   );
 }
 
+/** Le sous-ensemble de D1 nécessaire au retour atomique (lot). */
+export interface DBLot extends DB {
+  prepare(query: string): {
+    bind(...valeurs: unknown[]): {
+      run(): Promise<unknown>;
+      all(): Promise<{ results: unknown[] }>;
+    };
+  };
+  batch(instructions: readonly unknown[]): Promise<unknown[]>;
+}
+
 /**
- * Change 015, ticket 01 : abandonne le brouillon d'une page. Supprime TOUTES
+ * Retour d'une page à sa version publiée devant la publication (change 015,
+ * tickets 01 et 02) : la suppression du brouillon et la lecture du verrou partent
+ * en un seul lot, la suppression ne s'exécutant que si aucune publication
+ * confirmée n'attend de finir. Renvoie `publication-en-cours` si le verrou
+ * garde un instantané (le brouillon reste alors intact). Sinon, supprime TOUTES
  * les lignes `brouillons_emplacements` de la page (même celles d'emplacements
  * que la déclaration ne connaît plus) ; rien n'est recopié depuis le publié,
  * la superposition brouillon / publié / départ refait paraître la version
  * publiée. Sans brouillon, c'est un succès sans effet. Slug en paramètre lié.
  */
-export async function abandonnerBrouillonPage(db: DB, slugPage: string): Promise<void> {
+export async function abandonnerBrouillonPageSiLibre(
+  db: DBLot,
+  slugPage: string,
+): Promise<'ok' | 'publication-en-cours'> {
   await assurerTableBrouillons(db);
-  await db.prepare(`delete from ${TABLE_BROUILLONS} where page_slug = ?1`).bind(slugPage).run();
+  await assurerTablePublication(db as unknown as Parameters<typeof assurerTablePublication>[0]);
+  const lot = await db.batch([
+    db
+      .prepare(`delete from ${TABLE_BROUILLONS} where page_slug = ?1 and ${CONDITION_AUCUNE_PUBLICATION_EN_COURS}`)
+      .bind(slugPage),
+    db.prepare(LECTURE_PUBLICATION_EN_COURS).bind(),
+  ]);
+  const lecture = lot[1] as { results?: { en_cours?: number }[] } | undefined;
+  return lecture?.results?.[0]?.en_cours === 1 ? 'publication-en-cours' : 'ok';
 }

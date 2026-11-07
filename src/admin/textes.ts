@@ -421,6 +421,8 @@ export const TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE = 'Revenir à la version publi
 export const TEXTE_BOUTON_GARDER_MODIFICATIONS = 'Garder mes modifications';
 export const TEXTE_REVENIR_EN_COURS = 'Retour en cours…';
 export const TEXTE_TITRE_CONFIRMATION_REVENIR = 'Revenir à la version publiée ?';
+export const TEXTE_REVENIR_PUBLICATION_EN_COURS =
+  'Une publication est en cours. Vous pourrez revenir à la version publiée quand elle sera terminée.';
 export const TEXTE_NATURE_PAGE = 'La page';
 export function texteAvertissementRevenir(nom: string, nature: string, jamaisPubliee: boolean): string {
   const reprise = jamaisPubliee ? 'son contenu de départ' : 'sa version publiée';
