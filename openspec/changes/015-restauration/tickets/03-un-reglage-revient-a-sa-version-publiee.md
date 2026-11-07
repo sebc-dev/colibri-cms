@@ -30,6 +30,6 @@ La route ne doit pas entrer en conflit avec les routes d'écriture existantes
 `src/pages/admin/reglages/{coordonnees,mention,reseaux}.ts`.
 
 ## Critères
-- [ ] les coordonnées publiées, puis le téléphone modifié, la carte Coordonnées revenue : elle présente le téléphone publié, sans marque de brouillon   (SC-03a)
-- [ ] les trois réglages portent un brouillon ; après le retour des réseaux sociaux, les coordonnées et la mention d'information portent toujours leur brouillon, inchangé   (SC-03b)
-- [ ] le geste de retour d'un réglage forgé depuis une autre origine n'aboutit pas, et le brouillon du réglage est intact   (SC-03c)
+- [x] les coordonnées publiées, puis le téléphone modifié, la carte Coordonnées revenue : elle présente le téléphone publié, sans marque de brouillon   (SC-03a)
+- [x] les trois réglages portent un brouillon ; après le retour des réseaux sociaux, les coordonnées et la mention d'information portent toujours leur brouillon, inchangé   (SC-03b)
+- [x] le geste de retour d'un réglage forgé depuis une autre origine n'aboutit pas, et le brouillon du réglage est intact   (SC-03c)

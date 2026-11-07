@@ -29,6 +29,7 @@ import CarteCoordonnees from './CarteCoordonnees.svelte';
 import CarteReseaux from './CarteReseaux.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
 import EcranFormulaire from './EcranFormulaire.svelte';
+import { TEXTE_AVERTISSEMENT_REVENIR_COORDONNEES, TEXTE_AVERTISSEMENT_REVENIR_RESEAUX, TEXTE_AVERTISSEMENT_REVENIR_MENTION } from '../textes.ts';
 import RevenirVersionPubliee from './RevenirVersionPubliee.svelte';
 import EcranPublier from './EcranPublier.svelte';
 import type { ChampCarte } from './formulaire-carte.ts';
@@ -701,6 +702,32 @@ export function monterEcranDemande(): void {
   });
 }
 
+/** Monte l'îlot dans la cible, tout de suite ou à la réception de `brouillon-enregistre`. */
+function monterRevenirDansCible(
+  cible: HTMLElement,
+  proprietes: { adresse: string; nom: string; nature: string; avertissement?: string },
+  sourceBrouillon: EventTarget | null | undefined,
+): void {
+  const jamaisPubliee = cible.dataset.jamaisPubliee !== undefined;
+
+  let monte = false;
+  const monter = (): void => {
+    if (monte) return;
+    monte = true;
+    cible.innerHTML = '';
+    mount(RevenirVersionPubliee, {
+      target: cible,
+      props: { ...proprietes, jamaisPubliee },
+    });
+  };
+
+  if (cible.dataset.avecBrouillon !== undefined) {
+    monter();
+  } else {
+    sourceBrouillon?.addEventListener('brouillon-enregistre', monter, { once: true });
+  }
+}
+
 /**
  * Monte l'îlot `RevenirVersionPubliee` (change 015, ticket 01) dans
  * `[data-revenir-version-publiee]` de l'éditeur de page. Présent à l'ouverture
@@ -712,22 +739,31 @@ export function monterRevenirVersionPubliee(): void {
   if (!cible) return;
   const { slug, nom, nature } = cible.dataset;
   if (slug === undefined || nom === undefined || nature === undefined) return;
-  const jamaisPubliee = cible.dataset.jamaisPubliee !== undefined;
+  monterRevenirDansCible(cible, { adresse: `/admin/pages/${slug}/revenir`, nom, nature }, document);
+}
 
-  let monte = false;
-  const monter = (): void => {
-    if (monte) return;
-    monte = true;
-    cible.innerHTML = '';
-    mount(RevenirVersionPubliee, {
-      target: cible,
-      props: { adresse: `/admin/pages/${slug}/revenir`, nom, nature, jamaisPubliee },
-    });
-  };
+const AVERTISSEMENTS_REVENIR_REGLAGE: Partial<Record<string, string>> = {
+  coordonnees: TEXTE_AVERTISSEMENT_REVENIR_COORDONNEES,
+  reseaux: TEXTE_AVERTISSEMENT_REVENIR_RESEAUX,
+  mention: TEXTE_AVERTISSEMENT_REVENIR_MENTION,
+};
 
-  if (cible.dataset.avecBrouillon !== undefined) {
-    monter();
-  } else {
-    document.addEventListener('brouillon-enregistre', monter, { once: true });
+/**
+ * Monte l'îlot `RevenirVersionPubliee` (change 015, ticket 03) une fois par
+ * carte de l'écran Réglages, dans `[data-revenir-reglage]`. Présent à
+ * l'ouverture si le réglage porte un brouillon, sinon monté à la réception de
+ * `brouillon-enregistre`, émis par la zone de la marque de la carte.
+ */
+export function monterRevenirReglages(): void {
+  for (const cible of document.querySelectorAll<HTMLElement>('[data-revenir-reglage]')) {
+    const { reglage, nom, nature } = cible.dataset;
+    if (reglage === undefined || nom === undefined || nature === undefined) continue;
+    const avertissement = AVERTISSEMENTS_REVENIR_REGLAGE[reglage];
+    if (avertissement === undefined) continue;
+    monterRevenirDansCible(
+      cible,
+      { adresse: `/admin/reglages/${reglage}/revenir`, nom, nature, avertissement },
+      cible.closest('section')?.querySelector('[data-zone-marque-brouillon]'),
+    );
   }
 }
