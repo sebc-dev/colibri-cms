@@ -42,3 +42,6 @@ après avoir commité le travail en vol.
 ## Écarté
 - Reprise nue : elle aurait resservi le même échec depuis le cache.
 - Désactiver la règle dans le test : un escape-hatch, sans raison ici.
+
+## Issue
+Reprise jouée le 2026-11-07 : la ligne 216 du test a été corrigée, puis le run a repris avec `rerun: "2"` et a ouvert sa PR.
