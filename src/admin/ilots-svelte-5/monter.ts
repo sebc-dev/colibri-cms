@@ -29,7 +29,7 @@ import CarteCoordonnees from './CarteCoordonnees.svelte';
 import CarteReseaux from './CarteReseaux.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
 import EcranFormulaire from './EcranFormulaire.svelte';
-import { TEXTE_AVERTISSEMENT_REVENIR_COORDONNEES, TEXTE_AVERTISSEMENT_REVENIR_RESEAUX, TEXTE_AVERTISSEMENT_REVENIR_MENTION } from '../textes.ts';
+import { TEXTE_AVERTISSEMENT_REVENIR_COORDONNEES, TEXTE_AVERTISSEMENT_REVENIR_RESEAUX, TEXTE_AVERTISSEMENT_REVENIR_MENTION, texteAvertissementRevenirFormulaire } from '../textes.ts';
 import RevenirVersionPubliee from './RevenirVersionPubliee.svelte';
 import EcranPublier from './EcranPublier.svelte';
 import type { ChampCarte } from './formulaire-carte.ts';
@@ -766,4 +766,27 @@ export function monterRevenirReglages(): void {
       cible.closest('section')?.querySelector('[data-zone-marque-brouillon]'),
     );
   }
+}
+
+/**
+ * Monte l'îlot `RevenirVersionPubliee` (change 015, ticket 04) dans
+ * `[data-revenir-formulaire]` de l'écran d'un formulaire. Présent à
+ * l'ouverture si le formulaire porte un brouillon, sinon monté à la réception
+ * de `brouillon-enregistre`, émis par la zone de la marque du titre.
+ */
+export function monterRevenirFormulaire(): void {
+  const cible = document.querySelector<HTMLElement>('[data-revenir-formulaire]');
+  if (!cible) return;
+  const { formulaire, nom } = cible.dataset;
+  if (formulaire === undefined || nom === undefined) return;
+  monterRevenirDansCible(
+    cible,
+    {
+      adresse: `/admin/formulaires/${formulaire}/revenir`,
+      nom,
+      nature: '',
+      avertissement: texteAvertissementRevenirFormulaire(nom),
+    },
+    document.querySelector('[data-zone-marque-brouillon]'),
+  );
 }

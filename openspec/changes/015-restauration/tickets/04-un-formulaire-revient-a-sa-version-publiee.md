@@ -42,9 +42,9 @@ du geste selon le brouillon, objet inconnu refusé sans erreur du serveur, et re
 geste et de la confirmation pour les trois natures.
 
 ## Critères
-- [ ] « Devis gâteau » publié, puis une option retirée du champ « Parfum », le formulaire revenu : l'écran présente les options publiées de « Parfum », option retirée comprise, sans marque de brouillon   (SC-04a)
-- [ ] « Accueil » porte un brouillon, « Contact », la carte Réseaux sociaux et « Devis atelier » n'en portent pas : l'éditeur d'« Accueil » offre « Revenir à la version publiée », et ni l'éditeur de « Contact », ni la carte Réseaux sociaux, ni l'écran de « Devis atelier » ne l'offrent   (SC-04b)
-- [ ] le geste, la confirmation et chacun de leurs messages, sur une page, un réglage et un formulaire, ne portent aucun terme de développeur (FR-117)   (SC-04c)
-- [ ] une publication interrompue avant le dépôt du contenu, plus de 5 minutes passées : le retour d'un formulaire est refusé avec le message de publication en cours, et le brouillon du formulaire est intact   (SC-04d)
-- [ ] en session, un geste de retour qui désigne une page, un réglage ou un formulaire que la déclaration ne porte pas est refusé sans erreur du serveur, et aucun brouillon n'est supprimé   (SC-04e)
-- [ ] deux options ajoutées au champ « Parfum » de « Devis gâteau » reçoivent deux identifiants ; après le retour du formulaire, une option ajoutée à « Parfum » reçoit un identifiant distinct de ces deux   (SC-04f)
+- [x] « Devis gâteau » publié, puis une option retirée du champ « Parfum », le formulaire revenu : l'écran présente les options publiées de « Parfum », option retirée comprise, sans marque de brouillon   (SC-04a)
+- [x] « Accueil » porte un brouillon, « Contact », la carte Réseaux sociaux et « Devis atelier » n'en portent pas : l'éditeur d'« Accueil » offre « Revenir à la version publiée », et ni l'éditeur de « Contact », ni la carte Réseaux sociaux, ni l'écran de « Devis atelier » ne l'offrent   (SC-04b)
+- [x] le geste, la confirmation et chacun de leurs messages, sur une page, un réglage et un formulaire, ne portent aucun terme de développeur (FR-117)   (SC-04c)
+- [x] une publication interrompue avant le dépôt du contenu, plus de 5 minutes passées : le retour d'un formulaire est refusé avec le message de publication en cours, et le brouillon du formulaire est intact   (SC-04d)
+- [x] en session, un geste de retour qui désigne une page, un réglage ou un formulaire que la déclaration ne porte pas est refusé sans erreur du serveur, et aucun brouillon n'est supprimé   (SC-04e)
+- [x] deux options ajoutées au champ « Parfum » de « Devis gâteau » reçoivent deux identifiants ; après le retour du formulaire, une option ajoutée à « Parfum » reçoit un identifiant distinct de ces deux   (SC-04f)
