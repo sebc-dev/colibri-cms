@@ -21,6 +21,11 @@ import {
   semerSession,
 } from './outils-publication.ts';
 import * as textes from '../../src/admin/textes.ts';
+import {
+  MESSAGE_ECHEC,
+  MESSAGE_RESEAU,
+  messageErreurCorrection,
+} from '../../src/admin/ilots-svelte-5/message-erreur-correction.ts';
 
 const ORIGINE = 'https://example.com';
 const OFFRE = textes.TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE;
@@ -97,6 +102,9 @@ function messagesDuGeste(): string[] {
       }
     }
   }
+  // Ce que l'îlot affiche aussi, sans « revenir » dans le nom de l'export.
+  messages.push(textes.TEXTE_BOUTON_GARDER_MODIFICATIONS, textes.TEXTE_NATURE_PAGE, MESSAGE_RESEAU);
+  messages.push(...[401, 404, 409, 500].map((statut) => messageErreurCorrection(statut)));
   return messages;
 }
 
@@ -128,6 +136,8 @@ it('SC-04c — le geste, la confirmation et leurs messages, pour une page, un r�
   expect(messages.length).toBeGreaterThanOrEqual(8);
   // La confirmation d'un formulaire est celle du ticket, nom en texte.
   expect(messages).toContain('Les modifications du formulaire « Devis gâteau » seront perdues.');
+  expect(messages).toContain(textes.TEXTE_BOUTON_GARDER_MODIFICATIONS);
+  expect(messages).toContain(MESSAGE_ECHEC);
   for (const message of messages) {
     for (const terme of TERMES) {
       expect(message.toLowerCase(), `« ${terme} » est un terme de développeur (FR-117) dans « ${message} »`).not.toMatch(

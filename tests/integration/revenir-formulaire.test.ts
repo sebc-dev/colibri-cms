@@ -22,6 +22,7 @@ import {
   type DBLike,
 } from './outils-publication.ts';
 import { TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE } from '../../src/admin/textes.ts';
+import { revenirFormulaireSiLibre } from '../../src/platform/formulaires/magasin.ts';
 
 const MARQUE = 'data-pastille-brouillon';
 const ORIGINE = 'https://example.com';
@@ -250,6 +251,12 @@ it.each([
   expect(reponse.status).toBe(409);
   expect(await reponse.json()).toEqual({ ok: false, raison: 'publication-en-cours' });
   expect(await ligneBrouillon(db, 'devis-gateau')).toEqual(avant);
+
+  // Une fois la publication finie, le geste aboutit de nouveau.
+  await db.prepare('update publication set jeton = null, bail_jusqu_a = null, instantane = null where id = 1').run();
+  const reprise = await revenir('devis-gateau', cookie);
+  expect(reprise.status).toBe(200);
+  expect(await compter(db, 'brouillons_formulaires', 'formulaire = ?1', 'devis-gateau')).toBe(0);
 });
 
 function corpsParfums(parfums: unknown[]): string {
@@ -331,4 +338,72 @@ it('SC-04f — le retour retient le plus grand numéro de chaque champ dans la t
     "select dernier from numeros_options where formulaire = 'devis-gateau' and champ = 'parfum'",
   );
   expect(lignes).toEqual([{ dernier: 4 }]);
+});
+
+/**
+ * La vraie D1, dont chaque lot est précédé d'une réécriture du brouillon : une
+ * correction enregistrée entre la lecture et le lot, sans double de D1 ni délai.
+ */
+function d1QuiReecritAvantLeLot(
+  db: DBLike,
+  reecritureDuLot: (rang: number) => unknown,
+): { readonly base: DBLike; readonly lots: () => number } {
+  let lots = 0;
+  const base: DBLike = {
+    prepare: (requete) => db.prepare(requete),
+    batch: async (instructions) => {
+      lots += 1;
+      const contenuReecrit = reecritureDuLot(lots);
+      if (contenuReecrit !== undefined) {
+        await db
+          .prepare('update brouillons_formulaires set contenu = ?1, maj_le = ?2 where formulaire = ?3')
+          .bind(JSON.stringify(contenuReecrit), Date.now() + lots * 1000, 'devis-gateau')
+          .run();
+      }
+      return db.batch(instructions);
+    },
+  };
+  return { base, lots: () => lots };
+}
+
+it('SC-04f — un brouillon réécrit une fois pendant le retour est relu, puis le retour aboutit et retient ses numéros', async () => {
+  // Arrange
+  const db = obtenirDB();
+  await semerBrouillonFormulaire(db, 'devis-gateau', contenu(DEPART, 0));
+  const { base, lots } = d1QuiReecritAvantLeLot(db, (rang) =>
+    rang === 1 ? contenu([...DEPART, { id: 'o9', libelle: 'Noisette', prix: 1300 }], 9) : undefined,
+  );
+
+  // Act
+  const issue = await revenirFormulaireSiLibre(base, 'devis-gateau');
+
+  // Assert : le second lot a retenu le numéro de la réécriture, que le premier ne connaissait pas.
+  expect(issue).toBe('ok');
+  expect(lots()).toBe(2);
+  expect(await compter(db, 'brouillons_formulaires', 'formulaire = ?1', 'devis-gateau')).toBe(0);
+  const lignes = await lireLignes(
+    db,
+    "select dernier from numeros_options where formulaire = 'devis-gateau' and champ = 'parfum'",
+  );
+  expect(lignes).toEqual([{ dernier: 9 }]);
+});
+
+it('SC-04f — un brouillon réécrit à chaque essai : refus modifie-pendant-le-retour après trois essais, dernier brouillon intact', async () => {
+  // Arrange
+  const db = obtenirDB();
+  await semerBrouillonFormulaire(db, 'devis-gateau', contenu(DEPART, 0));
+  const { base, lots } = d1QuiReecritAvantLeLot(db, (rang) =>
+    contenu([...DEPART, { id: `o${String(rang)}`, libelle: `Essai ${String(rang)}`, prix: 1300 }], rang),
+  );
+
+  // Act
+  const issue = await revenirFormulaireSiLibre(base, 'devis-gateau');
+
+  // Assert
+  expect(issue).toBe('modifie-pendant-le-retour');
+  expect(lots()).toBe(3);
+  const lignes = await lireLignes(db, "select contenu from brouillons_formulaires where formulaire = 'devis-gateau'");
+  expect(lignes).toEqual([
+    { contenu: JSON.stringify(contenu([...DEPART, { id: 'o3', libelle: 'Essai 3', prix: 1300 }], 3)) },
+  ]);
 });
