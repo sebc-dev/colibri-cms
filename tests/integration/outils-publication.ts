@@ -18,6 +18,7 @@ const TABLES = [
   'publies_reglages',
   'publies_formulaires',
   'medias',
+  'medias_effacees',
   'publication',
 ];
 
