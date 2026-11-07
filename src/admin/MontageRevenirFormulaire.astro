@@ -1,0 +1,14 @@
+---
+/**
+ * Monte l'offre « Revenir à la version publiée » de l'écran d'un formulaire
+ * (change 015, ticket 04). Composant à part, même patron que
+ * `MontageEcranFormulaire.astro` : le `<script>` reste traité par Astro
+ * (bundlé, conforme à la CSP) et se pose dans `<slot name="scripts"/>`.
+ */
+---
+
+<script>
+  import { monterRevenirFormulaire } from './ilots-svelte-5/monter.ts';
+
+  monterRevenirFormulaire();
+</script>

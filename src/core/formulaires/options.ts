@@ -87,6 +87,24 @@ function suffixe(id: string): number {
   return m === null ? 0 : Number(m[1]);
 }
 
+/**
+ * Le plus grand numéro attribué à chaque champ d'un brouillon : le plus grand
+ * de son compteur `derniersNumeros` et des suffixes `o<n>` de ses options.
+ * Retenu par le retour du formulaire avant que le brouillon soit supprimé.
+ */
+export function numerosDuBrouillon(brouillon: ContenuOptions): Record<string, number> {
+  const numeros = new Map<string, number>();
+  for (const [champ, dernier] of Object.entries(brouillon.derniersNumeros)) {
+    numeros.set(champ, dernier);
+  }
+  for (const [champ, options] of Object.entries(brouillon.champs)) {
+    let max = numeros.get(champ) ?? 0;
+    for (const o of options) max = Math.max(max, suffixe(o.id));
+    numeros.set(champ, max);
+  }
+  return Object.fromEntries(numeros);
+}
+
 function estChampAChoix(c: ChampDeclare): boolean {
   return c.options !== undefined;
 }
@@ -185,8 +203,10 @@ function plafondDesNumeros(
   brouillonCourant: ContenuOptions,
   options: readonly OptionSoumise[],
   publie?: ContenuOptions,
+  retenus: Readonly<Record<string, number>> = {},
 ): number {
   let max = Math.max(
+    propre(retenus, champ.id) ?? 0,
     propre(brouillonCourant.derniersNumeros, champ.id) ?? 0,
     (publie && propre(publie.derniersNumeros, champ.id)) ?? 0,
   );
@@ -307,6 +327,7 @@ export function appliquerOptions(
   brouillonCourant: ContenuOptions,
   corpsBrut: unknown,
   publie?: ContenuOptions,
+  retenus: Readonly<Record<string, number>> = {},
 ): ResultatOptions {
   const soumis = lireChampsSoumis(corpsBrut);
   if (soumis === null) return FORME_INVALIDE;
@@ -324,7 +345,13 @@ export function appliquerOptions(
       idsConnus(champ, brouillonCourant, publie),
     );
     if (options === null) return FORME_INVALIDE;
-    const plafond = plafondDesNumeros(champ, brouillonCourant, options, publie);
+    const plafond = plafondDesNumeros(
+      champ,
+      brouillonCourant,
+      options,
+      publie,
+      retenus,
+    );
     const { identifiees, dernierNumero } = attribuerIdentifiants(
       options,
       plafond,

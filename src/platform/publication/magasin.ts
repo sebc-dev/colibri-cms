@@ -105,6 +105,31 @@ export async function supprimerSiAucunePublicationEnCours(
   return lecture?.results?.[0]?.en_cours === 1 ? 'publication-en-cours' : 'ok';
 }
 
+/**
+ * Variante du retour pour un objet dont la suppression se prépare : les
+ * ordres `avant` partent dans le même lot, puis la suppression sous sa
+ * condition (ADR-0023). Rend le nombre de lignes supprimées.
+ */
+export async function lotSiAucunePublicationEnCours(
+  db: DB,
+  avant: readonly unknown[],
+  suppression: string,
+  ...valeurs: unknown[]
+): Promise<{ readonly issue: 'ok' | 'publication-en-cours'; readonly supprimees: number }> {
+  await assurerTablePublication(db);
+  const lot = await db.batch([
+    ...avant,
+    db.prepare(`${suppression} and ${CONDITION_AUCUNE_PUBLICATION_EN_COURS}`).bind(...valeurs),
+    db.prepare(LECTURE_PUBLICATION_EN_COURS).bind(),
+  ]);
+  const suppr = lot[avant.length] as { meta?: { changes?: number } } | undefined;
+  const lecture = lot[avant.length + 1] as { results?: { en_cours?: number }[] } | undefined;
+  return {
+    issue: lecture?.results?.[0]?.en_cours === 1 ? 'publication-en-cours' : 'ok',
+    supprimees: suppr?.meta?.changes ?? 0,
+  };
+}
+
 interface LignePageBrute {
   readonly page_slug: string;
   readonly id_emplacement: string;

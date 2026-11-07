@@ -426,6 +426,8 @@ export const TEXTE_REVENIR_PUBLICATION_EN_COURS =
 export const TEXTE_AVERTISSEMENT_REVENIR_COORDONNEES = 'Les modifications des coordonnées seront perdues.';
 export const TEXTE_AVERTISSEMENT_REVENIR_RESEAUX = 'Les modifications des réseaux sociaux seront perdues.';
 export const TEXTE_AVERTISSEMENT_REVENIR_MENTION = 'Les modifications de la mention d’information seront perdues.';
+export const texteAvertissementRevenirFormulaire = (nom: string): string =>
+  `Les modifications du formulaire « ${nom} » seront perdues.`;
 export const TEXTE_NATURE_PAGE = 'La page';
 export function texteAvertissementRevenir(nom: string, nature: string, jamaisPubliee: boolean): string {
   const reprise = jamaisPubliee ? 'son contenu de départ' : 'sa version publiée';

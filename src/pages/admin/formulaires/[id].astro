@@ -23,8 +23,10 @@ import {
   TEXTE_INTITULE_PRIX,
   TEXTE_SUFFIXE_EUROS,
   TEXTE_BOUTON_ENREGISTRER,
+  TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE,
 } from '../../../admin/textes.ts';
 import MontageEcranFormulaire from '../../../admin/MontageEcranFormulaire.astro';
+import MontageRevenirFormulaire from '../../../admin/MontageRevenirFormulaire.astro';
 import MarqueBrouillon from '../../../admin/MarqueBrouillon.astro';
 import { obtenirBrouillonFormulaire } from '../../../platform/formulaires/magasin.ts';
 import { obtenirPublieFormulaire } from '../../../platform/publication/magasin-publie.ts';
@@ -89,6 +91,21 @@ const CLASSE_CARTE = 'flex flex-col gap-4 rounded-lg border border-border bg-car
       <div class="flex items-center gap-3">
         <h1>{formulaire.nom}</h1>
         <span data-zone-marque-brouillon>{brouillon !== undefined && <MarqueBrouillon />}</span>
+        <div
+          data-revenir-formulaire
+          data-formulaire={formulaire.id}
+          data-nom={formulaire.nom}
+          data-jamais-publiee={publie === undefined ? '' : undefined}
+          data-avec-brouillon={brouillon !== undefined ? '' : undefined}
+        >
+          {
+            brouillon !== undefined && (
+              <button type="button" class="inline-flex min-h-11 items-center rounded-md border border-line px-4 text-sm text-ink">
+                {TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE}
+              </button>
+            )
+          }
+        </div>
       </div>
       <p class="mt-2 text-ink-muted">{TEXTE_AIDE_FORMULAIRE}</p>
       <div
@@ -140,6 +157,7 @@ const CLASSE_CARTE = 'flex flex-col gap-4 rounded-lg border border-border bg-car
         </div>
       </div>
       <MontageEcranFormulaire slot="scripts" />
+      <MontageRevenirFormulaire slot="scripts" />
     </GabaritCadre>
   )
 }
