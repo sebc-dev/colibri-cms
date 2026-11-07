@@ -98,3 +98,44 @@ it("une image posée au départ par l'intégrateur reste acceptée, même avant 
   expect(reponse.status).toBe(200);
   expect(await compter(db, 'brouillons_emplacements', 'page_slug = ?1', 'accueil')).toBe(1);
 });
+
+/*
+ * Défaut constaté en recette le 2026-11-07 : pendant la reconstruction qui suit une publication
+ * effaçant une image, le site en service empaquette encore sa fiche. La traiter comme une image de
+ * départ laissait poser l'image effacée ; la publication déposait une page qui la pose, la
+ * reconstruction échouait et l'aperçu répondait 500.
+ */
+async function tracerEffacement(db: Awaited<ReturnType<typeof assurerSchema>>, id: string): Promise<void> {
+  await db.prepare('insert into medias_effacees (id, effacee_le) values (?1, ?2)').bind(id, Date.now()).run();
+}
+
+it("poser une image qu'une publication vient d'effacer est refusé, même si le site en service empaquette encore sa fiche", async () => {
+  // Arrange : `media-fixture-hero` est empaquetée, sans ligne en bibliothèque, et tracée comme effacée
+  const db = await assurerSchema();
+  const session = await semerSession(db);
+  await tracerEffacement(db, 'media-fixture-hero');
+
+  // Act
+  const reponse = await poser(session, 'image-hero', { mediaId: 'media-fixture-hero' });
+
+  // Assert
+  expect(reponse.status).toBe(404);
+  expect(await reponse.json()).toEqual({ ok: false, raison: 'image-introuvable' });
+  expect(await compter(db, 'brouillons_emplacements', 'page_slug = ?1', 'accueil')).toBe(0);
+});
+
+it("composer une galerie avec une image qu'une publication vient d'effacer est refusé en entier", async () => {
+  // Arrange
+  const db = await assurerSchema();
+  const session = await semerSession(db);
+  await semerImage(db, 'image-presente', OCTETS);
+  await tracerEffacement(db, 'media-fixture-hero');
+
+  // Act
+  const reponse = await poser(session, 'galerie-realisations', { mediaIds: ['image-presente', 'media-fixture-hero'] });
+
+  // Assert
+  expect(reponse.status).toBe(404);
+  expect(await reponse.json()).toEqual({ ok: false, raison: 'image-introuvable' });
+  expect(await compter(db, 'brouillons_emplacements', 'page_slug = ?1', 'accueil')).toBe(0);
+});

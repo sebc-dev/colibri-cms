@@ -88,13 +88,12 @@ export const POST: APIRoute = async ({ params, request }) => {
   // une identité absente — sélecteur resté ouvert sur une image effacée depuis, ou requête
   // forgée — est refusée sans rien écrire, sans quoi la publication déposerait une page qui
   // pose une image manquante. Une image posée au départ, que le site empaquette, compte comme
-  // présente même si aucun écran ne l'a encore inscrite. 404 : l'îlot dit que l'écran n'est
-  // plus à jour.
+  // présente même si aucun écran ne l'a encore inscrite, sauf si une publication l'a effacée.
+  // 404 : l'îlot dit que l'écran n'est plus à jour.
   const nature = emplacementDeclare?.nature;
   if (nature === 'image' || nature === 'galerie' || nature === 'carrousel') {
     const empaquetees = new Set(listerFichesMedias().map((fiche) => fiche.id));
-    const visees = identitesVisees(corpsBrut).filter((idImage) => !empaquetees.has(idImage));
-    if ((await imagesAbsentes(env.DB, visees)).length > 0) {
+    if ((await imagesAbsentes(env.DB, identitesVisees(corpsBrut), empaquetees)).length > 0) {
       return Response.json({ ok: false, raison: 'image-introuvable' }, { status: 404 });
     }
   }

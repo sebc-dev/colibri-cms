@@ -278,16 +278,29 @@ interface LigneMediaListeBrute {
 }
 
 /**
- * Les identités de `ids` qu'aucune ligne de la bibliothèque ne porte, dans
- * l'ordre reçu, sans doublon. Sert à refuser la pose d'une image absente
- * (défaut de recette du 2026-11-03) : la publication déposerait sinon une
- * page qui pose une image manquante, et la reconstruction du site échouerait.
+ * Les identités de `ids` qu'on ne peut pas poser, dans l'ordre reçu, sans
+ * doublon : ni ligne de la bibliothèque, ni image de départ que le site
+ * empaquette (`empaquetees`). Une image qu'une publication a effacée
+ * (`medias_effacees`) ne compte pas comme empaquetée : le site en service garde
+ * sa fiche jusqu'à sa reconstruction. Sert à refuser la pose d'une image absente
+ * (défauts de recette du 2026-11-03 et du 2026-11-07) : la publication déposerait
+ * sinon une page qui pose une image manquante, et la reconstruction échouerait.
  */
-export async function imagesAbsentes(db: DB, ids: readonly string[]): Promise<string[]> {
+export async function imagesAbsentes(
+  db: DB,
+  ids: readonly string[],
+  empaquetees: ReadonlySet<string>,
+): Promise<string[]> {
   await assurerTableMedias(db);
   const absentes: string[] = [];
   for (const id of new Set(ids)) {
-    const lignes = await db.prepare(`select 1 from ${TABLE_MEDIAS} where id = ?1`).bind(id).all();
+    const lignes = await db
+      .prepare(
+        `select 1 where exists (select 1 from ${TABLE_MEDIAS} where id = ?1)
+           or (?2 = 1 and not exists (select 1 from medias_effacees where id = ?1))`,
+      )
+      .bind(id, empaquetees.has(id) ? 1 : 0)
+      .all();
     if (lignes.results.length === 0) absentes.push(id);
   }
   return absentes;
