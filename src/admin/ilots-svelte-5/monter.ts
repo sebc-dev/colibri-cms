@@ -29,6 +29,7 @@ import CarteCoordonnees from './CarteCoordonnees.svelte';
 import CarteReseaux from './CarteReseaux.svelte';
 import EcranFicheMedia from './EcranFicheMedia.svelte';
 import EcranFormulaire from './EcranFormulaire.svelte';
+import RevenirVersionPubliee from './RevenirVersionPubliee.svelte';
 import EcranPublier from './EcranPublier.svelte';
 import type { ChampCarte } from './formulaire-carte.ts';
 import type { OptionBrouillon } from '../../core/formulaires/options.ts';
@@ -698,4 +699,34 @@ export function monterEcranDemande(): void {
       },
     });
   });
+}
+
+/**
+ * Monte l'îlot `RevenirVersionPubliee` (change 015, ticket 01) dans
+ * `[data-revenir-version-publiee]` de l'éditeur de page. Présent à l'ouverture
+ * si la page porte un brouillon (`data-avec-brouillon`), sinon monté à la
+ * réception de `brouillon-enregistre`, émis par la zone de la marque.
+ */
+export function monterRevenirVersionPubliee(): void {
+  const cible = document.querySelector<HTMLElement>('[data-revenir-version-publiee]');
+  if (!cible) return;
+  const { slug, nom, nature } = cible.dataset;
+  if (slug === undefined || nom === undefined) return;
+
+  let monte = false;
+  const monter = (): void => {
+    if (monte) return;
+    monte = true;
+    cible.innerHTML = '';
+    mount(RevenirVersionPubliee, {
+      target: cible,
+      props: { adresse: `/admin/pages/${slug}/revenir`, nom, nature: nature ?? 'La page' },
+    });
+  };
+
+  if (cible.dataset.avecBrouillon !== undefined) {
+    monter();
+  } else {
+    document.addEventListener('brouillon-enregistre', monter, { once: true });
+  }
 }

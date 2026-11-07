@@ -43,4 +43,6 @@ export function afficherPastilleDansLaZone(zone: Element | null): void {
   if (!(modele instanceof HTMLTemplateElement)) return;
 
   zone.appendChild(modele.content.cloneNode(true));
+  // Change 015, ticket 01 : l'éditeur de page y accroche l'offre de retour à la version publiée.
+  zone.dispatchEvent(new CustomEvent('brouillon-enregistre', { bubbles: true }));
 }

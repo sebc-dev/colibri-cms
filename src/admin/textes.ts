@@ -415,3 +415,12 @@ export const texteMotifOrdinaireGroupe = (n: number): string =>
     : 'Retrait ordinaire — les demandes restent comptées parmi les retirées, et parmi les commandes si c’en était.';
 export const texteMotifIndesirableGroupe = (n: number): string =>
   n === 1 ? TEXTE_MOTIF_INDESIRABLE : 'Demande indésirable — elles ne seront plus comptées nulle part.';
+
+/** Retour d'une page à sa version publiée (change 015, ticket 01) : sans terme de développeur (FR-117). */
+export const TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE = 'Revenir à la version publiée';
+export const TEXTE_BOUTON_GARDER_MODIFICATIONS = 'Garder mes modifications';
+export const TEXTE_REVENIR_EN_COURS = 'Retour en cours…';
+export const TEXTE_TITRE_CONFIRMATION_REVENIR = 'Revenir à la version publiée ?';
+export function texteAvertissementRevenir(nom: string, nature: string): string {
+  return `Les modifications de « ${nom} » seront perdues. ${nature} reprend sa version publiée.`;
+}
