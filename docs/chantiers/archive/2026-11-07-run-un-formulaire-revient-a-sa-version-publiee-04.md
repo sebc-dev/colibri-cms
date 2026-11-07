@@ -44,3 +44,6 @@ Après un `/clear` : commiter d'abord la correction, puis relancer `/scd-spec-de
 ## Écarté
 - Passer le retour de `numerosDuBrouillon` en `Partial<Record<string, number>>` : la signature actuelle est exacte, ce changement la déformerait pour satisfaire un test.
 - Toucher à `eslint.config.analyse.js` ou poser un escape-hatch : le calibrage des règles n'est pas en cause.
+
+## Issue
+Reprise jouée le 2026-11-07 : les deux tests ont été retouchés, puis le run a repris avec `rerun: "2"` et a ouvert sa PR. Les tests de `coverage-F-1`, `F-2` et `F-5`, retenus au tri mais refusés au correcteur, ont été ajoutés à la main ensuite.
