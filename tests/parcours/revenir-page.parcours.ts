@@ -49,6 +49,8 @@ test.describe("retour d’une page à sa version publiée", () => {
       await page.goto(CHEMIN);
       const offre = page.getByRole("button", { name: OFFRE });
       await expect(offre).toHaveCount(0);
+      const navigations: string[] = [];
+      page.on("framenavigated", (cadre) => navigations.push(cadre.url()));
 
       // SC-01c : la première correction fait paraître l'offre, sans changer d'écran.
       const champ = page.getByRole("textbox", { name: "Libellé" });
@@ -60,11 +62,14 @@ test.describe("retour d’une page à sa version publiée", () => {
         .click();
       await expect(page.getByText("Brouillon", { exact: true })).toBeVisible();
       await expect(offre).toBeVisible();
+      expect(navigations).toEqual([]);
 
       // SC-01d : se raviser ferme la confirmation, le brouillon garde sa marque.
       await offre.click();
       const dialogue = page.getByRole("dialog");
       await expect(dialogue).toContainText("seront perdues");
+      // Tarifs n'est jamais publiée sur la base neuve de cette passe.
+      await expect(dialogue).toContainText("reprend son contenu de départ");
       // La croix porte le même nom et la précède : `.last()` vise le bouton visible.
       const garder = dialogue
         .getByRole("button", { name: "Garder mes modifications" })
@@ -194,6 +199,12 @@ test.describe("retour d’une page à sa version publiée", () => {
       });
       await expect(enCours).toBeDisabled();
       await expect(garder).toBeDisabled();
+      // La croix porte le même nom et précède le bouton : `.first()` la vise.
+      await expect(
+        dialogue
+          .getByRole("button", { name: "Garder mes modifications" })
+          .first(),
+      ).toBeDisabled();
       await page.keyboard.press("Escape");
       await expect(dialogue).toBeVisible();
 

@@ -22,9 +22,10 @@
     adresse: string;
     nom: string;
     nature: string;
+    jamaisPubliee: boolean;
   }
 
-  const { adresse, nom, nature }: Props = $props();
+  const { adresse, nom, nature, jamaisPubliee }: Props = $props();
 
   let ouverte = $state(false);
   let enCours = $state(false);
@@ -77,13 +78,12 @@
           <DialogTitle class="break-words font-display text-base font-semibold">
             {TEXTE_TITRE_CONFIRMATION_REVENIR}
           </DialogTitle>
-          <DialogClose>
+          <DialogClose disabled={enCours}>
             {#snippet child({ props })}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                disabled={enCours}
                 class="max-md:min-h-11 max-md:min-w-11 shrink-0"
                 {...props}
               >
@@ -94,7 +94,7 @@
           </DialogClose>
         </div>
         <div class="flex min-h-0 flex-col gap-3 overflow-y-auto">
-          <p class="break-words">{texteAvertissementRevenir(nom, nature)}</p>
+          <p class="break-words">{texteAvertissementRevenir(nom, nature, jamaisPubliee)}</p>
           {#if erreur}
             <p role="alert" class="text-sm text-destructive">{erreur}</p>
           {/if}

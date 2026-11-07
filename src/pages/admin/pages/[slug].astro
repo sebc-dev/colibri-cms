@@ -132,6 +132,7 @@ import {
   TEXTE_BOUTON_VOIR_APERCU,
   TEXTE_BOUTON_REVENIR_VERSION_PUBLIEE,
   TEXTE_LIEN_REGLER_FORMULAIRE,
+  TEXTE_NATURE_PAGE,
   TEXTE_PHRASE_EMPLACEMENT_FORMULAIRE,
 } from '../../../admin/textes.ts';
 import { lireFormulaireDeLaDeclaration } from '../../../platform/contenu/formulaires.ts';
@@ -205,7 +206,8 @@ const page = {
           data-revenir-version-publiee
           data-slug={slug}
           data-nom={page.titre}
-          data-nature="La page"
+          data-nature={TEXTE_NATURE_PAGE}
+          data-jamais-publiee={publie.size === 0 ? '' : undefined}
           data-avec-brouillon={porteUnBrouillon ? '' : undefined}
         >
           {

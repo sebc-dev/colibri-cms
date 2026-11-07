@@ -242,6 +242,23 @@ it('SC-01i — sans session ouverte, le retour est refusé et le brouillon est i
   expect(await compter(db, 'brouillons_emplacements', 'page_slug = ?1', 'tarifs')).toBe(1);
 });
 
+it("l'éditeur signale une page jamais publiée à la confirmation, et pas une page déjà publiée", async () => {
+  // Arrange
+  const db = obtenirDB();
+  const cookie = await semerSession(db);
+  await semerBrouillonEmplacement(db, 'contact', 'presentation', texte('Brouillon de Contact.'));
+  await semerPublie(db, 'tarifs', 'presentation', texte('Présentation publiée.'));
+  await semerBrouillonEmplacement(db, 'tarifs', 'presentation', texte('Brouillon de Tarifs.'));
+
+  // Act
+  const jamaisPubliee = await lire('/admin/pages/contact', cookie);
+  const dejaPubliee = await lire('/admin/pages/tarifs', cookie);
+
+  // Assert
+  expect(jamaisPubliee).toContain('data-jamais-publiee');
+  expect(dejaPubliee).not.toContain('data-jamais-publiee');
+});
+
 it('une page que la déclaration ne porte pas répond 404 et aucun brouillon ne bouge', async () => {
   // Arrange
   const db = obtenirDB();

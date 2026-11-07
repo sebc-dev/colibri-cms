@@ -711,7 +711,8 @@ export function monterRevenirVersionPubliee(): void {
   const cible = document.querySelector<HTMLElement>('[data-revenir-version-publiee]');
   if (!cible) return;
   const { slug, nom, nature } = cible.dataset;
-  if (slug === undefined || nom === undefined) return;
+  if (slug === undefined || nom === undefined || nature === undefined) return;
+  const jamaisPubliee = cible.dataset.jamaisPubliee !== undefined;
 
   let monte = false;
   const monter = (): void => {
@@ -720,7 +721,7 @@ export function monterRevenirVersionPubliee(): void {
     cible.innerHTML = '';
     mount(RevenirVersionPubliee, {
       target: cible,
-      props: { adresse: `/admin/pages/${slug}/revenir`, nom, nature: nature ?? 'La page' },
+      props: { adresse: `/admin/pages/${slug}/revenir`, nom, nature, jamaisPubliee },
     });
   };
 
