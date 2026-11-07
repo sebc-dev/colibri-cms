@@ -278,6 +278,22 @@ interface LigneMediaListeBrute {
 }
 
 /**
+ * Les identités de `ids` qu'aucune ligne de la bibliothèque ne porte, dans
+ * l'ordre reçu, sans doublon. Sert à refuser la pose d'une image absente
+ * (défaut de recette du 2026-11-03) : la publication déposerait sinon une
+ * page qui pose une image manquante, et la reconstruction du site échouerait.
+ */
+export async function imagesAbsentes(db: DB, ids: readonly string[]): Promise<string[]> {
+  await assurerTableMedias(db);
+  const absentes: string[] = [];
+  for (const id of new Set(ids)) {
+    const lignes = await db.prepare(`select 1 from ${TABLE_MEDIAS} where id = ?1`).bind(id).all();
+    if (lignes.results.length === 0) absentes.push(id);
+  }
+  return absentes;
+}
+
+/**
  * Inscrit les images que le contenu pose au départ (leurs fiches) dans la
  * table `medias` (change 011, ticket 02) : sans octets (BLOB de longueur
  * nulle, la colonne reste `NOT NULL`), marquées publiées (`publiee_le`,
