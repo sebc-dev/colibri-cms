@@ -12,6 +12,11 @@ import {
 } from '../../core/reglages/coordonnees.ts';
 import { appliquerListeReseaux, type ResultatReseaux } from '../../core/reglages/reseaux.ts';
 import { appliquerMention, type ResultatMention } from '../../core/reglages/mention.ts';
+import {
+  CONDITION_AUCUNE_PUBLICATION_EN_COURS,
+  LECTURE_PUBLICATION_EN_COURS,
+  assurerTablePublication,
+} from '../publication/magasin.ts';
 import type { CoordonneeDeclaree } from '../../core/reglages/declaration.ts';
 
 export type NomReglage = 'coordonnees' | 'reseaux' | 'mention';
@@ -128,4 +133,29 @@ export async function enregistrerMention(db: DB, corpsBrut: unknown, maintenant:
       .run();
   }
   return resultat;
+}
+
+/** Le sous-ensemble de D1 pour le retour d'un réglage : lecture, puis lot atomique. */
+export interface DBLot extends DB {
+  prepare(query: string): ReturnType<DB['prepare']> & { bind(...valeurs: unknown[]): ReturnType<ReturnType<DB['prepare']>['bind']> };
+  batch(instructions: unknown[]): Promise<unknown[]>;
+}
+
+/**
+ * Le retour d'un réglage à sa version publiée (change 015, ticket 03) : le
+ * brouillon est supprimé, rien n'est recopié (ADR-0019). Suppression et lecture
+ * du verrou dans un seul lot : refusé pendant une publication (ADR-0023). Sans
+ * brouillon, c'est un succès sans effet.
+ */
+export async function revenirReglageSiLibre(db: DBLot, reglage: NomReglage): Promise<'ok' | 'publication-en-cours'> {
+  await assurerTableBrouillonsReglages(db);
+  await assurerTablePublication(db as unknown as Parameters<typeof assurerTablePublication>[0]);
+  const lot = await db.batch([
+    db
+      .prepare(`delete from brouillons_reglages where reglage = ?1 and ${CONDITION_AUCUNE_PUBLICATION_EN_COURS}`)
+      .bind(reglage),
+    db.prepare(LECTURE_PUBLICATION_EN_COURS).bind(),
+  ]);
+  const lecture = lot[1] as { results?: { en_cours?: number }[] } | undefined;
+  return lecture?.results?.[0]?.en_cours === 1 ? 'publication-en-cours' : 'ok';
 }

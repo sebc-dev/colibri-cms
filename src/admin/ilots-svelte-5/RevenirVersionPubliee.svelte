@@ -24,9 +24,10 @@
     nom: string;
     nature: string;
     jamaisPubliee: boolean;
+    avertissement?: string;
   }
 
-  const { adresse, nom, nature, jamaisPubliee }: Props = $props();
+  const { adresse, nom, nature, jamaisPubliee, avertissement }: Props = $props();
 
   let ouverte = $state(false);
   let enCours = $state(false);
@@ -106,7 +107,7 @@
           </DialogClose>
         </div>
         <div class="flex min-h-0 flex-col gap-3 overflow-y-auto">
-          <p class="break-words">{texteAvertissementRevenir(nom, nature, jamaisPubliee)}</p>
+          <p class="break-words">{avertissement ?? texteAvertissementRevenir(nom, nature, jamaisPubliee)}</p>
           {#if erreur}
             <p role="alert" class="text-sm text-destructive">{erreur}</p>
           {/if}
