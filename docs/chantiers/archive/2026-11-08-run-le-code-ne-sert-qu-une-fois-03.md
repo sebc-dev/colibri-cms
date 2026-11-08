@@ -33,6 +33,13 @@ Faire passer le ticket 03 (le code de secours ne sert qu'une fois) jusqu'à sa P
    `Workflow(scriptPath: "/home/negus/projets/colibri-cms/.git/implement-ticket.1336534.js", resumeFromRunId: "wf_b2cadced-488", args: { changeDir: "openspec/changes/016-moyen-de-reprise", ticket: "03", base: "impl/entrer-par-le-code-de-secours-02", oldBase: "impl/entrer-par-le-code-de-secours-02", rerun: "2" })`
    Dans une autre session : commiter l'arbre puis relancer `/scd-spec-dev:run 016-moyen-de-reprise 03`.
 
+## Issue
+La ligne 136 a été retouchée et commitée seule, puis la reprise `rerun: "2"` a abouti le
+2026-11-08 : huit critères cochés, PR #323 ouverte empilée sur le ticket 02. Après la fusion de #322,
+`/scd-spec-dev:sync` l'a rebasée sur `main` sans conflit ; typecheck, build, lint et les 1359 tests
+sont passés sur la branche rebasée, puis #323 a été fusionnée. Suite :
+`/scd-spec-dev:run 016-moyen-de-reprise 04`.
+
 ## Écarté
 - Changer D6 pour garder la redirection : le code entrerait alors dans une adresse, ce que le design
   refuse explicitement.
