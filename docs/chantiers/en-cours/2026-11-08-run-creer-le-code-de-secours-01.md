@@ -22,8 +22,11 @@ J'allais mener le ticket 01 au bout du workflow `implement-ticket` (mode `tdd`) 
 - Test suspect désigné : `tests/unit/code-de-secours.test.ts`, SC-01g — un `expect()` par signe et
   par code (32 000 × 26 × 2), au-delà du délai par défaut de 5 s alors que le code est correct.
 
+- À la demande de l'humain, j'ai ajouté `30_000` en dernier argument du `it()` de SC-01g (seule
+  retouche, assertions inchangées) ; les 9 tests sont passés en 9,1 s.
+
 ## Prochaine étape
-J'allais faire retoucher SC-01g par l'humain, de préférence en ajoutant un délai explicite en
+J'allais retoucher SC-01g en ajoutant un délai explicite en
 dernier argument de `it()` (assertions inchangées), puis `git add` de la retouche, puis la reprise :
 `Workflow(scriptPath: "/home/negus/projets/colibri-cms/.git/implement-ticket.706123.js",
 resumeFromRunId: "wf_7d48fc4f-db2", args: { changeDir: "openspec/changes/016-moyen-de-reprise",
