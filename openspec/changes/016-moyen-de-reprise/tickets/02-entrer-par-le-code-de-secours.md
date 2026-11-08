@@ -57,9 +57,9 @@ temporaire accepté à l'arbitrage, rien n'est livré entre-temps.
 défiler la page horizontalement, et un code de 26 signes groupés tient dans le champ.
 
 ## Critères
-- [ ] l'éditrice présente le code de secours en place sur l'écran de saisie du code de secours : une session s'ouvre, et la liaison d'envoi n'a reçu aucun appel   (SC-02a)
-- [ ] le code de secours présenté depuis un appareil qui n'a jamais demandé de code de connexion ni ouvert de session ouvre une session   (SC-02b)
-- [ ] alors que plus aucun message ne peut partir vers l'adresse autorisée (liaison d'envoi en échec), le code de secours en place ouvre une session   (SC-02c)
-- [ ] le code de secours saisi en minuscules, avec des espaces ou des tirets, ou avec un O, un I, un L ou un U à la place de 0, 1, 1 ou V, est reconnu comme le code en place   (SC-02d)
-- [ ] la session ouverte par le code de secours a un cookie au préfixe `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/`, dont rien de la session ne se lit ; elle se ferme après sept jours sans usage, et après trente jours quoi qu'il arrive   (SC-02e)
-- [ ] l'écran de connexion porte un lien vers l'écran de saisie du code de secours, et aucun terme de développeur ne paraît sur l'un ni l'autre écran   (SC-02f)
+- [x] l'éditrice présente le code de secours en place sur l'écran de saisie du code de secours : une session s'ouvre, et la liaison d'envoi n'a reçu aucun appel   (SC-02a)
+- [x] le code de secours présenté depuis un appareil qui n'a jamais demandé de code de connexion ni ouvert de session ouvre une session   (SC-02b)
+- [x] alors que plus aucun message ne peut partir vers l'adresse autorisée (liaison d'envoi en échec), le code de secours en place ouvre une session   (SC-02c)
+- [x] le code de secours saisi en minuscules, avec des espaces ou des tirets, ou avec un O, un I, un L ou un U à la place de 0, 1, 1 ou V, est reconnu comme le code en place   (SC-02d)
+- [x] la session ouverte par le code de secours a un cookie au préfixe `__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/`, dont rien de la session ne se lit ; elle se ferme après sept jours sans usage, et après trente jours quoi qu'il arrive   (SC-02e)
+- [x] l'écran de connexion porte un lien vers l'écran de saisie du code de secours, et aucun terme de développeur ne paraît sur l'un ni l'autre écran   (SC-02f)
