@@ -12,7 +12,7 @@
 
 - **Devinette en ligne.** Un attaquant soumet des codes au hasard. Parade : 130 bits d'entropie ;
   le seuil de vingt tentatives par heure et par origine, partagé avec la connexion (ADR-0028), filtre
-  le bruit. Aucun brûlage : il offrirait un déni de service sur le dernier recours (candidat d'ADR,
+  le bruit. Aucun brûlage : il offrirait un déni de service sur le dernier recours (ADR-0032,
   alternatives écartées).
 - **Devinette hors ligne après lecture de la base.** Un lecteur de D1 obtient l'empreinte. Parade :
   SHA-256 d'un secret uniforme sur 2^130, hors de portée de toute recherche ; pas de sel nécessaire

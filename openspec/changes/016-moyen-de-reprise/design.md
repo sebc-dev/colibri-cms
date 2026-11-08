@@ -137,13 +137,13 @@ contrat intact.
 L'écran Réglages porte, sous ses cartes, un lien vers « Code de secours ». Il n'est pas une carte de
 réglage : il n'a ni brouillon, ni restauration, ni place au récapitulatif de publication.
 
-### D8 — Promotion du candidat d'ADR avant les tickets
+### D8 — ADR-0032, accepté avant les tickets
 
-La décision est structurante (le dernier recours de l'instance). Le candidat
-`docs/adr/_candidates/moyen-de-reprise-code-128-bits-hache.md` est promu en **ADR-0032** (prochain
-numéro libre de `docs/adr/` au 2026-11-08) par `/scd-spec-dev:adr`, avec deux amendements arbitrés le
-2026-11-08 : le code naît dans une session ouverte, depuis l'administration, à la livraison ; et son
-emploi ferme les autres sessions. Ce design ne fige pas la décision : il en dépend.
+La décision est structurante (le dernier recours de l'instance). Elle est figée par **ADR-0032**
+(`docs/adr/0032-moyen-de-reprise-code-128-bits-hache.md`), accepté le 2026-11-08, promu depuis le
+candidat avec deux amendements arbitrés le même jour : le code naît dans l'administration, et
+l'éditrice le crée elle-même à la livraison, accompagnée, sur son appareil ; créer, remplacer ou
+employer le code ferme les autres sessions. Ce design ne fige pas la décision : il en dépend.
 
 ### Conformité
 
@@ -152,6 +152,8 @@ emploi ferme les autres sessions. Ce design ne fige pas la décision : il en dé
 - **ADR-0007 / `I6`** : les deux routes importent le garde.
 - **ADR-0011** : aucune écriture sans cookie `SameSite=Strict`.
 - **ADR-0028** : même compteur, même surface.
+- **ADR-0032** : code de 128 bits haché (D1, D2) ; usage unique et fermeture des autres sessions
+  (D4, D5) ; un seul chemin de création (D5, D6) ; aucun frein propre, le seul seuil par origine (D6).
 - **`I1`, `I2`** : `core/auth/code.ts` reste sans import ; `platform/auth/code-de-secours.ts`
   n'importe que `core/`.
 - **`I4`, `I13`** : pas de `client:*` sous `src/admin/` ; le cookie par `enteteCookieSession` seul.
@@ -174,16 +176,13 @@ emploi ferme les autres sessions. Ce design ne fige pas la décision : il en dé
 - [La réponse se perd après la transaction (coupure réseau) : l'ancien code est servi, le cookie et le
   nouveau code n'arrivent jamais] → Risque accepté. La fenêtre est celle d'une seule réponse, et la
   connexion par e-mail reste la voie ordinaire. Le corriger exigerait de garder l'ancien code valable
-  jusqu'à un accusé de lecture, ce qui contredit l'usage unique. À relire à la promotion de l'ADR.
-- [L'intégrateur voit le code à la livraison] → Le geste de livraison est fait par l'éditrice,
-  accompagnée, sur son appareil ; elle peut le remplacer aussitôt. La consigne relève du dossier de
-  livraison (Epic D), pas du produit.
+  jusqu'à un accusé de lecture, ce qui contredit l'usage unique. ADR-0032 l'accepte.
 - [L'éditrice quitte l'écran du nouveau code sans le noter] → L'écran dit, sans terme technique,
   que le code ne se reverra pas. Comme elle a une session ouverte, elle peut en créer un autre. C'est
-  le coût assumé par le candidat d'ADR.
+  le coût assumé par ADR-0032.
 - [Une instance livrée sans code] → L'écran « Code de secours » le dit en tête ; la liste de livraison
   de l'Epic D devra porter le geste.
-- [Aucun frein propre au code de secours] → Assumé (candidat d'ADR) : la sûreté repose sur
+- [Aucun frein propre au code de secours] → Assumé (ADR-0032) : la sûreté repose sur
   l'entropie ; le seuil par origine reste devant l'écran pour le bruit.
 
 ## Migration Plan
