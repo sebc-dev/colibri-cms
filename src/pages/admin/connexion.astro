@@ -105,7 +105,7 @@ import {
 } from '../../platform/auth/magasin.ts';
 import { demanderExpeditionDuCode } from '../../platform/email/index.ts';
 import { compterEtJuger } from '../../platform/frequence/index.ts';
-import { TEXTE_ANNONCE_PORTEE_CODE, TEXTE_ANNONCE_PANNE, TEXTE_ANNONCE_SEUIL, texteDuRefus } from '../../admin/textes.ts';
+import { TEXTE_ANNONCE_PORTEE_CODE, TEXTE_ANNONCE_PANNE, TEXTE_ANNONCE_SEUIL, texteDuRefus, TEXTE_LIEN_REPRISE } from '../../admin/textes.ts';
 
 await verifierSession(env.DB, Astro.request);
 
@@ -284,6 +284,7 @@ if (estSoumission) {
                   Se connecter
                 </Button>
               </form>
+              <a href="/admin/reprise" class="border-t border-line pt-6 text-sm underline">{TEXTE_LIEN_REPRISE}</a>
             </>
           )
         }
