@@ -57,3 +57,48 @@ export async function lireEtatCodeDeSecours(db: Base): Promise<{ enPlace: false 
   const ligne = await db.prepare('select cree_le from code_de_secours where id = 1').first<{ cree_le: number }>();
   return ligne ? { enPlace: true, depuis: ligne.cree_le } : { enPlace: false };
 }
+
+let schemaSessionsAssure: Promise<unknown> | null = null;
+
+/** Même garde défensif que `magasin.ts` (I1 interdit de l'importer). */
+async function assurerTableSessions(db: Base): Promise<void> {
+  schemaSessionsAssure ??= db
+    .prepare('create table if not exists sessions (id text primary key, identifiant_appareil text not null, creee_le integer not null)')
+    .run();
+  try {
+    await schemaSessionsAssure;
+  } catch (erreur) {
+    schemaSessionsAssure = null;
+    throw erreur;
+  }
+}
+
+function jetonAleatoire(): string {
+  const octets = new Uint8Array(32);
+  crypto.getRandomValues(octets);
+  return Array.from(octets, (o) => o.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Ouvre une session si la saisie est le code de secours en place (ADR-0032).
+ * Insertion conditionnelle : le succès se lit au nombre de lignes changées.
+ */
+export async function ouvrirSessionParCodeDeSecours(
+  db: Base,
+  saisie: string,
+  identifiantAppareil: string | undefined,
+  maintenant: number,
+): Promise<{ reussi: true; jeton: string } | { reussi: false }> {
+  await assurerSchema(db);
+  await assurerTableSessions(db);
+  const empreinte = await empreinteDuCode(saisie);
+  const jeton = jetonAleatoire();
+  const appareil = identifiantAppareil !== undefined && identifiantAppareil !== '' ? identifiantAppareil : crypto.randomUUID();
+  const resultat = await db
+    .prepare(
+      'insert into sessions (id, identifiant_appareil, creee_le) select ?1, ?2, ?3 where exists (select 1 from code_de_secours where id = 1 and empreinte = ?4)',
+    )
+    .bind(jeton, appareil, maintenant, empreinte)
+    .run();
+  return resultat.meta.changes === 1 ? { reussi: true, jeton } : { reussi: false };
+}

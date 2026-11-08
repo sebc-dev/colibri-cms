@@ -450,3 +450,12 @@ export const TEXTE_INVITE_RECOPIER_CODE_DE_SECOURS = 'Recopiez-le ou imprimez ce
 export const TEXTE_CODE_DE_SECOURS_NE_REPARAIT_PAS = "Ce code ne s'affichera plus. L'ancien ne permet plus d'entrer.";
 export const TEXTE_BOUTON_IMPRIMER = 'Imprimer';
 export const TEXTE_LIEN_CONTINUER = 'Continuer';
+
+/** Écran de saisie du code de secours (change 016, ticket 02). */
+export const TEXTE_TITRE_REPRISE = 'Entrer avec le code de secours';
+export const TEXTE_LIEN_REPRISE = "Je n'ai plus accès à ma boîte e-mail";
+export const TEXTE_INVITE_REPRISE = 'Saisissez le code de secours que vous avez noté sur papier.';
+export const TEXTE_LIBELLE_CODE_DE_SECOURS = 'Code de secours';
+export const TEXTE_BOUTON_REPRISE = 'Entrer';
+export const TEXTE_REFUS_REPRISE = "Ce code n'a pas permis d'entrer. Vérifiez chaque signe, puis réessayez.";
+export const TEXTE_LIEN_RETOUR_CONNEXION = '← Revenir à la connexion par e-mail';

@@ -933,6 +933,13 @@ Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variant
 | CT-43.2 | Actionner « Imprimer » (aperçu avant impression) | Une seule page, seule la carte du code est imprimée | à jouer |
 | CT-43.3 | Cliquer « Continuer » puis revenir en arrière | L'écran dit la date de mise en place ; le code ne s'affiche plus | à jouer |
 
+## 44. Entrer par le code de secours — change 016 · ticket 02
+
+| N° | Cas | Résultat attendu | Verdict |
+|---|---|---|---|
+| CT-44.1 | Dans une fenêtre de 360 px de large, ouvrir `/admin/reprise` | L'écran de saisie ne fait pas défiler la page horizontalement | à jouer |
+| CT-44.2 | Saisir un code de 26 signes en groupes de quatre séparés par des espaces (par exemple « ABCD EFGH JKMN PQRS TVWX YZ01 23 ») | Le code tient dans le champ sans déborder de la carte | à jouer |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
