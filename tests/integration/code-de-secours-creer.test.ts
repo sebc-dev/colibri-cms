@@ -213,6 +213,20 @@ it("SC-01d — avec un code en place, l'écran dit la date de mise en place sans
   expect(corps).not.toMatch(/(?:[0-9A-HJKMNP-TV-Z]{4} ){6}[0-9A-HJKMNP-TV-Z]{2}/);
 });
 
+it("SC-01d — avec un code en place, l'écran offre de le remplacer et non de le créer", async () => {
+  const db = await assurerSchema();
+  const cookie = await semerSessionValide(db);
+  expect((await creer(cookie)).status).toBe(200);
+
+  const reponse = await acceder(ROUTE, cookie);
+  expect(reponse.status).toBe(200);
+  const main = extraireMain(await reponse.text());
+  const texte = texteVisible(main);
+  expect(texte).toContain("Remplacer le code de secours");
+  expect(texte).not.toContain("Créer le code de secours");
+  expect(main).not.toMatch(/<form[^>]*method="post"/i);
+});
+
 // --- SC-01e ---
 
 it("SC-01e — la création affiche le code, invite à le recopier ou l'imprimer, interdit la conservation, et le retour à l'écran ne le montre plus", async () => {
