@@ -331,13 +331,13 @@
             <DialogTitle class="break-words font-display text-base font-semibold">
               {texteConfirmationSuppression(nom)}
             </DialogTitle>
-            <DialogClose>
+            <!-- `disabled` sur DialogClose : posé sur le Button, il était écrasé par `{...props}`. -->
+            <DialogClose disabled={enCoursSuppression}>
               {#snippet child({ props })}
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  disabled={enCoursSuppression}
                   class="max-md:min-h-11 max-md:min-w-11 shrink-0"
                   {...props}
                 >
