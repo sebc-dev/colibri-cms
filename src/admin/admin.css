@@ -457,3 +457,19 @@ img.ProseMirror-separator {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* Impression du code de secours : seule sa carte paraît sur la page. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  [data-carte-code-de-secours],
+  [data-carte-code-de-secours] * {
+    visibility: visible;
+  }
+  [data-carte-code-de-secours] {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+}

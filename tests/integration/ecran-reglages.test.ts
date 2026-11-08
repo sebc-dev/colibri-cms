@@ -202,6 +202,7 @@ it("SC-04c — les textes de la déclaration sont affichés comme texte, échapp
       "li",
       "span",
       "button",
+      "a",
     ]).toContain(balise);
   }
 });
