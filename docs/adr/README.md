@@ -17,7 +17,7 @@ règle de lecture tient en une ligne :
 > **Un `ADR-00NN` cité DANS le corps d'un ADR promu désigne le numéro 1.x.**
 > Le numéro 2.x est celui du nom de fichier.
 
-Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, 0028–0029, puis 0031. À partir de
+Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, 0028–0029, puis 0031–0032. À partir de
 0019, chaque renvoi à l'ancien cycle porte en plus la mention « (1.x) » dans son libellé
 (`ADR-0015 (1.x)`) : il se lit sans la règle. Dans le texte qu'un amendement ou un complément de
 promotion ajoute — les points marqués *(amendé)* ou *(ajouté)* —, un numéro sans mention est un
@@ -58,6 +58,7 @@ numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030) citent des num�
 | [0029](./0029-svelte-pour-l-administration-formulaire-public-sans-framework.md) | 0011 | Îlots Svelte 5 pour l'administration ; le formulaire public, un document complet amélioré par un module du site — **amendé** : le site public n'a pas d'îlot ; crée `I16` |
 | [0030](./0030-retrait-d-une-demande-temoin-tenu-par-la-base.md) | — | Le retrait d'une demande — un témoin réduit à son formulaire et à sa suite, tenu par la base ; aucun effacement d'office ; crée `I17` |
 | [0031](./0031-pipeline-d-images-variantes-au-build.md) | 0019 (1.x) | Pipeline d'images — les variantes WebP de 360, 720 et 1 080 px sont produites au build ; l'original n'est plus cité par le site public — **amendé** : remplace `image.layout`/`breakpoints` par une intégration `sharp` |
+| [0032](./0032-moyen-de-reprise-code-128-bits-hache.md) | 0016 (1.x) | Moyen de reprise — un code de 128 bits haché en D1, à usage unique et réémis à l'emploi — **amendé** : créé depuis l'administration par l'éditrice à la livraison ; création, remplacement et emploi ferment les autres sessions |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -101,6 +102,10 @@ un module sans framework —, il crée l'invariant `I16`.
 `013-reception-et-suivi-des-demandes`, le premier à garder une demande en base — ce qu'une demande
 retirée garde, tenu par la base, et l'absence de tout effacement d'office ; il complète ADR-0019 et crée
 l'invariant `I17`.
+`ADR-0032` est promu du cycle 1.x le 2026-11-08, pour le change `016-moyen-de-reprise`, avant ses
+tickets. Il est **amendé** à la promotion, par arbitrage humain : le code naît dans l'administration,
+créé par l'éditrice à la livraison, et son emploi ferme les autres sessions ; la mention de Turnstile
+cède la place au seuil d'ADR-0028. Il ne crée aucun invariant.
 
 ## Comment se lit un remplacement
 
@@ -116,7 +121,7 @@ avec la table sous les yeux.
 
 ## Ce qui n'est pas encore promu
 
-**15 décisions du cycle 1.x attendent encore** dans
+**14 décisions du cycle 1.x attendent encore** dans
 [`docs/adr/_candidates/`](./_candidates/). Elles restent des candidats : `CLAUDE.md` dit « ne
 pas contredire un ADR accepté », et un candidat n'en est pas un. Un renvoi vers un numéro 1.x
 absent de la table ci-dessus pointe donc vers une décision **non promue** — la lire dans
