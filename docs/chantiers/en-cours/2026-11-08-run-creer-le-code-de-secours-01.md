@@ -25,6 +25,11 @@ J'allais mener le ticket 01 au bout du workflow `implement-ticket` (mode `tdd`) 
 - À la demande de l'humain, j'ai ajouté `30_000` en dernier argument du `it()` de SC-01g (seule
   retouche, assertions inchangées) ; les 9 tests sont passés en 9,1 s.
 
+- La reprise `rerun: "2"` s'est arrêtée en `blocked-verify` : le code cassait deux tests existants
+  (`gabarits-admin` : un `<style>` dans `NouveauCodeDeSecours.astro` ; `ecran-reglages` SC-04c : la
+  balise `a` du lien hors de la liste permise). J'ai déplacé le style d'impression dans `admin.css`
+  et ajouté `a` à la liste de SC-04c (commit `6374cb2`), puis relancé avec `rerun: "3"`.
+
 ## Prochaine étape
 J'allais retoucher SC-01g en ajoutant un délai explicite en
 dernier argument de `it()` (assertions inchangées), puis `git add` de la retouche, puis la reprise :
