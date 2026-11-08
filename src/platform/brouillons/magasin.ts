@@ -104,7 +104,14 @@ async function assurerTableBrouillons(db: DB): Promise<void> {
     )
     .bind()
     .run()
-    .then(() => undefined);
+    .then(
+      () => undefined,
+      // Un échec n'est pas mémorisé : l'appel suivant retente la création.
+      (erreur: unknown) => {
+        schemaBrouillonsAssure = null;
+        throw erreur;
+      },
+    );
   await schemaBrouillonsAssure;
 }
 

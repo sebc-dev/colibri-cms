@@ -325,19 +325,21 @@
       <DialogPortal>
         <DialogOverlay />
         <DialogPrimitive.Content
+          interactOutsideBehavior={enCoursSuppression ? 'ignore' : 'close'}
+          escapeKeydownBehavior={enCoursSuppression ? 'ignore' : 'close'}
           class="bg-popover text-popover-foreground ring-foreground/10 fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 grid-rows-[auto_1fr] gap-4 rounded-xl p-4 text-sm ring-1 outline-none motion-safe:duration-100 motion-safe:data-open:animate-in motion-safe:data-open:fade-in-0 motion-safe:data-open:zoom-in-95 motion-safe:data-closed:animate-out motion-safe:data-closed:fade-out-0 motion-safe:data-closed:zoom-out-95"
         >
           <div class="flex items-start justify-between gap-4">
             <DialogTitle class="break-words font-display text-base font-semibold">
               {texteConfirmationSuppression(nom)}
             </DialogTitle>
-            <DialogClose>
+            <!-- `disabled` sur DialogClose : posé sur le Button, il était écrasé par `{...props}`. -->
+            <DialogClose disabled={enCoursSuppression}>
               {#snippet child({ props })}
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  disabled={enCoursSuppression}
                   class="max-md:min-h-11 max-md:min-w-11 shrink-0"
                   {...props}
                 >
