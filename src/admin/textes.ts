@@ -450,6 +450,8 @@ export const TEXTE_INVITE_RECOPIER_CODE_DE_SECOURS = 'Recopiez-le ou imprimez ce
 export const TEXTE_CODE_DE_SECOURS_NE_REPARAIT_PAS = "Ce code ne s'affichera plus. L'ancien ne permet plus d'entrer.";
 export const TEXTE_BOUTON_IMPRIMER = 'Imprimer';
 export const TEXTE_LIEN_CONTINUER = 'Continuer';
+export const TEXTE_LIEN_CONTINUER_ACCUEIL = "Continuer vers l'accueil";
+export const TEXTE_AUTRES_APPAREILS_RECONNEXION = 'Les autres appareils connectés devront se reconnecter.';
 
 /** Écran de saisie du code de secours (change 016, ticket 02). */
 export const TEXTE_TITRE_REPRISE = 'Entrer avec le code de secours';

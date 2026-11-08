@@ -13,6 +13,8 @@ import { Alert, AlertDescription } from '../../admin/composants/ui/alert/index.t
 import { Button } from '../../admin/composants/ui/button/index.ts';
 import { verifierSession, enteteCookieSession } from '../../platform/session/index.ts';
 import { ouvrirSessionParCodeDeSecours } from '../../platform/auth/code-de-secours.ts';
+import NouveauCodeDeSecours from '../../admin/NouveauCodeDeSecours.astro';
+import { grouperCodeDeSecours } from '../../core/auth/code.ts';
 import { env } from 'cloudflare:workers';
 import {
   TEXTE_TITRE_REPRISE,
@@ -26,6 +28,7 @@ import {
 await verifierSession(env.DB, Astro.request);
 
 let refuse = false;
+let codeAffiche: string | null = null;
 if (Astro.request.method === 'POST') {
   const donnees = await Astro.request.formData();
   const saisie = String(donnees.get('code') ?? '');
@@ -36,17 +39,20 @@ if (Astro.request.method === 'POST') {
     Date.now(),
   );
   if (resultat.reussi) {
-    const reponse = Astro.redirect('/admin/');
-    reponse.headers.append('Set-Cookie', enteteCookieSession(resultat.jeton));
-    return reponse;
+    Astro.response.headers.append('Set-Cookie', enteteCookieSession(resultat.jeton));
+    codeAffiche = grouperCodeDeSecours(resultat.nouveauCode);
+  } else {
+    refuse = true;
   }
-  refuse = true;
 }
 Astro.response.headers.set('Cache-Control', 'no-store');
 ---
 
 <Gabarit titre={TEXTE_TITRE_REPRISE}>
   <main class="flex min-h-dvh justify-center px-4 py-10">
+    {codeAffiche !== null ? (
+      <div class="h-fit w-full max-w-[400px]"><NouveauCodeDeSecours codeAffiche={codeAffiche} apresEmploi /></div>
+    ) : (
     <Card class="h-fit w-full max-w-[400px]">
       <CardHeader class="flex flex-col items-center gap-3 text-center">
         <Logo class="h-10 w-10" />
@@ -81,5 +87,6 @@ Astro.response.headers.set('Cache-Control', 'no-store');
         <a href="/admin/connexion" class="border-t border-line pt-6 text-sm underline">{TEXTE_LIEN_RETOUR_CONNEXION}</a>
       </CardContent>
     </Card>
+    )}
   </main>
 </Gabarit>

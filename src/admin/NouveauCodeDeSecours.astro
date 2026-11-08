@@ -9,7 +9,9 @@ import {
   TEXTE_BOUTON_IMPRIMER,
   TEXTE_CODE_DE_SECOURS_NE_REPARAIT_PAS,
   TEXTE_INVITE_RECOPIER_CODE_DE_SECOURS,
+  TEXTE_AUTRES_APPAREILS_RECONNEXION,
   TEXTE_LIEN_CONTINUER,
+  TEXTE_LIEN_CONTINUER_ACCUEIL,
   TEXTE_TITRE_NOUVEAU_CODE_DE_SECOURS,
 } from './textes.ts';
 import { Button } from './composants/ui/button/index.ts';
@@ -17,8 +19,10 @@ import { Card, CardContent, CardHeader } from './composants/ui/card/index.ts';
 
 interface Props {
   codeAffiche: string;
+  /** Code montré à l'entrée par le code de secours : on poursuit vers l'accueil. */
+  apresEmploi?: boolean;
 }
-const { codeAffiche } = Astro.props;
+const { codeAffiche, apresEmploi = false } = Astro.props;
 ---
 
 <Card data-carte-code-de-secours>
@@ -29,9 +33,10 @@ const { codeAffiche } = Astro.props;
     <p class="break-words font-mono text-2xl tracking-wider" data-code-de-secours>{codeAffiche}</p>
     <p>{TEXTE_INVITE_RECOPIER_CODE_DE_SECOURS}</p>
     <p class="text-ink-muted">{TEXTE_CODE_DE_SECOURS_NE_REPARAIT_PAS}</p>
+    {apresEmploi && <p>{TEXTE_AUTRES_APPAREILS_RECONNEXION}</p>}
     <div class="flex flex-col gap-2 md:flex-row print:hidden">
       <Button type="button" data-imprimer class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_IMPRIMER}</Button>
-      <a href="/admin/code-de-secours" class="inline-flex min-h-11 items-center justify-center underline underline-offset-2">{TEXTE_LIEN_CONTINUER}</a>
+      <a href={apresEmploi ? '/admin/' : '/admin/code-de-secours'} class="inline-flex min-h-11 items-center justify-center underline underline-offset-2">{apresEmploi ? TEXTE_LIEN_CONTINUER_ACCUEIL : TEXTE_LIEN_CONTINUER}</a>
     </div>
   </CardContent>
 </Card>
