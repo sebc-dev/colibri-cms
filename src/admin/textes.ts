@@ -433,3 +433,20 @@ export function texteAvertissementRevenir(nom: string, nature: string, jamaisPub
   const reprise = jamaisPubliee ? 'son contenu de départ' : 'sa version publiée';
   return `Les modifications de « ${nom} » seront perdues. ${nature} reprend ${reprise}.`;
 }
+
+// --- Code de secours (change 016, ticket 01) ---
+export const TEXTE_TITRE_CODE_DE_SECOURS = 'Code de secours';
+export const TEXTE_LIEN_CODE_DE_SECOURS = 'Code de secours';
+export const TEXTE_AUCUN_CODE_DE_SECOURS = "Aucun code de secours n'est en place.";
+export const TEXTE_BOUTON_CREER_CODE_DE_SECOURS = 'Créer le code de secours';
+export function texteCodeDeSecoursEnPlace(date: string): string {
+  return `Un code de secours est en place depuis le ${date}.`;
+}
+export const TEXTE_TITRE_NOUVEAU_CODE_DE_SECOURS = 'Votre nouveau code de secours';
+export const TEXTE_EN_TETE_CODE_DE_SECOURS =
+  "Le code de secours vous permet d'entrer si vous n'avez plus accès à votre boîte e-mail. Il ne sert qu'une fois ; un nouveau vous est alors donné.";
+export const TEXTE_BOUTON_REMPLACER_CODE_DE_SECOURS = 'Remplacer le code de secours';
+export const TEXTE_INVITE_RECOPIER_CODE_DE_SECOURS = 'Recopiez-le ou imprimez cette page, et rangez le papier en lieu sûr.';
+export const TEXTE_CODE_DE_SECOURS_NE_REPARAIT_PAS = "Ce code ne s'affichera plus. L'ancien ne permet plus d'entrer.";
+export const TEXTE_BOUTON_IMPRIMER = 'Imprimer';
+export const TEXTE_LIEN_CONTINUER = 'Continuer';

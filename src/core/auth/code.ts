@@ -67,3 +67,30 @@ export function normaliserCode(saisie: string): string {
   }
   return normalisee;
 }
+
+const LONGUEUR_CODE_DE_SECOURS = 26;
+const TAILLE_GROUPE_CODE_DE_SECOURS = 4;
+
+/**
+ * Engendre un code de secours (ADR-0032) : vingt-six signes de l'alphabet
+ * Crockford, soit 130 bits, un octet par signe. 256 est un multiple de 32 :
+ * le modulo ne biaise aucun signe.
+ */
+export function engendrerCodeDeSecours(): string {
+  const octets = new Uint8Array(LONGUEUR_CODE_DE_SECOURS);
+  crypto.getRandomValues(octets);
+  let code = '';
+  for (const octet of octets) {
+    code += ALPHABET[octet % ALPHABET.length];
+  }
+  return code;
+}
+
+/** La forme affichée d'un code de secours : groupes de quatre signes séparés d'une espace. */
+export function grouperCodeDeSecours(code: string): string {
+  const groupes: string[] = [];
+  for (let i = 0; i < code.length; i += TAILLE_GROUPE_CODE_DE_SECOURS) {
+    groupes.push(code.slice(i, i + TAILLE_GROUPE_CODE_DE_SECOURS));
+  }
+  return groupes.join(' ');
+}

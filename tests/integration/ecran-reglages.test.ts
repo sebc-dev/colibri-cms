@@ -202,8 +202,14 @@ it("SC-04c — les textes de la déclaration sont affichés comme texte, échapp
       "li",
       "span",
       "button",
+      "a",
     ]).toContain(balise);
   }
+  // Le seul lien de l'écran est celui du code de secours : un lien venu des
+  // données serait refusé.
+  const liens = [...main.matchAll(/<a\b[^>]*>/gi)].map((m) => m[0]);
+  expect(liens).toHaveLength(1);
+  expect(liens[0]).toMatch(/href="\/admin\/code-de-secours"/);
 });
 
 it("SC-04c — la source de l’écran n’injecte aucune donnée comme balisage (ni set:html ni innerHTML)", async () => {

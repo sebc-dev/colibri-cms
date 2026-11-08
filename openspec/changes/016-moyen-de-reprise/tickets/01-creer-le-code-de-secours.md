@@ -82,12 +82,12 @@ porte que le code et sa consigne.
 l'écran de saisie du code (02) ; tout outil de livraison en ligne de commande (Epic D).
 
 ## Critères
-- [ ] l'écran « Code de secours », ou son geste de création, demandé sans session ouverte renvoie vers l'écran de connexion, et aucun code n'est mis en place   (SC-01a)
-- [ ] l'écran Réglages porte un lien vers l'écran « Code de secours »   (SC-01b)
-- [ ] sur une instance où aucun code de secours n'est en place, l'écran dit qu'aucun code n'est en place et offre de le créer   (SC-01c)
-- [ ] alors qu'un code de secours est en place, l'écran dit la date à laquelle il a été mis en place, et la valeur du code n'y paraît pas   (SC-01d)
-- [ ] l'éditrice crée le code de secours : la réponse affiche le nouveau code et invite à le recopier ou à l'imprimer, elle interdit à tout intermédiaire de la conserver (`Cache-Control: no-store`), et revenir ensuite à l'écran ne le montre plus   (SC-01e)
-- [ ] un code de secours engendré compte vingt-six signes de l'alphabet sans confusables, et il est affiché en groupes séparés   (SC-01f)
-- [ ] sur un grand échantillon fixe de codes engendrés (par exemple 32 000), chaque signe de l'alphabet paraît à chaque position avec la fréquence attendue, dans une borne large choisie pour ne pas rougir par hasard plus d'une fois sur un million   (SC-01g)
-- [ ] juste après la mise en place d'un code, sa valeur, sous sa forme affichée comme sous sa forme normalisée, ne se trouve dans aucune colonne texte d'aucune table de la base (tables relevées dans `sqlite_master`)   (SC-01h)
-- [ ] la mise en place d'un code ne change ni la configuration du déploiement, ni le fichier d'instance, ni aucune liaison ou secret de la plateforme : test minimal qui constate que la création n'écrit que la ligne de `code_de_secours`, et ne touche à aucune liaison de l'environnement hors la base   (SC-01i)
+- [x] l'écran « Code de secours », ou son geste de création, demandé sans session ouverte renvoie vers l'écran de connexion, et aucun code n'est mis en place   (SC-01a)
+- [x] l'écran Réglages porte un lien vers l'écran « Code de secours »   (SC-01b)
+- [x] sur une instance où aucun code de secours n'est en place, l'écran dit qu'aucun code n'est en place et offre de le créer   (SC-01c)
+- [x] alors qu'un code de secours est en place, l'écran dit la date à laquelle il a été mis en place, et la valeur du code n'y paraît pas   (SC-01d)
+- [x] l'éditrice crée le code de secours : la réponse affiche le nouveau code et invite à le recopier ou à l'imprimer, elle interdit à tout intermédiaire de la conserver (`Cache-Control: no-store`), et revenir ensuite à l'écran ne le montre plus   (SC-01e)
+- [x] un code de secours engendré compte vingt-six signes de l'alphabet sans confusables, et il est affiché en groupes séparés   (SC-01f)
+- [x] sur un grand échantillon fixe de codes engendrés (par exemple 32 000), chaque signe de l'alphabet paraît à chaque position avec la fréquence attendue, dans une borne large choisie pour ne pas rougir par hasard plus d'une fois sur un million   (SC-01g)
+- [x] juste après la mise en place d'un code, sa valeur, sous sa forme affichée comme sous sa forme normalisée, ne se trouve dans aucune colonne texte d'aucune table de la base (tables relevées dans `sqlite_master`)   (SC-01h)
+- [x] la mise en place d'un code ne change ni la configuration du déploiement, ni le fichier d'instance, ni aucune liaison ou secret de la plateforme : test minimal qui constate que la création n'écrit que la ligne de `code_de_secours`, et ne touche à aucune liaison de l'environnement hors la base   (SC-01i)
