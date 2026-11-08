@@ -940,6 +940,13 @@ Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variant
 | CT-44.1 | Dans une fenêtre de 360 px de large, ouvrir `/admin/reprise` | L'écran de saisie ne fait pas défiler la page horizontalement | à jouer |
 | CT-44.2 | Saisir un code de 26 signes en groupes de quatre séparés par des espaces (par exemple « ABCD EFGH JKMN PQRS TVWX YZ01 23 ») | Le code tient dans le champ sans déborder de la carte | à jouer |
 
+## 45. Le code de secours ne sert qu'une fois — change 016 · ticket 03
+
+| N° | Cas | Résultat attendu | Verdict |
+|---|---|---|---|
+| CT-45.1 | SC-020 : boîte e-mail inaccessible, appareil neuf, saisir le code de secours sur `/admin/reprise` | Une session s'ouvre ; un nouveau code s'affiche une seule fois ; « Continuer vers l'accueil » mène à « Mes pages » ; la liste des demandes est accessible | à jouer |
+| CT-45.2 | À 360 px, l'écran du nouveau code | Aucun défilement horizontal ; lien d'accueil d'au moins 44 px de haut ; la ligne sur les autres appareils est lisible | à jouer |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |

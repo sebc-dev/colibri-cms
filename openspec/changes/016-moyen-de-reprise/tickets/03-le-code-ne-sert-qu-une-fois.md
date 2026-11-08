@@ -52,11 +52,11 @@ le nouveau n'arrive pas ; la connexion par e-mail reste la voie ordinaire. Non t
 le remplacement depuis l'écran « Code de secours » (06).
 
 ## Critères
-- [ ] un code de secours qui a ouvert une session, présenté une seconde fois, n'ouvre aucune session   (SC-03a)
-- [ ] une session vient de s'ouvrir par le code de secours : l'écran affiche un nouveau code de secours, invite à le recopier ou à l'imprimer, et offre de poursuivre vers l'accueil, qui mène à « Mes pages »   (SC-03b)
-- [ ] le nouveau code affiché à l'emploi, relevé dans le HTML et présenté plus tard, ouvre une session   (SC-03c)
-- [ ] l'éditrice quitte l'écran qui affiche le nouveau code, puis revient à l'écran « Code de secours » : le nouveau code n'y paraît pas   (SC-03d)
-- [ ] une session est ouverte sur un premier appareil, puis le code de secours ouvre une session sur un second : la session du premier appareil ne donne plus accès, et celle du second reste ouverte   (SC-03e)
-- [ ] la réponse qui affiche le nouveau code à l'emploi interdit à tout intermédiaire de la conserver (`Cache-Control: no-store`), et l'adresse de la page ne porte pas le code   (SC-03f)
-- [ ] le même code de secours présenté deux fois en même temps (`Promise.all`) : une seule session s'ouvre, et un seul nouveau code est mis en place   (SC-03g)
-- [ ] l'adresse autorisée ne reçoit plus aucun message, et l'éditrice présente son code de secours depuis un appareil neuf : une session s'ouvre, un nouveau code s'affiche une fois, et elle atteint la liste des demandes depuis l'administration (SC-020)   (SC-03h)
+- [x] un code de secours qui a ouvert une session, présenté une seconde fois, n'ouvre aucune session   (SC-03a)
+- [x] une session vient de s'ouvrir par le code de secours : l'écran affiche un nouveau code de secours, invite à le recopier ou à l'imprimer, et offre de poursuivre vers l'accueil, qui mène à « Mes pages »   (SC-03b)
+- [x] le nouveau code affiché à l'emploi, relevé dans le HTML et présenté plus tard, ouvre une session   (SC-03c)
+- [x] l'éditrice quitte l'écran qui affiche le nouveau code, puis revient à l'écran « Code de secours » : le nouveau code n'y paraît pas   (SC-03d)
+- [x] une session est ouverte sur un premier appareil, puis le code de secours ouvre une session sur un second : la session du premier appareil ne donne plus accès, et celle du second reste ouverte   (SC-03e)
+- [x] la réponse qui affiche le nouveau code à l'emploi interdit à tout intermédiaire de la conserver (`Cache-Control: no-store`), et l'adresse de la page ne porte pas le code   (SC-03f)
+- [x] le même code de secours présenté deux fois en même temps (`Promise.all`) : une seule session s'ouvre, et un seul nouveau code est mis en place   (SC-03g)
+- [x] l'adresse autorisée ne reçoit plus aucun message, et l'éditrice présente son code de secours depuis un appareil neuf : une session s'ouvre, un nouveau code s'affiche une fois, et elle atteint la liste des demandes depuis l'administration (SC-020)   (SC-03h)

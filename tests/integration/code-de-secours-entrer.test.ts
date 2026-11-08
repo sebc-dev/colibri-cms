@@ -133,7 +133,7 @@ function accederGarde(jeton: string | null): Promise<Response> {
 }
 
 async function ouvre(reponse: Response): Promise<string> {
-  expect(REDIRECT_STATUSES).toContain(reponse.status);
+  expect(reponse.status).toBe(200);
   const jeton = valeurCookie(reponse, NOM_COOKIE_SESSION);
   assert(jeton !== null, "aucun cookie de session posé");
   expect((await accederGarde(jeton)).status).toBe(200);

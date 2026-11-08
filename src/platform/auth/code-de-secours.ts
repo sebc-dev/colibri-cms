@@ -80,25 +80,36 @@ function jetonAleatoire(): string {
 }
 
 /**
- * Ouvre une session si la saisie est le code de secours en place (ADR-0032).
- * Insertion conditionnelle : le succès se lit au nombre de lignes changées.
+ * Ouvre une session si la saisie est le code de secours en place (ADR-0032),
+ * ferme les autres sessions et met un nouveau code en place, en un seul lot
+ * atomique. Le succès se lit au nombre de lignes changées par l'insertion.
  */
 export async function ouvrirSessionParCodeDeSecours(
   db: Base,
   saisie: string,
   identifiantAppareil: string | undefined,
   maintenant: number,
-): Promise<{ reussi: true; jeton: string } | { reussi: false }> {
+): Promise<{ reussi: true; jeton: string; nouveauCode: string } | { reussi: false }> {
   await assurerSchema(db);
   await assurerTableSessions(db);
-  const empreinte = await empreinteDuCode(saisie);
+  const ancienne = await empreinteDuCode(saisie);
   const jeton = jetonAleatoire();
+  const nouveauCode = engendrerCodeDeSecours();
+  const nouvelle = await empreinteDuCode(nouveauCode);
   const appareil = identifiantAppareil !== undefined && identifiantAppareil !== '' ? identifiantAppareil : crypto.randomUUID();
-  const resultat = await db
-    .prepare(
-      'insert into sessions (id, identifiant_appareil, creee_le) select ?1, ?2, ?3 where exists (select 1 from code_de_secours where id = 1 and empreinte = ?4)',
-    )
-    .bind(jeton, appareil, maintenant, empreinte)
-    .run();
-  return resultat.meta.changes === 1 ? { reussi: true, jeton } : { reussi: false };
+  const lot = await db.batch([
+    db
+      .prepare(
+        'insert into sessions (id, identifiant_appareil, creee_le) select ?1, ?2, ?3 where exists (select 1 from code_de_secours where id = 1 and empreinte = ?4)',
+      )
+      .bind(jeton, appareil, maintenant, ancienne),
+    db
+      .prepare('delete from sessions where id <> ?1 and exists (select 1 from sessions where id = ?1)')
+      .bind(jeton),
+    db
+      .prepare('update code_de_secours set empreinte = ?1, cree_le = ?2 where id = 1 and empreinte = ?3')
+      .bind(nouvelle, maintenant, ancienne),
+  ]);
+  const ouverture = lot[0] as { meta?: { changes?: number } } | undefined;
+  return ouverture?.meta?.changes === 1 ? { reussi: true, jeton, nouveauCode } : { reussi: false };
 }
