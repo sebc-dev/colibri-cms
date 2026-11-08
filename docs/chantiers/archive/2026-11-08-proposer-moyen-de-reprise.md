@@ -29,3 +29,9 @@ FR-009→012 ; faire valider le proposal avant tout ticket.
   course vient de bits-ui 2.19.0 (clic traité après 10 ms), fenêtre de 10 à 30 ms, jugée négligeable
   (commentaire sur #315).
 - Ouvrir le change avant de clore 015 : l'archivage et la recette passaient d'abord.
+
+## Issue
+Le change `openspec/changes/016-moyen-de-reprise/` a été proposé, validé (`openspec validate --strict`)
+et fusionné le 2026-11-08 par la PR #316 (`647c482`). Deux points arbitrés avec l'humain : le code de
+secours est créé depuis l'administration, et son emploi ferme les autres sessions. Suite : promouvoir
+le candidat d'ADR en ADR-0032, puis `/scd-spec-dev:tickets 016-moyen-de-reprise`.
