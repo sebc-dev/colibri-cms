@@ -7,9 +7,9 @@ administration, boîte coupée, et consulte ses demandes. C'est le dernier recou
 promesse « le site survit à son prestataire » tombe sans lui.
 
 Sert l'**Epic C — Filets & reprise**, story « Moyen de reprise » (`docs/roadmap.md`) ; couvre
-**FR-009**, **FR-010**, **FR-011**, **FR-012** et **SC-020** (`docs/vision.md`). Part de la décision
-candidate `docs/adr/_candidates/moyen-de-reprise-code-128-bits-hache.md`, en l'amendant sur deux
-points (ci-dessous, 1 et 3).
+**FR-009**, **FR-010**, **FR-011**, **FR-012** et **SC-020** (`docs/vision.md`). S'appuie sur
+ADR-0032 (`docs/adr/0032-moyen-de-reprise-code-128-bits-hache.md`), promu depuis le candidat et amendé
+sur deux points (ci-dessous, 1 et 3).
 
 ## What Changes
 
@@ -35,14 +35,14 @@ points (ci-dessous, 1 et 3).
 Le détail est dans `design.md` § Decisions. Les points 1 et 3 ont été arbitrés avec l'humain le
 2026-11-08.
 
-1. **Le code est remis depuis l'administration.** À la livraison, l'intégrateur ouvre une session
-   avec l'adresse autorisée, crée le code depuis l'écran « Code de secours » et le remet à l'éditrice
-   sur papier. C'est le même écran que le remplacement : un seul chemin de création, et le code ne
-   passe par aucun terminal. Le candidat d'ADR écartait un code « né dans une session déjà ouverte » ;
-   la promotion de l'ADR l'amende et dit pourquoi. Avant ce geste, l'instance n'a pas de code de
-   secours, et l'écran le dit.
+1. **Le code naît dans l'administration.** À la livraison, l'éditrice ouvre sa session par l'adresse
+   autorisée, sur son appareil, accompagnée par l'intégrateur. Elle crée le code depuis l'écran
+   « Code de secours » et le note sur papier. C'est le même écran que le remplacement : un seul chemin
+   de création, et le code ne passe par aucun terminal. Isometria ne le voit jamais. ADR-0032 l'arrête
+   ainsi, contre le candidat qui écartait un code né dans une session déjà ouverte. Avant ce geste,
+   l'instance n'a pas de code de secours, et l'écran le dit.
 2. **Un code de 128 bits, haché, sans frein propre.** L'entropie seule rend la devinette sans objet,
-   en ligne comme hors ligne (candidat d'ADR). Aucun compteur d'essais ne le brûle : un attaquant qui
+   en ligne comme hors ligne (ADR-0032). Aucun compteur d'essais ne le brûle : un attaquant qui
    entretiendrait des échecs priverait l'éditrice de son dernier recours.
 3. **Usage unique, renouvelé à l'emploi, autres sessions fermées.** Le papier ne reste pas une porte
    permanente, et l'éditrice n'est pas laissée sans filet au sortir de la panne. Fermer les autres
@@ -76,8 +76,9 @@ Le détail est dans `design.md` § Decisions. Les points 1 et 3 ont été arbitr
   `src/platform/session/` ; les textes dans `src/admin/textes.ts` ; un lien depuis l'écran Réglages.
 - **Base** : une migration additive crée la table du code de secours (une ligne au plus).
 - **Architecture** : aucune relation nouvelle dans le modèle LikeC4.
-- **ADR** : promotion du candidat `moyen-de-reprise-code-128-bits-hache` en ADR-0032, amendé sur
-  la remise depuis l'administration et la fermeture des sessions à l'emploi — avant les tickets.
+- **ADR** : ADR-0032, accepté le 2026-11-08 avant les tickets, promu depuis le candidat
+  `moyen-de-reprise-code-128-bits-hache` et amendé sur la naissance du code dans l'administration et
+  la fermeture des autres sessions.
 - **Tests** : intégration dans workerd ; SC-020 joué en recette, boîte de recette rendue
   inaccessible.
 - **Hors périmètre** : le remplacement de l'adresse autorisée (FR-013, FR-014, story suivante) ;

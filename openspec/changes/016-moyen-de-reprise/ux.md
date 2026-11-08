@@ -26,7 +26,7 @@ Il mène à l'écran de saisie du code de secours. Le reste de l'écran ne chang
 Même carte que la connexion, titre « Entrer avec le code de secours ».
 
 ```
- Saisissez le code de secours qui vous a été remis sur papier.
+ Saisissez le code de secours que vous avez noté sur papier.
  Code de secours  [______________________________]
  ( Entrer )
  ← Revenir à la connexion par e-mail
