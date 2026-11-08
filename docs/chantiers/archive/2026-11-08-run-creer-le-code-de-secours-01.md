@@ -37,6 +37,13 @@ dernier argument de `it()` (assertions inchangées), puis `git add` de la retouc
 resumeFromRunId: "wf_7d48fc4f-db2", args: { changeDir: "openspec/changes/016-moyen-de-reprise",
 ticket: "01", rerun: "2" })` — jouable dans la session qui a lancé le run seulement.
 
+## Issue
+La reprise `rerun: "3"` a abouti le 2026-11-08 : neuf critères cochés, PR #321 ouverte. À la
+relecture, j'ai ajouté le test « code en place : Remplacer, pas Créer » que la correction
+`change-F-1` promettait, limité la règle d'impression aux écrans qui portent la carte du code
+(`body:has(...)`), et fait vérifier par SC-04c que le seul lien de Réglages est celui du code de
+secours. Suite : `/scd-spec-dev:run 016-moyen-de-reprise 02`.
+
 ## Écarté
 - Sortir les `expect()` de la boucle : cela change les assertions validées par `Validate` (en
   cache), donc imposerait une relance complète au lieu d'une reprise.
