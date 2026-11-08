@@ -925,6 +925,14 @@ Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variant
 | CT-42.3 | Lire la ligne `[variantes] <n> photos, <f> fichiers, <s> s` de la construction (Workers Builds et locale) ; `find dist -type f \| wc -l` avant/après | Coût par photo relevé (signaler si > 0,5 s/photo) ; mise en ligne < 5 min (SC-004) ; 6 fichiers de plus qu'avant (119 dont 2 originaux) | OK — 2026-11-03 : construction locale de `photos-lourdes` sous `taskset -c 0,1` (`site.mjs batir`) : `[variantes] 48 photos, 144 fichiers, 8.3 s`, soit 0,17 s par photo de 2000 × 1500 px (~1 Mio), sous le seuil de 0,5 s ; construction complète en 46 s, 308 fichiers. Site de démonstration à `3f1f656` (construit à part, images publiées récupérées) : `[variantes] 2 photos, 6 fichiers, 0.1 s`, `find dist -type f \| wc -l` = 124, soit 118 + 6 variantes WebP (2 originaux PNG), comme le 2026-11-02. Workers Builds : la ligne `[variantes]` n'est pas lisible depuis la machine de recette (l'API refuse la connexion wrangler) et aucune publication n'a été déclenchée pour elle ; le coût relevé ce matin au § 29 vaut : reconstruction du serveur principal (47 images) en 52 à 80 s, page en ligne 87 à 117 s après la publication, sous 5 min (SC-004) ; dernière ligne relevée sur Workers Builds par l'opérateur : 0,03 s par photo (2026-11-02) |
 | CT-42.4 | Sur téléphone, regarder la photo de tête et une case de galerie | Image nette, sans artefacts | OK — 2026-11-03 : téléphone Android de l'opérateur (Chrome), Accueil de `https://colibri.sebc.dev`, capture lue par Claude : « X-01 » (tête) et « X-01 », « X-02 » (cases) lisibles, à bords francs, sans halo ni blocs de compression ; le grain du fond reste visible. Un premier regard sur la variante `photos-lourdes` ne jugeait rien : ses photos sont du bruit aléatoire, que la réduction à 360 px lisse en gris (attendu) |
 
+## 43. Créer le code de secours — change 016 · ticket 01
+
+| N° | Cas | Résultat attendu | Verdict |
+|---|---|---|---|
+| CT-43.1 | À 360 px, ouvrir Réglages puis « Code de secours », créer le code | Aucun défilement horizontal ; le code s'affiche en groupes de quatre signes, lisible ; boutons « Imprimer » et lien « Continuer » d'au moins 44 px de haut | à jouer |
+| CT-43.2 | Actionner « Imprimer » (aperçu avant impression) | Une seule page, seule la carte du code est imprimée | à jouer |
+| CT-43.3 | Cliquer « Continuer » puis revenir en arrière | L'écran dit la date de mise en place ; le code ne s'affiche plus | à jouer |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |

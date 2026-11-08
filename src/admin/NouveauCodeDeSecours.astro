@@ -1,0 +1,43 @@
+---
+/**
+ * La carte du nouveau code de secours, montrée une seule fois (change 016,
+ * ticket 01). Rendu serveur, sans îlot (I4) ; le bouton « Imprimer » est
+ * câblé par un script empaqueté qui ne reçoit jamais le code. À l'impression,
+ * seule la carte du code reste.
+ */
+import {
+  TEXTE_BOUTON_IMPRIMER,
+  TEXTE_CODE_DE_SECOURS_NE_REPARAIT_PAS,
+  TEXTE_INVITE_RECOPIER_CODE_DE_SECOURS,
+  TEXTE_LIEN_CONTINUER,
+  TEXTE_TITRE_NOUVEAU_CODE_DE_SECOURS,
+} from './textes.ts';
+import { Button } from './composants/ui/button/index.ts';
+import { Card, CardContent, CardHeader } from './composants/ui/card/index.ts';
+
+interface Props {
+  codeAffiche: string;
+}
+const { codeAffiche } = Astro.props;
+---
+
+<Card data-carte-code-de-secours>
+  <CardHeader>
+    <h2 class="text-lg font-semibold">{TEXTE_TITRE_NOUVEAU_CODE_DE_SECOURS}</h2>
+  </CardHeader>
+  <CardContent class="flex flex-col gap-4">
+    <p class="break-words font-mono text-2xl tracking-wider" data-code-de-secours>{codeAffiche}</p>
+    <p>{TEXTE_INVITE_RECOPIER_CODE_DE_SECOURS}</p>
+    <p class="text-ink-muted">{TEXTE_CODE_DE_SECOURS_NE_REPARAIT_PAS}</p>
+    <div class="flex flex-col gap-2 md:flex-row print:hidden">
+      <Button type="button" data-imprimer class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_IMPRIMER}</Button>
+      <a href="/admin/code-de-secours" class="inline-flex min-h-11 items-center justify-center underline underline-offset-2">{TEXTE_LIEN_CONTINUER}</a>
+    </div>
+  </CardContent>
+</Card>
+
+<script>
+  document.querySelector('[data-imprimer]')?.addEventListener('click', () => {
+    window.print();
+  });
+</script>

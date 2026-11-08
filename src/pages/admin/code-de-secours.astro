@@ -1,0 +1,71 @@
+---
+/**
+ * L'écran « Code de secours » (change 016, ticket 01, ADR-0032). Rendu
+ * serveur, garde de session importée (ADR-0007), anti-forgerie par
+ * SameSite=Strict et contrôle d'origine (ADR-0011). Le POST crée le code et
+ * le rend directement, sans redirection, en `no-store` : il ne se montre
+ * qu'une fois.
+ */
+import GabaritCadre from '../../admin/GabaritCadre.astro';
+import NouveauCodeDeSecours from '../../admin/NouveauCodeDeSecours.astro';
+import { Alert, AlertDescription } from '../../admin/composants/ui/alert/index.ts';
+import { Button } from '../../admin/composants/ui/button/index.ts';
+import { verifierSession } from '../../platform/session/index.ts';
+import { lireEtatCodeDeSecours, mettreEnPlaceCodeDeSecours } from '../../platform/auth/code-de-secours.ts';
+import { grouperCodeDeSecours } from '../../core/auth/code.ts';
+import {
+  TEXTE_AUCUN_CODE_DE_SECOURS,
+  TEXTE_BOUTON_CREER_CODE_DE_SECOURS,
+  TEXTE_BOUTON_REMPLACER_CODE_DE_SECOURS,
+  TEXTE_EN_TETE_CODE_DE_SECOURS,
+  TEXTE_TITRE_CODE_DE_SECOURS,
+  texteCodeDeSecoursEnPlace,
+} from '../../admin/textes.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+let codeAffiche: string | null = null;
+if (Astro.request.method === 'POST') {
+  const code = await mettreEnPlaceCodeDeSecours(env.DB, session, Date.now());
+  codeAffiche = grouperCodeDeSecours(code);
+}
+
+const etat = codeAffiche === null ? await lireEtatCodeDeSecours(env.DB) : { enPlace: false as const };
+const formatDate = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', dateStyle: 'long' });
+---
+
+<GabaritCadre titre="Code de secours — Administration" rubrique="reglages">
+  <h1>{TEXTE_TITRE_CODE_DE_SECOURS}</h1>
+  <p class="mt-2">{TEXTE_EN_TETE_CODE_DE_SECOURS}</p>
+  <div class="mt-6 flex flex-col gap-4">
+    {
+      codeAffiche !== null ? (
+        <NouveauCodeDeSecours codeAffiche={codeAffiche} />
+      ) : etat.enPlace ? (
+        <>
+          <p>{texteCodeDeSecoursEnPlace(formatDate.format(etat.depuis))}</p>
+          <div>
+            <Button variant="secondary" href="/admin/code-de-secours?remplacer" class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">
+              {TEXTE_BOUTON_REMPLACER_CODE_DE_SECOURS}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <Alert class="border-transparent bg-ambre-soft">
+            <AlertDescription class="text-ambre">{TEXTE_AUCUN_CODE_DE_SECOURS}</AlertDescription>
+          </Alert>
+          <form method="post">
+            <Button type="submit" class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_CREER_CODE_DE_SECOURS}</Button>
+          </form>
+        </>
+      )
+    }
+  </div>
+</GabaritCadre>

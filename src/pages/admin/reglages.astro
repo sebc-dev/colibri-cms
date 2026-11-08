@@ -28,6 +28,7 @@ import {
   TEXTE_CARTE_RESEAUX,
   TEXTE_COORDONNEES_VIDES,
   TEXTE_RESEAUX_VIDES,
+  TEXTE_LIEN_CODE_DE_SECOURS,
   TEXTE_TITRE_REGLAGES,
 } from '../../admin/textes.ts';
 import { env } from 'cloudflare:workers';
@@ -180,5 +181,6 @@ const donneesReseaux = JSON.stringify(reseaux.map((r) => ({ nom: r.nom, lien: r.
       </div>
     </section>
   </div>
+  <p class="mt-6"><a href="/admin/code-de-secours" class="inline-flex min-h-11 items-center text-plumage underline underline-offset-2">{TEXTE_LIEN_CODE_DE_SECOURS}</a></p>
   <MontageCarteCoordonnees slot="scripts" />
 </GabaritCadre>
