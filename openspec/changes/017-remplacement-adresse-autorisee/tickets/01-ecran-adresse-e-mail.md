@@ -49,7 +49,7 @@ jamais « adresse autorisée » (`ux.md`, FR-117).
 bascule (04). Le contrôle des termes de développeur sur tous les états de l'écran est le ticket 05.
 
 ## Critères
-- [ ] l'écran « Adresse e-mail », en GET comme en POST, demandé sans session ouverte, renvoie vers l'écran de connexion, et rien n'est inscrit, écrit ni envoyé   (SC-01a)
-- [ ] l'écran Réglages porte un lien vers l'écran « Adresse e-mail »   (SC-01b)
-- [ ] l'écran rendu avec une session ouverte montre l'adresse autorisée en place et offre un champ pour proposer une nouvelle adresse   (SC-01c)
-- [ ] sur une instance sans clé, sans identifiant de compte, ou sans les deux, l'écran montre l'adresse en place et dit que le remplacement n'est pas possible pour le moment, et aucune proposition n'aboutit à une inscription ou un envoi   (SC-01d)
+- [x] l'écran « Adresse e-mail », en GET comme en POST, demandé sans session ouverte, renvoie vers l'écran de connexion, et rien n'est inscrit, écrit ni envoyé   (SC-01a)
+- [x] l'écran Réglages porte un lien vers l'écran « Adresse e-mail »   (SC-01b)
+- [x] l'écran rendu avec une session ouverte montre l'adresse autorisée en place et offre un champ pour proposer une nouvelle adresse   (SC-01c)
+- [x] sur une instance sans clé, sans identifiant de compte, ou sans les deux, l'écran montre l'adresse en place et dit que le remplacement n'est pas possible pour le moment, et aucune proposition n'aboutit à une inscription ou un envoi   (SC-01d)

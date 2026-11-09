@@ -77,6 +77,7 @@ const instance = JSON.parse(readFileSync(instancePath, 'utf-8')) as {
   domain: string;
   senderAddress?: unknown;
   depotDePublication?: unknown;
+  compteCloudflare?: unknown;
 };
 // Ticket 01 (007) : l'adresse d'expéditeur du code de connexion est validée
 // ici (la construction échoue en nommant `senderAddress`), puis injectée.
@@ -87,6 +88,14 @@ if (instance.depotDePublication !== undefined && !depotValide(instance.depotDePu
   throw new Error("instance.json : le champ depotDePublication doit avoir la forme « propriétaire/dépôt ».");
 }
 const depotDePublication = instance.depotDePublication ?? null;
+// Change 017 : l'identifiant du compte Cloudflare (32 hexadécimaux) est facultatif ; sans lui, le remplacement d'adresse n'est pas possible (ADR-0033).
+if (
+  instance.compteCloudflare !== undefined &&
+  !(typeof instance.compteCloudflare === 'string' && /^[0-9a-f]{32}$/.test(instance.compteCloudflare))
+) {
+  throw new Error('instance.json : le champ compteCloudflare doit être un identifiant de 32 hexadécimaux.');
+}
+const compteCloudflare = instance.compteCloudflare ?? null;
 
 export default defineConfig({
   site: `https://${instance.domain}`,
@@ -151,6 +160,7 @@ export default defineConfig({
     define: {
       __ADRESSE_EXPEDITEUR__: JSON.stringify(adresseExpediteur),
       __DEPOT_DE_PUBLICATION__: JSON.stringify(depotDePublication),
+      __COMPTE_CLOUDFLARE__: JSON.stringify(compteCloudflare),
     },
     plugins: [tailwindcss()],
     build: {
