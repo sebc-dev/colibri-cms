@@ -50,14 +50,10 @@ model {
   // trace : src/pages/api/public/demandes.ts ; src/platform/email/index.ts — demanderAcheminementDeLaDemande
   colibri-cms.worker.platform -[sync]-> email-routing 'achemine une demande de devis'
   email-routing -[async]-> editrice 'remet la demande'
-  // décision : ADR-0033, change 017 — API des adresses de destination, clé « Email Routing Addresses Edit » du compte client
-  colibri-cms.worker.platform -[sync]-> email-routing 'inscrit une adresse de destination et lit sa vérification' {
-    #planned
-  }
-  // décision : ADR-0033, change 017 — le message de vérification de Cloudflare, puis le code du remplacement
-  email-routing -[async]-> editrice 'remet le message de confirmation de la nouvelle adresse' {
-    #planned
-  }
+  // trace : src/platform/adresses-cloudflare/index.ts — inscrireAdresse (ADR-0033, change 017) ; clé « Email Routing Addresses Edit » du compte client
+  colibri-cms.worker.platform -[sync]-> email-routing 'inscrit une adresse de destination et lit sa vérification'
+  // trace : src/pages/admin/adresse-e-mail.astro — le message de vérification de Cloudflare, puis le code du remplacement (ADR-0033)
+  email-routing -[async]-> editrice 'remet le message de confirmation de la nouvelle adresse'
   colibri-cms.worker.platform -[sync]-> github 'dépose le contenu et les images publiés'
   github -[async]-> workers-builds 'déclenche la reconstruction (branche principale seule)'
   workers-builds -[async]-> colibri-cms.worker 'bâtit, récupère les images, en produit les variantes, déploie'

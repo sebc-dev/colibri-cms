@@ -76,10 +76,10 @@ proposition se constate au ticket 05 ; le plafond (08) ; aucun retrait d'adresse
 jamais.
 
 ## Critères
-- [ ] une saisie qui n'a pas la forme d'une adresse e-mail (vide, sans `@`) est refusée par l'écran, rien n'est inscrit chez Cloudflare et aucun remplacement n'est ouvert   (SC-02a)
-- [ ] l'adresse autorisée en place, proposée (casse différente comprise), est refusée : l'écran dit que c'est déjà son adresse, et rien n'est inscrit chez Cloudflare   (SC-02b)
-- [ ] une adresse valide absente chez Cloudflare est inscrite parmi les adresses de destination du compte (`GET` puis `POST` sur le double), et l'écran annonce le message de confirmation à venir et le geste à faire   (SC-02c)
-- [ ] une adresse déjà inscrite chez Cloudflare ne fait l'objet d'aucun `POST`, et un remplacement est ouvert vers elle   (SC-02d)
-- [ ] juste après une proposition, l'adresse autorisée en place ouvre toujours l'administration (un code de connexion lui est écrit) et une demande complète lui est toujours acheminée   (SC-02e)
-- [ ] quand Cloudflare refuse ou ne répond pas (`success: false`, 5xx, délai dépassé, réponse illisible), l'écran dit que le remplacement n'a pas pu commencer et invite à réessayer plus tard, aucun remplacement n'est ouvert et l'adresse autorisée ne change pas   (SC-02f)
-- [ ] l'écran rendu alors qu'un remplacement est en cours dit vers quelle adresse il est en cours et ce qui reste à faire   (SC-02g)
+- [x] une saisie qui n'a pas la forme d'une adresse e-mail (vide, sans `@`) est refusée par l'écran, rien n'est inscrit chez Cloudflare et aucun remplacement n'est ouvert   (SC-02a)
+- [x] l'adresse autorisée en place, proposée (casse différente comprise), est refusée : l'écran dit que c'est déjà son adresse, et rien n'est inscrit chez Cloudflare   (SC-02b)
+- [x] une adresse valide absente chez Cloudflare est inscrite parmi les adresses de destination du compte (`GET` puis `POST` sur le double), et l'écran annonce le message de confirmation à venir et le geste à faire   (SC-02c)
+- [x] une adresse déjà inscrite chez Cloudflare ne fait l'objet d'aucun `POST`, et un remplacement est ouvert vers elle   (SC-02d)
+- [x] juste après une proposition, l'adresse autorisée en place ouvre toujours l'administration (un code de connexion lui est écrit) et une demande complète lui est toujours acheminée   (SC-02e)
+- [x] quand Cloudflare refuse ou ne répond pas (`success: false`, 5xx, délai dépassé, réponse illisible), l'écran dit que le remplacement n'a pas pu commencer et invite à réessayer plus tard, aucun remplacement n'est ouvert et l'adresse autorisée ne change pas   (SC-02f)
+- [x] l'écran rendu alors qu'un remplacement est en cours dit vers quelle adresse il est en cours et ce qui reste à faire   (SC-02g)

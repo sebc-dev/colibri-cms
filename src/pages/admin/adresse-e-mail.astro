@@ -2,7 +2,8 @@
 /**
  * L'écran « Adresse e-mail » (change 017, ticket 01, ADR-0033). Rendu serveur
  * sans îlot (I4), garde de session importée (ADR-0007), adresse interpolée
- * (I5). Aucune écriture à ce ticket : le POST `proposer` ne change rien.
+ * (I5). Le POST `proposer` inscrit l'adresse chez Cloudflare et ouvre le
+ * remplacement ; chaque POST rend l'écran suivant sans redirection.
  */
 import GabaritCadre from '../../admin/GabaritCadre.astro';
 import { Alert, AlertDescription } from '../../admin/composants/ui/alert/index.ts';
@@ -13,12 +14,22 @@ import { Label } from '../../admin/composants/ui/label/index.ts';
 import { verifierSession } from '../../platform/session/index.ts';
 import { lireAdresseAutorisee } from '../../platform/auth/magasin.ts';
 import { remplacementPossible } from '../../core/auth/remplacement.ts';
+import { EMAIL_FORME } from '../../core/reglages/coordonnees.ts';
+import { inscrireAdresse } from '../../platform/adresses-cloudflare/index.ts';
+import { lireRemplacementEnCours, ouvrirRemplacement } from '../../platform/auth/remplacement-adresse.ts';
 import {
   TEXTE_BOUTON_CHANGER_ADRESSE,
   TEXTE_LABEL_NOUVELLE_ADRESSE,
   TEXTE_TITRE_ADRESSE_EMAIL,
   TEXTE_ADRESSE_EN_PLACE,
   texteChangementAdresseImpossible,
+  TEXTE_REFUS_ADRESSE_FORME,
+  TEXTE_REFUS_ADRESSE_DEJA_EN_PLACE,
+  TEXTE_BOUTON_JAI_CLIQUE,
+  TEXTE_LIEN_REVENIR_AUX_REGLAGES,
+  texteChangementAdresseEchoue,
+  texteMessageVaArriver,
+  texteAdresseResteEnPlace,
 } from '../../admin/textes.ts';
 import { env } from 'cloudflare:workers';
 
@@ -30,7 +41,30 @@ if (!session) {
 Astro.response.headers.set('Cache-Control', 'no-store');
 
 const adresse = (await lireAdresseAutorisee(env.DB)) ?? '';
-const possible = remplacementPossible(__COMPTE_CLOUDFLARE__ ?? undefined, env.JETON_ADRESSES_EMAIL);
+const compte = __COMPTE_CLOUDFLARE__ ?? undefined;
+const cle = env.JETON_ADRESSES_EMAIL;
+const possible = remplacementPossible(compte, cle);
+
+let refus: string | null = null;
+if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !== undefined) {
+  const formulaire = await Astro.request.formData();
+  if (formulaire.get('etape') === 'proposer') {
+    const saisie = String(formulaire.get('adresse') ?? '').trim();
+    if (!EMAIL_FORME.test(saisie)) {
+      refus = TEXTE_REFUS_ADRESSE_FORME;
+    } else if (saisie.toLowerCase() === adresse.toLowerCase()) {
+      refus = TEXTE_REFUS_ADRESSE_DEJA_EN_PLACE;
+    } else {
+      const resultat = await inscrireAdresse(cle, compte, saisie);
+      if (resultat === 'echec') {
+        refus = texteChangementAdresseEchoue(adresse);
+      } else {
+        await ouvrirRemplacement(env.DB, saisie, session, Date.now());
+      }
+    }
+  }
+}
+const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
 ---
 
 <GabaritCadre titre="Adresse e-mail — Administration" rubrique="reglages">
@@ -38,8 +72,22 @@ const possible = remplacementPossible(__COMPTE_CLOUDFLARE__ ?? undefined, env.JE
   <div class="mt-6 flex flex-col gap-4">
     {
       possible ? (
+        <>
         <Card>
           <CardContent class="flex flex-col gap-4">
+            {enCours !== null ? (
+              <>
+                <p>{texteMessageVaArriver(enCours)}</p>
+                <button type="submit" form="verifier" class="h-auto w-full rounded-md border px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_JAI_CLIQUE}</button>
+                <a href="/admin/reglages" class="inline-flex min-h-11 items-center underline underline-offset-2">{TEXTE_LIEN_REVENIR_AUX_REGLAGES}</a>
+                <p>{texteAdresseResteEnPlace(adresse)}</p>
+              </>
+            ) : null}
+            {refus !== null ? (
+              <Alert class="border-transparent bg-ambre-soft">
+                <AlertDescription class="text-ambre">{refus}</AlertDescription>
+              </Alert>
+            ) : null}
             <p>{TEXTE_ADRESSE_EN_PLACE}</p>
             <p class="font-medium">{adresse}</p>
             <form method="post" class="flex flex-col gap-3">
@@ -52,6 +100,10 @@ const possible = remplacementPossible(__COMPTE_CLOUDFLARE__ ?? undefined, env.JE
             </form>
           </CardContent>
         </Card>
+        <form id="verifier" method="post">
+          <input type="hidden" name="etape" value="verifier" />
+        </form>
+        </>
       ) : (
         <Alert class="border-transparent bg-ambre-soft">
           <AlertDescription class="text-ambre">{texteChangementAdresseImpossible(adresse)}</AlertDescription>

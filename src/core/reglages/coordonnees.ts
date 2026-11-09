@@ -36,7 +36,7 @@ export type VerdictCoordonnee =
   | { readonly ok: false; readonly raison: RaisonRefus };
 
 const TELEPHONE_FORME = /^\+?[\d\s.\-()]+$/;
-const EMAIL_FORME = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
+export const EMAIL_FORME = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 function accepte(valeur: string): VerdictCoordonnee {
   return { ok: true, valeur };
