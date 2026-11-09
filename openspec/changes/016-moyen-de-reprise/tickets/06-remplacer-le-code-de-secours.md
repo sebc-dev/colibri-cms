@@ -44,10 +44,10 @@ sur les trois rendus de l'écran : l'écran lui-même, la confirmation, l'affich
 remplacement de l'adresse autorisée (FR-013, FR-014).
 
 ## Critères
-- [ ] l'éditrice demande à remplacer le code en place : une confirmation dit que l'ancien code cessera d'ouvrir et que les autres appareils seront déconnectés, et rien ne change tant qu'elle n'a pas confirmé   (SC-06a)
-- [ ] l'éditrice confirme le remplacement, puis l'ancien code est présenté : l'ancien code n'ouvre pas de session, et le nouveau en ouvre une   (SC-06b)
-- [ ] une session est ouverte sur un autre appareil, et l'éditrice remplace le code : la session de l'autre appareil ne donne plus accès, et la session de l'éditrice reste ouverte   (SC-06c)
-- [ ] un code de secours est mis en place alors qu'un autre l'était : seul le dernier ouvre une session   (SC-06d)
-- [ ] l'écran « Code de secours », sa confirmation et l'affichage d'un nouveau code ne portent aucun terme de développeur (FR-117)   (SC-06e)
-- [ ] plusieurs sessions sont ouvertes en même temps, et le code de secours n'est ni créé, ni remplacé, ni employé : elles coexistent sans que rien ne les compte ni ne les ferme   (SC-06f)
-- [ ] plusieurs sessions sont ouvertes, puis le code de secours est créé, remplacé ou employé : seule reste ouverte la session qui a fait le geste, ou celle que le code vient d'ouvrir (un cas par geste)   (SC-06g)
+- [x] l'éditrice demande à remplacer le code en place : une confirmation dit que l'ancien code cessera d'ouvrir et que les autres appareils seront déconnectés, et rien ne change tant qu'elle n'a pas confirmé   (SC-06a)
+- [x] l'éditrice confirme le remplacement, puis l'ancien code est présenté : l'ancien code n'ouvre pas de session, et le nouveau en ouvre une   (SC-06b)
+- [x] une session est ouverte sur un autre appareil, et l'éditrice remplace le code : la session de l'autre appareil ne donne plus accès, et la session de l'éditrice reste ouverte   (SC-06c)
+- [x] un code de secours est mis en place alors qu'un autre l'était : seul le dernier ouvre une session   (SC-06d)
+- [x] l'écran « Code de secours », sa confirmation et l'affichage d'un nouveau code ne portent aucun terme de développeur (FR-117)   (SC-06e)
+- [x] plusieurs sessions sont ouvertes en même temps, et le code de secours n'est ni créé, ni remplacé, ni employé : elles coexistent sans que rien ne les compte ni ne les ferme   (SC-06f)
+- [x] plusieurs sessions sont ouvertes, puis le code de secours est créé, remplacé ou employé : seule reste ouverte la session qui a fait le geste, ou celle que le code vient d'ouvrir (un cas par geste)   (SC-06g)
