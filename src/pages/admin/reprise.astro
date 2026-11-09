@@ -15,6 +15,8 @@ import { verifierSession, enteteCookieSession } from '../../platform/session/ind
 import { ouvrirSessionParCodeDeSecours } from '../../platform/auth/code-de-secours.ts';
 import NouveauCodeDeSecours from '../../admin/NouveauCodeDeSecours.astro';
 import { grouperCodeDeSecours } from '../../core/auth/code.ts';
+import { compterEtJuger } from '../../platform/frequence/index.ts';
+import { DELAI_PLANCHER_MS, attendre } from '../../core/auth/regles.ts';
 import { env } from 'cloudflare:workers';
 import {
   TEXTE_TITRE_REPRISE,
@@ -22,16 +24,35 @@ import {
   TEXTE_LIBELLE_CODE_DE_SECOURS,
   TEXTE_BOUTON_REPRISE,
   TEXTE_REFUS_REPRISE,
+  TEXTE_ANNONCE_SEUIL,
+  TEXTE_ANNONCE_PANNE,
   TEXTE_LIEN_RETOUR_CONNEXION,
 } from '../../admin/textes.ts';
 
 await verifierSession(env.DB, Astro.request);
 
 let refuse = false;
+let seuilAtteint = false;
+let compteurIndisponible = false;
 let codeAffiche: string | null = null;
 if (Astro.request.method === 'POST') {
+  const debutSoumission = Date.now();
+  // Chaque présentation compte dans le seuil de connexion de son origine
+  // (ADR-0028), avant toute vérification du code.
+  const verdictSeuil = await compterEtJuger(
+    env.DB,
+    'connexion',
+    Astro.request.headers.get('cf-connecting-ip'),
+    debutSoumission,
+  );
   const donnees = await Astro.request.formData();
   const saisie = String(donnees.get('code') ?? '');
+  if (verdictSeuil !== 'traitee') {
+    seuilAtteint = verdictSeuil === 'refusee';
+    compteurIndisponible = !seuilAtteint;
+    const reste = DELAI_PLANCHER_MS - (Date.now() - debutSoumission);
+    if (reste > 0) await attendre(reste);
+  } else {
   const resultat = await ouvrirSessionParCodeDeSecours(
     env.DB,
     saisie,
@@ -43,6 +64,7 @@ if (Astro.request.method === 'POST') {
     codeAffiche = grouperCodeDeSecours(resultat.nouveauCode);
   } else {
     refuse = true;
+  }
   }
 }
 Astro.response.headers.set('Cache-Control', 'no-store');
@@ -61,6 +83,17 @@ Astro.response.headers.set('Cache-Control', 'no-store');
       <CardContent class="flex flex-col gap-6">
         <form method="post" class="flex flex-col gap-3">
           <p>{TEXTE_INVITE_REPRISE}</p>
+          {
+            compteurIndisponible ? (
+              <Alert class="border-transparent bg-ambre-soft">
+                <AlertDescription class="text-ambre">{TEXTE_ANNONCE_PANNE}</AlertDescription>
+              </Alert>
+            ) : seuilAtteint ? (
+              <Alert class="border-transparent bg-ambre-soft">
+                <AlertDescription class="text-ambre">{TEXTE_ANNONCE_SEUIL}</AlertDescription>
+              </Alert>
+            ) : null
+          }
           {
             refuse && (
               <Alert variant="destructive">

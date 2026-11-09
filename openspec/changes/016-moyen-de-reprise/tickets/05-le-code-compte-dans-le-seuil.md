@@ -38,7 +38,7 @@ de `tests/integration/seuil-de-connexion.test.ts`).
 **Hors de ce ticket.** Le refus d'un code faux sous le seuil (04).
 
 ## Critères
-- [ ] une même origine fait, dans la même heure, vingt soumissions mêlées de l'écran de connexion et de l'écran du code de secours, puis présente un code de secours : la vingt-et-unième tentative est refusée et l'écran annonce le seuil   (SC-05a)
-- [ ] au-delà du seuil de son origine, le code de secours en place est présenté : aucune session ne s'ouvre, et le code en place ouvre encore une session une fois l'origine revenue sous le seuil   (SC-05b)
-- [ ] au-delà du seuil de son origine, sont présentés le code en place puis un code faux : les deux réponses portent le même texte et les mêmes champs d'en-tête, et toutes deux attendent le délai plancher   (SC-05c)
-- [ ] la base refuse de compter la présentation du code de secours en place : aucune session ne s'ouvre, le code en place reste valable, et l'écran dit que la connexion n'a pas pu se faire, sans annoncer le seuil   (SC-05d)
+- [x] une même origine fait, dans la même heure, vingt soumissions mêlées de l'écran de connexion et de l'écran du code de secours, puis présente un code de secours : la vingt-et-unième tentative est refusée et l'écran annonce le seuil   (SC-05a)
+- [x] au-delà du seuil de son origine, le code de secours en place est présenté : aucune session ne s'ouvre, et le code en place ouvre encore une session une fois l'origine revenue sous le seuil   (SC-05b)
+- [x] au-delà du seuil de son origine, sont présentés le code en place puis un code faux : les deux réponses portent le même texte et les mêmes champs d'en-tête, et toutes deux attendent le délai plancher   (SC-05c)
+- [x] la base refuse de compter la présentation du code de secours en place : aucune session ne s'ouvre, le code en place reste valable, et l'écran dit que la connexion n'a pas pu se faire, sans annoncer le seuil   (SC-05d)
