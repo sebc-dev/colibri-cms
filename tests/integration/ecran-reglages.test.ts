@@ -205,11 +205,12 @@ it("SC-04c — les textes de la déclaration sont affichés comme texte, échapp
       "a",
     ]).toContain(balise);
   }
-  // Le seul lien de l'écran est celui du code de secours : un lien venu des
-  // données serait refusé.
+  // Les seuls liens de l'écran sont ceux du code de secours et de l'adresse
+  // e-mail : un lien venu des données serait refusé.
   const liens = [...main.matchAll(/<a\b[^>]*>/gi)].map((m) => m[0]);
-  expect(liens).toHaveLength(1);
+  expect(liens).toHaveLength(2);
   expect(liens[0]).toMatch(/href="\/admin\/code-de-secours"/);
+  expect(liens[1]).toMatch(/href="\/admin\/adresse-e-mail"/);
 });
 
 it("SC-04c — la source de l’écran n’injecte aucune donnée comme balisage (ni set:html ni innerHTML)", async () => {
