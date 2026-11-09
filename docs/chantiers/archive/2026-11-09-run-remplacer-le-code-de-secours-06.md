@@ -40,3 +40,10 @@ Après un `/clear`, la reprise n'existe plus : commiter la retouche et relancer
 ## Écarté
 - Changer le code pour que la création ne ferme pas les autres sessions : SC-06g l'exige, le
   défaut est dans la mise en place de SC-06a et SC-06c, pas dans le comportement.
+
+## Issue
+La reprise `rerun: "2"` s'est arrêtée en `blocked-quality` sur un `.sort()` sans comparateur dans
+le test neuf (`sonarjs/no-alphabetical-sort`) ; corrigé à la main, la reprise `rerun: "3"` a abouti
+le 2026-11-09 et ouvert la PR #327. La correction `change-F-1` y était classée appliquée sans être
+dans le diff : le texte de confirmation a été aligné sur `ux.md` à la main, avec l'assertion de
+SC-06a durcie sur le libellé exact, sur décision humaine.
