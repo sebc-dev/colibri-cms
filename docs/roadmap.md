@@ -61,7 +61,9 @@ vital ensuite.
 - [x] **015 — Restauration : retour à la dernière version publiée** · *livrée* (FR-092→094 ·
       SC-009) — une page, un réglage ou un formulaire revient à sa version publiée, refusé pendant
       une publication ; un identifiant d'option donné ne revient jamais
-- [ ] Moyen de reprise (FR-009→012 · SC-020)
+- [x] **016 — Moyen de reprise** · *livrée* (FR-009→012 · SC-020) — un code de secours sur papier,
+      présenté sans message, à usage unique et renouvelé à l'emploi ; le créer, le remplacer ou
+      l'employer ferme les autres sessions ; il compte dans le seuil de connexion par origine
 - [ ] Remplacement de l'adresse autorisée (FR-013, FR-014)
 
 ## Epic D — Flotte & réversibilité · Later
