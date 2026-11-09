@@ -34,7 +34,7 @@ secours » (la même écriture sert à la création et au remplacement).
 remplacement (06).
 
 ## Critères
-- [ ] un code qui n'est pas le code en place est présenté : aucune session ne s'ouvre, et l'écran invite à vérifier la recopie   (SC-04a)
-- [ ] sont présentés tour à tour un code faux, un code déjà servi, un code remplacé, et un code quelconque sur une instance sans code en place : les quatre réponses portent le même texte et les mêmes champs d'en-tête   (SC-04b)
-- [ ] dix codes faux sont présentés, sous le seuil de l'origine, puis le code en place : le code en place ouvre une session   (SC-04c)
-- [ ] l'écran qui annonce un code de secours refusé ne porte aucun terme de développeur (FR-117)   (SC-04d)
+- [x] un code qui n'est pas le code en place est présenté : aucune session ne s'ouvre, et l'écran invite à vérifier la recopie   (SC-04a)
+- [x] sont présentés tour à tour un code faux, un code déjà servi, un code remplacé, et un code quelconque sur une instance sans code en place : les quatre réponses portent le même texte et les mêmes champs d'en-tête   (SC-04b)
+- [x] dix codes faux sont présentés, sous le seuil de l'origine, puis le code en place : le code en place ouvre une session   (SC-04c)
+- [x] l'écran qui annonce un code de secours refusé ne porte aucun terme de développeur (FR-117)   (SC-04d)
