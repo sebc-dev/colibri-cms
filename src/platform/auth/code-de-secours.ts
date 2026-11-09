@@ -31,23 +31,27 @@ async function empreinteDuCode(code: string): Promise<string> {
 
 /**
  * Met en place un code de secours neuf (remplace l'éventuel précédent) et le
- * rend, une seule fois, à l'appelant. `sessionCourante` est la session qui
- * fait le geste : réservée à la fermeture des autres sessions (ticket 06).
+ * rend, une seule fois, à l'appelant. Dans le même lot atomique, toute session
+ * autre que `sessionCourante` est fermée : la validité d'une session est la
+ * présence de sa ligne (ADR-0001).
  */
 export async function mettreEnPlaceCodeDeSecours(
   db: Base,
-  sessionCourante: unknown,
+  sessionCourante: { readonly id: string },
   maintenant: number,
 ): Promise<string> {
   await assurerSchema(db);
+  await assurerTableSessions(db);
   const code = engendrerCodeDeSecours();
   const empreinte = await empreinteDuCode(code);
-  await db
-    .prepare(
-      'insert into code_de_secours (id, empreinte, cree_le) values (1, ?1, ?2) on conflict(id) do update set empreinte = excluded.empreinte, cree_le = excluded.cree_le',
-    )
-    .bind(empreinte, maintenant)
-    .run();
+  await db.batch([
+    db
+      .prepare(
+        'insert into code_de_secours (id, empreinte, cree_le) values (1, ?1, ?2) on conflict(id) do update set empreinte = excluded.empreinte, cree_le = excluded.cree_le',
+      )
+      .bind(empreinte, maintenant),
+    db.prepare('delete from sessions where id <> ?1').bind(sessionCourante.id),
+  ]);
   return code;
 }
 
