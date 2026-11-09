@@ -261,7 +261,8 @@ it(
 
     const debut = Date.now();
     const reponse = await presenterSecours(ORIGINE_A, appareil, CODE);
-    const corps = await reponse.text();
+    // Astro échappe l'apostrophe du texte interpolé : décoder avant de comparer.
+    const corps = (await reponse.text()).replaceAll('&#39;', "'");
     const delai = Date.now() - debut;
 
     expect(corps).toContain(TEXTE_ANNONCE_PANNE);
