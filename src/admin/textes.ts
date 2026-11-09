@@ -450,7 +450,7 @@ export const TEXTE_INVITE_RECOPIER_CODE_DE_SECOURS = 'Recopiez-le ou imprimez ce
 export const TEXTE_CODE_DE_SECOURS_NE_REPARAIT_PAS = "Ce code ne s'affichera plus. L'ancien ne permet plus d'entrer.";
 export const TEXTE_TITRE_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS = 'Remplacer le code de secours ?';
 export const TEXTE_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS =
-  "L'ancien code ne servira plus, et les autres appareils devront se reconnecter.";
+  "L'ancien code ne permettra plus d'entrer. Les autres appareils connectés devront se reconnecter.";
 export const TEXTE_BOUTON_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS = 'Remplacer';
 export const TEXTE_LIEN_ANNULER = 'Annuler';
 export const TEXTE_BOUTON_IMPRIMER = 'Imprimer';
