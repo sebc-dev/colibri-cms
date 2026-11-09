@@ -37,7 +37,7 @@ Après « Changer d'adresse » :
  Il vient de notre hébergeur, Cloudflare, et il est écrit en anglais.
  Ouvrez-le et cliquez sur le bouton « Verify email address ».
  Revenez ensuite ici.
- ( J'ai cliqué sur le bouton )        Annuler
+ ( J'ai cliqué sur le bouton )        Revenir aux réglages
  Tant que ce n'est pas terminé, votre adresse reste marie@exemple.fr.
 ```
 
@@ -45,7 +45,11 @@ Après « Changer d'adresse » :
 - **Pas encore confirmé** (bouton pressé trop tôt) : message ambre, « Le clic n'a pas encore été
   enregistré. Vérifiez vos courriers indésirables, cliquez sur le bouton du message, puis
   réessayez. »
-- **Adresse déjà confirmée auparavant** : l'étape 1 est sautée, l'écran passe à l'étape 2.
+- **Adresse déjà confirmée auparavant** : l'étape 1 s'affiche quand même ; le premier clic sur
+  « J'ai cliqué sur le bouton » fait partir le code et mène à l'étape 2.
+
+« Revenir aux réglages » n'annule rien : le remplacement en cours reste sans effet jusqu'à la
+réussite, et l'écran le montre au retour. Seule une nouvelle proposition annule le précédent.
 
 ### 4. Étape 2 — le code du produit
 
