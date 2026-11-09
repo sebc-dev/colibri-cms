@@ -190,7 +190,7 @@ it("SC-06a — la demande de remplacement affiche une confirmation et ne change 
   expect(texte).toContain("Remplacer le code de secours ?");
   expect(texte).toMatch(/ancien code/i);
   expect(texte).toMatch(/ne (?:permettra|servira) plus|cessera/i);
-  expect(texte).toContain("les autres appareils devront se reconnecter");
+  expect(texte).toContain("Les autres appareils connectés devront se reconnecter.");
   expect(main).toMatch(/<form[^>]*method="post"/i);
   expect(texte).toContain("Remplacer");
   expect(main).toMatch(/<a[^>]*>\s*Annuler\s*<\/a>/);
