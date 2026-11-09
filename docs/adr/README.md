@@ -21,14 +21,14 @@ Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, 0
 0019, chaque renvoi à l'ancien cycle porte en plus la mention « (1.x) » dans son libellé
 (`ADR-0015 (1.x)`) : il se lit sans la règle. Dans le texte qu'un amendement ou un complément de
 promotion ajoute — les points marqués *(amendé)* ou *(ajouté)* —, un numéro sans mention est un
-numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030) citent des numéros 2.x.
+numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030, 0033) citent des numéros 2.x.
 
 ## Correspondance
 
 | 2.x | 1.x | Décision |
 |---|---|---|
 | [0001](./0001-auth-implementation-maison-sur-d1.md) | 0006 | Authentification maison sur D1, quatre mécanismes |
-| [0002](./0002-acheminement-email-routing-send-email.md) | 0009 | Acheminement par Email Routing, courriel inerte |
+| [0002](./0002-acheminement-email-routing-send-email.md) | 0009 | Acheminement par Email Routing, courriel inerte — **sa conséquence « une destination vérifiée ne se remplace pas depuis le produit » est levée par [0033](./0033-remplacement-de-l-adresse-autorisee-par-l-api-des-adresses-de-destination.md)** |
 | [0003](./0003-tests-vitest-dans-workerd.md) | 0013 | Tests — Vitest dans `workerd`, Playwright pour les parcours — **remplacé par [0014](./0014-oracle-workerd-integration-vitest-plugin.md)** |
 | [0004](./0004-en-tetes-de-reponse-deux-porteurs.md) | 0015 | En-têtes de réponse — deux porteurs — **sa clause Turnstile est levée par [0028](./0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md)** |
 | [0005](./0005-configuration-d-instance-quatre-lieux.md) | 0020 | Configuration d'instance — quatre lieux — **ses deux clés Turnstile n'existent plus depuis [0028](./0028-anti-abus-compteur-de-frequence-en-d1-sans-turnstile.md)** |
@@ -59,6 +59,7 @@ numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030) citent des num�
 | [0030](./0030-retrait-d-une-demande-temoin-tenu-par-la-base.md) | — | Le retrait d'une demande — un témoin réduit à son formulaire et à sa suite, tenu par la base ; aucun effacement d'office ; crée `I17` |
 | [0031](./0031-pipeline-d-images-variantes-au-build.md) | 0019 (1.x) | Pipeline d'images — les variantes WebP de 360, 720 et 1 080 px sont produites au build ; l'original n'est plus cité par le site public — **amendé** : remplace `image.layout`/`breakpoints` par une intégration `sharp` |
 | [0032](./0032-moyen-de-reprise-code-128-bits-hache.md) | 0016 (1.x) | Moyen de reprise — un code de 128 bits haché en D1, à usage unique et réémis à l'emploi — **amendé** : créé depuis l'administration par l'éditrice à la livraison ; création, remplacement et emploi ferment les autres sessions |
+| [0033](./0033-remplacement-de-l-adresse-autorisee-par-l-api-des-adresses-de-destination.md) | — | Remplacement de l'adresse autorisée — l'API des adresses de destination de Cloudflare, une clé limitée aux adresses, une liaison d'envoi sans adresse fixe, une double preuve ; lève une conséquence de [0002](./0002-acheminement-email-routing-send-email.md) ; crée `I18` |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -106,6 +107,10 @@ l'invariant `I17`.
 tickets. Il est **amendé** à la promotion, par arbitrage humain : le code naît dans l'administration,
 créé par l'éditrice à la livraison, et son emploi ferme les autres sessions ; la mention de Turnstile
 cède la place au seuil d'ADR-0028. Il ne crée aucun invariant.
+`ADR-0033` n'a pas d'antécédent 1.x : décision neuve, née le 2026-11-09 de l'arbitrage humain du change
+`017-remplacement-adresse-autorisee`, avant ses tickets. Il donne un porteur à `FR-013` et `FR-014`, que le
+cycle 1.x avait laissés sans porteur, et lève la conséquence de l'ADR-0002 qui l'interdisait ; le fichier
+de l'ADR-0002 ne change pas, la ligne de la table ci-dessus y renvoie.
 
 ## Comment se lit un remplacement
 
