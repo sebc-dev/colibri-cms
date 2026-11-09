@@ -19,6 +19,7 @@
  */
 import { env, exports } from "cloudflare:workers";
 import { it, expect, afterEach, beforeEach } from "vitest";
+import { installerDoubleApiAdresses } from "./double-api-adresses";
 
 const NOM_COOKIE_SESSION = "__Host-session";
 const ORIGINE = "https://example.com";
@@ -232,14 +233,19 @@ it("SC-01d — sans clé, une proposition d'adresse est refusée sans rien écri
   expect(texte).toContain(ADRESSE);
 });
 
-it("SC-01d — avec la clé, une proposition ne produit encore ni inscription ni changement d'adresse en place", async () => {
-  const db = await assurerSchema();
-  await semerAdresse(db);
-  const cookie = await semerSessionValide(db);
+it("SC-01d — avec la clé, une proposition ne change pas l'adresse autorisée en place", async () => {
+  const double = installerDoubleApiAdresses();
+  try {
+    const db = await assurerSchema();
+    await semerAdresse(db);
+    const cookie = await semerSessionValide(db);
 
-  const reponse = await proposer(cookie, "nouvelle@exemple.fr");
+    const reponse = await proposer(cookie, "nouvelle@exemple.fr");
 
-  expect(reponse.status).toBeLessThan(500);
-  expect(await adressesEnBase(db)).toEqual([ADRESSE]);
-  expect(texteVisible(await reponse.text())).toContain(ADRESSE);
+    expect(reponse.status).toBeLessThan(500);
+    expect(await adressesEnBase(db)).toEqual([ADRESSE]);
+    expect(texteVisible(await reponse.text())).toContain(ADRESSE);
+  } finally {
+    double.restaurer();
+  }
 });
