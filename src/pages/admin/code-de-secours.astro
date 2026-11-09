@@ -9,13 +9,18 @@
 import GabaritCadre from '../../admin/GabaritCadre.astro';
 import NouveauCodeDeSecours from '../../admin/NouveauCodeDeSecours.astro';
 import { Alert, AlertDescription } from '../../admin/composants/ui/alert/index.ts';
+import { Card, CardContent, CardHeader } from '../../admin/composants/ui/card/index.ts';
 import { Button } from '../../admin/composants/ui/button/index.ts';
 import { verifierSession } from '../../platform/session/index.ts';
 import { lireEtatCodeDeSecours, mettreEnPlaceCodeDeSecours } from '../../platform/auth/code-de-secours.ts';
 import { grouperCodeDeSecours } from '../../core/auth/code.ts';
 import {
   TEXTE_AUCUN_CODE_DE_SECOURS,
+  TEXTE_BOUTON_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS,
   TEXTE_BOUTON_CREER_CODE_DE_SECOURS,
+  TEXTE_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS,
+  TEXTE_LIEN_ANNULER,
+  TEXTE_TITRE_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS,
   TEXTE_BOUTON_REMPLACER_CODE_DE_SECOURS,
   TEXTE_EN_TETE_CODE_DE_SECOURS,
   TEXTE_TITRE_CODE_DE_SECOURS,
@@ -36,6 +41,7 @@ if (Astro.request.method === 'POST') {
   codeAffiche = grouperCodeDeSecours(code);
 }
 
+const confirmation = codeAffiche === null && Astro.request.method === 'GET' && Astro.url.searchParams.has('remplacer');
 const etat = codeAffiche === null ? await lireEtatCodeDeSecours(env.DB) : { enPlace: false as const };
 const formatDate = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', dateStyle: 'long' });
 ---
@@ -47,6 +53,19 @@ const formatDate = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', 
     {
       codeAffiche !== null ? (
         <NouveauCodeDeSecours codeAffiche={codeAffiche} />
+      ) : confirmation && etat.enPlace ? (
+        <Card>
+          <CardHeader>
+            <h2 class="text-lg font-semibold">{TEXTE_TITRE_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS}</h2>
+          </CardHeader>
+          <CardContent class="flex flex-col gap-4">
+            <p>{TEXTE_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS}</p>
+            <form method="post" class="flex flex-col gap-2 md:flex-row">
+              <Button type="submit" class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_CONFIRMER_REMPLACEMENT_CODE_DE_SECOURS}</Button>
+              <a href="/admin/code-de-secours" class="inline-flex min-h-11 items-center justify-center underline underline-offset-2">{TEXTE_LIEN_ANNULER}</a>
+            </form>
+          </CardContent>
+        </Card>
       ) : etat.enPlace ? (
         <>
           <p>{texteCodeDeSecoursEnPlace(formatDate.format(etat.depuis))}</p>
