@@ -29,3 +29,6 @@ Hors de cette session : commiter la correction puis relancer `/scd-spec-dev:run 
 
 ## Écarté
 - Reprise nue sans `rerun` — elle resservirait le même échec depuis le cache.
+
+## Issue
+Le 2026-11-09, j'ai retouché les deux lignes de test puis repris le run avec `rerun: "2"` : il a abouti (`done`), PR #332 ouverte en brouillon, empilée sur #331.
