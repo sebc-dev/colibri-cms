@@ -1,5 +1,6 @@
 {
   "domain": "exemple.colibri.test",
   "turnstilePublicKey": "1x00000000000000000000AA",
+  "compteCloudflare": "0123456789abcdef0123456789abcdef",
   "senderAddress": "code@envoi.exemple.colibri.test"
 }

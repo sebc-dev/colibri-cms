@@ -466,3 +466,13 @@ export const TEXTE_LIBELLE_CODE_DE_SECOURS = 'Code de secours';
 export const TEXTE_BOUTON_REPRISE = 'Entrer';
 export const TEXTE_REFUS_REPRISE = "Ce code n'a pas permis d'entrer. Vérifiez chaque signe, puis réessayez.";
 export const TEXTE_LIEN_RETOUR_CONNEXION = '← Revenir à la connexion par e-mail';
+
+// Écran « Adresse e-mail » (change 017) — jamais « adresse autorisée » (FR-117).
+export const TEXTE_TITRE_ADRESSE_EMAIL = 'Adresse e-mail';
+export const TEXTE_LIEN_ADRESSE_EMAIL = 'Adresse e-mail';
+export const TEXTE_LABEL_NOUVELLE_ADRESSE = 'Nouvelle adresse';
+export const TEXTE_BOUTON_CHANGER_ADRESSE = "Changer d'adresse";
+export const TEXTE_ADRESSE_EN_PLACE = 'Vos codes de connexion et vos demandes de devis arrivent à :';
+export function texteChangementAdresseImpossible(adresse: string): string {
+  return `Le changement d'adresse n'est pas possible pour le moment. Votre adresse reste ${adresse}.`;
+}

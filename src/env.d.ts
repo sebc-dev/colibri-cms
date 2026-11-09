@@ -6,6 +6,9 @@ declare const __ADRESSE_EXPEDITEUR__: string;
 /** Dépôt de publication de l'instance (`owner/repo`), injecté au build par astro.config.ts (I8, I10) ; `null` s'il n'est pas déclaré. */
 declare const __DEPOT_DE_PUBLICATION__: string | null;
 
+/** Identifiant du compte Cloudflare de l'instance (32 hexadécimaux), injecté au build par astro.config.ts (I8, I10) ; `null` s'il n'est pas déclaré. */
+declare const __COMPTE_CLOUDFLARE__: string | null;
+
 /** Un composant `.astro` importé depuis un module `.ts` (baril `src/render/index.ts`, I3). */
 declare module '*.astro' {
   const composant: (props: Record<string, unknown>) => unknown;

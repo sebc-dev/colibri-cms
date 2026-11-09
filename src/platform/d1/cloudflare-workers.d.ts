@@ -43,6 +43,8 @@ declare module 'cloudflare:workers' {
     };
     // Clé d'écriture du dépôt de publication (secret du compte client, ADR-0021) ; absente tant qu'elle n'est pas posée.
     JETON_DEPOT?: string;
+    // Clé des adresses de destination du compte client (ADR-0033) ; absente tant qu'elle n'est pas posée.
+    JETON_ADRESSES_EMAIL?: string;
     // Liaison `ASSETS` (wrangler.jsonc) : lit les originales empaquetées (ticket 15).
     ASSETS: { fetch(requete: Request): Promise<Response> };
   };

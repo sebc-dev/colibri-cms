@@ -1,0 +1,62 @@
+---
+/**
+ * L'écran « Adresse e-mail » (change 017, ticket 01, ADR-0033). Rendu serveur
+ * sans îlot (I4), garde de session importée (ADR-0007), adresse interpolée
+ * (I5). Aucune écriture à ce ticket : le POST `proposer` ne change rien.
+ */
+import GabaritCadre from '../../admin/GabaritCadre.astro';
+import { Alert, AlertDescription } from '../../admin/composants/ui/alert/index.ts';
+import { Card, CardContent } from '../../admin/composants/ui/card/index.ts';
+import { Button } from '../../admin/composants/ui/button/index.ts';
+import { Input } from '../../admin/composants/ui/input/index.ts';
+import { Label } from '../../admin/composants/ui/label/index.ts';
+import { verifierSession } from '../../platform/session/index.ts';
+import { lireAdresseAutorisee } from '../../platform/auth/magasin.ts';
+import { remplacementPossible } from '../../core/auth/remplacement.ts';
+import {
+  TEXTE_BOUTON_CHANGER_ADRESSE,
+  TEXTE_LABEL_NOUVELLE_ADRESSE,
+  TEXTE_TITRE_ADRESSE_EMAIL,
+  TEXTE_ADRESSE_EN_PLACE,
+  texteChangementAdresseImpossible,
+} from '../../admin/textes.ts';
+import { env } from 'cloudflare:workers';
+
+const session = await verifierSession(env.DB, Astro.request);
+if (!session) {
+  return Astro.redirect('/admin/connexion');
+}
+
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+const adresse = (await lireAdresseAutorisee(env.DB)) ?? '';
+const possible = remplacementPossible(__COMPTE_CLOUDFLARE__ ?? undefined, env.JETON_ADRESSES_EMAIL);
+---
+
+<GabaritCadre titre="Adresse e-mail — Administration" rubrique="reglages">
+  <h1>{TEXTE_TITRE_ADRESSE_EMAIL}</h1>
+  <div class="mt-6 flex flex-col gap-4">
+    {
+      possible ? (
+        <Card>
+          <CardContent class="flex flex-col gap-4">
+            <p>{TEXTE_ADRESSE_EN_PLACE}</p>
+            <p class="font-medium">{adresse}</p>
+            <form method="post" class="flex flex-col gap-3">
+              <input type="hidden" name="etape" value="proposer" />
+              <div class="flex flex-col gap-1.5">
+                <Label for="adresse">{TEXTE_LABEL_NOUVELLE_ADRESSE}</Label>
+                <Input id="adresse" name="adresse" type="email" autocomplete="email" required class="max-md:min-h-11" />
+              </div>
+              <Button type="submit" class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_CHANGER_ADRESSE}</Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : (
+        <Alert class="border-transparent bg-ambre-soft">
+          <AlertDescription class="text-ambre">{texteChangementAdresseImpossible(adresse)}</AlertDescription>
+        </Alert>
+      )
+    }
+  </div>
+</GabaritCadre>
