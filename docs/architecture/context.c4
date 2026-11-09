@@ -23,7 +23,7 @@ model {
 
   email-routing = system 'Cloudflare Email Routing' {
     #external
-    description "Achemine vers l'adresse autorisée l'e-mail portant le code de connexion et celui de chaque demande de devis."
+    description "Achemine vers l'adresse autorisée l'e-mail portant le code de connexion et celui de chaque demande de devis ; tient la liste des adresses de destination vérifiées du compte du client (ADR-0033)."
     // trace : wrangler.astro.jsonc:12-17 — send_email EXPEDITEUR_CODE_CONNEXION ; src/platform/email/index.ts:53 — expediteur.send(...) ; src/platform/email/index.ts — demanderAcheminementDeLaDemande
   }
 
@@ -50,6 +50,14 @@ model {
   // trace : src/pages/api/public/demandes.ts ; src/platform/email/index.ts — demanderAcheminementDeLaDemande
   colibri-cms.worker.platform -[sync]-> email-routing 'achemine une demande de devis'
   email-routing -[async]-> editrice 'remet la demande'
+  // décision : ADR-0033, change 017 — API des adresses de destination, clé « Email Routing Addresses Edit » du compte client
+  colibri-cms.worker.platform -[sync]-> email-routing 'inscrit une adresse de destination et lit sa vérification' {
+    #planned
+  }
+  // décision : ADR-0033, change 017 — le message de vérification de Cloudflare, puis le code du remplacement
+  email-routing -[async]-> editrice 'remet le message de confirmation de la nouvelle adresse' {
+    #planned
+  }
   colibri-cms.worker.platform -[sync]-> github 'dépose le contenu et les images publiés'
   github -[async]-> workers-builds 'déclenche la reconstruction (branche principale seule)'
   workers-builds -[async]-> colibri-cms.worker 'bâtit, récupère les images, en produit les variantes, déploie'
@@ -59,5 +67,15 @@ views {
   view context of colibri-cms {
     title 'Le produit et son contexte'
     include *, -> colibri-cms ->
+  }
+
+  view adr-0033 of colibri-cms {
+    title 'ADR 0033 — remplacement de l’adresse autorisée'
+    include
+      editrice,
+      email-routing,
+      colibri-cms.worker.routes,
+      colibri-cms.worker.platform,
+      colibri-cms.d1
   }
 }
