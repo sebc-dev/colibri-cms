@@ -69,10 +69,12 @@ message » suffit.
 
 ### D2 — La liaison d'envoi sans adresse fixe ; la clé et le compte
 
-- `send_email` perd `destination_address` dans `wrangler.jsonc` et `wrangler.astro.jsonc` : elle
+- `send_email` perd `destination_address` dans `wrangler.astro.jsonc` (production) : elle
   écrit à toute adresse **vérifiée du compte du client**. Le produit, lui, n'écrit qu'à l'adresse
   autorisée lue en base, ou à l'adresse d'un remplacement en cours **constatée vérifiée** (D3). Le
-  fichier de déploiement cesse de porter une adresse propre à l'instance, ce qui sert `SC-008`.
+  fichier de déploiement cesse de porter une adresse propre à l'instance, ce qui sert `SC-008`. `wrangler.jsonc` (configuration des tests seuls) la garde, parce que
+  `tests/integration/trace-envoi-echoue.test.ts` (007/02) prend pour oracle le refus d'un destinataire
+  différent par la liaison locale ; les tests du remplacement doublent l'envoi par un espion.
 - **Secret** `JETON_ADRESSES_EMAIL`, optionnel, posé sur le Worker du client (lieu 2 d'ADR-0005),
   déclaré à côté de `JETON_DEPOT` dans `src/platform/d1/cloudflare-workers.d.ts`. Sa seule permission
   est « Email Routing Addresses Edit » sur le compte du client.
