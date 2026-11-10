@@ -507,4 +507,6 @@ export const TEXTE_BOUTON_NOUVEAU_CODE = 'Recevoir un nouveau code';
 export function texteAdresseChangee(nouvelle: string): string {
   return `C'est fait : votre adresse est désormais ${nouvelle}. Vos codes de connexion et vos demandes de devis y arriveront.`;
 }
-export const TEXTE_CODE_NON_RECONNU = "Ce code n'est pas bon. Vérifiez-le et recopiez-le à nouveau.";
+// Écran « Adresse e-mail » — les refus du code (change 017, ticket 05) : quel geste reprendre.
+export const TEXTE_CODE_A_RETAPER = 'Ce code ne correspond pas. Vérifiez chaque signe, puis réessayez.';
+export const TEXTE_CODE_A_REDEMANDER = 'Ce code ne peut plus servir. Demandez-en un nouveau.';

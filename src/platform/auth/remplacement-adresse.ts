@@ -139,6 +139,15 @@ export async function basculerSiCodeValide(
     identifiantAppareilCourant: session.id,
     maintenant,
   });
+  if (trouvee === null) {
+    // Saisie sans ligne correspondante : une faute de plus sur le code actif de la session.
+    await db
+      .prepare(
+        'update codes_remplacement set essais = essais + 1 where session = ?1 and utilise_le is null and annule_le is null',
+      )
+      .bind(session.id)
+      .run();
+  }
   if (!verdict.valide || trouvee === null) {
     return { reussi: false, raison: verdict.valide ? 'introuvable' : verdict.raison };
   }
