@@ -25,9 +25,13 @@
       "migrations_dir": "migrations"
     }
   ],
-  // Liaison d'expédition (ADR-0002, ticket 03) : `send_email` n'écrit qu'à
-  // une destination vérifiée — c'est la plateforme elle-même qui tient
-  // FR-005. `destination_address` reste un espace réservé neutre qui NE
+  // Liaison d'expédition (ADR-0002, ticket 03 ; ADR-0033) : la configuration de
+  // production (wrangler.astro.jsonc) n'a plus de `destination_address` ; elle
+  // reste ici, pour les tests seuls, parce que trace-envoi-echoue.test.ts (007/02)
+  // prend pour oracle le refus d'un destinataire différent par la liaison locale.
+  // FR-005 vise l'écran de connexion public (ADR-0033) : le produit n'écrit qu'à
+  // l'adresse autorisée lue en base, ou à une adresse constatée vérifiée par
+  // Cloudflare. `destination_address` reste un espace réservé neutre qui NE
   // réutilise PAS le domaine d'`instance.json` (I8/ADR-0028 : le domaine ne
   // vit que dans le fichier d'instance, sinon il fuit ici) et reste donc
   // identique d'un dépôt de cliente à l'autre (SC-008). La vraie adresse

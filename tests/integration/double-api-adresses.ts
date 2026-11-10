@@ -22,6 +22,8 @@ export interface Panne {
 export interface AppelRecu {
   methode: string;
   chemin: string;
+  /** La chaîne de requête (`?page=2&per_page=50`), vide sans paramètre. */
+  recherche: string;
   autorisation: string | null;
 }
 
@@ -95,6 +97,7 @@ export function installerDoubleApiAdresses(): DoubleApiAdresses {
     double.appels.push({
       methode,
       chemin: url.pathname,
+      recherche: url.search,
       autorisation: requete.headers.get('authorization'),
     });
 
@@ -108,11 +111,31 @@ export function installerDoubleApiAdresses(): DoubleApiAdresses {
     }
 
     if (methode === 'GET') {
+      const toutes = double.adresses.map((a) => ({ ...a }));
+      // Sans `page`, toute la liste en une réponse (forme lue par le ticket 02) ; avec `page`, la
+      // tranche demandée et `total_pages`, comme l'API paginée de Cloudflare.
+      if (!url.searchParams.has('page')) {
+        return reponseJson({
+          success: true,
+          errors: [],
+          result: toutes,
+          result_info: { page: 1, per_page: 50, count: toutes.length, total_count: toutes.length },
+        });
+      }
+      const page = Number(url.searchParams.get('page'));
+      const parPage = Number(url.searchParams.get('per_page') ?? '20');
+      const tranche = toutes.slice((page - 1) * parPage, page * parPage);
       return reponseJson({
         success: true,
         errors: [],
-        result: double.adresses.map((a) => ({ ...a })),
-        result_info: { page: 1, per_page: 50, count: double.adresses.length, total_count: double.adresses.length },
+        result: tranche,
+        result_info: {
+          page,
+          per_page: parPage,
+          count: tranche.length,
+          total_count: toutes.length,
+          total_pages: Math.max(1, Math.ceil(toutes.length / parPage)),
+        },
       });
     }
     if (methode === 'POST') {

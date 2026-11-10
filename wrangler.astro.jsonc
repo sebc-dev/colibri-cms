@@ -3,7 +3,8 @@
   // Couture de test (ticket 01 — la porte close) : Astro (dev ET build) lit
   // CE fichier — `astro.config.ts` le lui donne via `adapter: cloudflare({
   // configPath: './wrangler.astro.jsonc' })` — et non `wrangler.jsonc`
-  // (racine). Les deux portent les mêmes liaisons de plateforme (ADR-0020) ;
+  // (racine). Les deux portent les mêmes liaisons de plateforme (ADR-0020), sauf
+  // `destination_address`, gardée dans wrangler.jsonc pour les tests seuls ;
   // la racine porte EN PLUS `main`/`assets`, dont
   // `scripts/preparer-worker-de-test.mjs` explique le pourquoi. Si les deux
   // fichiers portaient `main`, Astro bâtirait DEPUIS ce champ au lieu de son
@@ -22,8 +23,7 @@
   ],
   "send_email": [
     {
-      "name": "EXPEDITEUR_CODE_CONNEXION",
-      "destination_address": "editrice@example.com"
+      "name": "EXPEDITEUR_CODE_CONNEXION"
     }
   ]
 }

@@ -955,6 +955,14 @@ Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variant
 | CT-46.2 | Avec la clé limitée aux adresses, appeler l'API des règles de routage d'Email Routing (`/email/routing/rules`) | L'API refuse (preuve de la mitigation M2) ; sortie conservée | à jouer |
 | CT-46.3 | Sur `colibri.sebc.dev`, proposer sur l'écran « Adresse e-mail » une adresse déjà inscrite parmi les adresses de destination du compte (y compris quand le compte en compte plus d'une page, pour constater la pagination de la liste) | Aucun nouveau message de confirmation n'arrive ; l'écran passe à l'étape 1 (« Un message va arriver à … ») et l'adresse autorisée ne change pas ; noter la forme réelle de la réponse de la liste (pagination, taille de page par défaut) pour le ticket 03 | à jouer |
 
+## 47. Le code part après la confirmation — change 017 · ticket 03
+
+| N° | Cas | Résultat attendu | Verdict |
+|---|---|---|---|
+| CT-47.1 | Sur `colibri.sebc.dev`, proposer une seconde boîte, puis presser « J'ai cliqué sur le bouton » sans avoir cliqué dans le message de Cloudflare | Message ambre « Le clic n'a pas encore été enregistré… » ; aucun code n'arrive dans la boîte | à jouer |
+| CT-47.2 | Cliquer sur « Verify email address » dans le message, puis presser « J'ai cliqué sur le bouton » | L'écran dit « Un code vient de partir vers … » avec le champ Code ; un message « Confirmez votre nouvelle adresse », en texte seul, arrive dans la nouvelle boîte, expédié depuis l'adresse d'expédition de l'instance, avec « Code : » et huit signes | à jouer |
+| CT-47.3 | Presser « Recevoir un nouveau code » | Un second message arrive ; seul le code du second est valable (ticket 04) | à jouer |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |

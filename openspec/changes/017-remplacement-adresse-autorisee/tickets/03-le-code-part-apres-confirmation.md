@@ -20,8 +20,8 @@ engendre un code et l'envoie à la nouvelle adresse.
 `inscrireAdresse` : délai borné, toute réponse non `success` → `'echec'`, seul le statut HTTP dans les
 journaux, jamais la clé.
 
-**La liaison d'envoi** perd `destination_address` dans `wrangler.jsonc` et `wrangler.astro.jsonc`
-(design D2) : elle écrit à toute adresse vérifiée du compte du client. Le produit, lui, n'écrit qu'à
+**La liaison d'envoi** perd `destination_address` dans `wrangler.astro.jsonc` (production ; `wrangler.jsonc`, pour les
+tests seuls, la garde, car trace-envoi-echoue.test.ts en prend le refus pour oracle) (design D2) : elle écrit à toute adresse vérifiée du compte du client. Le produit, lui, n'écrit qu'à
 l'adresse autorisée lue en base, ou à l'adresse d'un remplacement en cours **constatée vérifiée**. Les
 commentaires qui justifiaient l'adresse fixe (FR-005) se mettent à jour : FR-005 vise l'écran de
 connexion public (ADR-0033).
@@ -59,10 +59,10 @@ seul, sous l'objet « Confirmez votre nouvelle adresse » ; pressé avant le cli
 **Hors de ce ticket.** La saisie du code et la bascule (04) ; ses refus (05) ; le plafond (08).
 
 ## Critères
-- [ ] l'éditrice dit avoir confirmé alors que Cloudflare ne tient pas encore l'adresse pour vérifiée : aucun code n'est écrit ni envoyé, et l'écran redit qu'il faut cliquer sur le bouton du message de confirmation   (SC-03a)
-- [ ] l'éditrice dit avoir confirmé et Cloudflare tient l'adresse pour vérifiée : un code est écrit, son envoi vers la nouvelle adresse est demandé, et l'écran invite à recopier le code reçu dans la nouvelle boîte   (SC-03b)
-- [ ] le code de remplacement engendré fait huit signes de l'alphabet sans confusables, et la base n'en garde qu'une empreinte salée, jamais le code   (SC-03c)
-- [ ] le message du code a pour destinataire la nouvelle adresse et pour expéditeur l'adresse d'expéditeur de l'instance ; il part en texte seul, sous un objet fixe qui n'est pas celui du code de connexion   (SC-03d)
-- [ ] un second code de remplacement demandé : le premier ne permet plus de remplacer l'adresse (sa ligne est annulée)   (SC-03e)
-- [ ] quand Cloudflare refuse ou ne répond pas à la demande d'état de l'adresse, aucun code n'est écrit ni envoyé, et l'écran invite à réessayer dans quelques instants   (SC-03f)
-- [ ] une proposition, une vérification ou un refus de Cloudflare traité ne fait paraître la clé ni dans la réponse, ni dans les journaux de la plateforme   (SC-03g)
+- [x] l'éditrice dit avoir confirmé alors que Cloudflare ne tient pas encore l'adresse pour vérifiée : aucun code n'est écrit ni envoyé, et l'écran redit qu'il faut cliquer sur le bouton du message de confirmation   (SC-03a)
+- [x] l'éditrice dit avoir confirmé et Cloudflare tient l'adresse pour vérifiée : un code est écrit, son envoi vers la nouvelle adresse est demandé, et l'écran invite à recopier le code reçu dans la nouvelle boîte   (SC-03b)
+- [x] le code de remplacement engendré fait huit signes de l'alphabet sans confusables, et la base n'en garde qu'une empreinte salée, jamais le code   (SC-03c)
+- [x] le message du code a pour destinataire la nouvelle adresse et pour expéditeur l'adresse d'expéditeur de l'instance ; il part en texte seul, sous un objet fixe qui n'est pas celui du code de connexion   (SC-03d)
+- [x] un second code de remplacement demandé : le premier ne permet plus de remplacer l'adresse (sa ligne est annulée)   (SC-03e)
+- [x] quand Cloudflare refuse ou ne répond pas à la demande d'état de l'adresse, aucun code n'est écrit ni envoyé, et l'écran invite à réessayer dans quelques instants   (SC-03f)
+- [x] une proposition, une vérification ou un refus de Cloudflare traité ne fait paraître la clé ni dans la réponse, ni dans les journaux de la plateforme   (SC-03g)

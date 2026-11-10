@@ -15,8 +15,8 @@ import { verifierSession } from '../../platform/session/index.ts';
 import { lireAdresseAutorisee } from '../../platform/auth/magasin.ts';
 import { remplacementPossible } from '../../core/auth/remplacement.ts';
 import { EMAIL_FORME } from '../../core/reglages/coordonnees.ts';
-import { inscrireAdresse } from '../../platform/adresses-cloudflare/index.ts';
-import { lireRemplacementEnCours, ouvrirRemplacement } from '../../platform/auth/remplacement-adresse.ts';
+import { inscrireAdresse, etatAdresse } from '../../platform/adresses-cloudflare/index.ts';
+import { ecrireCodeDeRemplacement, lireRemplacementEnCours, ouvrirRemplacement } from '../../platform/auth/remplacement-adresse.ts';
 import {
   TEXTE_BOUTON_CHANGER_ADRESSE,
   TEXTE_LABEL_NOUVELLE_ADRESSE,
@@ -30,7 +30,14 @@ import {
   texteChangementAdresseEchoue,
   texteMessageVaArriver,
   texteAdresseResteEnPlace,
+  TEXTE_CLIC_PAS_ENCORE_ENREGISTRE,
+  texteCodeEstParti,
+  TEXTE_RECOPIER_LE_CODE,
+  TEXTE_LABEL_CODE,
+  TEXTE_BOUTON_VALIDER,
+  TEXTE_BOUTON_NOUVEAU_CODE,
 } from '../../admin/textes.ts';
+import { demanderExpeditionDuCodeDeRemplacement } from '../../platform/email/index.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -46,6 +53,7 @@ const cle = env.JETON_ADRESSES_EMAIL;
 const possible = remplacementPossible(compte, cle);
 
 let refus: string | null = null;
+let etapeCode = false;
 if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !== undefined) {
   const formulaire = await Astro.request.formData();
   if (formulaire.get('etape') === 'proposer') {
@@ -62,6 +70,28 @@ if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !
         await ouvrirRemplacement(env.DB, saisie, session, Date.now());
       }
     }
+  } else if (formulaire.get('etape') === 'verifier') {
+    const nouvelle = await lireRemplacementEnCours(env.DB);
+    if (nouvelle !== null) {
+      const etat = await etatAdresse(cle, compte, nouvelle);
+      if (etat === 'echec') {
+        refus = texteChangementAdresseEchoue(adresse);
+      } else if (etat !== 'verifiee') {
+        refus = TEXTE_CLIC_PAS_ENCORE_ENREGISTRE;
+      } else {
+        const code = await ecrireCodeDeRemplacement(env.DB, session, Date.now());
+        etapeCode = true;
+        Astro.locals.cfContext.waitUntil(
+          Promise.resolve()
+            .then(() => demanderExpeditionDuCodeDeRemplacement(env.EXPEDITEUR_CODE_CONNEXION, nouvelle, code, __ADRESSE_EXPEDITEUR__))
+            .catch((erreur: unknown) => {
+              console.error(`[adresse] envoi du code échoué (${erreur instanceof Error ? erreur.name : 'inconnu'})`);
+            }),
+        );
+      }
+    }
+  } else if (formulaire.get('etape') === 'code') {
+    etapeCode = (await lireRemplacementEnCours(env.DB)) !== null;
   }
 }
 const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
@@ -75,7 +105,22 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
         <>
         <Card>
           <CardContent class="flex flex-col gap-4">
-            {enCours !== null ? (
+            {enCours !== null && etapeCode ? (
+              <>
+                <p>{texteCodeEstParti(enCours)}</p>
+                <p>{TEXTE_RECOPIER_LE_CODE}</p>
+                <form method="post" class="flex flex-col gap-3">
+                  <input type="hidden" name="etape" value="code" />
+                  <div class="flex flex-col gap-1.5">
+                    <Label for="code">{TEXTE_LABEL_CODE}</Label>
+                    <Input id="code" name="code" type="text" autocomplete="one-time-code" required class="max-md:min-h-11" />
+                  </div>
+                  <Button type="submit" class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_VALIDER}</Button>
+                </form>
+                <button type="submit" form="verifier" class="h-auto w-full rounded-md border px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_NOUVEAU_CODE}</button>
+                <p>{texteAdresseResteEnPlace(adresse)}</p>
+              </>
+            ) : enCours !== null ? (
               <>
                 <p>{texteMessageVaArriver(enCours)}</p>
                 <button type="submit" form="verifier" class="h-auto w-full rounded-md border px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_JAI_CLIQUE}</button>
