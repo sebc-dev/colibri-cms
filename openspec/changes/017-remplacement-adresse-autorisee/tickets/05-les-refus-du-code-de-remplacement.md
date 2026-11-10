@@ -38,11 +38,11 @@ plus tard (plafond, avis) portent leur propre contrôle.
 (proposal, point 6) : rien à ajouter. La fermeture des sessions (06), l'avis (07), le plafond (08).
 
 ## Critères
-- [ ] un code fautif saisi : l'écran invite à retaper, et l'adresse autorisée ne change pas   (SC-05a)
-- [ ] un code de remplacement qui a reçu cinq saisies fautives, puis le bon code saisi : l'adresse autorisée ne change pas, et l'écran invite à demander un nouveau code   (SC-05b)
-- [ ] le code saisi plus de quinze minutes après son envoi (quinze minutes pile comprises) : l'adresse autorisée ne change pas, et l'écran invite à demander un nouveau code   (SC-05c)
-- [ ] le code de remplacement saisi depuis une autre session que celle qui a demandé le remplacement ne change pas l'adresse autorisée   (SC-05d)
-- [ ] un code de remplacement qui a déjà servi, saisi à nouveau, ne remplace rien   (SC-05e)
-- [ ] un code de remplacement présenté sur l'écran de connexion n'ouvre aucune session   (SC-05f)
-- [ ] un remplacement en cours vers une première adresse, puis une seconde adresse proposée : le remplacement vers la première est annulé, et un code envoyé pour la première adresse ne permet plus de remplacer l'adresse   (SC-05g)
-- [ ] l'écran « Adresse e-mail », chacune de ses étapes et chacun de ses refus rendus ne portent aucun terme de développeur (FR-117)   (SC-05h)
+- [x] un code fautif saisi : l'écran invite à retaper, et l'adresse autorisée ne change pas   (SC-05a)
+- [x] un code de remplacement qui a reçu cinq saisies fautives, puis le bon code saisi : l'adresse autorisée ne change pas, et l'écran invite à demander un nouveau code   (SC-05b)
+- [x] le code saisi plus de quinze minutes après son envoi (quinze minutes pile comprises) : l'adresse autorisée ne change pas, et l'écran invite à demander un nouveau code   (SC-05c)
+- [x] le code de remplacement saisi depuis une autre session que celle qui a demandé le remplacement ne change pas l'adresse autorisée   (SC-05d)
+- [x] un code de remplacement qui a déjà servi, saisi à nouveau, ne remplace rien   (SC-05e)
+- [x] un code de remplacement présenté sur l'écran de connexion n'ouvre aucune session   (SC-05f)
+- [x] un remplacement en cours vers une première adresse, puis une seconde adresse proposée : le remplacement vers la première est annulé, et un code envoyé pour la première adresse ne permet plus de remplacer l'adresse   (SC-05g)
+- [x] l'écran « Adresse e-mail », chacune de ses étapes et chacun de ses refus rendus ne portent aucun terme de développeur (FR-117)   (SC-05h)
