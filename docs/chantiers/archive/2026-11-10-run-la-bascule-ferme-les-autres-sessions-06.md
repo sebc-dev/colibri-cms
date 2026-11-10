@@ -51,3 +51,10 @@ Hors de cette session, la reprise n'existait plus : relancer
 - Reprise nue sans `rerun` : le cache aurait resservi le même échec.
 - Empilement sur le ticket 05 (PR #335 ouverte) : 06 ne déclarait de dépendance qu'à 04 ; les deux
   tickets partageaient trois fichiers, un rebase restait possible à la fusion.
+
+## Issue
+Les deux lignes du test neuf ont été corrigées à la main, sur décision humaine, sans toucher à une
+assertion : `startsWith` à la place de l'expression régulière, et retrait de la collection `messages`
+que rien ne lisait. La reprise `rerun: "2"` a abouti le 2026-11-10 et ouvert la PR #336, fusionnée le
+même jour. La PR #335 du ticket 05 a été fusionnée avant elle : les trois fichiers communs se sont
+fusionnés sans conflit et sans rebase.
