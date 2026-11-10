@@ -61,8 +61,9 @@ async function listerAdresses(cle: string, compte: string): Promise<unknown[] | 
       headers: entetes(cle, false),
     });
     if (page === null || !Array.isArray(page.result)) return null;
-    if (page.result.length === 0) break;
-    toutes.push(...page.result);
+    const lot: unknown[] = page.result;
+    if (lot.length === 0) break;
+    toutes.push(...lot);
     if (page.totalPages === null || numero >= page.totalPages) break;
   }
   return toutes;
