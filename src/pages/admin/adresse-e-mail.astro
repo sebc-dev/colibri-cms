@@ -37,7 +37,8 @@ import {
   TEXTE_BOUTON_VALIDER,
   TEXTE_BOUTON_NOUVEAU_CODE,
   texteAdresseChangee,
-  TEXTE_CODE_NON_RECONNU,
+  TEXTE_CODE_A_RETAPER,
+  TEXTE_CODE_A_REDEMANDER,
 } from '../../admin/textes.ts';
 import { demanderExpeditionDuCodeDeRemplacement } from '../../platform/email/index.ts';
 import { env } from 'cloudflare:workers';
@@ -99,7 +100,7 @@ if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !
       nouvelleAdresse = issue.nouvelle;
     } else {
       etapeCode = (await lireRemplacementEnCours(env.DB)) !== null;
-      refus = TEXTE_CODE_NON_RECONNU;
+      refus = issue.raison === 'introuvable' ? TEXTE_CODE_A_RETAPER : TEXTE_CODE_A_REDEMANDER;
     }
   }
 }
