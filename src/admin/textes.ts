@@ -483,6 +483,7 @@ export const TEXTE_REFUS_ADRESSE_DEJA_EN_PLACE = "C'est déjà votre adresse.";
 export function texteChangementAdresseEchoue(adresse: string): string {
   return `Le changement n'a pas pu se faire. Rien n'a changé : votre adresse reste ${adresse}. Réessayez dans quelques minutes.`;
 }
+export const TEXTE_PLAFOND_MESSAGES_REMPLACEMENT = 'Trop de messages sont partis en peu de temps. Réessayez dans une heure.';
 export function texteMessageVaArriver(nouvelle: string): string {
   return `Un message va arriver à ${nouvelle}. Il vient de notre hébergeur, Cloudflare, et il est écrit en anglais. Ouvrez-le et cliquez sur le bouton « Verify email address ». Revenez ensuite ici.`;
 }

@@ -62,6 +62,14 @@ export const PLAFOND_CODES_PAR_HEURE = 5;
 export const FENETRE_PLAFOND_MS = 60 * 60 * 1000;
 
 /**
+ * Le plafond des messages du remplacement de l'adresse autorisée (change 017,
+ * ticket 08) : au plus ce nombre de messages (inscription chez Cloudflare,
+ * code de remplacement), toutes adresses confondues, dans `FENETRE_PLAFOND_MS`.
+ * Compté à part de `PLAFOND_CODES_PAR_HEURE`.
+ */
+export const PLAFOND_MESSAGES_REMPLACEMENT_PAR_HEURE = 5;
+
+/**
  * Fin de session (ticket 08 — la session s'éteint d'elle-même,
  * specs/001-connexion-par-code/08-fin-de-session.md) : l'ordinateur partagé
  * n'a aucun geste de déconnexion explicite (FR-117 : rien de technique ne se

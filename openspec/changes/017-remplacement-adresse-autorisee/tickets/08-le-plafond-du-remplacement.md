@@ -33,7 +33,7 @@ heure. », l'adresse en place redite (UX2), sans terme de développeur (FR-117) 
 pour ce texte.
 
 ## Critères
-- [ ] cinq messages déjà partis pour le remplacement dans l'heure, puis l'éditrice propose une adresse neuve ou demande un code : rien n'est inscrit chez Cloudflare, aucun code n'est écrit, rien n'est envoyé, et l'écran dit, sans terme de développeur, qu'il faut attendre avant de réessayer   (SC-08a)
-- [ ] le plafond du remplacement atteint, l'adresse autorisée soumise à l'écran de connexion reçoit un code de connexion écrit et envoyé comme sans plafond du remplacement   (SC-08b)
-- [ ] un message du remplacement sort de l'heure glissante : une nouvelle proposition ou un nouveau code redevient possible   (SC-08c)
-- [ ] deux demandes de code concurrentes alors que quatre messages sont déjà partis dans l'heure : un seul code est écrit   (SC-08d)
+- [x] cinq messages déjà partis pour le remplacement dans l'heure, puis l'éditrice propose une adresse neuve ou demande un code : rien n'est inscrit chez Cloudflare, aucun code n'est écrit, rien n'est envoyé, et l'écran dit, sans terme de développeur, qu'il faut attendre avant de réessayer   (SC-08a)
+- [x] le plafond du remplacement atteint, l'adresse autorisée soumise à l'écran de connexion reçoit un code de connexion écrit et envoyé comme sans plafond du remplacement   (SC-08b)
+- [x] un message du remplacement sort de l'heure glissante : une nouvelle proposition ou un nouveau code redevient possible   (SC-08c)
+- [x] deux demandes de code concurrentes alors que quatre messages sont déjà partis dans l'heure : un seul code est écrit   (SC-08d)
