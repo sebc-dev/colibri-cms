@@ -476,3 +476,18 @@ export const TEXTE_ADRESSE_EN_PLACE = 'Vos codes de connexion et vos demandes de
 export function texteChangementAdresseImpossible(adresse: string): string {
   return `Le changement d'adresse n'est pas possible pour le moment. Votre adresse reste ${adresse}.`;
 }
+
+// Écran « Adresse e-mail » — proposer une nouvelle adresse (change 017, ticket 02).
+export const TEXTE_REFUS_ADRESSE_FORME = 'Cette adresse ne semble pas complète. Exemple : prenom@exemple.fr';
+export const TEXTE_REFUS_ADRESSE_DEJA_EN_PLACE = "C'est déjà votre adresse.";
+export function texteChangementAdresseEchoue(adresse: string): string {
+  return `Le changement n'a pas pu se faire. Rien n'a changé : votre adresse reste ${adresse}. Réessayez dans quelques minutes.`;
+}
+export function texteMessageVaArriver(nouvelle: string): string {
+  return `Un message va arriver à ${nouvelle}. Il vient de notre hébergeur, Cloudflare, et il est écrit en anglais. Ouvrez-le et cliquez sur le bouton « Verify email address ». Revenez ensuite ici.`;
+}
+export const TEXTE_BOUTON_JAI_CLIQUE = "J'ai cliqué sur le bouton";
+export const TEXTE_LIEN_REVENIR_AUX_REGLAGES = 'Revenir aux réglages';
+export function texteAdresseResteEnPlace(adresse: string): string {
+  return `Tant que ce n'est pas terminé, votre adresse reste ${adresse}.`;
+}

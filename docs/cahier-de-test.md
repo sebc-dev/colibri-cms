@@ -947,6 +947,14 @@ Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variant
 | CT-45.1 | SC-020 : boîte e-mail inaccessible, appareil neuf, saisir le code de secours sur `/admin/reprise` | Une session s'ouvre ; un nouveau code s'affiche une seule fois ; « Continuer vers l'accueil » mène à « Mes pages » ; la liste des demandes est accessible | à jouer |
 | CT-45.2 | À 360 px, l'écran du nouveau code | Aucun défilement horizontal ; lien d'accueil d'au moins 44 px de haut ; la ligne sur les autres appareils est lisible | à jouer |
 
+## 46. Proposer une nouvelle adresse — change 017 · ticket 02
+
+| N° | Cas | Résultat attendu | Verdict |
+|---|---|---|---|
+| CT-46.1 | Sur `colibri.sebc.dev`, proposer une seconde boîte sur l'écran « Adresse e-mail » | Le message de Cloudflare arrive dans cette boîte, en anglais ; son bouton porte à la lettre le libellé « Verify email address » cité à l'écran (UX3) | à jouer |
+| CT-46.2 | Avec la clé limitée aux adresses, appeler l'API des règles de routage d'Email Routing (`/email/routing/rules`) | L'API refuse (preuve de la mitigation M2) ; sortie conservée | à jouer |
+| CT-46.3 | Sur `colibri.sebc.dev`, proposer sur l'écran « Adresse e-mail » une adresse déjà inscrite parmi les adresses de destination du compte (y compris quand le compte en compte plus d'une page, pour constater la pagination de la liste) | Aucun nouveau message de confirmation n'arrive ; l'écran passe à l'étape 1 (« Un message va arriver à … ») et l'adresse autorisée ne change pas ; noter la forme réelle de la réponse de la liste (pagination, taille de page par défaut) pour le ticket 03 | à jouer |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
