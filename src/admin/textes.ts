@@ -505,6 +505,6 @@ export const TEXTE_BOUTON_NOUVEAU_CODE = 'Recevoir un nouveau code';
 
 // Écran « Adresse e-mail » — le remplacement abouti (change 017, ticket 04).
 export function texteAdresseChangee(nouvelle: string): string {
-  return `C'est fait : votre adresse est désormais ${nouvelle}. Vos codes de connexion et vos demandes de devis y arriveront.`;
+  return `C'est fait : votre adresse est désormais ${nouvelle}. Vos codes de connexion et vos demandes de devis y arriveront. Vos autres appareils devront se reconnecter.`;
 }
 export const TEXTE_CODE_NON_RECONNU = "Ce code n'est pas bon. Vérifiez-le et recopiez-le à nouveau.";
