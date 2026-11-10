@@ -4,6 +4,7 @@
  */
 import { env } from 'cloudflare:workers';
 import { engendrerCode, normaliserCode, DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
+import { PLAFOND_MESSAGES_REMPLACEMENT_PAR_HEURE, FENETRE_PLAFOND_MS } from '../../core/auth/regles.ts';
 import { rendreVerdict, SEUIL_ESSAIS_BRULAGE, type RaisonRefus } from '../../core/auth/verdict.ts';
 
 type Base = typeof env.DB;
@@ -27,6 +28,30 @@ async function assurerSchema(db: Base): Promise<void> {
     schemaAssure = null;
     throw erreur;
   }
+}
+
+/**
+ * Réserve un message du remplacement dans l'heure glissante : épreuve et écriture en une seule
+ * requête. Rend `false` si le plafond est atteint.
+ */
+export async function reserverMessageRemplacement(db: Base, maintenant: number): Promise<boolean> {
+  await assurerSchema(db);
+  const resultat = await db
+    .prepare(
+      'insert into messages_remplacement (envoye_le) select ?1 where (select count(*) from messages_remplacement where envoye_le > ?2) < ?3',
+    )
+    .bind(maintenant, maintenant - FENETRE_PLAFOND_MS, PLAFOND_MESSAGES_REMPLACEMENT_PAR_HEURE)
+    .run();
+  return resultat.meta.changes === 1;
+}
+
+/** Rend une réservation (adresse déjà inscrite chez Cloudflare : aucun message n'est parti). */
+export async function libererMessageRemplacement(db: Base, maintenant: number): Promise<void> {
+  await assurerSchema(db);
+  await db
+    .prepare('delete from messages_remplacement where rowid = (select max(rowid) from messages_remplacement where envoye_le = ?1)')
+    .bind(maintenant)
+    .run();
 }
 
 /** Ouvre (ou remplace) le remplacement en cours, rattaché à la session, et annule les codes vivants. */
@@ -59,14 +84,16 @@ function versHex(octets: Uint8Array): string {
 }
 
 /**
- * Engendre un code de remplacement, n'en écrit que l'empreinte salée, rattachée à la session,
- * et annule les codes antérieurs (une seule requête groupée).
+ * Engendre un code de remplacement, n'en écrit que l'empreinte salée, rattachée à la session.
+ * L'épreuve du plafond des messages, l'écriture du code et l'annulation des codes antérieurs
+ * forment une seule requête groupée (une transaction). `null` si le plafond est atteint ou si
+ * aucun remplacement n'est ouvert : rien n'est écrit.
  */
 export async function ecrireCodeDeRemplacement(
   db: Base,
   session: { readonly id: string },
   maintenant: number,
-): Promise<string> {
+): Promise<string | null> {
   await assurerSchema(db);
   const code = engendrerCode();
   const octets = new Uint8Array(16);
@@ -74,15 +101,25 @@ export async function ecrireCodeDeRemplacement(
   const sel = versHex(octets);
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${sel}:${code}`));
   const empreinte = versHex(new Uint8Array(digest));
-  await db.batch([
-    db.prepare('update codes_remplacement set annule_le = ?1 where annule_le is null').bind(maintenant),
+  const resultats = await db.batch([
     db
       .prepare(
-        'insert into codes_remplacement (empreinte, sel, session, creee_le, expire_le) select ?1, ?2, ?3, ?4, ?5 where exists (select 1 from remplacement_adresse where id = 1)',
+        'insert into messages_remplacement (envoye_le) select ?1 where (select count(*) from messages_remplacement where envoye_le > ?2) < ?3 and exists (select 1 from remplacement_adresse where id = 1)',
+      )
+      .bind(maintenant, maintenant - FENETRE_PLAFOND_MS, PLAFOND_MESSAGES_REMPLACEMENT_PAR_HEURE),
+    db
+      .prepare(
+        'insert into codes_remplacement (empreinte, sel, session, creee_le, expire_le) select ?1, ?2, ?3, ?4, ?5 where changes() = 1',
       )
       .bind(empreinte, sel, session.id, maintenant, maintenant + DUREE_DE_VIE_CODE_SECONDES * 1000),
+    db
+      .prepare(
+        'update codes_remplacement set annule_le = ?1 where annule_le is null and id <> last_insert_rowid() and changes() = 1',
+      )
+      .bind(maintenant),
   ]);
-  return code;
+  const ecriture = resultats[1] as { meta?: { changes?: number } } | undefined;
+  return ecriture?.meta?.changes === 1 ? code : null;
 }
 
 interface LigneRemplacement {

@@ -16,7 +16,7 @@ import { lireAdresseAutorisee } from '../../platform/auth/magasin.ts';
 import { remplacementPossible } from '../../core/auth/remplacement.ts';
 import { EMAIL_FORME } from '../../core/reglages/coordonnees.ts';
 import { inscrireAdresse, etatAdresse } from '../../platform/adresses-cloudflare/index.ts';
-import { basculerSiCodeValide, ecrireCodeDeRemplacement, lireRemplacementEnCours, ouvrirRemplacement } from '../../platform/auth/remplacement-adresse.ts';
+import { basculerSiCodeValide, ecrireCodeDeRemplacement, libererMessageRemplacement, lireRemplacementEnCours, ouvrirRemplacement, reserverMessageRemplacement } from '../../platform/auth/remplacement-adresse.ts';
 import {
   TEXTE_BOUTON_CHANGER_ADRESSE,
   TEXTE_LABEL_NOUVELLE_ADRESSE,
@@ -31,6 +31,7 @@ import {
   texteMessageVaArriver,
   texteAdresseResteEnPlace,
   TEXTE_CLIC_PAS_ENCORE_ENREGISTRE,
+  TEXTE_PLAFOND_MESSAGES_REMPLACEMENT,
   texteCodeEstParti,
   TEXTE_RECOPIER_LE_CODE,
   TEXTE_LABEL_CODE,
@@ -69,11 +70,17 @@ if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !
     } else if (saisie.toLowerCase() === adresse.toLowerCase()) {
       refus = TEXTE_REFUS_ADRESSE_DEJA_EN_PLACE;
     } else {
-      const resultat = await inscrireAdresse(cle, compte, saisie);
-      if (resultat === 'echec') {
-        refus = texteChangementAdresseEchoue(adresse);
+      const instant = Date.now();
+      if (!(await reserverMessageRemplacement(env.DB, instant))) {
+        refus = TEXTE_PLAFOND_MESSAGES_REMPLACEMENT;
       } else {
-        await ouvrirRemplacement(env.DB, saisie, session, Date.now());
+        const resultat = await inscrireAdresse(cle, compte, saisie);
+        if (resultat === 'deja-inscrite') await libererMessageRemplacement(env.DB, instant);
+        if (resultat === 'echec') {
+          refus = texteChangementAdresseEchoue(adresse);
+        } else {
+          await ouvrirRemplacement(env.DB, saisie, session, Date.now());
+        }
       }
     }
   } else if (formulaire.get('etape') === 'verifier') {
@@ -86,14 +93,18 @@ if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !
         refus = TEXTE_CLIC_PAS_ENCORE_ENREGISTRE;
       } else {
         const code = await ecrireCodeDeRemplacement(env.DB, session, Date.now());
-        etapeCode = true;
-        Astro.locals.cfContext.waitUntil(
-          Promise.resolve()
-            .then(() => demanderExpeditionDuCodeDeRemplacement(env.EXPEDITEUR_CODE_CONNEXION, nouvelle, code, __ADRESSE_EXPEDITEUR__))
-            .catch((erreur: unknown) => {
-              console.error(`[adresse] envoi du code échoué (${erreur instanceof Error ? erreur.name : 'inconnu'})`);
-            }),
-        );
+        if (code === null) {
+          refus = TEXTE_PLAFOND_MESSAGES_REMPLACEMENT;
+        } else {
+          etapeCode = true;
+          Astro.locals.cfContext.waitUntil(
+            Promise.resolve()
+              .then(() => demanderExpeditionDuCodeDeRemplacement(env.EXPEDITEUR_CODE_CONNEXION, nouvelle, code, __ADRESSE_EXPEDITEUR__))
+              .catch((erreur: unknown) => {
+                console.error(`[adresse] envoi du code échoué (${erreur instanceof Error ? erreur.name : 'inconnu'})`);
+              }),
+          );
+        }
       }
     }
   } else if (formulaire.get('etape') === 'code') {
