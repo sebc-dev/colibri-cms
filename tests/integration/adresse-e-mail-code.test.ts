@@ -273,6 +273,54 @@ it("SC-03c — le code fait huit signes de l'alphabet sans confusables, la base 
   }
 });
 
+function versHex(octets: ArrayBuffer): string {
+  return Array.from(new Uint8Array(octets), (o) => o.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256Hex(texte: string): Promise<string> {
+  return versHex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texte)));
+}
+
+it("SC-03c — l'empreinte gardée vaut SHA-256(sel:code), jamais SHA-256(code) seul", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirRemplacementDeTest(db);
+  double.verifier(NOUVELLE);
+  messages.length = 0;
+
+  await verifier(cookie);
+
+  await vi.waitFor(() => {
+    expect(messages).toHaveLength(1);
+  });
+  const code = codeDuMessage(messages[0]);
+  const ligne = (await lignesDeCodes(db))[0] ?? {};
+  const sel = String(ligne.sel);
+  expect(ligne.empreinte).toBe(await sha256Hex(`${sel}:${code}`));
+  expect(ligne.empreinte).not.toBe(await sha256Hex(code));
+});
+
+// --- SC-03b, liste paginée ---
+
+it("SC-03b — adresse vérifiée en deuxième page de la liste de Cloudflare : un code est écrit et envoyé", async () => {
+  const db = await assurerSchema();
+  for (let i = 1; i <= 50; i += 1) double.inscrire(`remplissage-${String(i)}@exemple.fr`, true);
+  const cookie = await ouvrirRemplacementDeTest(db);
+  expect(double.adresses.findIndex((a) => a.email === NOUVELLE)).toBe(50);
+  double.verifier(NOUVELLE);
+  messages.length = 0;
+
+  const reponse = await verifier(cookie);
+
+  expect(reponse.status).toBe(200);
+  expect(texteVisible(await reponse.text())).toContain(`Un code vient de partir vers ${NOUVELLE}.`);
+  expect(double.appels.some((a) => a.methode === "GET" && new URLSearchParams(a.recherche).get("page") === "2")).toBe(true);
+  expect(await lignesDeCodes(db)).toHaveLength(1);
+  await vi.waitFor(() => {
+    expect(messages).toHaveLength(1);
+  });
+  expect(messages[0]?.to).toBe(NOUVELLE);
+});
+
 // --- SC-03d ---
 
 it("SC-03d — le message va à la nouvelle adresse, depuis l'expéditeur de l'instance, en texte seul, sous un objet fixe", async () => {
