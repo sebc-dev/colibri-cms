@@ -88,3 +88,32 @@ export async function demanderExpeditionDuCodeDeRemplacement(
     text: `Code : ${code}`,
   });
 }
+
+const OBJET_AVIS_REMPLACEMENT = "L'adresse de votre administration a changé";
+
+/**
+ * Prévient l'ancienne adresse du remplacement (texte seul, ADR-0002, ADR-0033) : la nouvelle adresse
+ * et la date derrière leur étiquette, un renvoi au code de secours, jamais aucun code.
+ */
+export async function demanderAvisDeRemplacement(
+  expediteur: ExpediteurEmail,
+  ancienne: string,
+  nouvelle: string,
+  date: Date,
+  adresseExpediteur: string,
+): Promise<void> {
+  const jour = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' });
+  await expediteur.send({
+    from: adresseExpediteur,
+    to: ancienne,
+    subject: OBJET_AVIS_REMPLACEMENT,
+    text: [
+      "L'adresse de votre administration vient d'être remplacée.",
+      '',
+      `Nouvelle adresse : ${nouvelle}`,
+      `Date : ${jour}`,
+      '',
+      "Si vous n'êtes pas à l'origine de ce changement, entrez avec votre code de secours et remettez votre adresse.",
+    ].join('\n'),
+  });
+}
