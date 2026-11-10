@@ -3,6 +3,7 @@
  * ADR-0033). Module autonome : il n'importe que `core/` (I1).
  */
 import { env } from 'cloudflare:workers';
+import { engendrerCode, DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
 
 type Base = typeof env.DB;
 
@@ -50,4 +51,35 @@ export async function lireRemplacementEnCours(db: Base): Promise<string | null> 
   await assurerSchema(db);
   const ligne = await db.prepare('select adresse from remplacement_adresse where id = 1').first<{ adresse: string }>();
   return ligne ? ligne.adresse : null;
+}
+
+function versHex(octets: Uint8Array): string {
+  return Array.from(octets, (o) => o.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Engendre un code de remplacement, n'en écrit que l'empreinte salée, rattachée à la session,
+ * et annule les codes antérieurs (une seule requête groupée).
+ */
+export async function ecrireCodeDeRemplacement(
+  db: Base,
+  session: { readonly id: string },
+  maintenant: number,
+): Promise<string> {
+  await assurerSchema(db);
+  const code = engendrerCode();
+  const octets = new Uint8Array(16);
+  crypto.getRandomValues(octets);
+  const sel = versHex(octets);
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${sel}:${code}`));
+  const empreinte = versHex(new Uint8Array(digest));
+  await db.batch([
+    db.prepare('update codes_remplacement set annule_le = ?1 where annule_le is null').bind(maintenant),
+    db
+      .prepare(
+        'insert into codes_remplacement (empreinte, sel, session, creee_le, expire_le) select ?1, ?2, ?3, ?4, ?5 where exists (select 1 from remplacement_adresse where id = 1)',
+      )
+      .bind(empreinte, sel, session.id, maintenant, maintenant + DUREE_DE_VIE_CODE_SECONDES * 1000),
+  ]);
+  return code;
 }

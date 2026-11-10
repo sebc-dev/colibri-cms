@@ -71,3 +71,20 @@ export async function demanderAcheminementDeLaDemande(
 ): Promise<void> {
   await expediteur.send({ from: message.from, to: message.to, subject: message.subject, text: message.text });
 }
+
+const OBJET_REMPLACEMENT = 'Confirmez votre nouvelle adresse';
+
+/** Demande l'envoi du code de remplacement à la nouvelle adresse (texte seul, ADR-0002, ADR-0033). */
+export async function demanderExpeditionDuCodeDeRemplacement(
+  expediteur: ExpediteurEmail,
+  destinataire: string,
+  code: string,
+  adresseExpediteur: string,
+): Promise<void> {
+  await expediteur.send({
+    from: adresseExpediteur,
+    to: destinataire,
+    subject: OBJET_REMPLACEMENT,
+    text: `Code : ${code}`,
+  });
+}

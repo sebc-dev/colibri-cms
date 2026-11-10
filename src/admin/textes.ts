@@ -491,3 +491,14 @@ export const TEXTE_LIEN_REVENIR_AUX_REGLAGES = 'Revenir aux réglages';
 export function texteAdresseResteEnPlace(adresse: string): string {
   return `Tant que ce n'est pas terminé, votre adresse reste ${adresse}.`;
 }
+
+// Écran « Adresse e-mail » — le code de remplacement (change 017, ticket 03).
+export const TEXTE_CLIC_PAS_ENCORE_ENREGISTRE =
+  "Le clic n'a pas encore été enregistré. Vérifiez vos courriers indésirables, cliquez sur le bouton du message, puis réessayez.";
+export function texteCodeEstParti(nouvelle: string): string {
+  return `Un code vient de partir vers ${nouvelle}.`;
+}
+export const TEXTE_RECOPIER_LE_CODE = 'Recopiez-le ici. Il reste bon quinze minutes.';
+export const TEXTE_LABEL_CODE = 'Code';
+export const TEXTE_BOUTON_VALIDER = 'Valider';
+export const TEXTE_BOUTON_NOUVEAU_CODE = 'Recevoir un nouveau code';
