@@ -16,7 +16,7 @@ import { lireAdresseAutorisee } from '../../platform/auth/magasin.ts';
 import { remplacementPossible } from '../../core/auth/remplacement.ts';
 import { EMAIL_FORME } from '../../core/reglages/coordonnees.ts';
 import { inscrireAdresse, etatAdresse } from '../../platform/adresses-cloudflare/index.ts';
-import { ecrireCodeDeRemplacement, lireRemplacementEnCours, ouvrirRemplacement } from '../../platform/auth/remplacement-adresse.ts';
+import { basculerSiCodeValide, ecrireCodeDeRemplacement, lireRemplacementEnCours, ouvrirRemplacement } from '../../platform/auth/remplacement-adresse.ts';
 import {
   TEXTE_BOUTON_CHANGER_ADRESSE,
   TEXTE_LABEL_NOUVELLE_ADRESSE,
@@ -36,6 +36,8 @@ import {
   TEXTE_LABEL_CODE,
   TEXTE_BOUTON_VALIDER,
   TEXTE_BOUTON_NOUVEAU_CODE,
+  texteAdresseChangee,
+  TEXTE_CODE_NON_RECONNU,
 } from '../../admin/textes.ts';
 import { demanderExpeditionDuCodeDeRemplacement } from '../../platform/email/index.ts';
 import { env } from 'cloudflare:workers';
@@ -47,13 +49,14 @@ if (!session) {
 
 Astro.response.headers.set('Cache-Control', 'no-store');
 
-const adresse = (await lireAdresseAutorisee(env.DB)) ?? '';
 const compte = __COMPTE_CLOUDFLARE__ ?? undefined;
 const cle = env.JETON_ADRESSES_EMAIL;
 const possible = remplacementPossible(compte, cle);
 
+let adresse = (await lireAdresseAutorisee(env.DB)) ?? '';
 let refus: string | null = null;
 let etapeCode = false;
+let nouvelleAdresse: string | null = null;
 if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !== undefined) {
   const formulaire = await Astro.request.formData();
   if (formulaire.get('etape') === 'proposer') {
@@ -91,9 +94,16 @@ if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !
       }
     }
   } else if (formulaire.get('etape') === 'code') {
-    etapeCode = (await lireRemplacementEnCours(env.DB)) !== null;
+    const issue = await basculerSiCodeValide(env.DB, session, String(formulaire.get('code') ?? ''), Date.now());
+    if (issue.reussi) {
+      nouvelleAdresse = issue.nouvelle;
+    } else {
+      etapeCode = (await lireRemplacementEnCours(env.DB)) !== null;
+      refus = TEXTE_CODE_NON_RECONNU;
+    }
   }
 }
+if (nouvelleAdresse !== null) adresse = nouvelleAdresse;
 const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
 ---
 
@@ -103,6 +113,14 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
     {
       possible ? (
         <>
+        {nouvelleAdresse !== null ? (
+        <Card>
+          <CardContent class="flex flex-col gap-4">
+            <p>{texteAdresseChangee(nouvelleAdresse)}</p>
+            <a href="/admin/reglages" class="inline-flex min-h-11 items-center underline underline-offset-2">{TEXTE_LIEN_REVENIR_AUX_REGLAGES}</a>
+          </CardContent>
+        </Card>
+        ) : (
         <Card>
           <CardContent class="flex flex-col gap-4">
             {enCours !== null && etapeCode ? (
@@ -145,6 +163,7 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
             </form>
           </CardContent>
         </Card>
+        )}
         <form id="verifier" method="post">
           <input type="hidden" name="etape" value="verifier" />
         </form>

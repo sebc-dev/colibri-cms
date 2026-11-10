@@ -46,9 +46,9 @@ connexion) au ticket 05 ; la fermeture des sessions et l'annulation des codes de
 l'avis et la concurrence au 07 ; le plafond au 08.
 
 ## Critères
-- [ ] l'éditrice recopie le code de remplacement dans la session qui l'a demandé, dans les quinze minutes : l'adresse autorisée devient la nouvelle adresse (une seule ligne dans `adresses_autorisees`), et l'écran confirme la nouvelle adresse   (SC-04a)
-- [ ] le code de remplacement saisi avec des minuscules, des espaces ou des tirets, ou des confusables, est reconnu et remplace l'adresse   (SC-04b)
-- [ ] juste après le remplacement, la nouvelle adresse soumise à l'écran de connexion reçoit un code écrit et envoyé ; pour l'ancienne, rien n'est écrit ni envoyé, et la réponse est celle de toute autre adresse   (SC-04c)
-- [ ] le code de secours en place ouvre toujours une session juste après le remplacement   (SC-04d)
-- [ ] juste après le remplacement, une demande complète est acheminée vers la nouvelle adresse, et aucun message de la demande ne part vers l'ancienne   (SC-04e)
-- [ ] pendant un remplacement en cours, non encore abouti, une demande complète est acheminée vers l'adresse autorisée en place   (SC-04f)
+- [x] l'éditrice recopie le code de remplacement dans la session qui l'a demandé, dans les quinze minutes : l'adresse autorisée devient la nouvelle adresse (une seule ligne dans `adresses_autorisees`), et l'écran confirme la nouvelle adresse   (SC-04a)
+- [x] le code de remplacement saisi avec des minuscules, des espaces ou des tirets, ou des confusables, est reconnu et remplace l'adresse   (SC-04b)
+- [x] juste après le remplacement, la nouvelle adresse soumise à l'écran de connexion reçoit un code écrit et envoyé ; pour l'ancienne, rien n'est écrit ni envoyé, et la réponse est celle de toute autre adresse   (SC-04c)
+- [x] le code de secours en place ouvre toujours une session juste après le remplacement   (SC-04d)
+- [x] juste après le remplacement, une demande complète est acheminée vers la nouvelle adresse, et aucun message de la demande ne part vers l'ancienne   (SC-04e)
+- [x] pendant un remplacement en cours, non encore abouti, une demande complète est acheminée vers l'adresse autorisée en place   (SC-04f)

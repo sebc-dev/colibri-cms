@@ -502,3 +502,9 @@ export const TEXTE_RECOPIER_LE_CODE = 'Recopiez-le ici. Il reste bon quinze minu
 export const TEXTE_LABEL_CODE = 'Code';
 export const TEXTE_BOUTON_VALIDER = 'Valider';
 export const TEXTE_BOUTON_NOUVEAU_CODE = 'Recevoir un nouveau code';
+
+// Écran « Adresse e-mail » — le remplacement abouti (change 017, ticket 04).
+export function texteAdresseChangee(nouvelle: string): string {
+  return `C'est fait : votre adresse est désormais ${nouvelle}. Vos codes de connexion et vos demandes de devis y arriveront.`;
+}
+export const TEXTE_CODE_NON_RECONNU = "Ce code n'est pas bon. Vérifiez-le et recopiez-le à nouveau.";
