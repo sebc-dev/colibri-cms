@@ -167,6 +167,12 @@ export async function basculerSiCodeValide(
       )
       .bind(id, maintenant),
     db.prepare(`delete from remplacement_adresse where id = 1 and ${consomme}`).bind(id, maintenant),
+    db
+      .prepare(
+        `update codes_connexion set annule_le = ?3 where annule_le is null and utilise_le is null and ${consomme}`,
+      )
+      .bind(id, maintenant, maintenant),
+    db.prepare(`delete from sessions where id <> ?3 and ${consomme}`).bind(id, maintenant, session.id),
   ]);
   const consommation = lot[1] as { meta?: { changes?: number } } | undefined;
   if (consommation?.meta?.changes !== 1) return { reussi: false, raison: 'introuvable' };

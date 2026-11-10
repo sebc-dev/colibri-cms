@@ -29,7 +29,7 @@ cours**, non abouti, n'en ferme aucune.
 **Hors de ce ticket.** L'avis à l'ancienne adresse et la concurrence de deux saisies (07).
 
 ## Critères
-- [ ] une session ouverte sur un autre appareil, puis l'éditrice remplace l'adresse : la session de l'autre appareil est renvoyée vers l'écran de connexion, et la session de l'éditrice reste ouverte   (SC-06a)
-- [ ] plusieurs sessions ouvertes, puis l'adresse autorisée remplacée : seule reste ouverte la session qui a fait le remplacement   (SC-06b)
-- [ ] plusieurs sessions ouvertes, un remplacement proposé et son code envoyé mais non recopié : toutes les sessions coexistent, rien ne les ferme   (SC-06c)
-- [ ] un code de connexion envoyé à l'ancienne adresse, puis l'adresse remplacée avant qu'il serve : ce code n'ouvre plus de session   (SC-06d)
+- [x] une session ouverte sur un autre appareil, puis l'éditrice remplace l'adresse : la session de l'autre appareil est renvoyée vers l'écran de connexion, et la session de l'éditrice reste ouverte   (SC-06a)
+- [x] plusieurs sessions ouvertes, puis l'adresse autorisée remplacée : seule reste ouverte la session qui a fait le remplacement   (SC-06b)
+- [x] plusieurs sessions ouvertes, un remplacement proposé et son code envoyé mais non recopié : toutes les sessions coexistent, rien ne les ferme   (SC-06c)
+- [x] un code de connexion envoyé à l'ancienne adresse, puis l'adresse remplacée avant qu'il serve : ce code n'ouvre plus de session   (SC-06d)
