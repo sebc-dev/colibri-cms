@@ -318,3 +318,37 @@ it("SC-08d — deux demandes de code concurrentes avec quatre messages déjà pa
   expect(b.status).toBeLessThan(500);
   expect(await compter(db, "codes_remplacement")).toBe(1);
 });
+
+// --- Chemins sans critère propre, demandés par la review (architecture-F-1, coverage-F-1) ---
+
+it("SC-08a — une adresse déjà inscrite chez Cloudflare ne compte pas dans le plafond", async () => {
+  const db = await assurerSchema();
+  const cookie = await semerSession(db);
+  await semerMessages(db, [1000, 2000, 3000, 4000]);
+  double.inscrire(NOUVELLE);
+
+  const dejaInscrite = await proposer(cookie, NOUVELLE);
+
+  expect(texteVisible(await dejaInscrite.text())).not.toContain(PHRASE_PLAFOND);
+  expect(await compter(db, "messages_remplacement")).toBe(4);
+
+  const neuve = await proposer(cookie, "autre@exemple.fr");
+
+  expect(texteVisible(await neuve.text())).not.toContain(PHRASE_PLAFOND);
+  expect(await compter(db, "messages_remplacement")).toBe(5);
+});
+
+it("SC-08a — remplacement fermé avant la demande de code : aucun code écrit, rien envoyé, aucun message compté", async () => {
+  const db = await assurerSchema();
+  const cookie = await ouvrirRemplacementVerifie(db);
+  await db.prepare("delete from remplacement_adresse").run();
+  const avant = await compter(db, "messages_remplacement");
+
+  const reponse = await verifier(cookie);
+
+  expect(reponse.status).toBeLessThan(500);
+  expect(await compter(db, "codes_remplacement")).toBe(0);
+  await new Promise((r) => setTimeout(r, 50));
+  expect(messages).toEqual([]);
+  expect(await compter(db, "messages_remplacement")).toBe(avant);
+});
