@@ -35,7 +35,7 @@ complet, de « Changer d'adresse » à la réussite, joué au téléphone (gabar
 la boîte ouverte à côté, en moins de cinq minutes (UX4).
 
 ## Critères
-- [ ] l'adresse vient d'être remplacée : un avis part vers l'ancienne adresse, en texte seul, sous un objet fixe, qui nomme la nouvelle adresse et la date, et renvoie au code de secours   (SC-07a)
-- [ ] l'avis du remplacement ne porte ni code de connexion, ni code de remplacement, ni code de secours   (SC-07b)
-- [ ] l'envoi de l'avis échoue : l'adresse autorisée reste la nouvelle adresse, et une trace de l'échec est écrite dans les journaux de la plateforme, sans aucun code   (SC-07c)
-- [ ] le même code de remplacement saisi deux fois en même temps : l'adresse est remplacée une seule fois et un seul avis part   (SC-07d)
+- [x] l'adresse vient d'être remplacée : un avis part vers l'ancienne adresse, en texte seul, sous un objet fixe, qui nomme la nouvelle adresse et la date, et renvoie au code de secours   (SC-07a)
+- [x] l'avis du remplacement ne porte ni code de connexion, ni code de remplacement, ni code de secours   (SC-07b)
+- [x] l'envoi de l'avis échoue : l'adresse autorisée reste la nouvelle adresse, et une trace de l'échec est écrite dans les journaux de la plateforme, sans aucun code   (SC-07c)
+- [x] le même code de remplacement saisi deux fois en même temps : l'adresse est remplacée une seule fois et un seul avis part   (SC-07d)

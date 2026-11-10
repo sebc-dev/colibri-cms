@@ -37,10 +37,11 @@ import {
   TEXTE_BOUTON_VALIDER,
   TEXTE_BOUTON_NOUVEAU_CODE,
   texteAdresseChangee,
+  texteAncienneAdressePrevenue,
   TEXTE_CODE_A_RETAPER,
   TEXTE_CODE_A_REDEMANDER,
 } from '../../admin/textes.ts';
-import { demanderExpeditionDuCodeDeRemplacement } from '../../platform/email/index.ts';
+import { demanderExpeditionDuCodeDeRemplacement, demanderAvisDeRemplacement } from '../../platform/email/index.ts';
 import { env } from 'cloudflare:workers';
 
 const session = await verifierSession(env.DB, Astro.request);
@@ -58,6 +59,7 @@ let adresse = (await lireAdresseAutorisee(env.DB)) ?? '';
 let refus: string | null = null;
 let etapeCode = false;
 let nouvelleAdresse: string | null = null;
+let ancienneAdresse: string | null = null;
 if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !== undefined) {
   const formulaire = await Astro.request.formData();
   if (formulaire.get('etape') === 'proposer') {
@@ -98,6 +100,17 @@ if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !
     const issue = await basculerSiCodeValide(env.DB, session, String(formulaire.get('code') ?? ''), Date.now());
     if (issue.reussi) {
       nouvelleAdresse = issue.nouvelle;
+      ancienneAdresse = issue.ancienne;
+      if (issue.ancienne !== null) {
+        const ancienne = issue.ancienne;
+        Astro.locals.cfContext.waitUntil(
+          Promise.resolve()
+            .then(() => demanderAvisDeRemplacement(env.EXPEDITEUR_CODE_CONNEXION, ancienne, issue.nouvelle, new Date(), __ADRESSE_EXPEDITEUR__))
+            .catch((erreur: unknown) => {
+              console.error(`[adresse] envoi de l'avis échoué (${erreur instanceof Error ? erreur.name : 'inconnu'})`);
+            }),
+        );
+      }
     } else {
       etapeCode = (await lireRemplacementEnCours(env.DB)) !== null;
       refus = issue.raison === 'introuvable' ? TEXTE_CODE_A_RETAPER : TEXTE_CODE_A_REDEMANDER;
@@ -118,6 +131,7 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
         <Card>
           <CardContent class="flex flex-col gap-4">
             <p>{texteAdresseChangee(nouvelleAdresse)}</p>
+            {ancienneAdresse !== null ? <p>{texteAncienneAdressePrevenue(ancienneAdresse)}</p> : null}
             <a href="/admin/reglages" class="inline-flex min-h-11 items-center underline underline-offset-2">{TEXTE_LIEN_REVENIR_AUX_REGLAGES}</a>
           </CardContent>
         </Card>
