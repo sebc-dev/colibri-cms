@@ -222,8 +222,14 @@ it("SC-07a — l'adresse est remplacée : un avis texte seul part vers l'ancienn
   const message = avis[0];
   expect(message.subject).toBe("L'adresse de votre administration a changé");
   expect(Object.keys(message).sort((a, b) => a.localeCompare(b))).toEqual(["from", "subject", "text", "to"]);
-  expect(message.text).toContain(NOUVELLE);
-  expect(message.text).toMatch(new RegExp(String(new Date().getFullYear())));
+  const jour = new Date().toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Paris",
+  });
+  expect(message.text).toContain(`Nouvelle adresse : ${NOUVELLE}`);
+  expect(message.text).toContain(`Date : ${jour}`);
   expect(message.text).toMatch(/secours/i);
   expect(message.text).not.toMatch(/<[a-z!/]/i);
   expect(message.from).not.toBe(ANCIENNE);
