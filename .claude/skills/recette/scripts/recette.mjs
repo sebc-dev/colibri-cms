@@ -19,7 +19,8 @@
  *                           --alias, à défaut de la branche. --racine : build
  *                           fait ailleurs.
  *   instance [--racine <d>] écrit dans le fichier d'instance du build (`instance.json`)
- *                           le domaine et l'adresse d'expéditeur de la recette
+ *                           le domaine, l'identifiant du compte (`RECETTE_COMPTE`) et
+ *                           l'adresse d'expéditeur de la recette
  *                           (`RECETTE_EXPEDITEUR`, sinon `code@<RECETTE_DOMAINE>`).
  *                           À jouer AVANT `npm run build` : le fichier est lu au build.
  *   semer                   inscrit l'adresse autorisée (idempotent).
@@ -125,7 +126,7 @@ function ecrireConfigRecette(reglages) {
   writeFileSync(configRecette(), `${JSON.stringify(config, null, 2)}\n`);
 }
 
-/** Le Worker, la base, la destination d'e-mail et l'exposition du compte de recette. */
+/** Le Worker, la base, la liaison d'envoi et l'exposition du compte de recette. */
 function appliquerCompteDeRecette(config, reglages) {
   config.name = reglages.RECETTE_WORKER;
   config.workers_dev = true;
@@ -136,10 +137,10 @@ function appliquerCompteDeRecette(config, reglages) {
     database_name: reglages.RECETTE_BASE,
     database_id: reglages.RECETTE_BASE_ID,
   }));
-  config.send_email = config.send_email.map((liaison) => ({
-    ...liaison,
-    destination_address: reglages.RECETTE_ADRESSE,
-  }));
+  // Change 017 : la liaison d'envoi n'est plus limitée à une adresse, sans quoi le code du
+  // remplacement ne partirait jamais vers la nouvelle boîte. Une adresse figée par une
+  // ancienne composition du dépôt de recette est retirée.
+  config.send_email = config.send_email.map(({ destination_address: _figee, ...liaison }) => liaison);
 }
 
 function sql(reglages, requete) {
@@ -171,6 +172,8 @@ function ecrireInstance(reglages, depotDePublication) {
   const instance = JSON.parse(readFileSync(chemin, 'utf-8'));
   instance.domain = reglages.RECETTE_DOMAINE;
   instance.senderAddress = reglages.RECETTE_EXPEDITEUR || `code@${reglages.RECETTE_DOMAINE}`;
+  // Change 017 : sans l'identifiant du compte, l'écran « Adresse e-mail » dit le remplacement impossible.
+  instance.compteCloudflare = reglages.RECETTE_COMPTE;
   if (depotDePublication) instance.depotDePublication = depotDePublication;
   writeFileSync(chemin, `${JSON.stringify(instance, null, 2)}\n`);
   console.log(`✔ ${chemin} : domain ${instance.domain}, senderAddress ${instance.senderAddress}${depotDePublication ? `, depotDePublication ${depotDePublication}` : ''}`);
