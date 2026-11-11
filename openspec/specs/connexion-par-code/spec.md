@@ -248,7 +248,7 @@ Chaque code refusé SHALL indiquer lequel des trois gestes reprendre — retaper
 
 ### Requirement: La fin de session automatique
 
-Une session SHALL se fermer après sept jours sans usage, et après trente jours quoi qu'il arrive. L'échéance glissante se rafraîchit sans écrire en base à chaque requête (ADR-0001), et rien ne compte les sessions simultanées. Elles coexistent et expirent d'elles-mêmes, sauf quand le code de secours est créé, remplacé ou employé : toutes les sessions sont alors fermées, hormis celle qui a fait le geste ou que le code vient d'ouvrir (capacité `moyen-de-reprise`, FR-012).
+Une session SHALL se fermer après sept jours sans usage, et après trente jours quoi qu'il arrive. L'échéance glissante se rafraîchit sans écrire en base à chaque requête (ADR-0001), et rien ne compte les sessions simultanées. Elles coexistent et expirent d'elles-mêmes, sauf dans deux cas : quand le code de secours est créé, remplacé ou employé (capacité `moyen-de-reprise`, FR-012), et quand l'adresse autorisée est remplacée (capacité `remplacement-adresse-autorisee`, FR-013). Toutes les sessions sont alors fermées, hormis celle qui a fait le geste ou que le code de secours vient d'ouvrir.
 
 #### Scenario: Sept jours sans usage ferment la session
 - **WHEN** une session est restée sept jours sans usage
@@ -268,12 +268,16 @@ Une session SHALL se fermer après sept jours sans usage, et après trente jours
 - **THEN** le rafraîchissement de l'échéance n'écrit pas en base à chaque requête
 
 #### Scenario: Les sessions simultanées coexistent
-- **WHEN** plusieurs sessions sont ouvertes en même temps, et que le code de secours n'est ni créé, ni remplacé, ni employé
+- **WHEN** plusieurs sessions sont ouvertes en même temps, que le code de secours n'est ni créé, ni remplacé, ni employé, et que l'adresse autorisée n'est pas remplacée
 - **THEN** elles coexistent sans que rien ne les compte ni ne les ferme
 
 #### Scenario: Le code de secours ferme les autres sessions
 - **WHEN** plusieurs sessions sont ouvertes, puis que le code de secours est créé, remplacé ou employé
 - **THEN** seule reste ouverte la session qui a fait le geste, ou celle que le code vient d'ouvrir
+
+#### Scenario: Le remplacement de l'adresse ferme les autres sessions
+- **WHEN** plusieurs sessions sont ouvertes, puis que l'adresse autorisée est remplacée
+- **THEN** seule reste ouverte la session qui a fait le remplacement
 
 ### Requirement: Le seuil de vingt tentatives par origine
 
