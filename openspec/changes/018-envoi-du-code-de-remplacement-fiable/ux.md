@@ -30,8 +30,13 @@ Dans les deux cas, la ligne « Tant que ce n'est pas terminé, votre adresse res
 
 ### Étape 2 — le code du produit : deux états corrigés
 
-- **Nouveau code demandé trop tôt ou non parti** : mêmes messages que ci-dessus, le bouton nommé
-  étant « Recevoir un nouveau code ». Le champ Code reste affiché.
+- **Nouveau code demandé trop tôt** : même message que « Clic enregistré depuis moins d'une
+  minute », le bouton nommé étant « Recevoir un nouveau code ». Rien n'est annulé : le code
+  précédent reste bon, et le champ Code reste affiché.
+- **Nouveau code non parti** : la demande a déjà annulé le code précédent (un nouveau code annule le
+  précédent), aucun code n'est donc recopiable. L'écran revient à l'étape 1, sans champ Code, avec
+  le message « Le code n'a pas pu partir vers … » ci-dessus, qui nomme « J'ai cliqué sur le
+  bouton » (design D2).
 - **Plafond atteint alors qu'un code est en circulation** : « Trop de messages sont partis en peu de
   temps. Réessayez dans une heure. », et le champ Code reste affiché avec « Valider ».
 
