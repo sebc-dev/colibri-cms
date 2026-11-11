@@ -39,4 +39,4 @@ modification du plafond lui-même (nombre, fenêtre, indépendance avec la conne
 
 ## Critères
 
-- [ ] Quand un code de remplacement est parti et reste bon, et qu'une nouvelle demande de code est refusée par le plafond : l'écran dit qu'il faut attendre avant de réessayer et garde le champ de saisie du code, et le code déjà parti permet toujours de remplacer l'adresse   (SC-03a)
+- [x] Quand un code de remplacement est parti et reste bon, et qu'une nouvelle demande de code est refusée par le plafond : l'écran dit qu'il faut attendre avant de réessayer et garde le champ de saisie du code, et le code déjà parti permet toujours de remplacer l'adresse   (SC-03a)

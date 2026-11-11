@@ -103,6 +103,7 @@ if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !
         const instant = Date.now();
         const code = await ecrireCodeDeRemplacement(env.DB, session, instant);
         if (code === null) {
+          etapeCode = await codeRecopiableExiste(env.DB, session, Date.now());
           refus = TEXTE_PLAFOND_MESSAGES_REMPLACEMENT;
         } else {
           const envoye = await envoyerAvecTentatives(() => demanderExpeditionDuCodeDeRemplacement(env.EXPEDITEUR_CODE_CONNEXION, nouvelle, code, __ADRESSE_EXPEDITEUR__));
