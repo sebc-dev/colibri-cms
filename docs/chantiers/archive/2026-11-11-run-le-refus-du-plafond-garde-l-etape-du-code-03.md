@@ -39,3 +39,8 @@ Après un `/clear`, la reprise n'existe plus : commiter la retouche, puis relanc
 
 ## Écarté
 - Reprise nue sans jeton `rerun` : elle resservirait le même échec depuis le cache.
+
+## Issue
+La ligne 229 du test neuf a été corrigée à la main, sur décision humaine, sans changer ce qu'elle
+vérifie : `toHaveLength` à la place de `.length` suivi de `toBe`. La reprise `rerun: "2"` a abouti le
+2026-11-11 et ouvert la PR #346.
