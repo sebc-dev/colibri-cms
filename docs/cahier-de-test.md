@@ -974,7 +974,7 @@ Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variant
 
 | N° | Cas | Résultat attendu | Verdict |
 |---|---|---|---|
-| CT-49.1 | À 360 px de large (`playwright-cli`), sur l'écran « Adresse e-mail », avec une adresse autorisée d'au moins quarante signes, ouvrir l'écran au repos, puis proposer une nouvelle adresse d'au moins quarante signes (étape de la confirmation), presser « J'ai cliqué sur le bouton » (étape du code) et enfin recopier le code (réussite) | À chaque étape, l'adresse revient à la ligne dans sa carte, aucun signe n'est rogné, y compris dans les messages ambres d'attente et de refus ; `document.documentElement.scrollWidth` ≤ 360 | À jouer |
+| CT-49.1 | À 360 px de large (`playwright-cli`), sur l'écran « Adresse e-mail », avec une adresse autorisée d'au moins quarante signes, ouvrir l'écran au repos, puis proposer une nouvelle adresse d'au moins quarante signes (étape de la confirmation), presser « J'ai cliqué sur le bouton » (étape du code) et enfin recopier le code (réussite) | À chaque étape, l'adresse revient à la ligne dans sa carte, aucun signe n'est rogné, y compris dans les messages ambres d'attente et de refus ; `document.documentElement.scrollWidth` ≤ 360 | OK — 2026-11-11, en local (écrans rendus par le worker de test, servis avec leurs styles, Chromium à 360 px), adresses de 50 et 53 signes sans tiret : neuf écrans (repos, confirmation à l'ouverture et après rechargement, attente du clic, code, code refusé, refus « Le code n'a pas pu partir vers … », réussite, « Le changement d'adresse n'est pas possible… ») ; `scrollWidth` = 360 partout, aucun texte au-delà du bord de sa carte (texte ≤ 314 px, carte à 328 px), les deux messages ambres sur cinq lignes |
 
 ## Bilan
 
