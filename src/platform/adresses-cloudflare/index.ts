@@ -90,14 +90,22 @@ export async function inscrireAdresse(cle: string, compte: string, adresse: stri
 export type EtatAdresse = 'verifiee' | 'en-attente' | 'absente' | 'echec';
 
 /** Cloudflare tient-il `adresse` pour vérifiée (le clic sur le bouton du message a-t-il eu lieu) ? */
-export async function etatAdresse(cle: string, compte: string, adresse: string): Promise<EtatAdresse> {
+export interface LectureAdresse {
+  etat: EtatAdresse;
+  /** Instant de vérification (ms) lu dans `verified` ; `null` si absent ou non daté (ancien). */
+  verifieeLe: number | null;
+}
+
+export async function lireAdresse(cle: string, compte: string, adresse: string): Promise<LectureAdresse> {
   const liste = await listerAdresses(cle, compte);
-  if (liste === null) return 'echec';
+  if (liste === null) return { etat: 'echec', verifieeLe: null };
   const voulue = adresse.toLowerCase();
   const trouvee = liste.find((a) => {
     const email = (a as { email?: unknown } | null)?.email;
     return typeof email === 'string' && email.toLowerCase() === voulue;
   }) as { verified?: unknown } | undefined;
-  if (trouvee === undefined) return 'absente';
-  return typeof trouvee.verified === 'string' && trouvee.verified !== '' ? 'verifiee' : 'en-attente';
+  if (trouvee === undefined) return { etat: 'absente', verifieeLe: null };
+  if (typeof trouvee.verified !== 'string' || trouvee.verified === '') return { etat: 'en-attente', verifieeLe: null };
+  const instant = Date.parse(trouvee.verified);
+  return { etat: 'verifiee', verifieeLe: Number.isNaN(instant) ? null : instant };
 }

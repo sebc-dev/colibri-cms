@@ -99,3 +99,11 @@ export const BUTEE_ABSOLUE_SESSION_MS = 30 * UN_JOUR_MS;
  * une écriture D1.
  */
 export const RAFRAICHISSEMENT_SESSION_INTERVALLE_MIN_MS = 60 * 60 * 1000;
+
+/** Le délai pendant lequel Cloudflare refuse encore d'écrire à une adresse tout juste vérifiée (ADR-0033). */
+export const DELAI_APRES_CONFIRMATION_MS = 60_000;
+
+/** La vérification date-t-elle de moins d'une minute ? Un instant futur vaut attente. */
+export function confirmationRecente(verifieeLe: number, maintenant: number): boolean {
+  return maintenant - verifieeLe < DELAI_APRES_CONFIRMATION_MS;
+}

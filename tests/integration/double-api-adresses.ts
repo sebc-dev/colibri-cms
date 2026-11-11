@@ -40,8 +40,11 @@ export interface DoubleApiAdresses {
   panne: Panne | null;
   /** Inscrit d'avance une adresse du compte (en attente de vérification par défaut). */
   inscrire(email: string, verifiee?: boolean): void;
-  /** Fait passer l'adresse à vérifiée, comme le clic sur le bouton du message. */
-  verifier(email: string): void;
+  /**
+   * Fait passer l'adresse à vérifiée, comme le clic sur le bouton du message. `verifieLe` choisit
+   * le champ `verified` (par défaut `2026-01-01T00:00:00Z`, un instant ancien).
+   */
+  verifier(email: string, verifieLe?: string): void;
   restaurer(): void;
 }
 
@@ -79,9 +82,9 @@ export function installerDoubleApiAdresses(): DoubleApiAdresses {
         verified: verifiee ? '2026-01-01T00:00:00Z' : null,
       });
     },
-    verifier(email) {
+    verifier(email, verifieLe = '2026-01-01T00:00:00Z') {
       const trouvee = double.adresses.find((a) => a.email.toLowerCase() === email.toLowerCase());
-      if (trouvee) trouvee.verified = '2026-01-01T00:00:00Z';
+      if (trouvee) trouvee.verified = verifieLe;
     },
     restaurer() {
       globalThis.fetch = fetchOrigine;

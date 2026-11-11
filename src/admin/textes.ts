@@ -496,6 +496,10 @@ export function texteAdresseResteEnPlace(adresse: string): string {
 // Écran « Adresse e-mail » — le code de remplacement (change 017, ticket 03).
 export const TEXTE_CLIC_PAS_ENCORE_ENREGISTRE =
   "Le clic n'a pas encore été enregistré. Vérifiez vos courriers indésirables, cliquez sur le bouton du message, puis réessayez.";
+export const TEXTE_CONFIRMATION_RECENTE =
+  "Votre clic est bien enregistré. Il faut encore un instant avant que le code puisse partir. Patientez une minute, puis appuyez de nouveau sur « J'ai cliqué sur le bouton ».";
+export const TEXTE_CONFIRMATION_RECENTE_APRES_CODE =
+  "Votre clic est bien enregistré. Il faut encore un instant avant qu'un nouveau code puisse partir. Patientez une minute, puis appuyez de nouveau sur « Recevoir un nouveau code ». Le code reçu reste bon en attendant.";
 export function texteCodeEstParti(nouvelle: string): string {
   return `Un code vient de partir vers ${nouvelle}.`;
 }

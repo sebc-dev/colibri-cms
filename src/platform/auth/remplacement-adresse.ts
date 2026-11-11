@@ -79,6 +79,16 @@ export async function lireRemplacementEnCours(db: Base): Promise<string | null> 
   return ligne ? ligne.adresse : null;
 }
 
+/** Un code encore recopiable (ni utilisé, ni annulé, ni expiré, ni brûlé, et rattaché à la session) existe-t-il ? */
+export async function codeRecopiableExiste(db: Base, session: { readonly id: string }, maintenant: number): Promise<boolean> {
+  await assurerSchema(db);
+  const ligne = await db
+    .prepare('select 1 as ok from codes_remplacement where session = ?1 and utilise_le is null and annule_le is null and expire_le > ?2 and essais < ?3 limit 1')
+    .bind(session.id, maintenant, SEUIL_ESSAIS_BRULAGE)
+    .first<{ ok: number }>();
+  return ligne !== null;
+}
+
 function versHex(octets: Uint8Array): string {
   return Array.from(octets, (o) => o.toString(16).padStart(2, '0')).join('');
 }

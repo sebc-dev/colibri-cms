@@ -13,10 +13,11 @@ import { Input } from '../../admin/composants/ui/input/index.ts';
 import { Label } from '../../admin/composants/ui/label/index.ts';
 import { verifierSession } from '../../platform/session/index.ts';
 import { lireAdresseAutorisee } from '../../platform/auth/magasin.ts';
+import { confirmationRecente } from '../../core/auth/regles.ts';
 import { remplacementPossible } from '../../core/auth/remplacement.ts';
 import { EMAIL_FORME } from '../../core/reglages/coordonnees.ts';
-import { inscrireAdresse, etatAdresse } from '../../platform/adresses-cloudflare/index.ts';
-import { basculerSiCodeValide, ecrireCodeDeRemplacement, libererMessageRemplacement, lireRemplacementEnCours, ouvrirRemplacement, reserverMessageRemplacement } from '../../platform/auth/remplacement-adresse.ts';
+import { inscrireAdresse, lireAdresse } from '../../platform/adresses-cloudflare/index.ts';
+import { basculerSiCodeValide, codeRecopiableExiste, ecrireCodeDeRemplacement, libererMessageRemplacement, lireRemplacementEnCours, ouvrirRemplacement, reserverMessageRemplacement } from '../../platform/auth/remplacement-adresse.ts';
 import {
   TEXTE_BOUTON_CHANGER_ADRESSE,
   TEXTE_LABEL_NOUVELLE_ADRESSE,
@@ -31,6 +32,8 @@ import {
   texteMessageVaArriver,
   texteAdresseResteEnPlace,
   TEXTE_CLIC_PAS_ENCORE_ENREGISTRE,
+  TEXTE_CONFIRMATION_RECENTE,
+  TEXTE_CONFIRMATION_RECENTE_APRES_CODE,
   TEXTE_PLAFOND_MESSAGES_REMPLACEMENT,
   texteCodeEstParti,
   TEXTE_RECOPIER_LE_CODE,
@@ -86,11 +89,15 @@ if (Astro.request.method === 'POST' && possible && compte !== undefined && cle !
   } else if (formulaire.get('etape') === 'verifier') {
     const nouvelle = await lireRemplacementEnCours(env.DB);
     if (nouvelle !== null) {
-      const etat = await etatAdresse(cle, compte, nouvelle);
+      const { etat, verifieeLe } = await lireAdresse(cle, compte, nouvelle);
       if (etat === 'echec') {
         refus = texteChangementAdresseEchoue(adresse);
       } else if (etat !== 'verifiee') {
         refus = TEXTE_CLIC_PAS_ENCORE_ENREGISTRE;
+      } else if (verifieeLe !== null && confirmationRecente(verifieeLe, Date.now())) {
+        const depuisCode = await codeRecopiableExiste(env.DB, session, Date.now());
+        etapeCode = depuisCode;
+        refus = depuisCode ? TEXTE_CONFIRMATION_RECENTE_APRES_CODE : TEXTE_CONFIRMATION_RECENTE;
       } else {
         const code = await ecrireCodeDeRemplacement(env.DB, session, Date.now());
         if (code === null) {

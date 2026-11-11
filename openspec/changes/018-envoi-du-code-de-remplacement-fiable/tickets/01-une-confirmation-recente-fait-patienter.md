@@ -60,5 +60,5 @@ l'écran (il demanderait un script de navigateur, `I4`/`I12`). Aucune table, col
 
 ## Critères
 
-- [ ] Quand l'éditrice dit avoir confirmé, ou demande un nouveau code, alors que Cloudflare tient l'adresse pour vérifiée depuis moins d'une minute : aucun code n'est écrit ni envoyé, aucun message n'est compté au plafond, l'écran dit que le clic est bien enregistré et invite à réessayer dans un instant, et redit l'adresse en place   (SC-01a)
-- [ ] Quand l'éditrice dit avoir confirmé, que Cloudflare tient l'adresse pour vérifiée depuis une minute ou plus et que l'envoi est accepté : un code est écrit et envoyé vers la nouvelle adresse, et l'écran invite à recopier le code reçu dans la nouvelle boîte   (SC-01b)
+- [x] Quand l'éditrice dit avoir confirmé, ou demande un nouveau code, alors que Cloudflare tient l'adresse pour vérifiée depuis moins d'une minute : aucun code n'est écrit ni envoyé, aucun message n'est compté au plafond, l'écran dit que le clic est bien enregistré et invite à réessayer dans un instant, et redit l'adresse en place   (SC-01a)
+- [x] Quand l'éditrice dit avoir confirmé, que Cloudflare tient l'adresse pour vérifiée depuis une minute ou plus et que l'envoi est accepté : un code est écrit et envoyé vers la nouvelle adresse, et l'écran invite à recopier le code reçu dans la nouvelle boîte   (SC-01b)
