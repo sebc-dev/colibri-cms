@@ -970,6 +970,12 @@ Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variant
 | CT-48.1 | Sur `colibri.sebc.dev`, cliquer dans le message de Cloudflare puis presser aussitôt « J'ai cliqué sur le bouton » | Message ambre « Votre clic est bien enregistré… Patientez une minute » ; aucun code n'arrive ; l'adresse en place est redite | à jouer |
 | CT-48.2 | Attendre une minute puis presser de nouveau « J'ai cliqué sur le bouton » | « Un code vient de partir vers … » ; le code arrive dans la nouvelle boîte | à jouer |
 
+## 49. Une adresse longue se lit en entier sur un téléphone — change 018 · ticket 04
+
+| N° | Cas | Résultat attendu | Verdict |
+|---|---|---|---|
+| CT-49.1 | À 360 px de large (`playwright-cli`), sur l'écran « Adresse e-mail », avec une adresse autorisée d'au moins quarante signes, ouvrir l'écran au repos, puis proposer une nouvelle adresse d'au moins quarante signes (étape de la confirmation), presser « J'ai cliqué sur le bouton » (étape du code) et enfin recopier le code (réussite) | À chaque étape, l'adresse revient à la ligne dans sa carte, aucun signe n'est rogné, y compris dans les messages ambres d'attente et de refus ; `document.documentElement.scrollWidth` ≤ 360 | À jouer |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |
