@@ -54,6 +54,47 @@ export async function libererMessageRemplacement(db: Base, maintenant: number): 
     .run();
 }
 
+/** N'annule que le code écrit par cette demande (l'envoi n'a pas abouti), jamais celui d'une autre. */
+export async function annulerCodeDeLaDemande(
+  db: Base,
+  session: { readonly id: string },
+  instantDemande: number,
+  maintenant: number,
+): Promise<void> {
+  await assurerSchema(db);
+  await db
+    .prepare('update codes_remplacement set annule_le = ?1 where session = ?2 and creee_le = ?3 and annule_le is null and utilise_le is null')
+    .bind(maintenant, session.id, instantDemande)
+    .run();
+}
+
+/** Attente réelle entre deux tentatives d'envoi. */
+export const attenteReelle = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+const PAUSES_ENTRE_TENTATIVES_MS = [1000, 2000];
+
+/** Au plus trois tentatives d'envoi, séparées de 1 s puis 2 s ; `true` dès qu'une réussit. */
+export async function envoyerAvecTentatives(
+  envoyer: () => Promise<void>,
+  attendre: (ms: number) => Promise<void> = attenteReelle,
+): Promise<boolean> {
+  const tentative = async (): Promise<boolean> => {
+    try {
+      await envoyer();
+      return true;
+    } catch (erreur) {
+      console.error(`[adresse] envoi du code échoué (${erreur instanceof Error ? erreur.name : 'inconnu'})`);
+      return false;
+    }
+  };
+  if (await tentative()) return true;
+  for (const pause of PAUSES_ENTRE_TENTATIVES_MS) {
+    await attendre(pause);
+    if (await tentative()) return true;
+  }
+  return false;
+}
+
 /** Ouvre (ou remplace) le remplacement en cours, rattaché à la session, et annule les codes vivants. */
 export async function ouvrirRemplacement(
   db: Base,

@@ -58,6 +58,6 @@ le produit ne connaît que l'acceptation de l'envoi.
 
 ## Critères
 
-- [ ] Quand l'envoi du code est refusé à la première tentative puis accepté à une tentative suivante de la même demande : un seul message part, avec le code écrit pour cette demande, et l'écran invite à recopier le code reçu dans la nouvelle boîte   (SC-02a)
-- [ ] Quand l'envoi du code reste refusé après les tentatives de la demande : l'écran ne dit pas qu'un code est parti, il dit que le code n'a pas pu partir et invite à le redemander un peu plus tard ; le code écrit pour cette demande ne permet pas de remplacer l'adresse ; l'écran redit l'adresse en place   (SC-02b)
-- [ ] Quand quatre messages sont déjà partis dans l'heure, qu'un code est demandé et que son envoi reste refusé : le plafond compte toujours quatre messages, et une nouvelle demande de code dans la même heure est acceptée   (SC-02c)
+- [x] Quand l'envoi du code est refusé à la première tentative puis accepté à une tentative suivante de la même demande : un seul message part, avec le code écrit pour cette demande, et l'écran invite à recopier le code reçu dans la nouvelle boîte   (SC-02a)
+- [x] Quand l'envoi du code reste refusé après les tentatives de la demande : l'écran ne dit pas qu'un code est parti, il dit que le code n'a pas pu partir et invite à le redemander un peu plus tard ; le code écrit pour cette demande ne permet pas de remplacer l'adresse ; l'écran redit l'adresse en place   (SC-02b)
+- [x] Quand quatre messages sont déjà partis dans l'heure, qu'un code est demandé et que son envoi reste refusé : le plafond compte toujours quatre messages, et une nouvelle demande de code dans la même heure est acceptée   (SC-02c)
