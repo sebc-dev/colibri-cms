@@ -69,7 +69,9 @@ l'étape du code. Si toutes sont refusées :
 
 1. le code écrit pour cette demande est annulé (`annule_le`) ;
 2. sa place au plafond est rendue (`libererMessageRemplacement`, même instant) ;
-3. l'écran reste à l'étape précédente et affiche le texte de l'envoi refusé (`ux.md`) ;
+3. l'écran rend l'étape de la confirmation (étape 1), sans champ Code, et affiche le texte de l'envoi
+   refusé (`ux.md`). Cela vaut aussi quand le refus survient sur « Recevoir un nouveau code » depuis
+   l'étape 2 : la demande a déjà annulé le code précédent, aucun code n'est donc recopiable ;
 4. la ligne de journal existante est gardée, sans adresse ni code.
 
 L'avis à l'ancienne adresse (ticket 07 du 017) reste dans `waitUntil` : la spec dit qu'un avis qui
