@@ -53,9 +53,9 @@ Aucune.
   n'est pas parti et garde l'étape du code à son refus ; l'exigence « L'écran « Adresse e-mail »
   montre l'adresse et propose de la remplacer » gagne la lisibilité d'une adresse longue.
 
-**Préalable d'archivage.** Cette capacité n'est pas encore une spec vivante : elle vit dans le delta
-du change 017, non archivé. Le change 017 doit être archivé avant celui-ci, sans quoi les exigences
-modifiées n'ont pas de cible.
+**Préalable d'archivage.** Le change 017 devait être archivé avant celui-ci, sans quoi les exigences
+modifiées n'auraient pas de cible. C'est fait (`openspec/changes/archive/2026-11-11-017-remplacement-adresse-autorisee`) :
+la capacité est désormais une spec vivante, `openspec/specs/remplacement-adresse-autorisee/spec.md`.
 
 ## Impact
 
