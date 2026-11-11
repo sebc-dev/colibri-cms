@@ -19,7 +19,8 @@ Code disparaît, alors que le code déjà parti est toujours bon.
 **Ce que ce ticket livre** (design D3) :
 
 - Une fonction de lecture dans `src/platform/auth/remplacement-adresse.ts` : la session tient-elle un
-  code de remplacement **encore bon** (non servi, non annulé, non expiré) ?
+  code de remplacement **encore bon** (non servi, non annulé, non expiré) ? Cette fonction existe déjà depuis le
+  ticket 01 (`codeRecopiableExiste`) : la réutiliser, ne pas la recréer.
 - À un refus du plafond à l'étape `verifier`, la route consulte cette lecture :
   - code encore bon → l'écran rend **l'étape du code** (champ Code et « Valider » affichés) avec le
     texte existant du plafond, « Trop de messages sont partis en peu de temps. Réessayez dans une
