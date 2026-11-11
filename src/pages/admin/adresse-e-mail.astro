@@ -151,8 +151,8 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
         {nouvelleAdresse !== null ? (
         <Card>
           <CardContent class="flex flex-col gap-4">
-            <p>{texteAdresseChangee(nouvelleAdresse)}</p>
-            {ancienneAdresse !== null ? <p>{texteAncienneAdressePrevenue(ancienneAdresse)}</p> : null}
+            <p class="break-words">{texteAdresseChangee(nouvelleAdresse)}</p>
+            {ancienneAdresse !== null ? <p class="break-words">{texteAncienneAdressePrevenue(ancienneAdresse)}</p> : null}
             <a href="/admin/reglages" class="inline-flex min-h-11 items-center underline underline-offset-2">{TEXTE_LIEN_REVENIR_AUX_REGLAGES}</a>
           </CardContent>
         </Card>
@@ -161,7 +161,7 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
           <CardContent class="flex flex-col gap-4">
             {enCours !== null && etapeCode ? (
               <>
-                <p>{texteCodeEstParti(enCours)}</p>
+                <p class="break-words">{texteCodeEstParti(enCours)}</p>
                 <p>{TEXTE_RECOPIER_LE_CODE}</p>
                 <form method="post" class="flex flex-col gap-3">
                   <input type="hidden" name="etape" value="code" />
@@ -172,23 +172,23 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
                   <Button type="submit" class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_VALIDER}</Button>
                 </form>
                 <button type="submit" form="verifier" class="h-auto w-full rounded-md border px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_NOUVEAU_CODE}</button>
-                <p>{texteAdresseResteEnPlace(adresse)}</p>
+                <p class="break-words">{texteAdresseResteEnPlace(adresse)}</p>
               </>
             ) : enCours !== null ? (
               <>
-                <p>{texteMessageVaArriver(enCours)}</p>
+                <p class="break-words">{texteMessageVaArriver(enCours)}</p>
                 <button type="submit" form="verifier" class="h-auto w-full rounded-md border px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_JAI_CLIQUE}</button>
                 <a href="/admin/reglages" class="inline-flex min-h-11 items-center underline underline-offset-2">{TEXTE_LIEN_REVENIR_AUX_REGLAGES}</a>
-                <p>{texteAdresseResteEnPlace(adresse)}</p>
+                <p class="break-words">{texteAdresseResteEnPlace(adresse)}</p>
               </>
             ) : null}
             {refus !== null ? (
               <Alert class="border-transparent bg-ambre-soft">
-                <AlertDescription class="text-ambre">{refus}</AlertDescription>
+                <AlertDescription class="wrap-anywhere text-ambre">{refus}</AlertDescription>
               </Alert>
             ) : null}
             <p>{TEXTE_ADRESSE_EN_PLACE}</p>
-            <p class="font-medium">{adresse}</p>
+            <p class="break-words font-medium">{adresse}</p>
             <form method="post" class="flex flex-col gap-3">
               <input type="hidden" name="etape" value="proposer" />
               <div class="flex flex-col gap-1.5">
@@ -206,7 +206,7 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
         </>
       ) : (
         <Alert class="border-transparent bg-ambre-soft">
-          <AlertDescription class="text-ambre">{texteChangementAdresseImpossible(adresse)}</AlertDescription>
+          <AlertDescription class="wrap-anywhere text-ambre">{texteChangementAdresseImpossible(adresse)}</AlertDescription>
         </Alert>
       )
     }

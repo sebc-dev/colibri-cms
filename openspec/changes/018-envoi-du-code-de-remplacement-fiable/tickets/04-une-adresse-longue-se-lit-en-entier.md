@@ -32,4 +32,4 @@ section du change 018, paragraphe du ticket 04).
 
 ## Critères
 
-- [ ] Quand l'écran affiche, à 360 px de large, une adresse de quarante signes ou plus, à l'étape de la confirmation, à l'étape du code ou à la réussite : l'adresse revient à la ligne dans sa carte, aucun de ses signes n'est rogné, et la page ne défile pas horizontalement   (SC-04a)
+- [x] Quand l'écran affiche, à 360 px de large, une adresse de quarante signes ou plus, à l'étape de la confirmation, à l'étape du code ou à la réussite : l'adresse revient à la ligne dans sa carte, aucun de ses signes n'est rogné, et la page ne défile pas horizontalement   (SC-04a)
