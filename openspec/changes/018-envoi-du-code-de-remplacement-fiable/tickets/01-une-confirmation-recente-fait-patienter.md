@@ -2,7 +2,7 @@
 
 **Bloqué par :** —
 **Vérif :** tdd
-**Fichiers :** `src/platform/adresses-cloudflare/index.ts`, `src/core/auth/regles.ts`, `src/pages/admin/adresse-e-mail.astro`, `src/admin/textes.ts`, `tests/integration/double-api-adresses.ts`, `tests/integration/adresse-e-mail-attente.test.ts`, `tests/unit/confirmation-recente.test.ts`, `docs/cahier-de-test.md`
+**Fichiers :** `src/platform/adresses-cloudflare/index.ts`, `src/core/auth/regles.ts`, `src/pages/admin/adresse-e-mail.astro`, `src/platform/auth/remplacement-adresse.ts`, `src/admin/textes.ts`, `tests/integration/double-api-adresses.ts`, `tests/integration/adresse-e-mail-attente.test.ts`, `tests/unit/confirmation-recente.test.ts`, `docs/cahier-de-test.md`
 
 ## Ce que ça livre
 
@@ -39,6 +39,9 @@ clic, mais refuse encore d'y écrire pendant plusieurs dizaines de secondes (ref
   le bouton « Recevoir un nouveau code », le champ Code reste affiché, et **le code précédent n'est
   pas annulé** : il reste recopiable. La ligne « Tant que ce n'est pas terminé, votre adresse reste … »
   reste affichée. Aucun terme de développeur (FR-117) ; le texte nomme le bouton par son libellé exact.
+- La lecture « la session tient-elle un code encore recopiable » (`codeRecopiableExiste(db, session, maintenant)`,
+  design D3) est introduite ici, dans `src/platform/auth/remplacement-adresse.ts`, pour garder le champ
+  Code pendant l'attente de l'étape 2.
 - Passé la minute, le comportement du change 017 reste inchangé : le code est écrit et part.
 
 **Tests.** Intégration dans `workerd` (ADR-0014) sur `POST /admin/adresse-e-mail`, D1 réelle : le
