@@ -503,6 +503,9 @@ export const TEXTE_CONFIRMATION_RECENTE_APRES_CODE =
 export function texteCodeEstParti(nouvelle: string): string {
   return `Un code vient de partir vers ${nouvelle}.`;
 }
+export function texteCodeNaPasPuPartir(nouvelle: string): string {
+  return `Le code n'a pas pu partir vers ${nouvelle}. Patientez une minute, puis appuyez de nouveau sur « J'ai cliqué sur le bouton ».`;
+}
 export const TEXTE_RECOPIER_LE_CODE = 'Recopiez-le ici. Il reste bon quinze minutes.';
 export const TEXTE_LABEL_CODE = 'Code';
 export const TEXTE_BOUTON_VALIDER = 'Valider';
