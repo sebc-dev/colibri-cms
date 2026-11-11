@@ -963,6 +963,13 @@ Joué le 2026-11-02 sur la branche du ticket 05 (`96b71c1`, PR #301). La variant
 | CT-47.2 | Cliquer sur « Verify email address » dans le message, puis presser « J'ai cliqué sur le bouton » | L'écran dit « Un code vient de partir vers … » avec le champ Code ; un message « Confirmez votre nouvelle adresse », en texte seul, arrive dans la nouvelle boîte, expédié depuis l'adresse d'expédition de l'instance, avec « Code : » et huit signes | à jouer |
 | CT-47.3 | Presser « Recevoir un nouveau code » | Un second message arrive ; seul le code du second est valable (ticket 04) | à jouer |
 
+## 48. Une confirmation de moins d'une minute fait patienter — change 018 · ticket 01
+
+| N° | Cas | Résultat attendu | Verdict |
+|---|---|---|---|
+| CT-48.1 | Sur `colibri.sebc.dev`, cliquer dans le message de Cloudflare puis presser aussitôt « J'ai cliqué sur le bouton » | Message ambre « Votre clic est bien enregistré… Patientez une minute » ; aucun code n'arrive ; l'adresse en place est redite | à jouer |
+| CT-48.2 | Attendre une minute puis presser de nouveau « J'ai cliqué sur le bouton » | « Un code vient de partir vers … » ; le code arrive dans la nouvelle boîte | à jouer |
+
 ## Bilan
 
 | Section | Cas | OK | KO | NA |

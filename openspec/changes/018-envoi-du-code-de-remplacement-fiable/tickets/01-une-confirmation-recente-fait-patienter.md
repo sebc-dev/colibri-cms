@@ -2,7 +2,7 @@
 
 **Bloqué par :** —
 **Vérif :** tdd
-**Fichiers :** `src/platform/adresses-cloudflare/index.ts`, `src/core/auth/regles.ts`, `src/pages/admin/adresse-e-mail.astro`, `src/admin/textes.ts`, `tests/integration/double-api-adresses.ts`, `tests/integration/adresse-e-mail-attente.test.ts`, `tests/unit/confirmation-recente.test.ts`, `docs/cahier-de-test.md`
+**Fichiers :** `src/platform/adresses-cloudflare/index.ts`, `src/core/auth/regles.ts`, `src/pages/admin/adresse-e-mail.astro`, `src/platform/auth/remplacement-adresse.ts`, `src/admin/textes.ts`, `tests/integration/double-api-adresses.ts`, `tests/integration/adresse-e-mail-attente.test.ts`, `tests/unit/confirmation-recente.test.ts`, `docs/cahier-de-test.md`
 
 ## Ce que ça livre
 
@@ -39,6 +39,9 @@ clic, mais refuse encore d'y écrire pendant plusieurs dizaines de secondes (ref
   le bouton « Recevoir un nouveau code », le champ Code reste affiché, et **le code précédent n'est
   pas annulé** : il reste recopiable. La ligne « Tant que ce n'est pas terminé, votre adresse reste … »
   reste affichée. Aucun terme de développeur (FR-117) ; le texte nomme le bouton par son libellé exact.
+- La lecture « la session tient-elle un code encore recopiable » (`codeRecopiableExiste(db, session, maintenant)`,
+  design D3) est introduite ici, dans `src/platform/auth/remplacement-adresse.ts`, pour garder le champ
+  Code pendant l'attente de l'étape 2.
 - Passé la minute, le comportement du change 017 reste inchangé : le code est écrit et part.
 
 **Tests.** Intégration dans `workerd` (ADR-0014) sur `POST /admin/adresse-e-mail`, D1 réelle : le
@@ -60,5 +63,5 @@ l'écran (il demanderait un script de navigateur, `I4`/`I12`). Aucune table, col
 
 ## Critères
 
-- [ ] Quand l'éditrice dit avoir confirmé, ou demande un nouveau code, alors que Cloudflare tient l'adresse pour vérifiée depuis moins d'une minute : aucun code n'est écrit ni envoyé, aucun message n'est compté au plafond, l'écran dit que le clic est bien enregistré et invite à réessayer dans un instant, et redit l'adresse en place   (SC-01a)
-- [ ] Quand l'éditrice dit avoir confirmé, que Cloudflare tient l'adresse pour vérifiée depuis une minute ou plus et que l'envoi est accepté : un code est écrit et envoyé vers la nouvelle adresse, et l'écran invite à recopier le code reçu dans la nouvelle boîte   (SC-01b)
+- [x] Quand l'éditrice dit avoir confirmé, ou demande un nouveau code, alors que Cloudflare tient l'adresse pour vérifiée depuis moins d'une minute : aucun code n'est écrit ni envoyé, aucun message n'est compté au plafond, l'écran dit que le clic est bien enregistré et invite à réessayer dans un instant, et redit l'adresse en place   (SC-01a)
+- [x] Quand l'éditrice dit avoir confirmé, que Cloudflare tient l'adresse pour vérifiée depuis une minute ou plus et que l'envoi est accepté : un code est écrit et envoyé vers la nouvelle adresse, et l'écran invite à recopier le code reçu dans la nouvelle boîte   (SC-01b)
