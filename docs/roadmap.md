@@ -64,7 +64,10 @@ vital ensuite.
 - [x] **016 — Moyen de reprise** · *livrée* (FR-009→012 · SC-020) — un code de secours sur papier,
       présenté sans message, à usage unique et renouvelé à l'emploi ; le créer, le remplacer ou
       l'employer ferme les autres sessions ; il compte dans le seuil de connexion par origine
-- [ ] Remplacement de l'adresse autorisée (FR-013, FR-014)
+- [x] **017 et 018 — Remplacement de l'adresse autorisée** · *livrée* (FR-013, FR-014) — la
+      nouvelle adresse est confirmée chez Cloudflare, puis par un code recopié dans la session
+      demandeuse ; le code ne part qu'une minute après la confirmation et n'est annoncé qu'une fois
+      parti ; l'ancienne adresse est prévenue, les autres sessions sont fermées
 
 ## Epic D — Flotte & réversibilité · Later
 
