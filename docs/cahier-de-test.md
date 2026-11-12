@@ -953,7 +953,7 @@ Joué le 2026-11-12 sur https://colibri.sebc.dev (main 9db5146), appareil neuf :
 
 ## 46. Proposer une nouvelle adresse — change 017 · ticket 02
 
-Joué le 2026-11-12 sur colibri.sebc.dev, à 360 px, console : aucun message (0 erreur, 0 avertissement) CT-46.2 n'est pas rejoué : l'opérateur l'a joué le matin même.
+Joué le 2026-11-12 sur colibri.sebc.dev, à 360 px, console : aucun message (0 erreur, 0 avertissement). CT-46.2 n'est pas rejoué : l'opérateur l'a joué le matin même.
 
 | N° | Cas | Résultat attendu | Verdict |
 |---|---|---|---|
