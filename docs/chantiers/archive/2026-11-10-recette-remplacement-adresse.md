@@ -40,3 +40,10 @@ garder la sortie (refus attendu) ; puis relever `result_info` de la liste des ad
   sans gravité.
 - Presser « J'ai cliqué sur le bouton » pour un code tout juste expiré : il envoie un code neuf ; le
   refus « Ce code ne peut plus servir » venait de l'expiration (15 min), pas d'un défaut.
+
+## Issue
+Fermé le 2026-11-12. Tous les cas des changes 017 et 018 qu'aucun double ne montrait ont leur verdict
+au cahier. CT-46.2 est OK : la clé limitée à « Email Routing Addresses Edit » lit les adresses de
+destination, et l'API des règles de routage de `sebc.dev` la refuse (`HTTP 403`, code 10000) — M2
+tient. Le relevé laissé par CT-46.3 est fait : 20 adresses par page par défaut, plafond de 50 sans
+erreur. Commits `30d8fca` (CT-47.2, CT-48.1, CT-48.2) et `39427bd` (CT-46.2 et la pagination).
