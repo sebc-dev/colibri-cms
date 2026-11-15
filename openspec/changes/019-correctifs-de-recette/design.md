@@ -70,9 +70,10 @@ route nouvelle, aucune route publique touchée (FR-097).
 
 **D6 — Le message.** Une constante nouvelle dans `src/admin/textes.ts`, affichée par
 `EcranPublier.svelte` quand la raison est `refus-durable`, pour la publication comme pour la relance :
-« La publication ne peut pas se faire pour le moment, et réessayer n'y changera rien. Rien n'a
-changé : votre site et vos modifications sont intacts. Prévenez la personne qui s'occupe de votre
-site. » Aucun terme de développeur (FR-117) ; « la personne qui s'occupe de votre site » ne nomme pas
+« La publication n'a pas pu se faire, et réessayer n'y changera rien. Rien n'a changé : votre site
+et vos modifications sont intacts. Prévenez la personne qui s'occupe de votre site. » Le début
+reprend les mots du message d'échec passager, que les scénarios gardés exigent (« n'a pas pu se
+faire », « rien n'a changé »). Aucun terme de développeur (FR-117) ; « la personne qui s'occupe de votre site » ne nomme pas
 Isometria, le produit devant lui survivre. Le texte est relu par l'humain dans la PR.
 
 **D7 — Le verrou est libéré comme aujourd'hui.** Aucun chemin d'échec ne change son traitement du
