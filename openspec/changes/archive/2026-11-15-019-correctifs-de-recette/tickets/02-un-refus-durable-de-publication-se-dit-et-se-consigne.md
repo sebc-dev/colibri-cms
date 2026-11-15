@@ -75,9 +75,9 @@ complété après la fusion de la recette globale, PR #350).
 
 ## Critères
 
-- [ ] Quand l'éditrice confirme une publication et que le dépôt est injoignable : l'écran dit que la publication n'a pas pu se faire, que rien n'a changé, et invite à réessayer dans quelques minutes   (SC-02a)
+- [x] Quand l'éditrice confirme une publication et que le dépôt est injoignable : l'écran dit que la publication n'a pas pu se faire, que rien n'a changé, et invite à réessayer dans quelques minutes   (SC-02a)
 - [x] Quand l'éditrice confirme une publication et que le dépôt refuse l'accès : l'écran dit que rien n'a changé et invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02b)
-- [ ] Quand l'éditrice confirme une publication et que le dépôt est introuvable : l'écran dit que rien n'a changé et invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02c)
+- [x] Quand l'éditrice confirme une publication et que le dépôt est introuvable : l'écran dit que rien n'a changé et invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02c)
 - [x] Quand l'instance n'a pas de dépôt de publication configuré, ou pas de clé d'écriture, et que l'éditrice confirme une publication : l'écran invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02d)
 - [x] Quand l'éditrice relance une mise en ligne qui n'a pas abouti et que le dépôt refuse l'accès : l'écran invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02e)
 - [x] Quand une publication vient d'être refusée durablement, puis que l'éditrice confirme une nouvelle publication : la nouvelle publication n'est pas refusée au motif qu'une autre serait en cours   (SC-02f)
@@ -88,3 +88,9 @@ complété après la fusion de la recette globale, PR #350).
 - [x] Quand la relance d'une mise en ligne échoue parce que le dépôt n'a pas abouti : une trace est écrite dans les journaux de la plateforme, qui dit l'étape de la relance et la nature de l'échec   (SC-02k)
 - [x] Quand une trace d'échec de dépôt est écrite : la clé d'écriture n'y paraît pas, ni en entier ni en partie   (SC-02l)
 - [x] Quand une publication aboutit : aucune trace d'échec de dépôt n'est écrite   (SC-02m)
+
+**Constats à l'écran.** SC-02b, SC-02d et SC-02e ont été constatés au navigateur le 2026-11-15 (en
+local, puis SC-02d sur le serveur de recette, cas CT-50.3 à CT-50.5 de `docs/cahier-de-test.md`).
+SC-02a et SC-02c sont cochés sans constat à l'écran, décision du 2026-11-15 : un dépôt injoignable ou
+introuvable ne se provoque pas sur un serveur réel, leurs tests `workerd` sont verts, et l'écran
+n'affiche que l'un des deux messages déjà constatés selon la raison rendue par le serveur.
