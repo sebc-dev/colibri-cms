@@ -19,6 +19,7 @@ const STATUT_PAR_RAISON: Readonly<Record<Extract<IssueSuite, { ok: false }>['rai
   'verrou-perdu': 409,
   'a-finaliser': 503,
   echec: 502,
+  'refus-durable': 502,
 };
 
 export const POST: APIRoute = async ({ request }) => {

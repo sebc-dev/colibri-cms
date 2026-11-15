@@ -178,3 +178,33 @@ it("ticket 15 — les messages de la mise en ligne n'emploient aucun terme de d�
     }
   }
 });
+
+it("SC-02b, SC-02d — l'îlot affiche TEXTE_PUBLICATION_REFUS_DURABLE sur un refus durable de la publication", async () => {
+  // Arrange
+  const source = (
+    await import("../../src/admin/ilots-svelte-5/EcranPublier.svelte?raw")
+  ).default;
+
+  // Act
+  const branche = source.search(
+    /suite\.json\?\.raison === 'refus-durable'\) \{\s*message = TEXTE_PUBLICATION_REFUS_DURABLE;/,
+  );
+
+  // Assert
+  expect(branche, "branche « refus durable » de la publication").toBeGreaterThan(-1);
+});
+
+it("SC-02e — l'îlot affiche TEXTE_PUBLICATION_REFUS_DURABLE sur un refus durable de la relance", async () => {
+  // Arrange
+  const source = (
+    await import("../../src/admin/ilots-svelte-5/EcranPublier.svelte?raw")
+  ).default;
+
+  // Act
+  const branche = source.search(
+    /messageRelance =\s*corps\?\.raison === 'refus-durable' \? TEXTE_PUBLICATION_REFUS_DURABLE : TEXTE_PUBLICATION_RELANCE_ECHEC;/,
+  );
+
+  // Assert
+  expect(branche, "branche « refus durable » de la relance").toBeGreaterThan(-1);
+});

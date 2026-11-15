@@ -281,7 +281,7 @@ it("ticket 15 — échec après la branche des images, avant la branche principa
   const issue = await poursuivrePublication(db, jeton, Date.now(), principaleRefusee, lecteurDesOriginales());
 
   // Assert
-  expect(issue).toEqual({ ok: false, raison: 'echec' });
+  expect(issue).toEqual({ ok: false, raison: 'refus-durable' });
   expect(await compter(db, 'publication', 'jeton is not null')).toBe(0);
   expect(await lireLignes(db, "select publiee_le, empreinte_depot from medias where id = 'image-neuve'")).toEqual([
     { publiee_le: null, empreinte_depot: null },
