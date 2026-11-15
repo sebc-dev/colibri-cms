@@ -66,13 +66,17 @@ async function empreinteSalee(sel: string, code: string): Promise<string> {
   return octetsVersHex(new Uint8Array(digest));
 }
 
-/** L'adresse soumise est-elle l'adresse autorisée enregistrée en base (FR-005) ? */
-export async function estAdresseAutorisee(db: DB, adresse: string): Promise<boolean> {
+/**
+ * Reconnaît l'adresse soumise (rognée ici, comparée sans casse en base des deux côtés) et rend
+ * l'adresse autorisée telle qu'enregistrée, ou null (FR-005). Une seule
+ * requête, de même coût que l'adresse soit reconnue ou non.
+ */
+export async function adresseAutoriseeEnregistree(db: DB, adresse: string): Promise<string | null> {
   const resultat = await db
-    .prepare(`select 1 as trouve from ${TABLE_ADRESSES} where adresse = ?1 limit 1`)
-    .bind(adresse)
+    .prepare(`select adresse from ${TABLE_ADRESSES} where lower(adresse) = lower(?1) limit 1`)
+    .bind(adresse.trim())
     .all();
-  return resultat.results.length > 0;
+  return (resultat.results as { adresse: string }[]).at(0)?.adresse ?? null;
 }
 
 /**

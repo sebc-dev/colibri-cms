@@ -58,7 +58,7 @@ globale, PR #350, qui modifie ce fichier).
 
 ## Critères
 
-- [ ] Quand l'adresse autorisée est soumise avec une ou plusieurs lettres en majuscule : un code est écrit, et son expédition est demandée vers l'adresse autorisée telle qu'elle est enregistrée   (SC-01a)
-- [ ] Quand l'adresse autorisée est soumise précédée ou suivie d'espaces : un code est écrit, et son expédition est demandée vers l'adresse autorisée telle qu'elle est enregistrée   (SC-01b)
-- [ ] Quand l'adresse autorisée est enregistrée avec des majuscules et qu'elle est soumise en minuscules : un code est écrit, et son expédition est demandée vers l'adresse autorisée telle qu'elle est enregistrée   (SC-01c)
-- [ ] Quand l'écran de connexion est affiché : le champ de l'adresse demande explicitement à l'appareil un clavier d'adresse e-mail   (SC-01d)
+- [x] Quand l'adresse autorisée est soumise avec une ou plusieurs lettres en majuscule : un code est écrit, et son expédition est demandée vers l'adresse autorisée telle qu'elle est enregistrée   (SC-01a)
+- [x] Quand l'adresse autorisée est soumise précédée ou suivie d'espaces : un code est écrit, et son expédition est demandée vers l'adresse autorisée telle qu'elle est enregistrée   (SC-01b)
+- [x] Quand l'adresse autorisée est enregistrée avec des majuscules et qu'elle est soumise en minuscules : un code est écrit, et son expédition est demandée vers l'adresse autorisée telle qu'elle est enregistrée   (SC-01c)
+- [x] Quand l'écran de connexion est affiché : le champ de l'adresse demande explicitement à l'appareil un clavier d'adresse e-mail   (SC-01d)

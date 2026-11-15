@@ -193,7 +193,7 @@ const enCours = possible ? await lireRemplacementEnCours(env.DB) : null;
               <input type="hidden" name="etape" value="proposer" />
               <div class="flex flex-col gap-1.5">
                 <Label for="adresse">{TEXTE_LABEL_NOUVELLE_ADRESSE}</Label>
-                <Input id="adresse" name="adresse" type="email" autocomplete="email" required class="max-md:min-h-11" />
+                <Input id="adresse" name="adresse" type="email" inputmode="email" autocomplete="email" required class="max-md:min-h-11" />
               </div>
               <Button type="submit" class="h-auto w-full rounded-md px-3 py-2 max-md:min-h-11 md:w-auto">{TEXTE_BOUTON_CHANGER_ADRESSE}</Button>
             </form>
