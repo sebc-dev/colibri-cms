@@ -76,10 +76,10 @@ complété après la fusion de la recette globale, PR #350).
 ## Critères
 
 - [ ] Quand l'éditrice confirme une publication et que le dépôt est injoignable : l'écran dit que la publication n'a pas pu se faire, que rien n'a changé, et invite à réessayer dans quelques minutes   (SC-02a)
-- [ ] Quand l'éditrice confirme une publication et que le dépôt refuse l'accès : l'écran dit que rien n'a changé et invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02b)
+- [x] Quand l'éditrice confirme une publication et que le dépôt refuse l'accès : l'écran dit que rien n'a changé et invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02b)
 - [ ] Quand l'éditrice confirme une publication et que le dépôt est introuvable : l'écran dit que rien n'a changé et invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02c)
-- [ ] Quand l'instance n'a pas de dépôt de publication configuré, ou pas de clé d'écriture, et que l'éditrice confirme une publication : l'écran invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02d)
-- [ ] Quand l'éditrice relance une mise en ligne qui n'a pas abouti et que le dépôt refuse l'accès : l'écran invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02e)
+- [x] Quand l'instance n'a pas de dépôt de publication configuré, ou pas de clé d'écriture, et que l'éditrice confirme une publication : l'écran invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02d)
+- [x] Quand l'éditrice relance une mise en ligne qui n'a pas abouti et que le dépôt refuse l'accès : l'écran invite à prévenir la personne qui s'occupe du site, sans inviter à réessayer   (SC-02e)
 - [x] Quand une publication vient d'être refusée durablement, puis que l'éditrice confirme une nouvelle publication : la nouvelle publication n'est pas refusée au motif qu'une autre serait en cours   (SC-02f)
 - [x] Quand l'éditrice lit le message d'un refus durable : aucun terme de développeur n'y paraît (FR-117)   (SC-02g)
 - [x] Quand une publication échoue parce que le dépôt refuse l'accès au moment de déposer le contenu : une trace est écrite dans les journaux de la plateforme, qui dit l'étape du contenu et que l'accès a été refusé   (SC-02h)
