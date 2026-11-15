@@ -171,6 +171,15 @@ it('SC-01c — une adresse enregistrée avec des majuscules, soumise en minuscul
   expect(observe.destinataires).toEqual([ADRESSE_ENREGISTREE_AVEC_MAJUSCULES]);
 });
 
+it('SC-01c — une adresse enregistrée avec une majuscule accentuée, soumise à l’identique, reste reconnue', async () => {
+  // La casse est pliée par la base des deux côtés : elle ne plie que l'ASCII,
+  // donc une adresse à majuscule accentuée n'est reconnue qu'à l'identique.
+  const observe = await soumettreEtObserver('Éditrice@example.com', 'Éditrice@example.com');
+
+  expect(observe.codesEcrits).toBe(1);
+  expect(observe.destinataires).toEqual(['Éditrice@example.com']);
+});
+
 it('SC-01c — une adresse voisine n’écrit aucun code et ne demande aucune expédition (borne de SC-01a à SC-01c)', async () => {
   const observe = await soumettreEtObserver(ADRESSE_ENREGISTREE, 'editrice@example.org');
 
