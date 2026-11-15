@@ -98,7 +98,7 @@ import { DUREE_DE_VIE_CODE_SECONDES } from '../../core/auth/code.ts';
 import { DELAI_PLANCHER_MS, PLAFOND_CODES_PAR_HEURE, attendre } from '../../core/auth/regles.ts';
 import type { RaisonRefus } from '../../core/auth/verdict.ts';
 import {
-  estAdresseAutorisee,
+  adresseAutoriseeEnregistree,
   ecrireCodeSiPlafondNonAtteint,
   compterCodesDansLaFenetre,
   ouvrirSessionSiCodeValide,
@@ -173,10 +173,11 @@ if (estSoumission) {
     try {
       if (identifiantAppareil) {
         const maintenant = Date.now();
-        if (await estAdresseAutorisee(env.DB, adresse)) {
+        const adresseEnregistree = await adresseAutoriseeEnregistree(env.DB, adresse);
+        if (adresseEnregistree !== null) {
           const code = await ecrireCodeSiPlafondNonAtteint(env.DB, identifiantAppareil, maintenant);
           if (code) {
-            demandeExpedition = () => demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, adresse, code, __ADRESSE_EXPEDITEUR__);
+            demandeExpedition = () => demanderExpeditionDuCode(env.EXPEDITEUR_CODE_CONNEXION, adresseEnregistree, code, __ADRESSE_EXPEDITEUR__);
           } else {
             plafondAtteint = true;
           }
@@ -252,6 +253,7 @@ if (estSoumission) {
                     id="adresse"
                     name="adresse"
                     type="email"
+                    inputmode="email"
                     autocomplete="email"
                     required
                     class="max-md:min-h-11"
