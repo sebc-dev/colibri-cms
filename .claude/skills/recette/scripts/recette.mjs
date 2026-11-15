@@ -41,6 +41,11 @@
  *                           configuration wrangler du compte de recette, la branche `media`
  *                           si le dépôt n'en a pas. Commite localement ; n'envoie rien.
  *   adresses                imprime les adresses du serveur principal et de la branche.
+ *   fiches-du-depot         imprime en JSON les identités des fiches d'images que porte
+ *                           `content/medias/` du dépôt de recette, ou `null` sans `RECETTE_DEPOT`.
+ *   image-du-depot <id> --racine <dossier>
+ *                           copie du dépôt de recette la fiche d'une image (branche
+ *                           principale) et ses octets (branche `media`) dans ce dossier.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -424,6 +429,76 @@ function depot(reglages, dossier) {
   if (!mediaPosee) console.log(`  puis    : git -C ${dossier} push origin media`);
 }
 
+/**
+ * Les fiches d'images du serveur principal : celles que porte la branche
+ * principale du dépôt de recette, d'où Workers Builds le rebâtit. Le skill
+ * `site-factice` y aligne ses variantes (issue #356). Lu par `gh`, sans
+ * supposer un clone local à jour.
+ */
+function fichesDuDepot(reglages) {
+  const nomDepot = reglages.RECETTE_DEPOT;
+  if (!nomDepot) {
+    console.log('null');
+    return;
+  }
+  const resultat = spawnSync(
+    'gh',
+    ['api', '--paginate', `repos/${nomDepot}/contents/content/medias`, '--jq', '.[].name'],
+    { encoding: 'utf-8' },
+  );
+  if (resultat.status !== 0) {
+    echouer(`lecture de content/medias/ du dépôt de recette impossible : ${resultat.stderr.trim()}`);
+  }
+  const ids = resultat.stdout
+    .split('\n')
+    .filter((nom) => nom.endsWith('.json'))
+    .map((nom) => nom.slice(0, -'.json'.length));
+  console.log(JSON.stringify(ids));
+}
+
+/** Un fichier du dépôt de recette, en octets bruts ; `ref` absent = la branche principale. */
+function lireDuDepot(reglages, chemin, ref) {
+  const resultat = spawnSync(
+    'gh',
+    [
+      'api',
+      '-H',
+      'Accept: application/vnd.github.raw',
+      `repos/${reglages.RECETTE_DEPOT}/contents/${chemin}${ref ? `?ref=${ref}` : ''}`,
+    ],
+    { maxBuffer: 64 * 1024 * 1024 },
+  );
+  if (resultat.status !== 0) echouer(`${chemin} illisible dans le dépôt de recette : ${String(resultat.stderr).trim()}`);
+  return resultat.stdout;
+}
+
+/**
+ * Pose dans un arbre de construction une image que le serveur principal
+ * connaît : sa fiche et ses octets, là où la construction les empaquette
+ * (`content/medias/`, `medias/`). Sert au skill `site-factice` quand une
+ * variante pose une image que le principal ne porte plus (issue #356).
+ */
+function imageDuDepot(reglages, id) {
+  if (!reglages.RECETTE_DEPOT) echouer(`${FICHIER_REGLAGES} : RECETTE_DEPOT manquant.`);
+  if (!/^[\w-]+$/.test(id ?? '')) echouer('usage : image-du-depot <id> --racine <dossier>');
+  const fiche = lireDuDepot(reglages, `content/medias/${id}.json`);
+  const format = JSON.parse(fiche.toString('utf-8')).format;
+  const extensions = format === 'jpeg' ? ['jpg', 'jpeg'] : [format];
+  const liste = spawnSync(
+    'gh',
+    ['api', '--paginate', `repos/${reglages.RECETTE_DEPOT}/contents/medias?ref=media`, '--jq', '.[].name'],
+    { encoding: 'utf-8' },
+  );
+  if (liste.status !== 0) echouer(`branche media du dépôt de recette illisible : ${liste.stderr.trim()}`);
+  const fichier = liste.stdout.split('\n').find((nom) => extensions.some((ext) => nom === `${id}.${ext}`));
+  if (!fichier) echouer(`${id} : octets absents de la branche media du dépôt de recette.`);
+  mkdirSync(`${RACINE}/content/medias`, { recursive: true });
+  mkdirSync(`${RACINE}/medias`, { recursive: true });
+  writeFileSync(`${RACINE}/content/medias/${id}.json`, fiche);
+  writeFileSync(`${RACINE}/medias/${fichier}`, lireDuDepot(reglages, `medias/${fichier}`, 'media'));
+  console.log(`✔ ${id} : fiche et octets (${fichier}) copiés du dépôt de recette`);
+}
+
 const [commande, ...args] = process.argv.slice(2);
 const reglages = lireReglages();
 
@@ -470,6 +545,12 @@ switch (commande) {
   case 'adresses':
     adresses(reglages);
     break;
+  case 'fiches-du-depot':
+    fichesDuDepot(reglages);
+    break;
+  case 'image-du-depot':
+    imageDuDepot(reglages, args[0]);
+    break;
   default:
-    echouer('commande attendue : deployer | instance | semer | raz | session | sql | journal | secret-depot | chrono | depot | adresses');
+    echouer('commande attendue : deployer | instance | semer | raz | session | sql | journal | secret-depot | chrono | depot | adresses | fiches-du-depot | image-du-depot');
 }

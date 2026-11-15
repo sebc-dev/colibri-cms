@@ -17,7 +17,8 @@ $S variantes                          # nom, cas servis, description
 $S deployer standard --principal      # la base → https://colibri.sebc.dev/admin/
 $S deployer <variante>                # → https://site-<variante>-colibri-recette.<compte>.workers.dev/admin/
 $S images                             # jeu d'images → .wrangler/recette/images/{cahier,bibliotheque}/
-$S semer-bibliotheque --hote <h>      # 12 images « A · … » à « L · … » par la vraie route de téléversement
+$S semer-bibliotheque --hote <h>      # 12 images par la vraie route de téléversement ; chacune porte en grand sa lettre
+                                      # (« A · fraisier »…) mais garde en bibliothèque son nom de fichier (`fraisier.jpg`…)
 ```
 
 ## Préparer une recette complète
@@ -35,6 +36,22 @@ $S semer-bibliotheque --hote <h>      # 12 images « A · … » à « L · … 
    bibliothèque garnie (§ 22, au moins une douzaine d'images) — le § 10 part d'une bibliothèque vide.
    Les images semées que rien ne pose sont effacées par la première publication (§ 29) : ressemer
    pour une recette suivante.
+
+## Ce qu'une variante laisse dans la base partagée
+
+Une variante sert la **même base** que le serveur principal. Deux précautions :
+
+- **Images.** L'administration inscrit en base toute fiche d'image empaquetée. `batir` retire donc
+  de l'arbre jetable les fiches que le dépôt de recette (`RECETTE_DEPOT`, branche principale) ne
+  porte plus, et pose à leur place, dans les emplacements d'image, une image que le principal
+  connaît (il l'annonce par « → fiches d'images absentes… »). Sans `RECETTE_DEPOT`, rien n'est
+  aligné : vérifier alors, après toute visite d'une variante et avant une publication du principal,
+  `recette.mjs sql "select id from medias where poids_octets = 0 and id like 'media-fixture%'"`.
+  Les photos d'une variante (`photos` de son `variante.json`, par ex. `photos-lourdes`) ne sont
+  pas alignées : ne pas ouvrir Médias ni « Publier » sur une telle variante.
+- **Brouillons.** Composer une galerie sur la variante `rang` laisse un brouillon d'un emplacement
+  que le principal n'a pas (`galerie-atelier`) : le retirer une fois le cas joué (« Revenir à la
+  version publiée » sur la variante).
 
 ## Rejouer un cas soi-même (playwright-cli)
 

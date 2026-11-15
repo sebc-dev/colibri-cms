@@ -193,7 +193,80 @@ async function deposerPhotos(photos) {
   console.log(`→ ${nombre} photos déposées, ${(total / 1024 / 1024).toFixed(1)} Mio`);
 }
 
-async function batir(nom) {
+/** Les fichiers `page.json` de l'arbre jetable, relus et réécrits par `transformer`. */
+function reecrirePages(transformer) {
+  const racine = `${ARBRE}/content/pages`;
+  for (const slug of readdirSync(racine)) {
+    const chemin = `${racine}/${slug}/page.json`;
+    if (!existsSync(chemin)) continue;
+    const page = JSON.parse(readFileSync(chemin, 'utf-8'));
+    if (transformer(page)) writeFileSync(chemin, `${JSON.stringify(page, null, 2)}\n`);
+  }
+}
+
+/**
+ * Une variante d'aperçu partage la base du serveur principal, et l'administration
+ * inscrit en base toute fiche d'image empaquetée (`inscrireImagesDeDepart`). Une
+ * fiche du produit que le dépôt de recette ne porte plus y reparaîtrait donc sur
+ * le principal, sans octets ni fichier (issue #356). Dans l'arbre jetable :
+ *  - une telle fiche est retirée, avec ses octets ;
+ *  - un emplacement d'image qui la posait reçoit à la place une image connue du
+ *    principal (une image posée est obligatoire), prise parmi les fiches gardées
+ *    ou, à défaut, copiée du dépôt de recette ; une galerie la perd simplement.
+ * À jouer APRÈS `prebuild`, qui remplit `medias/`.
+ */
+function alignerFichesSurLePrincipal() {
+  const sortie = execFileSync('node', [RECETTE, 'fiches-du-depot'], { encoding: 'utf-8' }).trim();
+  const connues = JSON.parse(sortie);
+  if (connues === null) {
+    console.warn('⚠ RECETTE_DEPOT absent : les fiches d\'images du produit sont gardées telles quelles.');
+    return;
+  }
+  const dossierFiches = `${ARBRE}/content/medias`;
+  const idDe = (fichier) => fichier.replace(/\.json$/, '');
+  const fiches = readdirSync(dossierFiches).filter((f) => f.endsWith('.json'));
+  const retirees = fiches.map(idDe).filter((id) => !connues.includes(id));
+  if (retirees.length === 0) {
+    console.log('→ fiches d\'images : toutes connues du serveur principal');
+    return;
+  }
+  for (const id of retirees) {
+    rmSync(`${dossierFiches}/${id}.json`);
+    for (const dossier of [`${ARBRE}/medias`, `${ARBRE}/medias/variantes`]) {
+      if (!existsSync(dossier)) continue;
+      for (const octets of readdirSync(dossier)) {
+        if (octets.startsWith(`${id}.`) || octets.startsWith(`${id}-`)) rmSync(`${dossier}/${octets}`);
+      }
+    }
+  }
+  console.log(`→ fiches d'images absentes du serveur principal, retirées de la variante : ${retirees.join(', ')}`);
+
+  let remplacante = fiches.map(idDe).find((id) => connues.includes(id));
+  let posee = false;
+  reecrirePages((page) => {
+    let modifiee = false;
+    for (const emplacement of page.emplacements ?? []) {
+      if (retirees.includes(emplacement.mediaId)) {
+        if (remplacante === undefined) {
+          if (connues.length === 0) echouer('le dépôt de recette ne porte aucune image pour remplacer celle retirée.');
+          remplacante = [...connues].sort()[0];
+          lancer('node', [RECETTE, 'image-du-depot', remplacante, '--racine', ARBRE]);
+        }
+        emplacement.mediaId = remplacante;
+        posee = true;
+        modifiee = true;
+      }
+      if (Array.isArray(emplacement.mediaIds) && emplacement.mediaIds.some((id) => retirees.includes(id))) {
+        emplacement.mediaIds = emplacement.mediaIds.filter((id) => !retirees.includes(id));
+        modifiee = true;
+      }
+    }
+    return modifiee;
+  });
+  if (posee) console.log(`→ emplacements d'image qui les posaient : image ${remplacante} à la place`);
+}
+
+async function batir(nom, principal = false) {
   const variante = lireVariante(nom);
   avertirSiCodeNonCommite();
   preparerArbre();
@@ -202,6 +275,7 @@ async function batir(nom) {
   // Le cycle de `npm run build` déroulé à la main, pour glisser les photos
   // entre `prebuild` et `astro build`.
   lancer('npm', ['run', 'prebuild'], { cwd: ARBRE });
+  if (!principal) alignerFichesSurLePrincipal();
   await deposerPhotos(variante.photos);
   lancer('npm', ['run', 'build', '--ignore-scripts'], { cwd: ARBRE });
   lancer('npm', ['run', 'postbuild'], { cwd: ARBRE });
@@ -211,7 +285,7 @@ async function deployer(nom, principal) {
   if (principal && nom !== VARIANTE_PRINCIPALE) {
     echouer(`seule la variante ${VARIANTE_PRINCIPALE} va sur le serveur principal ; ${nom} passe par une adresse d'aperçu.`);
   }
-  await batir(nom);
+  await batir(nom, principal);
   const args = [RECETTE, 'deployer', '--racine', ARBRE];
   lancer('node', principal ? [...args, '--principal'] : [...args, '--alias', `site-${nom}`]);
 }
