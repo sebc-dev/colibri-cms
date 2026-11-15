@@ -3,11 +3,13 @@
  * L'écran de saisie du code de secours (change 016, ticket 02, ADR-0032).
  * Route non gardée comme la connexion : le garde de session est importé et
  * appelé sans bloquer (ADR-0007). Rendu serveur sans directive client (I4).
+ * Le champ est une zone de texte : un code de 26 signes groupés passe à la
+ * ligne à 360 px au lieu de défiler hors du champ (issue #353).
  */
 import Gabarit from '../../admin/Gabarit.astro';
 import Logo from '../../admin/Logo.astro';
 import { Card, CardContent, CardHeader } from '../../admin/composants/ui/card/index.ts';
-import { Input } from '../../admin/composants/ui/input/index.ts';
+import { Textarea } from '../../admin/composants/ui/textarea/index.ts';
 import { Label } from '../../admin/composants/ui/label/index.ts';
 import { Alert, AlertDescription } from '../../admin/composants/ui/alert/index.ts';
 import { Button } from '../../admin/composants/ui/button/index.ts';
@@ -103,16 +105,16 @@ Astro.response.headers.set('Cache-Control', 'no-store');
           }
           <div class="flex flex-col gap-1.5">
             <Label for="code">{TEXTE_LIBELLE_CODE_DE_SECOURS}</Label>
-            <Input
+            <Textarea
               id="code"
               name="code"
-              type="text"
+              rows={2}
               inputmode="text"
               autocomplete="off"
               autocapitalize="characters"
               spellcheck="false"
               required
-              class="max-md:min-h-11"
+              class="resize-none"
             />
           </div>
           <Button type="submit" class="max-md:min-h-11 max-md:min-w-11">{TEXTE_BOUTON_REPRISE}</Button>

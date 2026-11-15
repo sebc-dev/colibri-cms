@@ -464,8 +464,10 @@ img.ProseMirror-separator {
   body:has([data-carte-code-de-secours]) * {
     visibility: hidden;
   }
-  [data-carte-code-de-secours],
-  [data-carte-code-de-secours] * {
+  /* Même préfixe que la règle qui masque : sans lui, elle l'emporte en
+     spécificité et la carte reste masquée (page blanche, issue #352). */
+  body:has([data-carte-code-de-secours]) [data-carte-code-de-secours],
+  body:has([data-carte-code-de-secours]) [data-carte-code-de-secours] * {
     visibility: visible;
   }
   [data-carte-code-de-secours] {
