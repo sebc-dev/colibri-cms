@@ -214,6 +214,11 @@ Une fois la reconstruction automatique branchée, ne plus lancer `$R deployer` v
 principal (depuis `main` ou avec `--principal`) : il remplacerait le Worker bâti depuis le dépôt de
 recette par un Worker sans `depotDePublication`. Les aperçus de branche restent permis.
 
+La clé `JETON_DEPOT` **expire** (celle du 14 octobre 2026 l'était un mois plus tard). Symptôme : toute
+publication échoue, l'écran dit « Prévenez la personne qui s'occupe de votre site », et `$R journal`
+montre `[publication] dépôt non abouti { etape: …, nature: 'acces-refuse' }`. Remède : l'humain crée
+une clé neuve et relance `$R secret-depot`.
+
 Puis dérouler `docs/cahier-de-test.md` § 29 : `$R chrono` à la confirmation, dépôts relevés dans le
 dépôt de recette (images avant contenu, une seule reconstruction), mesures à 1 et 40 images.
 Si `$R chrono` expire (CT-29.1), ouvrir le journal de la reconstruction dans Workers Builds. S'il
