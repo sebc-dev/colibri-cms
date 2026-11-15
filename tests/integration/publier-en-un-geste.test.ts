@@ -245,7 +245,7 @@ it('ticket 15 — sans dépôt raccordé, /suite répond 502 et libère le verro
 
   // Assert
   expect(reponse.status).toBe(502);
-  expect(((await reponse.json()) as { raison: string }).raison).toBe('echec');
+  expect(((await reponse.json()) as { raison: string }).raison).toBe('refus-durable');
   expect(await compter(db, 'publication', 'jeton is not null')).toBe(0);
   expect(await compter(db, 'brouillons_emplacements')).toBe(1);
   expect(await compter(db, 'publies_emplacements')).toBe(0);

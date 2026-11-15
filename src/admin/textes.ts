@@ -294,6 +294,8 @@ export const TEXTE_PUBLICATION_DEJA_EN_COURS =
   "Une publication est déjà en cours. Attendez qu'elle se termine, puis réessayez.";
 export const TEXTE_PUBLICATION_ECHEC =
   "La publication n'a pas pu se faire. Rien n'a changé : votre site et vos modifications sont intacts. Réessayez dans quelques minutes.";
+export const TEXTE_PUBLICATION_REFUS_DURABLE =
+  "La publication n'a pas pu se faire, et réessayer n'y changera rien. Rien n'a changé : votre site et vos modifications sont intacts. Prévenez la personne qui s'occupe de votre site.";
 export const TEXTE_PUBLICATION_INACHEVEE =
   "La publication n'est pas allée jusqu'au bout. Vos modifications sont gardées : réessayez dans quelques minutes.";
 /** L'état de la dernière publication (change 011, ticket 18) : pastille du cadre et écran Publier (FR-090, FR-117). */

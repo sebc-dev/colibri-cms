@@ -15,6 +15,7 @@
     TEXTE_PUBLICATION_ECHEC,
     TEXTE_PUBLICATION_EN_COURS,
     TEXTE_PUBLICATION_INACHEVEE,
+    TEXTE_PUBLICATION_REFUS_DURABLE,
     TEXTE_PUBLICATION_RELANCE_ECHEC,
     TEXTE_PUBLICATION_TERMINEE,
   } from '../textes.ts';
@@ -66,7 +67,13 @@
         window.location.reload();
         return;
       }
-      messageRelance = reponse.status === 401 ? messageErreurCorrection(401) : TEXTE_PUBLICATION_RELANCE_ECHEC;
+      if (reponse.status === 401) {
+        messageRelance = messageErreurCorrection(401);
+      } else {
+        const corps = (await reponse.json().catch(() => null)) as Reponse | null;
+        messageRelance =
+          corps?.raison === 'refus-durable' ? TEXTE_PUBLICATION_REFUS_DURABLE : TEXTE_PUBLICATION_RELANCE_ECHEC;
+      }
     } catch {
       messageRelance = MESSAGE_RESEAU;
     }
@@ -127,6 +134,8 @@
         if (suite.statut !== 200 || suite.json?.ok !== true) {
           if (suite.json?.raison === 'a-finaliser') {
             message = TEXTE_PUBLICATION_INACHEVEE;
+          } else if (suite.json?.raison === 'refus-durable') {
+            message = TEXTE_PUBLICATION_REFUS_DURABLE;
           } else {
             message = suite.statut === 401 ? messageErreurCorrection(401) : TEXTE_PUBLICATION_ECHEC;
           }

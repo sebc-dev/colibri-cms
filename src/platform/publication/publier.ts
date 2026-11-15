@@ -10,7 +10,7 @@ import type { FicheMedia } from '../../core/medias/fiche.ts';
 import type { Brouillon, ContenuCorrige } from '../../core/pages/brouillon.ts';
 import type { ContenuOptions } from '../../core/formulaires/options.ts';
 import { BAIL, deposerContenu, deposerImages, type ImagePubliee } from '../../core/publication/depot.ts';
-import type { Forge } from '../../core/publication/forge.ts';
+import type { Forge, IssueForge } from '../../core/publication/forge.ts';
 import { deposerUnePasse } from '../../core/publication/passes.ts';
 import { creerForgeGithub, depotValide, type Fetch } from './forge-github.ts';
 import {
@@ -246,7 +246,21 @@ export function obtenirForge(
 export type IssueSuite =
   | { readonly ok: true; readonly fini: true; readonly marque: string }
   | { readonly ok: true; readonly fini: false; readonly parties: number; readonly total: number }
-  | { readonly ok: false; readonly raison: 'verrou-perdu' | 'echec' | 'a-finaliser' };
+  | { readonly ok: false; readonly raison: 'verrou-perdu' | 'echec' | 'a-finaliser' | 'refus-durable' };
+
+type EtapeDepot = 'images' | 'contenu' | 'relance';
+type NatureEchec = IssueForge | 'chemin-refuse' | 'octets-manquants' | 'depot-non-configure';
+
+/**
+ * Classe un échec de dépôt et le consigne (jamais la clé d'écriture) : un refus durable (accès refusé,
+ * dépôt introuvable, dépôt non configuré) ne se règle pas en réessayant ; le reste reste « echec ».
+ */
+function classerEchecDeDepot(etape: EtapeDepot, nature: NatureEchec): 'refus-durable' | 'echec' {
+  console.error('[publication] dépôt non abouti', { etape, nature });
+  return nature === 'acces-refuse' || nature === 'introuvable' || nature === 'depot-non-configure'
+    ? 'refus-durable'
+    : 'echec';
+}
 
 type EtatReglagesLu = ReglagesInstantane['publies'];
 
@@ -336,7 +350,7 @@ export async function poursuivreUnePasse(
   if (verrou === null) return { ok: false, raison: 'verrou-perdu' };
   if (forge === null) {
     await libererVerrou(db, jeton);
-    return { ok: false, raison: 'echec' };
+    return { ok: false, raison: classerEchecDeDepot('contenu', 'depot-non-configure') };
   }
   const garde = lireJson(verrou.instantane) as InstantaneGarde;
   try {
@@ -375,7 +389,7 @@ async function passeDeBlobs(
   if (!passe.aboutie) {
     if (passe.raison === 'octets-manquants') console.error('[publication] image à déposer sans octets');
     await libererVerrou(db, jeton);
-    return { ok: false, raison: 'echec' };
+    return { ok: false, raison: classerEchecDeDepot('images', passe.raison) };
   }
   const suivant: InstantaneGarde = {
     ...garde,
@@ -405,7 +419,7 @@ async function passeFinale(
   const images = await deposerImages(forge, { publiees: garde.deposees, nouvelles: [] }, MESSAGE_DEPOT);
   if (!images.aboutie) {
     await libererVerrou(db, jeton);
-    return { ok: false, raison: 'echec' };
+    return { ok: false, raison: classerEchecDeDepot('images', images.raison) };
   }
 
   const instantane = await instantanePourLePlan(db, garde);
@@ -413,7 +427,7 @@ async function passeFinale(
   const depot = await deposerContenu(forge, plan, MESSAGE_DEPOT);
   if (!depot.aboutie) {
     await libererVerrou(db, jeton);
-    return { ok: false, raison: 'echec' };
+    return { ok: false, raison: classerEchecDeDepot('contenu', depot.raison) };
   }
 
   try {
@@ -453,7 +467,7 @@ export async function lireEtatDeLaPublication(
   return etat;
 }
 
-export type IssueRelance = { readonly ok: true } | { readonly ok: false; readonly raison: 'en-cours' | 'echec' };
+export type IssueRelance = { readonly ok: true } | { readonly ok: false; readonly raison: 'en-cours' | 'echec' | 'refus-durable' };
 
 /**
  * La relance d'une mise en ligne qui n'a pas abouti : une marque neuve, seule, déposée sur la
@@ -470,7 +484,7 @@ export async function relancerLaMiseEnLigne(
   if (!(await prendreVerrou(db, jeton, null, marque, maintenant, BAIL))) return { ok: false, raison: 'en-cours' };
   if (forge === null) {
     await libererVerrou(db, jeton);
-    return { ok: false, raison: 'echec' };
+    return { ok: false, raison: classerEchecDeDepot('relance', 'depot-non-configure') };
   }
   try {
     const depot = await deposerContenu(
@@ -484,7 +498,7 @@ export async function relancerLaMiseEnLigne(
     );
     if (!depot.aboutie) {
       await libererVerrou(db, jeton);
-      return { ok: false, raison: 'echec' };
+      return { ok: false, raison: classerEchecDeDepot('relance', depot.raison) };
     }
     await enregistrerRelance(db, jeton, marque, maintenant);
     return { ok: true };
