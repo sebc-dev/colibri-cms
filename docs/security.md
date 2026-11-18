@@ -73,9 +73,13 @@ Deux préoccupations de `docs/vision.md` sont déclarées **ouvertes**, avant la
 
 Une consigne d'exploitation attend le dossier d'instance (SC-014), qui n'existe pas encore :
 
-- **La clé du dépôt de publication expire.** C'est une clé à portée fine du compte du client
-  (`JETON_DEPOT`, `Contents: Read and write` sur le seul dépôt du site). Sa date d'expiration est à
-  noter à la livraison et à suivre. Le jour où elle expire, plus aucune publication ne passe :
-  l'éditrice lit « Prévenez la personne qui s'occupe de votre site », et le journal du serveur porte
+- **La clé du dépôt de publication se crée sans expiration, mais meurt d'inactivité.** C'est une clé
+  à portée fine du compte du client (`JETON_DEPOT`, `Contents: Read and write` sur le seul dépôt du
+  site), créée **sans date d'expiration** (ADR-0021). GitHub la retire pourtant après un an sans
+  usage. La parade décidée par l'ADR-0021 est un appel hebdomadaire au dépôt ; il n'est pas encore
+  livré (change 020). D'ici là, une instance où l'on ne publie pas pendant un an perd sa clé. Le
+  jour où la clé n'est plus acceptée, plus aucune publication ne passe : l'éditrice lit « Prévenez
+  la personne qui s'occupe de votre site », et le journal du serveur porte
   `[publication] dépôt non abouti` avec `nature: 'acces-refuse'` (change 019, issue #355). Le remède
-  est de poser une clé neuve ; rien n'est perdu, les brouillons restent en place.
+  est de poser une clé neuve, créée dans une session du client ; rien n'est perdu, les brouillons
+  restent en place.
