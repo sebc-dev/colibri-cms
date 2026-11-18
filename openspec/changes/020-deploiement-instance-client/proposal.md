@@ -113,10 +113,10 @@ est dans `design.md` § Decisions.
 - **Architecture** : un environnement de déploiement « comptes du client » dans
   `docs/architecture/deployment.c4` ; dans `context.c4`, la construction qui met la base à niveau,
   les accès révocables de l'intégrateur, et le point d'entrée programmé.
-- **ADR** : deux ADR à accepter avant les tickets — les valeurs d'instance et le domaine dérivé
-  (promeut un candidat, en remplace un autre, sans toucher à l'ADR-0005) ; la cible de déploiement et
-  la règle des identités (promeut le candidat `cible-de-deploiement-worker-unique-workers-builds`,
-  avec l'écart sur la clé du dépôt).
+- **ADR** : **ADR-0034** (valeurs d'instance, domaine dérivé, base rattachée par son nom ; promeut
+  `I8`, retire `I10`, crée `I19`, sans toucher à l'ADR-0005) et **ADR-0035** (cible de déploiement et
+  règle des identités ; promeut le candidat `cible-de-deploiement-worker-unique-workers-builds`,
+  amendé), posés le 2026-11-18.
 - **Hors périmètre** : faire passer une instance existante à une nouvelle version et en prouver
   l'absence de perte (FR-105, FR-106, SC-008) ; la reconstruction sans le CMS (FR-107→109, SC-011) ;
   le dossier d'instance et son dépôt chez le client (FR-110→116, FR-119, SC-014), qui recevra

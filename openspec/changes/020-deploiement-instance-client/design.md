@@ -122,7 +122,7 @@ Workers Builds. Transférer un dépôt créé chez l'intégrateur : l'ancien pro
 collaborateur, et le sort du raccordement n'est pas documenté.
 
 **Conforme à** SEC-3, ADR-0021 (clé à portée fine, un dépôt), ADR-0033 (clé limitée aux adresses).
-**Demande un ADR** : la règle des identités est structurante et se relira à chaque livraison.
+**ADR-0035**, accepté le 2026-11-18, fixe la règle des identités avec la cible de déploiement.
 
 ### D2 — Le dépôt du client : le produit, plus `instance.json` et `content/`
 
@@ -190,8 +190,8 @@ la main dans un tableau de bord et invisible du dépôt, pour une valeur que `in
 figurent que dans `instance.json` ») s'étend aux quatre champs réels. Le candidat
 `invariant-i10-restreint-a-la-configuration-astro` disait la configuration de déploiement hors de
 portée du fichier d'instance : la configuration **effective** en dérive désormais le domaine.
-**Demande un ADR**, qui promeut `valeurs-d-instance-dans-le-fichier-d-instance` dans sa forme à
-quatre champs et remplace ce candidat.
+**ADR-0034**, accepté le 2026-11-18, reprend `valeurs-d-instance-dans-le-fichier-d-instance` dans sa
+forme à quatre champs, remplace ce candidat, promeut `I8`, retire `I10` et crée `I19`.
 
 ### D4 — Une commande de mise en ligne, jouée par Workers Builds dans le compte du client
 
@@ -226,7 +226,7 @@ ils sont facultatifs : entre-temps, la publication se refuse en le disant (capac
 
 **Conforme au** candidat `cible-de-deploiement-worker-unique-workers-builds` et au candidat
 `acces-aux-donnees-api-d1-native-et-migrations-wrangler` (« rejouées à chaque déploiement »).
-**L'ADR de D1 promeut le premier.**
+**L'ADR-0035 promeut le premier**, amendé.
 
 ### D5 — L'outil de livraison : cinq gestes, aucun sur une identité
 
@@ -400,7 +400,7 @@ avant la livraison du premier client.
 Chaque ticket concerné liste son `.c4` dans ses fichiers et joue
 `likec4 validate --no-layout --json --project colibri-cms docs/architecture`.
 
-**Invariants.** I8 et I10 (candidats) changent de formulation avec l'ADR de D3 ; l'ADR-0005 reste tel quel. I9 et I18 sont
+**Invariants.** ADR-0034 promeut I8, retire I10 et crée I19 ; l'ADR-0005 reste tel quel. I9 et I18 sont
 respectés tels quels. Aucun invariant promu n'est franchi.
 
 ## Risks / Trade-offs
@@ -431,7 +431,9 @@ respectés tels quels. Aucun invariant promu n'est franchi.
 
 ## Migration Plan
 
-1. Les deux ADR sont acceptés (geste humain, `/scd-spec-dev:adr`) avant les tickets.
+1. Les ADR-0034 et ADR-0035 sont posés le 2026-11-18, avant les tickets. Ils ont déjà écrit dans le
+   modèle les relations et l'environnement `production` décrits en § Architecture, marqués
+   `#planned` : les tickets retirent la marque en posant le code.
 2. Trois constats sur la recette ont précédé les tickets : la base rattachée par son nom (D3,
    2026-11-16), la mise à niveau jouée par la construction (D4) et la branche `media` atteinte sans
    clé (D1), tous deux le 2026-11-18. Le fichier d'instance strict et la dérivation
