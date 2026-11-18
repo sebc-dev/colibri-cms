@@ -1,7 +1,7 @@
 # ColibriCMS — Architecture
 
 Le cap durable de la **structure** du code : les cinq zones, le sens des dépendances, et les
-invariants `I1`–`I17` que le code s'interdit de franchir. C'est une synthèse de ce qu'un contrôle
+invariants `I1`–`I19` que le code s'interdit de franchir. C'est une synthèse de ce qu'un contrôle
 pourrait prendre en défaut, pas un design — aucun schéma de table, aucune signature. La structure
 elle-même — conteneurs, composants, relations — est le modèle LikeC4 de
 [`architecture/`](./architecture/README.md).
@@ -75,9 +75,9 @@ src/core/     → aucune
 | I5 | `{@html}` et `set:html` n'apparaissent que sous `src/render/markdown/` | colibri-cms.worker.render, colibri-cms.worker.site, colibri-cms.worker.admin | 5 placement | — |
 | I6 | Toute route sous `src/pages/api/` ou `src/pages/admin/`, hors `src/pages/api/public/`, importe le garde de session `src/platform/session/index.ts` ; aucun fichier de `src/pages/api/public/` ne lit un corps `multipart` | colibri-cms.worker.routes, colibri-cms.worker.platform | 3 règles de couches | 0007 |
 | I7 | L'identifiant de l'objet porteur du compteur de fréquence dérive d'une constante littérale ; aucun `idFromName` de `src/platform/frequence/` ne reçoit une valeur issue d'une requête | colibri-cms.worker.platform | 11 connascence statique | — retiré par 0028 |
-| I8 | Les valeurs d'instance qui vivent dans les fichiers (domaine, clé **publique** Turnstile…) ne figurent que dans `instance.json`, à la racine ; aucun autre fichier versionné hors contenu ne les porte | colibri-cms | 5 placement | — |
+| I8 | Les valeurs d'instance qui vivent dans les fichiers (domaine, adresse d'expéditeur, dépôt de publication, identifiant du compte de la plateforme) ne figurent que dans `instance.json`, à la racine ; aucun autre fichier versionné hors contenu ne les porte | colibri-cms | 5 placement | 0034 |
 | I9 | Les préfixes que la publication peut écrire sont déclarés dans la constante `PREFIXES_AUTORISES` de `src/core/publication/prefixes.ts`, seul porteur, et `.github/` n'y figure pas | colibri-cms.worker.core | 5 placement | 0025 |
-| I10 | La configuration Astro lit `instance.json` pour les valeurs qu'`I8` y loge ; aucune n'y est écrite en dur. La configuration du déploiement est **hors périmètre** : elle ne porte que des liaisons de plateforme | colibri-cms | 11 connascence statique | — |
+| I10 | La configuration Astro lit `instance.json` pour les valeurs qu'`I8` y loge ; aucune n'y est écrite en dur. La configuration du déploiement est **hors périmètre** : elle ne porte que des liaisons de plateforme | colibri-cms | 11 connascence statique | — retiré par 0034 |
 | I11 | Les quatre en-têtes de sécurité de l'administration — `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` — sont posés par le seul `src/platform/entetes/middleware.ts`, inscrit par le hook `addMiddleware` dans `astro.config.ts` ; aucun gabarit ni aucune route sous `src/pages/admin/` ou `src/admin/` n'en pose lui-même | colibri-cms.worker.platform, colibri-cms.worker.routes, colibri-cms.worker.admin | 5 placement | 0008 |
 | I12 | La directive `script-src` de la politique d'administration vaut `'self'` seul — jamais `'unsafe-inline'`, jamais `'unsafe-eval'`, jamais un hôte tiers ; la seule tolérance d'*inline* de toute la politique est `style-src-attr 'unsafe-inline'` | colibri-cms.worker.platform | 9 usages prohibés | 0010, 0004 |
 | I13 | L'en-tête `Set-Cookie` de la session n'est composé qu'en un lieu — `enteteCookieSession` de `src/platform/session/index.ts` — avec le préfixe `__Host-`, `Path=/`, `HttpOnly`, `Secure`, `SameSite=Strict` ; aucune route ne compose le sien | colibri-cms.worker.platform, colibri-cms.worker.routes | 5 placement | 0011, 0001 |
@@ -86,6 +86,7 @@ src/core/     → aucune
 | I16 | Aucun fichier sous `src/site/` ni `src/render/` n'est un composant `.svelte` ni ne porte de directive `client:*` : le site public n'a pas d'îlot, son seul script est un module externe servi par le site | colibri-cms.worker.site, colibri-cms.worker.render | 9 usages prohibés | 0029 |
 | I17 | Aucun fichier de `src/` ni de `migrations/` ne contient `ignore_check_constraints` : la base vérifie toujours ses contraintes, dont celle qui refuse qu'une demande retirée garde une donnée du visiteur | colibri-cms.worker, colibri-cms.d1 | 9 usages prohibés | 0030 |
 | I18 | L'adresse de l'API Cloudflare (`api.cloudflare.com`) n'apparaît dans aucun fichier de `src/` hors de `src/platform/adresses-cloudflare/` : la clé des adresses de destination et ses appels vivent en un seul lieu | colibri-cms.worker.platform | 5 placement | 0033 |
+| I19 | `instance.json` n'est lu que par le module de `src/platform/instance/` : la configuration Astro et le script qui dérive la configuration de déploiement passent par lui. Les fichiers de déploiement versionnés (`wrangler*.jsonc`) ne portent ni `routes`, ni `account_id`, ni `database_id` | colibri-cms, colibri-cms.worker.platform | 5 placement | 0034 |
 
 La colonne **ADR** suit la grille du plugin `scd-spec-dev` : un numéro rend l'invariant **opposable**
 (une violation dans un diff est bloquante en review, sauf dérogation déclarée au ticket) ; `—` en fait un
@@ -104,9 +105,9 @@ La colonne **ADR** suit la grille du plugin `scd-spec-dev` : un numéro rend l'i
 | I5 | l'occurrence, hors du chemin autorisé | candidat `html-brut-confine-au-rendu-markdown` |
 | I6 | absence de cet import ; appel de `request.formData()` sous `src/pages/api/public/` | ADR-0007 |
 | I7 | l'argument de `idFromName`, dans `src/platform/frequence/` — *(porteur non encore posé : à honorer dès que la zone existe)* | candidat `objet-de-frequence-nomme-par-une-constante` — **retiré par ADR-0028** : le compteur vit en D1, aucun objet n'est nommé |
-| I8 | l'occurrence du domaine ou de la clé publique, hors d'`instance.json` | candidat `valeurs-d-instance-dans-le-fichier-d-instance` |
+| I8 | l'occurrence de l'une de ces quatre valeurs, hors d'`instance.json` | ADR-0034 |
 | I9 | la valeur de `PREFIXES_AUTORISES` — *(porteur non encore posé : à honorer dès que la zone existe)* | ADR-0025 |
-| I10 | la lecture d'`instance.json`, dans `astro.config.*` | candidats `configurations-lisent-le-fichier-d-instance` + `invariant-i10-restreint-a-la-configuration-astro` |
+| I10 | la lecture d'`instance.json`, dans `astro.config.*` | candidats `configurations-lisent-le-fichier-d-instance` + `invariant-i10-restreint-a-la-configuration-astro` — **retiré par ADR-0034** : `I19` le remplace, la configuration de déploiement effective dérive désormais le domaine du fichier d'instance |
 | I11 | l'appel à `addMiddleware`, dans `astro.config.ts` ; un `headers.set` portant l'un de ces quatre noms, hors de `src/platform/entetes/middleware.ts` | ADR-0008 |
 | I12 | la valeur de `POLITIQUE_DE_SECURITE`, dans `src/platform/entetes/middleware.ts` | ADR-0010, ADR-0004 |
 | I13 | les cinq attributs, en chaînes littérales, dans `src/platform/session/index.ts` ; un `Set-Cookie` de session dont la valeur ne vient pas de `enteteCookieSession` | ADR-0011, ADR-0001 |
@@ -115,12 +116,13 @@ La colonne **ADR** suit la grille du plugin `scd-spec-dev` : un numéro rend l'i
 | I16 | un fichier `.svelte`, ou la chaîne `client:` dans un gabarit, sous `src/site/` ou `src/render/` | ADR-0029 |
 | I17 | l'occurrence de `ignore_check_constraints`, sous `src/` ou `migrations/` | ADR-0030 |
 | I18 | l'occurrence de `api.cloudflare.com`, sous `src/` hors de `src/platform/adresses-cloudflare/` — *(porteur non encore posé : à honorer dès que la zone existe)* | ADR-0033 |
+| I19 | la chaîne `instance.json` dans un appel de lecture hors de `src/platform/instance/` ; l'une des trois clés dans un fichier `wrangler*.jsonc` versionné — *(porteur non encore posé : `astro.config.ts` lit encore le fichier lui-même jusqu'au change 020)* | ADR-0034 |
 
-Cinq invariants (`I1`, `I2`, `I5`, `I8`, `I10`) reposent sur des décisions encore
+Trois invariants (`I1`, `I2`, `I5`) reposent sur des décisions encore
 candidates (`docs/adr/_candidates/`) : ils restent tenus par la CI (`boundaries`, `analyse`), mais la
 review ne les oppose qu'en suggestion tant que `/scd-spec-dev:adr` ne les a pas promus — leur promotion,
-un par un, rend la colonne ADR et le caractère bloquant. `I7` est **retiré** par ADR-0028 : son numéro
-reste mort, et la ligne demeure pour les renvois qui le citent.
+un par un, rend la colonne ADR et le caractère bloquant. `I7` est **retiré** par ADR-0028 et `I10` par
+ADR-0034 : leurs numéros restent morts, et les lignes demeurent pour les renvois qui les citent.
 
 ## Ce qui n'est pas un invariant de structure
 

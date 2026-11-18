@@ -1,5 +1,6 @@
 // Déploiement — où tourne quoi. Posé par /scd-spec-dev:archi-dossier (relevé).
-// Aucune production n'est encore déployée (Epic D de docs/roadmap.md) : seuls le poste local et la recette ont une trace.
+// Le poste local et la recette ont une trace. L'environnement « production » décrit la cible décidée par l'ADR-0035 (change 020) :
+// aucune instance de client n'est encore déployée.
 
 specification {
   deploymentNode environment
@@ -25,12 +26,31 @@ deployment {
       instanceOf colibri-cms.d1
     }
   }
+
+  // ADR-0035 : une instance par site, dans le compte Cloudflare du client. Le Worker s'appelle colibri-cms et la base colibri
+  // dans chaque compte (ADR-0034) ; le domaine servi vient d'instance.json.
+  production = environment 'Comptes du client' {
+    cloudflare = node 'Compte Cloudflare du client' {
+      description "Ouvert au nom du client, qui en est Super Administrateur ; palier gratuit, aucun moyen de paiement. L'intégrateur y est membre jusqu'à la livraison."
+      workers = node 'Cloudflare Workers — domaine du client' {
+        instanceOf colibri-cms.worker
+      }
+      base = node 'Cloudflare D1 — base colibri' {
+        instanceOf colibri-cms.d1
+      }
+    }
+  }
 }
 
 views {
   deployment view recette {
     title 'Déploiement — recette'
     include recette.**
+  }
+
+  deployment view production {
+    title 'Déploiement — comptes du client'
+    include production.**
   }
 
   deployment view local {

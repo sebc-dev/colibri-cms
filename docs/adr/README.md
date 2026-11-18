@@ -17,11 +17,11 @@ règle de lecture tient en une ligne :
 > **Un `ADR-00NN` cité DANS le corps d'un ADR promu désigne le numéro 1.x.**
 > Le numéro 2.x est celui du nom de fichier.
 
-Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, 0028–0029, puis 0031–0032. À partir de
+Cette règle vaut pour les ADR promus du cycle 1.x : 0001–0008, 0019–0025, 0028–0029, 0031–0032, puis 0035. À partir de
 0019, chaque renvoi à l'ancien cycle porte en plus la mention « (1.x) » dans son libellé
 (`ADR-0015 (1.x)`) : il se lit sans la règle. Dans le texte qu'un amendement ou un complément de
 promotion ajoute — les points marqués *(amendé)* ou *(ajouté)* —, un numéro sans mention est un
-numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030, 0033) citent des numéros 2.x.
+numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030, 0033, 0034) citent des numéros 2.x.
 
 ## Correspondance
 
@@ -60,6 +60,8 @@ numéro 2.x. Les ADR nés en 2.x (0009–0018, 0026, 0027, 0030, 0033) citent de
 | [0031](./0031-pipeline-d-images-variantes-au-build.md) | 0019 (1.x) | Pipeline d'images — les variantes WebP de 360, 720 et 1 080 px sont produites au build ; l'original n'est plus cité par le site public — **amendé** : remplace `image.layout`/`breakpoints` par une intégration `sharp` |
 | [0032](./0032-moyen-de-reprise-code-128-bits-hache.md) | 0016 (1.x) | Moyen de reprise — un code de 128 bits haché en D1, à usage unique et réémis à l'emploi — **amendé** : créé depuis l'administration par l'éditrice à la livraison ; création, remplacement et emploi ferment les autres sessions |
 | [0033](./0033-remplacement-de-l-adresse-autorisee-par-l-api-des-adresses-de-destination.md) | — | Remplacement de l'adresse autorisée — l'API des adresses de destination de Cloudflare, une clé limitée aux adresses, une liaison d'envoi sans adresse fixe, une double preuve ; lève une conséquence de [0002](./0002-acheminement-email-routing-send-email.md) ; crée `I18` |
+| [0034](./0034-valeurs-d-instance-domaine-derive-base-rattachee-par-son-nom.md) | — | Valeurs d'instance — quatre champs dans `instance.json`, le domaine servi en est dérivé, la base se rattache par son nom ; reprend le candidat `valeurs-d-instance-dans-le-fichier-d-instance` (0028 (1.x)), remplace les candidats 0030 (1.x) et 0032 (1.x) ; promeut `I8`, retire `I10`, crée `I19` |
+| [0035](./0035-cible-de-deploiement-worker-unique-dans-le-compte-du-client.md) | 0001 (1.x) | Cible de déploiement et livraison — un Worker unique bâti par Workers Builds dans le compte du client — **amendé** : la construction met la base à niveau et n'emploie aucune clé du dépôt ; tout objet attaché à une identité naît dans une session du client |
 
 `ADR-0008` n'a pas d'antécédent 1.x : il a été déposé en candidat le 2026-08-19 par le plan de
 la feature `002-connexion-par-code`, et promu directement. `ADR-0009` non plus : décision neuve,
@@ -111,6 +113,12 @@ cède la place au seuil d'ADR-0028. Il ne crée aucun invariant.
 `017-remplacement-adresse-autorisee`, avant ses tickets. Il donne un porteur à `FR-013` et `FR-014`, que le
 cycle 1.x avait laissés sans porteur, et lève la conséquence de l'ADR-0002 qui l'interdisait ; le fichier
 de l'ADR-0002 ne change pas, la ligne de la table ci-dessus y renvoie.
+`ADR-0034` et `ADR-0035` sont posés le 2026-11-18 pour le change `020-deploiement-instance-client`, avant
+ses tickets, après trois constats joués sur le serveur de recette. `ADR-0034` est une décision née en 2.x :
+il reprend le candidat sur les valeurs d'instance dans une forme étendue à quatre champs, et remplace les
+deux candidats sur la lecture du fichier d'instance par les configurations ; l'ADR-0005 ne change pas.
+`ADR-0035` promeut le candidat sur la cible de déploiement, **amendé** à la promotion : la mise à niveau de
+la base par la construction, l'absence de clé de lecture, et la règle des identités de la livraison.
 
 ## Comment se lit un remplacement
 
@@ -126,7 +134,7 @@ avec la table sous les yeux.
 
 ## Ce qui n'est pas encore promu
 
-**14 décisions du cycle 1.x attendent encore** dans
+**10 décisions du cycle 1.x attendent encore** dans
 [`docs/adr/_candidates/`](./_candidates/). Elles restent des candidats : `CLAUDE.md` dit « ne
 pas contredire un ADR accepté », et un candidat n'en est pas un. Un renvoi vers un numéro 1.x
 absent de la table ci-dessus pointe donc vers une décision **non promue** — la lire dans
