@@ -76,9 +76,9 @@ l'administration ; toute rotation de la clé.
 
 ## Critères
 
-- [ ] Quand l'échéance hebdomadaire survient sur une instance dont le dépôt et la clé d'écriture sont configurés, un appel en lecture part vers le dépôt du client avec la clé d'écriture, et une trace dit que la clé a été acceptée   (SC-10a)
-- [ ] Quand l'échéance hebdomadaire survient, aucune écriture ne part vers le dépôt, et ni les brouillons, ni l'état de la publication, ni les sessions ne changent   (SC-10b)
-- [ ] Quand l'échéance hebdomadaire survient et que le dépôt refuse la clé, une trace est écrite dans les journaux de la plateforme et dit que l'accès a été refusé, sans la clé ni aucune partie d'elle   (SC-10c)
-- [ ] Quand l'échéance hebdomadaire survient et que le dépôt ne répond pas, une trace dit que le dépôt est injoignable et le passage se termine sans autre effet   (SC-10d)
-- [ ] Quand l'échéance hebdomadaire survient sur une instance sans dépôt de publication configuré, ou sans clé d'écriture, aucun appel ne part et une trace dit que le dépôt n'est pas configuré   (SC-10e)
-- [ ] Quand l'échéance hebdomadaire survient pendant qu'une publication est en cours, la publication se poursuit et aboutit comme sans cet appel   (SC-10f)
+- [x] Quand l'échéance hebdomadaire survient sur une instance dont le dépôt et la clé d'écriture sont configurés, un appel en lecture part vers le dépôt du client avec la clé d'écriture, et une trace dit que la clé a été acceptée   (SC-10a)
+- [x] Quand l'échéance hebdomadaire survient, aucune écriture ne part vers le dépôt, et ni les brouillons, ni l'état de la publication, ni les sessions ne changent   (SC-10b)
+- [x] Quand l'échéance hebdomadaire survient et que le dépôt refuse la clé, une trace est écrite dans les journaux de la plateforme et dit que l'accès a été refusé, sans la clé ni aucune partie d'elle   (SC-10c)
+- [x] Quand l'échéance hebdomadaire survient et que le dépôt ne répond pas, une trace dit que le dépôt est injoignable et le passage se termine sans autre effet   (SC-10d)
+- [x] Quand l'échéance hebdomadaire survient sur une instance sans dépôt de publication configuré, ou sans clé d'écriture, aucun appel ne part et une trace dit que le dépôt n'est pas configuré   (SC-10e)
+- [x] Quand l'échéance hebdomadaire survient pendant qu'une publication est en cours, la publication se poursuit et aboutit comme sans cet appel   (SC-10f)
