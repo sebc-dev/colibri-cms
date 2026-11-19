@@ -57,6 +57,23 @@ model {
   colibri-cms.worker.platform -[sync]-> github 'dépose le contenu et les images publiés'
   github -[async]-> workers-builds 'déclenche la reconstruction (branche principale seule)'
   workers-builds -[async]-> colibri-cms.worker 'bâtit, récupère les images, en produit les variantes, déploie'
+  // ADR-0035, change 020 — marquées #planned jusqu'aux tickets qui les posent dans le produit.
+  // trace attendue : package.json — "mise-en-ligne" (mise à niveau de la base, puis déploiement)
+  workers-builds -[async]-> colibri-cms.d1 'met la base au niveau de la version, avant de déployer' {
+    #planned
+  }
+  // trace attendue : wrangler.astro.jsonc — triggers.crons ; src/platform/publication/ — l'appel hebdomadaire (ADR-0021)
+  colibri-cms.worker.platform -[sync]-> github 'vérifie chaque semaine que la clé du dépôt est acceptée' {
+    #planned
+  }
+  // trace attendue : scripts/livraison.mjs — depot ; accès de collaborateur, retiré à la livraison
+  integrateur -> github 'prépare le dépôt du client, en collaborateur retiré à la livraison' {
+    #planned
+  }
+  // trace attendue : scripts/livraison.mjs — base, semer ; accès de membre du compte, retiré à la livraison
+  integrateur -> colibri-cms.d1 'crée la base et sème la première adresse autorisée, en membre retiré à la livraison' {
+    #planned
+  }
 }
 
 views {
@@ -71,6 +88,17 @@ views {
       editrice,
       email-routing,
       colibri-cms.worker.routes,
+      colibri-cms.worker.platform,
+      colibri-cms.d1
+  }
+
+  view adr-0035 of colibri-cms {
+    title 'ADR 0035 — une instance dans les comptes du client'
+    include
+      integrateur,
+      github,
+      workers-builds,
+      colibri-cms.worker,
       colibri-cms.worker.platform,
       colibri-cms.d1
   }
