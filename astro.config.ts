@@ -1,12 +1,10 @@
-import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import type { AstroIntegration } from 'astro';
 import cloudflare from '@astrojs/cloudflare';
 import svelte from '@astrojs/svelte';
 import tailwindcss from '@tailwindcss/vite';
-import { depotValide } from './src/platform/publication/forge-github.ts';
-import { exigerAdresseExpediteur } from './src/platform/instance/expediteur.ts';
+import { lireInstanceDuDepot } from './src/platform/instance/lecture-d-instance.ts';
 import { produireLesVariantes } from './src/platform/medias/variantes.ts';
 
 // FR-012, FR-024 (plan § décision 4) : la route de sonde (`src/platform/d1/
@@ -66,36 +64,13 @@ function variantesDImages(): AstroIntegration {
   };
 }
 
-// I10 (docs/archi.md) : la configuration Astro lit instance.json au moment où
-// elle s'évalue, sans outil intermédiaire — c'est le seul porteur de cet
-// invariant depuis ADR-0032 (la configuration de déploiement en sort). Seul
-// le domaine est consommé ici (ce lot ne pose aucun formulaire) — le second
-// champ du fichier d'instance n'est donc pas nommé dans ce typage, pour ne
-// pas en recopier le nom hors de son unique porteur (I8).
-const instancePath = fileURLToPath(new URL('./instance.json', import.meta.url));
-const instance = JSON.parse(readFileSync(instancePath, 'utf-8')) as {
-  domain: string;
-  senderAddress?: unknown;
-  depotDePublication?: unknown;
-  compteCloudflare?: unknown;
-};
-// Ticket 01 (007) : l'adresse d'expéditeur du code de connexion est validée
-// ici (la construction échoue en nommant `senderAddress`), puis injectée.
-const adresseExpediteur = exigerAdresseExpediteur(instance.senderAddress);
-// Ticket 16 (011) : le dépôt de publication est facultatif (le dépôt produit n'en déclare pas) ;
-// une valeur déclarée mais mal formée arrête la construction en nommant le champ.
-if (instance.depotDePublication !== undefined && !depotValide(instance.depotDePublication)) {
-  throw new Error("instance.json : le champ depotDePublication doit avoir la forme « propriétaire/dépôt ».");
-}
-const depotDePublication = instance.depotDePublication ?? null;
-// Change 017 : l'identifiant du compte Cloudflare (32 hexadécimaux) est facultatif ; sans lui, le remplacement d'adresse n'est pas possible (ADR-0033).
-if (
-  instance.compteCloudflare !== undefined &&
-  !(typeof instance.compteCloudflare === 'string' && /^[0-9a-f]{32}$/.test(instance.compteCloudflare))
-) {
-  throw new Error('instance.json : le champ compteCloudflare doit être un identifiant de 32 hexadécimaux.');
-}
-const compteCloudflare = instance.compteCloudflare ?? null;
+// I19 (ADR-0034) : la configuration Astro obtient les valeurs d'I8 par le
+// module de `src/platform/instance/`, qui valide les champs connus et leurs
+// formes et arrête la construction en nommant le champ refusé.
+const instance = lireInstanceDuDepot(new URL('./', import.meta.url));
+const adresseExpediteur = instance.senderAddress;
+const depotDePublication = instance.depotDePublication;
+const compteCloudflare = instance.compteCloudflare;
 
 export default defineConfig({
   site: `https://${instance.domain}`,
