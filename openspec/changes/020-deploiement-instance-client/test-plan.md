@@ -44,6 +44,8 @@
   un autre domaine, dans un domaine qui ne fait que finir pareil (`autre-exemple.fr` contre
   `exemple.fr`) ; identifiant proscrit en autre casse, à l'intérieur d'un mot plus long, dans
   `content/` ; liste de proscrits vide ; clé à la forme connue dans un fichier de contenu.
+- Base et compte visé : compte sans base ; base déjà là ; connexion sans accès au compte ; identifiant
+  de compte absent du fichier d'instance.
 - Semis : table vide ; même adresse ; même adresse en autre casse ; autre adresse ; adresse vide, sans
   `@`, avec espaces autour.
 - Inventaire : secret attendu absent ; secret inconnu posé ; aucun secret posé ; code de secours en

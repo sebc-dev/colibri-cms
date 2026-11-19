@@ -74,6 +74,37 @@ base échoue, rien n'est déployé et le site en ligne reste celui d'avant (FR-1
 - **WHEN** seule la branche des images change
 - **THEN** aucune mise en ligne ne s'exécute
 
+### Requirement: La base de l'instance est créée une seule fois, dans le compte du fichier d'instance
+
+L'outil de livraison SHALL créer la base de l'instance dans le compte de la plateforme que désigne
+le fichier d'instance du dépôt du client, quand ce compte n'en porte pas. Il NE DOIT jamais en créer
+une seconde. Chaque geste de l'outil qui agit sur la plateforme vise ce compte et aucun autre : quand
+la connexion de la personne qui livre n'y donne pas accès, ou que le fichier d'instance ne désigne
+aucun compte, le geste échoue sans rien écrire.
+
+#### Scenario: Un compte sans base reçoit la sienne
+- **WHEN** la création de la base est lancée sur un compte qui n'en porte pas
+- **THEN** la base existe dans ce compte, sous le nom commun à toutes les instances
+
+#### Scenario: Un compte qui a déjà sa base n'en reçoit pas une seconde
+- **WHEN** la création de la base est relancée sur un compte qui porte déjà la base de l'instance
+- **THEN** aucune base n'est créée
+- **AND** l'outil dit que la base existe déjà
+
+#### Scenario: Les gestes visent le compte du fichier d'instance
+- **WHEN** un geste de l'outil qui agit sur la plateforme est lancé
+- **THEN** il s'adresse au compte que désigne le fichier d'instance, quel que soit le compte par défaut de la connexion
+
+#### Scenario: Une connexion sans accès à ce compte n'écrit rien
+- **WHEN** un geste est lancé alors que la connexion de la personne qui livre ne donne pas accès au compte du fichier d'instance
+- **THEN** le geste échoue en le disant
+- **AND** rien n'est écrit, dans aucun compte
+
+#### Scenario: Sans compte désigné, aucun geste ne part
+- **WHEN** un geste qui agit sur la plateforme est lancé alors que le fichier d'instance ne porte pas l'identifiant du compte
+- **THEN** le geste échoue en nommant le champ manquant
+- **AND** aucune commande ne part vers la plateforme
+
 ### Requirement: La première adresse autorisée est semée une seule fois
 
 L'outil de livraison SHALL inscrire la première adresse autorisée d'une instance qui n'en a aucune.
