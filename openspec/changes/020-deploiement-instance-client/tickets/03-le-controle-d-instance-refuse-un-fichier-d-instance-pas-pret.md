@@ -49,8 +49,8 @@ contrôlé.
 
 ## Critères
 
-- [ ] Lancé sur un dépôt dont le fichier d'instance porte ses quatre champs, bien formés et propres à l'instance, le contrôle réussit   (SC-03a)
-- [ ] Quand le dépôt de publication ou l'identifiant du compte manque au fichier d'instance, le contrôle échoue en nommant le champ manquant   (SC-03b)
-- [ ] Quand le fichier d'instance porte encore le nom de domaine, l'adresse d'expéditeur ou l'identifiant de compte d'exemple du produit, le contrôle échoue en nommant le champ resté à sa valeur d'exemple   (SC-03c)
-- [ ] Quand l'adresse d'expéditeur n'appartient ni au nom de domaine de l'instance ni à l'un de ses sous-domaines, le contrôle échoue en nommant l'adresse d'expéditeur   (SC-03d)
-- [ ] Que le contrôle réussisse ou échoue, aucun fichier du dépôt n'est modifié   (SC-03e)
+- [x] Lancé sur un dépôt dont le fichier d'instance porte ses quatre champs, bien formés et propres à l'instance, le contrôle réussit   (SC-03a)
+- [x] Quand le dépôt de publication ou l'identifiant du compte manque au fichier d'instance, le contrôle échoue en nommant le champ manquant   (SC-03b)
+- [x] Quand le fichier d'instance porte encore le nom de domaine, l'adresse d'expéditeur ou l'identifiant de compte d'exemple du produit, le contrôle échoue en nommant le champ resté à sa valeur d'exemple   (SC-03c)
+- [x] Quand l'adresse d'expéditeur n'appartient ni au nom de domaine de l'instance ni à l'un de ses sous-domaines, le contrôle échoue en nommant l'adresse d'expéditeur   (SC-03d)
+- [x] Que le contrôle réussisse ou échoue, aucun fichier du dépôt n'est modifié   (SC-03e)
