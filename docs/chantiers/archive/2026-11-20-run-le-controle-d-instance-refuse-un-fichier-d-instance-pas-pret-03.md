@@ -65,3 +65,9 @@ branche du ticket, puis relancer `/scd-spec-dev:run 03`.
 - Un `eslint-disable` sur la ligne : c'est un escape-hatch, que la review d'intégrité bloque.
 - Reprise nue sans jeton `rerun` : elle resservirait le même échec depuis le cache.
 - Supprimer le worktree : il porte le seul exemplaire du travail.
+
+## Issue
+Les lignes 17-18 du test neuf ont été retouchées sur décision humaine (objet filtré par
+`Object.fromEntries` au lieu du `delete`), sans changer ce que le test vérifie. La reprise
+`rerun: "2"` a mené le ticket jusqu'à sa PR (#370). Le test commité porte l'empreinte de la retouche
+(`6f01e920…`). Le worktree a été supprimé par le run. Fermé le 2026-11-20.
