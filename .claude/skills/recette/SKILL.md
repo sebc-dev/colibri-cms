@@ -181,10 +181,10 @@ produit. Trois **gestes humains** :
 
    `depot` recopie le produit au HEAD et remplace `content/pages/` par le site factice. Il écrit
    `instance.json` : `domain`, `senderAddress` et `depotDePublication` = `RECETTE_DEPOT` (sans ce
-   champ, toute publication échoue avant le dépôt). Il récrit `wrangler.jsonc` et
-   `wrangler.astro.jsonc` avec le Worker, la base, l'adresse et le domaine de recette : Workers
-   Builds exige le nom du Worker connecté, et `npx wrangler deploy` suit après le build la
-   configuration que l'adaptateur en dérive. Il retire `.github/` : aucune action GitHub ne tourne
+   champ, toute publication échoue avant le dépôt). Il ne réécrit plus `wrangler.jsonc` ni `wrangler.astro.jsonc` (ADR-0034) : Workers Builds déploie
+   la configuration dérivée d'`instance.json` (`dist/server/wrangler.json`) : le domaine seul est
+   servi, les aperçus et l'adresse par défaut sont fermés, sous le nom de Worker et de base du
+   produit. `depot` échoue si `RECETTE_WORKER` ou `RECETTE_BASE` diffèrent de ces noms. Il retire `.github/` : aucune action GitHub ne tourne
    dans ce dépôt. Si le dépôt n'a pas de branche `media`, il la pose avec les images du produit,
    sans quoi la reconstruction échoue sur l'image absente (SC-06f). Le site factice n'est posé
    qu'au premier remplissage. Rejoué sur un clone à jour (`git pull` d'abord), `depot` met à jour

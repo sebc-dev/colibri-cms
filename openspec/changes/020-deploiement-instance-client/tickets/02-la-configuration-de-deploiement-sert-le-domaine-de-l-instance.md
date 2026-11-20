@@ -55,9 +55,9 @@ existant : il consigne un résultat que le test lit). Un test statique lit `wran
 
 ## Critères
 
-- [ ] Quand le site est construit avec un fichier d'instance qui porte un nom de domaine, la configuration de déploiement effective sert ce nom de domaine   (SC-02a)
-- [ ] Quand le site est construit, la configuration de déploiement effective n'ouvre ni l'adresse par défaut de la plateforme ni des adresses d'aperçu   (SC-02b)
-- [ ] La configuration de déploiement effective désigne la base par son nom, sans identifiant   (SC-02c)
-- [ ] La configuration de déploiement effective porte les mêmes liaisons que celle du produit, sans en ajouter ni en retirer   (SC-02d)
-- [ ] Rejouée sur une configuration déjà dérivée, la dérivation la laisse inchangée   (SC-02e)
-- [ ] Les fichiers de configuration de déploiement versionnés du produit ne portent ni identifiant de compte, ni identifiant de base, ni nom de domaine, ni adresse e-mail propre à une instance   (SC-02f)
+- [x] Quand le site est construit avec un fichier d'instance qui porte un nom de domaine, la configuration de déploiement effective sert ce nom de domaine   (SC-02a)
+- [x] Quand le site est construit, la configuration de déploiement effective n'ouvre ni l'adresse par défaut de la plateforme ni des adresses d'aperçu   (SC-02b)
+- [x] La configuration de déploiement effective désigne la base par son nom, sans identifiant   (SC-02c)
+- [x] La configuration de déploiement effective porte les mêmes liaisons que celle du produit, sans en ajouter ni en retirer   (SC-02d)
+- [x] Rejouée sur une configuration déjà dérivée, la dérivation la laisse inchangée   (SC-02e)
+- [x] Les fichiers de configuration de déploiement versionnés du produit ne portent ni identifiant de compte, ni identifiant de base, ni nom de domaine, ni adresse e-mail propre à une instance   (SC-02f)

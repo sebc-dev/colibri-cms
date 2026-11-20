@@ -9,7 +9,7 @@
   "scripts": {
     "prebuild": "node scripts/recuperer-images-publiees.mjs && node scripts/preparer-worker-de-test.mjs --avant",
     "build": "astro build",
-    "postbuild": "node scripts/preparer-worker-de-test.mjs --apres",
+    "postbuild": "node scripts/preparer-worker-de-test.mjs --apres && node scripts/deriver-configuration-de-deploiement.mjs",
     "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json --threshold error",
     "pretest": "npm run build && node scripts/batir-site-jetable.mjs",
     "test": "vitest run --passWithNoTests",
