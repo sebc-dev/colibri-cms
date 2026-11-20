@@ -37,10 +37,35 @@ function produite(): Record<string, unknown> {
   };
 }
 
+const CHAMPS_DERIVES = ["routes", "workers_dev", "preview_urls"];
+
+/** Ce que la dérivation n'a pas le droit de changer : tout, sauf les champs
+ * qu'elle pose et l'identifiant de base qu'elle retire. */
+function partInchangee(configuration: Record<string, unknown>): Record<string, unknown> {
+  const reste = Object.fromEntries(
+    Object.entries(configuration).filter(([champ]) => !CHAMPS_DERIVES.includes(champ)),
+  );
+  const bases = (configuration.d1_databases as Record<string, unknown>[]).map((base) =>
+    Object.fromEntries(Object.entries(base).filter(([champ]) => champ !== "database_id")),
+  );
+  return { ...reste, d1_databases: bases };
+}
+
 const REELLE = import.meta.glob<string>(
   "/.wrangler/site-jetable/arbre/dist/server/wrangler.json",
   { query: "?raw", import: "default", eager: true },
 );
+
+const BATIE = import.meta.glob<string>("/dist/server/wrangler.json", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+const INSTANCE = import.meta.glob<string>("/instance.json", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
 
 describe("configuration de déploiement effective", () => {
   it("SC-02a — sert le nom de domaine de l’instance, sous-domaine compris", () => {
@@ -102,5 +127,30 @@ describe("configuration de déploiement effective", () => {
     expect(effective.preview_urls).toBe(false);
     expect(effective.send_email).toEqual(reelle.send_email);
     expect(JSON.stringify(effective.d1_databases)).not.toContain("database_id");
+  });
+
+  it("SC-02d — hors domaine, aperçus et identifiant de base, la configuration effective égale la produite", () => {
+    const entree = produite();
+    const effective = deriverConfigurationDeDeploiement(entree, valeurs);
+    expect(partInchangee(effective)).toEqual(partInchangee(entree));
+  });
+
+  it("SC-02d — sur une construction réelle, rien d’autre ne change que domaine, aperçus et identifiant de base", () => {
+    const textes = Object.values(REELLE);
+    expect(textes.length, "construction absente : lancer `node scripts/batir-site-jetable.mjs`").toBe(1);
+    const reelle = JSON.parse(textes[0]) as Record<string, unknown>;
+    const effective = deriverConfigurationDeDeploiement(reelle, valeurs);
+    expect(partInchangee(effective)).toEqual(partInchangee(reelle));
+  });
+
+  it("SC-02a — la construction du dépôt laisse un dist/server/wrangler.json déjà dérivé du fichier d’instance", () => {
+    const baties = Object.values(BATIE);
+    expect(baties.length, "construction absente : lancer `npm run build`").toBe(1);
+    const instance = JSON.parse(Object.values(INSTANCE)[0]) as { domain: string };
+    const batie = JSON.parse(baties[0]) as Record<string, unknown>;
+    expect(batie.routes).toEqual([{ pattern: instance.domain, custom_domain: true }]);
+    expect(batie.workers_dev).toBe(false);
+    expect(batie.preview_urls).toBe(false);
+    expect(baties[0]).not.toContain("database_id");
   });
 });
