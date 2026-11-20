@@ -43,6 +43,22 @@ describe("contrôle d’instance", () => {
     expect(champs(refus)).toContain("depotDePublication");
   });
 
+  it.each([
+    ["turnstilePublicKey", { turnstilePublicKey: "0x4AAAAAAA" }],
+    ["domain", { domain: "https://boulangerie-martin.fr" }],
+    ["depotDePublication", { depotDePublication: "sans-barre" }],
+    ["compteCloudflare", { compteCloudflare: "pas-hexa" }],
+  ])("SC-03a — un champ %s inconnu ou mal formé est refusé en nommant ce champ", (champ, surcharge) => {
+    expect(champs(controlerLeFichierDInstance(texte(surcharge)))).toEqual([champ]);
+  });
+
+  it("SC-03b — un champ manquant et un champ mal formé sont refusés ensemble, chacun nommé", () => {
+    const refus = controlerLeFichierDInstance(
+      texte({ compteCloudflare: "pas-hexa" }, ["depotDePublication"]),
+    );
+    expect(champs(refus)).toEqual(["depotDePublication", "compteCloudflare"]);
+  });
+
   it("SC-03c — le nom de domaine d’exemple du produit est refusé en nommant domain", () => {
     const refus = controlerLeFichierDInstance(
       texte({ domain: "exemple.colibri.test", senderAddress: "code@envoi.exemple.colibri.test" }),
