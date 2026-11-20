@@ -52,7 +52,7 @@ nouveau dans le fichier d'instance.
 
 ## Critères
 
-- [ ] Quand le fichier d'instance porte un champ que le produit ne connaît pas, la construction s'arrête et le message nomme ce champ   (SC-01a)
-- [ ] Quand l'identifiant du compte, le dépôt de publication, le nom de domaine ou l'adresse d'expéditeur est présent mais mal formé, la construction s'arrête et le message nomme le champ en cause   (SC-01b)
-- [ ] Quand le fichier d'instance porte encore la clé publique de l'ancien test de présence humaine (`turnstilePublicKey`), la construction s'arrête en nommant ce champ   (SC-01c)
-- [ ] Quand le fichier d'instance ne porte que le nom de domaine et l'adresse d'expéditeur, bien formés, la construction aboutit   (SC-01d)
+- [x] Quand le fichier d'instance porte un champ que le produit ne connaît pas, la construction s'arrête et le message nomme ce champ   (SC-01a)
+- [x] Quand l'identifiant du compte, le dépôt de publication, le nom de domaine ou l'adresse d'expéditeur est présent mais mal formé, la construction s'arrête et le message nomme le champ en cause   (SC-01b)
+- [x] Quand le fichier d'instance porte encore la clé publique de l'ancien test de présence humaine (`turnstilePublicKey`), la construction s'arrête en nommant ce champ   (SC-01c)
+- [x] Quand le fichier d'instance ne porte que le nom de domaine et l'adresse d'expéditeur, bien formés, la construction aboutit   (SC-01d)
