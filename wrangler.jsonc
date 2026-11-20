@@ -19,6 +19,8 @@
   // Journaux de la plateforme lisibles depuis le compte de la cliente (trace
   // d'un envoi de code échoué, ticket 02 de 007) ; aucun identifiant de compte.
   "observability": { "enabled": true },
+  // Échéance hebdomadaire (lundi 4 h 17 UTC) : maintien de la clé du dépôt (ADR-0021) ; identique partout.
+  "triggers": { "crons": ["17 4 * * 1"] },
   "d1_databases": [
     {
       "binding": "DB",

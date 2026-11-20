@@ -48,6 +48,12 @@ model {
         description "Session, magasins D1, envoi d'e-mail, lecture du contenu déclaré, en-têtes de sécurité."
         metadata { sourceDir 'src/platform' }
       }
+      // trace : src/entree-worker.ts — `fetch` d'Astro réexporté, `scheduled` de l'échéance hebdomadaire (ADR-0021)
+      entree = component 'Point d’entrée' {
+        technology 'TypeScript + Workers'
+        description "Réexporte le fetch d'Astro et porte l'échéance hebdomadaire qui maintient la clé du dépôt en vie."
+        metadata { sourceDir 'src/entree-worker.ts' }
+      }
       // trace : src/render/index.ts — BoutonAction.astro, LienVideo.astro
       render = component 'Rendu des emplacements' {
         technology 'Astro'
@@ -87,6 +93,8 @@ model {
   colibri-cms.worker.admin -[sync]-> colibri-cms.worker.core 'partage les règles de saisie'
   // trace : 11 imports src/admin → src/platform, types des magasins, ex. src/admin/ilots-svelte-5/EcranMedias.svelte:14 ; valeur : src/admin/PastillePublication.astro:9 — lireEtatDeLaPublication au rendu du cadre
   colibri-cms.worker.admin -[sync]-> colibri-cms.worker.platform 'reprend les types des magasins et lit l’état de la publication'
+  // trace : src/entree-worker.ts:7 — import maintenirLaCle
+  colibri-cms.worker.entree -[sync]-> colibri-cms.worker.platform 'appelle le maintien hebdomadaire de la clé du dépôt'
   // trace : 15 imports src/platform → src/core, ex. src/platform/reglages/magasin.ts:9
   colibri-cms.worker.platform -[sync]-> colibri-cms.worker.core 'applique une correction avant écriture'
   // trace : src/pages/[...slug].astro:9 — import Page from '../site/page.astro'

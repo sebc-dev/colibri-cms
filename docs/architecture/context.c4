@@ -62,10 +62,8 @@ model {
   workers-builds -[async]-> colibri-cms.d1 'met la base au niveau de la version, avant de déployer' {
     #planned
   }
-  // trace attendue : wrangler.astro.jsonc — triggers.crons ; src/platform/publication/ — l'appel hebdomadaire (ADR-0021)
-  colibri-cms.worker.platform -[sync]-> github 'vérifie chaque semaine que la clé du dépôt est acceptée' {
-    #planned
-  }
+  // trace : wrangler.astro.jsonc — triggers.crons ; src/entree-worker.ts:scheduled → src/platform/publication/maintien-de-la-cle.ts (ADR-0021)
+  colibri-cms.worker.platform -[sync]-> github 'vérifie chaque semaine que la clé du dépôt est acceptée'
   // trace attendue : scripts/livraison.mjs — depot ; accès de collaborateur, retiré à la livraison
   integrateur -> github 'prépare le dépôt du client, en collaborateur retiré à la livraison' {
     #planned
