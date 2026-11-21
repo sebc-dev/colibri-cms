@@ -40,6 +40,9 @@
  *                           seulement, ensuite `content/` publié est gardé), l'instance et la
  *                           configuration wrangler du compte de recette, la branche `media`
  *                           si le dépôt n'en a pas. Commite localement ; n'envoie rien.
+ *   apercus                 déploie le Worker des aperçus (`RECETTE_WORKER_APERCUS`) avec ses
+ *                           adresses d'aperçu ouvertes et la base courante. À jouer une fois,
+ *                           puis chaque fois que la base de recette change.
  *   adresses                imprime les adresses du serveur principal et de la branche.
  *   fiches-du-depot         imprime en JSON les identités des fiches d'images que porte
  *                           `content/medias/` du dépôt de recette, ou `null` sans `RECETTE_DEPOT`.
@@ -279,6 +282,20 @@ function session(reglages, hote) {
   console.log(`✔ session ouverte pour https://${hote}/admin/`);
   console.log(`  état de stockage Playwright : ${chemin}`);
   console.log(`  cookie : ${JSON.stringify(cookie)}`);
+}
+
+/**
+ * `versions upload` ne change pas l'exposition d'un Worker : sans un déploiement qui pose
+ * `preview_urls`, les adresses d'aperçu répondent 404 (erreur 1042). Ce déploiement ne touche
+ * que le Worker des aperçus, qui n'a pas le domaine.
+ */
+function apercus(reglages) {
+  if (workerDesApercus(reglages) === reglages.RECETTE_WORKER) {
+    echouer(`${FICHIER_REGLAGES} : RECETTE_WORKER_APERCUS manquant — sans lui, les aperçus vivent sur le serveur principal.`);
+  }
+  ecrireConfigRecette(reglages, { apercu: true });
+  wrangler(reglages, ['deploy', '--config', configRecette()]);
+  console.log(`✔ ${workerDesApercus(reglages)} : adresses d'aperçu ouvertes.`);
 }
 
 function adresses(reglages) {
@@ -571,6 +588,9 @@ switch (commande) {
   case 'depot':
     depot(reglages, args[0]);
     break;
+  case 'apercus':
+    apercus(reglages);
+    break;
   case 'adresses':
     adresses(reglages);
     break;
@@ -581,5 +601,5 @@ switch (commande) {
     imageDuDepot(reglages, args[0]);
     break;
   default:
-    echouer('commande attendue : deployer | instance | semer | raz | session | sql | journal | secret-depot | chrono | depot | adresses | fiches-du-depot | image-du-depot');
+    echouer('commande attendue : deployer | instance | semer | raz | session | sql | journal | secret-depot | chrono | depot | apercus | adresses | fiches-du-depot | image-du-depot');
 }

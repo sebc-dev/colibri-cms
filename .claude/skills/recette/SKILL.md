@@ -23,6 +23,7 @@ $R secret-depot             # geste HUMAIN, dans son propre terminal : pose JETO
 $R chrono <url> <texte>     # chronomètre : combien avant que la page présente le texte
 $R depot <clone>            # compose le dépôt de recette dans son clone (§ Publication réelle)
 $R journal                  # journaux du serveur en direct (le terminal de `wrangler dev`)
+$R apercus                  # déploie le Worker des aperçus, adresses d'aperçu ouvertes (une fois)
 ```
 
 Réglages du compte : `.env.recette` (hors dépôt, `.env.*`). Configuration de déploiement : **dérivée**
@@ -156,6 +157,11 @@ RECETTE_ADRESSE=<adresse vérifiée, devient l'adresse autorisée>
 en diffèrent. `RECETTE_WORKER_APERCUS` nomme le Worker des aperçus ; sans lui, un seul Worker sert
 le principal et les aperçus, ce qui n'est possible que tant que Workers Builds n'est pas branché
 (chaque reconstruction ferme les adresses d'aperçu du Worker qu'elle déploie).
+
+Le Worker des aperçus se prépare une fois, après un build, par `$R apercus` : téléverser une
+version ne suffit pas à ouvrir ses adresses d'aperçu (elles répondent 404, erreur 1042). Une
+version téléversée garde la base qu'elle avait ce jour-là : après un changement de base, rejouer
+`$R apercus` et redéployer les variantes du site factice.
 
 Optionnel : `RECETTE_EXPEDITEUR=<adresse d'expéditeur>` (défaut `code@<RECETTE_DOMAINE>`), et
 `RECETTE_DEPOT=<propriétaire>/<dépôt>`, le dépôt de recette que lit `depot` (§ Publication réelle).
