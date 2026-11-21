@@ -162,8 +162,20 @@ Un script, joué en fin de construction (`postbuild`), lit `instance.json` et co
 - `workers_dev: false`, `preview_urls: false`.
 
 Il le fait toujours, y compris dans le dépôt du produit, où le domaine est celui d'exemple : personne
-ne déploie cette configuration-là, et les tests emploient `wrangler.jsonc`. L'outillage de recette
-continue de poser ses propres valeurs par-dessus (aperçus, adresse par défaut).
+ne déploie cette configuration-là, et les tests emploient `wrangler.jsonc`.
+
+**Le serveur de recette déploie cette configuration telle quelle.** Arbitré le 2026-11-21, à la
+review du ticket de la dérivation : rien ne pose de valeur de recette par-dessus. Le serveur
+principal de recette est donc une instance comme celle d'un client, Worker `colibri-cms` et base
+`colibri`, adresse par défaut et aperçus fermés. `preview_urls: false` coupe toutes les adresses
+d'aperçu du Worker déployé, alias compris : les aperçus de branche et les variantes du site factice
+vivent sur un second Worker du compte de recette, `colibri-recette`, sans domaine, lié à la même
+base. Ce second Worker n'appartient qu'à l'outillage de recette ; aucun client n'en a.
+
+*Écarté.* Faire réécrire par `depot` le nom du Worker et de la base : le dépôt de recette garderait
+des fichiers `wrangler` propres, ce que cette décision supprime. Donner à la recette son propre
+fichier de configuration : sa commande de mise en ligne ne serait plus celle d'un client, alors que
+la recette est le seul endroit où cette commande s'exerce.
 
 **La base n'a d'identifiant nulle part.** Elle s'appelle `colibri` dans chaque compte, comme le
 Worker s'appelle `colibri-cms` : un compte ne porte qu'une instance. `wrangler` la retrouve par ce
@@ -252,7 +264,8 @@ La logique décidable (contrôle, composition de l'inventaire, forme d'une adres
 sous `src/` et se teste ; le script n'est qu'une enveloppe qui lit des fichiers et appelle `wrangler`.
 
 L'outillage de recette est ramené sur ce chemin : sa commande `depot` cesse de réécrire les fichiers
-`wrangler`. Le serveur de recette garde son nom de base propre, posé par sa configuration dérivée.
+`wrangler`, et refuse de composer le dépôt si le Worker ou la base de recette ne portent pas les
+noms du produit (D3). Le serveur de recette a pris ces noms le 2026-11-21.
 
 ### D6 — Le premier semis : une ligne, seulement si la table est vide
 
