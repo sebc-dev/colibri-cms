@@ -17,12 +17,19 @@ deployment {
     }
   }
 
-  // trace : .claude/skills/recette/SKILL.md:30 — déploiement principal, https://colibri.sebc.dev/admin/
+  // ADR-0036 : le serveur principal de recette est une instance aux noms du produit, bâtie par Workers Builds ; les aperçus
+  // vivent sur un second Worker, propre à l'outillage. trace : .claude/skills/recette/SKILL.md — en-tête et § Première installation
   recette = environment 'Recette' {
-    workers = node 'Cloudflare Workers — colibri.sebc.dev' {
+    workers = node 'Cloudflare Workers — colibri-cms, colibri.sebc.dev' {
+      description "Serveur principal : la configuration dérivée d'instance.json, déployée telle quelle. Adresse par défaut et adresses d'aperçu fermées, comme chez un client."
       instanceOf colibri-cms.worker
     }
-    base = node 'Cloudflare D1' {
+    apercus = node 'Cloudflare Workers — colibri-recette, adresses d’aperçu' {
+      description "Worker de l'outillage de recette, sans domaine : aperçus de branche et variantes du site factice. Aucun client n'en a."
+      instanceOf colibri-cms.worker
+    }
+    base = node 'Cloudflare D1 — base colibri' {
+      description 'Une seule base, lue par le serveur principal et par le Worker des aperçus.'
       instanceOf colibri-cms.d1
     }
   }
