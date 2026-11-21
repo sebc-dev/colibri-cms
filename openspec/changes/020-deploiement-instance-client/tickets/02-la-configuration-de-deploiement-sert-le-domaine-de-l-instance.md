@@ -35,8 +35,10 @@ de recette (`appliquerCompteDeRecette`).
 - Il le fait toujours, y compris dans le dépôt du produit, avec le domaine d'exemple : personne ne
   déploie cette configuration-là, et les tests emploient `wrangler.jsonc`.
 - L'outillage de recette reprend ce mécanisme : sa commande `depot` ne réécrit plus les fichiers
-  `wrangler`. Le serveur de recette garde ses propres valeurs (aperçus, adresse par défaut, nom de
-  base), posées par-dessus par sa configuration dérivée. `SKILL.md` de la recette est mis à jour.
+  `wrangler`, et échoue si le Worker ou la base de recette ne portent pas les noms du produit.
+  Le serveur de recette ne garde aucune valeur propre : il déploie la configuration dérivée telle
+  quelle, sous les noms `colibri-cms` et `colibri` (arbitrage du 2026-11-21, design D3). Ses aperçus
+  partent sur un second Worker, `RECETTE_WORKER_APERCUS`. `SKILL.md` de la recette est mis à jour.
   `colibri.sebc.dev` doit se rebâtir après ce ticket.
 
 **Tests.** Unité sur la fonction pure : le JSON produit comparé champ par champ, les liaisons
