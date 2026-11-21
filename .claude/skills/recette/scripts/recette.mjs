@@ -119,7 +119,7 @@ function wrangler(reglages, args, { capturer = false } = {}) {
  * build : seuls le nom, la base, la destination d'e-mail et l'exposition
  * changent — les liaisons restent celles du produit.
  */
-function ecrireConfigRecette(reglages) {
+function ecrireConfigRecette(reglages, { apercu = false } = {}) {
   if (!existsSync(configBatie())) {
     echouer(`${configBatie()} absent : lancer \`npm run typecheck && npm run build\` d'abord.`);
   }
@@ -127,16 +127,35 @@ function ecrireConfigRecette(reglages) {
   delete config.configPath;
   delete config.userConfigPath;
   delete config.topLevelName;
-  appliquerCompteDeRecette(config, reglages);
+  appliquerCompteDeRecette(config, reglages, { apercu });
   writeFileSync(configRecette(), `${JSON.stringify(config, null, 2)}\n`);
 }
 
+/**
+ * Le Worker des aperçus (branches, variantes du site factice). Le serveur principal porte les
+ * noms du produit et ferme ses adresses d'aperçu, comme l'instance d'un client (ADR-0034) : les
+ * aperçus vivent donc sur un Worker à part, `RECETTE_WORKER_APERCUS`, lié à la même base. Sans ce
+ * réglage, un seul Worker sert les deux, comme avant.
+ */
+function workerDesApercus(reglages) {
+  return reglages.RECETTE_WORKER_APERCUS || reglages.RECETTE_WORKER;
+}
+
 /** Le Worker, la base, la liaison d'envoi et l'exposition du compte de recette. */
-function appliquerCompteDeRecette(config, reglages) {
-  config.name = reglages.RECETTE_WORKER;
-  config.workers_dev = true;
-  config.preview_urls = true;
-  config.routes = [{ pattern: reglages.RECETTE_DOMAINE, custom_domain: true }];
+function appliquerCompteDeRecette(config, reglages, { apercu = false } = {}) {
+  const workersDistincts = workerDesApercus(reglages) !== reglages.RECETTE_WORKER;
+  config.name = apercu ? workerDesApercus(reglages) : reglages.RECETTE_WORKER;
+  if (apercu && workersDistincts) {
+    // Le domaine appartient au serveur principal : le Worker des aperçus n'a que ses adresses workers.dev.
+    delete config.routes;
+    config.workers_dev = true;
+    config.preview_urls = true;
+  } else {
+    config.routes = [{ pattern: reglages.RECETTE_DOMAINE, custom_domain: true }];
+    // Un principal aux noms du produit garde l'exposition fermée de la configuration dérivée.
+    config.workers_dev = !workersDistincts;
+    config.preview_urls = !workersDistincts;
+  }
   config.d1_databases = config.d1_databases.map((base) => ({
     ...base,
     database_name: reglages.RECETTE_BASE,
@@ -204,8 +223,9 @@ function deployer(reglages, principal, aliasImpose) {
     console.log(`✔ https://${reglages.RECETTE_DOMAINE}/admin/`);
     return;
   }
-  const alias = aliasDeBranche(aliasImpose ?? branche, reglages.RECETTE_WORKER);
-  console.log(`→ aperçu de la branche ${branche} (alias ${alias})`);
+  ecrireConfigRecette(reglages, { apercu: true });
+  const alias = aliasDeBranche(aliasImpose ?? branche, workerDesApercus(reglages));
+  console.log(`→ aperçu de la branche ${branche} (alias ${alias}, Worker ${workerDesApercus(reglages)})`);
   const sortie = wrangler(
     reglages,
     ['versions', 'upload', '--config', configRecette(), '--preview-alias', alias, '--message', `recette ${branche}`],
@@ -265,7 +285,7 @@ function adresses(reglages) {
   const branche = brancheCourante();
   console.log(`serveur principal : https://${reglages.RECETTE_DOMAINE}/admin/`);
   if (branche !== 'main') {
-    console.log(`alias de la branche ${branche} : ${aliasDeBranche(branche, reglages.RECETTE_WORKER)}`);
+    console.log(`alias de la branche ${branche} : ${aliasDeBranche(branche, workerDesApercus(reglages))}`);
     console.log('  (l\'adresse complète est imprimée par `deployer`)');
   }
 }
@@ -385,17 +405,26 @@ function depot(reglages, dossier) {
 
   RACINE = cible;
   ecrireInstance(reglages, nomDepot);
-  for (const fichier of ['wrangler.jsonc', 'wrangler.astro.jsonc']) {
-    const chemin = `${cible}/${fichier}`;
-    const sansCommentaires = readFileSync(chemin, 'utf-8').split('\n').filter((ligne) => !/^\s*\/\//.test(ligne)).join('\n');
-    let config;
-    try {
-      config = JSON.parse(sansCommentaires);
-    } catch (erreur) {
-      echouer(`${fichier} ne se relit pas en JSON une fois ses lignes de commentaire retirées : ${erreur.message}`);
-    }
-    appliquerCompteDeRecette(config, reglages);
-    writeFileSync(chemin, `// Compte de recette, écrit par recette.mjs depot : jamais dans le dépôt produit.\n${JSON.stringify(config, null, 2)}\n`);
+  // Les fichiers wrangler du produit restent tels quels (ADR-0034) : Workers Builds déploie la
+  // configuration dérivée d'instance.json. Ici on vérifie seulement que le Worker et la base de
+  // recette portent les noms du produit.
+  let configProduit;
+  try {
+    const brut = readFileSync(`${cible}/wrangler.jsonc`, 'utf-8').split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+    configProduit = JSON.parse(brut);
+  } catch (erreur) {
+    echouer(`${dossier}/wrangler.jsonc illisible : ${erreur.message}`);
+  }
+  const baseProduit = (configProduit.d1_databases ?? []).find((b) => b.binding === 'DB')?.database_name;
+  const ecarts = [
+    ['name (Worker)', configProduit.name, reglages.RECETTE_WORKER, 'RECETTE_WORKER'],
+    ['database_name (base)', baseProduit, reglages.RECETTE_BASE, 'RECETTE_BASE'],
+  ].filter(([, produitValeur, recetteValeur]) => produitValeur !== recetteValeur);
+  if (ecarts.length > 0) {
+    echouer(`${ecarts.map(([champ, p, r, cle]) => `${champ} : produit « ${p} », recette « ${r} » (${cle})`).join(' ; ')}. `
+      + "Workers Builds déploie la configuration dérivée d'instance.json, sous le nom de Worker et de base du produit. "
+      + 'Remède : renommer le Worker et la base de recette aux noms du produit, ou arbitrer le mécanisme de la recette '
+      + 'dans le change 020 (design.md § D3, ticket 02).');
   }
 
   const sha = git(['rev-parse', '--short', 'HEAD'], { capturer: true }).trim();
@@ -404,7 +433,7 @@ function depot(reglages, dossier) {
     console.log(`✔ ${dossier} déjà composé depuis ${sha} : rien à commiter.`);
   } else {
     git(['-C', cible, 'commit', '--quiet', '-m', `recette : ColibriCMS ${sha}, ${contenu}`]);
-    console.log(`✔ ${dossier} : ColibriCMS ${sha}, ${contenu}, instance et configuration du compte de recette commités.`);
+    console.log(`✔ ${dossier} : ColibriCMS ${sha}, ${contenu}, instance commitée.`);
   }
 
   // La branche des images n'est posée qu'une fois : ensuite, c'est la publication qui l'écrit.
