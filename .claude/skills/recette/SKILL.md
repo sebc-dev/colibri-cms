@@ -5,8 +5,11 @@ description: Monte, déploie et pilote le serveur de recette ColibriCMS sur Clou
 
 # Recette sur Cloudflare
 
-Un Worker `colibri-recette`, séparé du produit, sert **l'artefact bâti** avec une **D1 distante**
-(`colibri-recette`) et la **vraie liaison `send_email`**. Tout passe par un script :
+Le serveur principal est une instance comme celle d'un client : un Worker `colibri-cms` et une base
+D1 `colibri`, les noms du produit (ADR-0034), avec la **vraie liaison `send_email`**. Il ferme ses
+adresses d'aperçu, comme toute instance. Les aperçus de branche et les variantes du site factice
+vivent donc sur un second Worker, `colibri-recette`, lié à la **même base**. Tout passe par un
+script :
 
 ```sh
 R="node .claude/skills/recette/scripts/recette.mjs"
@@ -134,7 +137,7 @@ fenetre_seuil; delete from comptes_seuil"`.
 ## Première installation (autre compte, autre machine)
 
 ```sh
-npx wrangler d1 create colibri-recette            # → database_id
+npx wrangler d1 create colibri                    # → database_id (le nom du produit)
 # destination vérifiée : dashboard → Email Service → Email Routing → Destination addresses,
 # ou POST /accounts/<compte>/email/routing/addresses {"email": "<adresse>"} puis clic dans l'e-mail
 ```
@@ -142,11 +145,17 @@ npx wrangler d1 create colibri-recette            # → database_id
 Puis écrire `.env.recette` :
 
 ```
-RECETTE_COMPTE=<account id>        RECETTE_WORKER=colibri-recette
-RECETTE_BASE=colibri-recette       RECETTE_BASE_ID=<database_id>
+RECETTE_COMPTE=<account id>        RECETTE_WORKER=colibri-cms
+RECETTE_BASE=colibri               RECETTE_BASE_ID=<database_id>
+RECETTE_WORKER_APERCUS=colibri-recette
 RECETTE_DOMAINE=<sous-domaine d'une zone du compte>
 RECETTE_ADRESSE=<adresse vérifiée, devient l'adresse autorisée>
 ```
+
+`RECETTE_WORKER` et `RECETTE_BASE` sont les noms que déclare `wrangler.jsonc` : `depot` échoue s'ils
+en diffèrent. `RECETTE_WORKER_APERCUS` nomme le Worker des aperçus ; sans lui, un seul Worker sert
+le principal et les aperçus, ce qui n'est possible que tant que Workers Builds n'est pas branché
+(chaque reconstruction ferme les adresses d'aperçu du Worker qu'elle déploie).
 
 Optionnel : `RECETTE_EXPEDITEUR=<adresse d'expéditeur>` (défaut `code@<RECETTE_DOMAINE>`), et
 `RECETTE_DEPOT=<propriétaire>/<dépôt>`, le dépôt de recette que lit `depot` (§ Publication réelle).
@@ -197,7 +206,7 @@ produit. Trois **gestes humains** :
    jamais cette commande, ne demande jamais la clé dans la conversation et ne la fait jamais passer
    par `echo … |` ni par un argument ;
 3. la reconstruction automatique (Workers Builds) branchée sur la **seule** branche principale :
-   tableau de bord → Workers & Pages → `colibri-recette` → Settings → Builds → Connect, le dépôt
+   tableau de bord → Workers & Pages → `colibri-cms` → Settings → Builds → Connect, le dépôt
    de recette. Commande de construction `npm run build`, commande de déploiement
    `npx wrangler deploy` (le défaut), répertoire racine vide. Dans Branch control : branche de
    production `main`, et **Enable Preview Builds décoché**, pour qu'un dépôt sur `media` ne
@@ -212,7 +221,10 @@ puis rejouer `$R depot` et les envois de l'étape 1.
 
 Une fois la reconstruction automatique branchée, ne plus lancer `$R deployer` vers le serveur
 principal (depuis `main` ou avec `--principal`) : il remplacerait le Worker bâti depuis le dépôt de
-recette par un Worker sans `depotDePublication`. Les aperçus de branche restent permis.
+recette par un Worker sans `depotDePublication`. Les aperçus de branche restent permis : ils
+partent sur le Worker des aperçus (`RECETTE_WORKER_APERCUS`), jamais sur le principal.
+`$R secret-depot` et `$R journal` visent le serveur principal ; le Worker des aperçus garde ses
+propres secrets.
 
 La clé `JETON_DEPOT` **expire** (celle du 14 octobre 2026 l'était un mois plus tard). Symptôme : toute
 publication échoue, l'écran dit « Prévenez la personne qui s'occupe de votre site », et `$R journal`
