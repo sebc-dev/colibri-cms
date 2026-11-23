@@ -43,3 +43,12 @@ relancer `/scd-spec-dev:run 020-deploiement-instance-client 07`, qui repartait d
 ## Écarté
 - Reprise nue, sans jeton `rerun` — le cache aurait resservi le même échec à l'identique.
 - `eslint-disable` sur la ligne — c'est un escape-hatch, que le filet CI annote.
+
+## Issue
+La ligne 32 du test neuf a été retouchée avec l'accord de l'humain, par filtrage
+(`Object.fromEntries(Object.entries(contenu).filter(…))`), sans changer ni assertion ni cas. La
+reprise `rerun: "2"` a mené le ticket jusqu'au commit `683d93f` et à la PR #376. La correction de
+review error-handling-F-1, rangée « appliquée », avait livré son code sans ses deux tests (liste des
+bases qui n'est pas un tableau, liste qui n'est pas du JSON) : ils ont été ajoutés à la main, à la
+demande de l'humain, par le commit `4a5b575`. La PR #376 a été fusionnée dans `main` le 2026-11-23
+(commit `84ed43c`). Fermé le 2026-11-23.
