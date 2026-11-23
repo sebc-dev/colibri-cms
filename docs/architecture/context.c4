@@ -68,7 +68,7 @@ model {
   integrateur -> github 'prépare le dépôt du client, en collaborateur retiré à la livraison' {
     #planned
   }
-  // trace attendue : scripts/livraison.mjs — base, semer ; accès de membre du compte, retiré à la livraison
+  // trace : scripts/livraison.mjs — base (crée la base) ; attendue : semer ; accès de membre du compte, retiré à la livraison
   integrateur -> colibri-cms.d1 'crée la base et sème la première adresse autorisée, en membre retiré à la livraison' {
     #planned
   }

@@ -51,8 +51,8 @@ le rôle de membre le plus étroit qui suffit (constaté à l'épreuve de livrai
 
 ## Critères
 
-- [ ] Quand la création de la base est lancée sur un compte qui n'en porte pas, la base existe dans ce compte, sous le nom commun à toutes les instances   (SC-07a)
-- [ ] Quand la création de la base est relancée sur un compte qui porte déjà la base de l'instance, aucune base n'est créée et l'outil dit que la base existe déjà   (SC-07b)
-- [ ] Quand un geste de l'outil qui agit sur la plateforme est lancé, il s'adresse au compte que désigne le fichier d'instance, quel que soit le compte par défaut de la connexion   (SC-07c)
-- [ ] Quand la connexion de la personne qui livre ne donne pas accès au compte du fichier d'instance, le geste échoue en le disant et rien n'est écrit, dans aucun compte   (SC-07d)
-- [ ] Quand le fichier d'instance ne porte pas l'identifiant du compte, le geste échoue en nommant le champ manquant et aucune commande ne part vers la plateforme   (SC-07e)
+- [x] Quand la création de la base est lancée sur un compte qui n'en porte pas, la base existe dans ce compte, sous le nom commun à toutes les instances   (SC-07a)
+- [x] Quand la création de la base est relancée sur un compte qui porte déjà la base de l'instance, aucune base n'est créée et l'outil dit que la base existe déjà   (SC-07b)
+- [x] Quand un geste de l'outil qui agit sur la plateforme est lancé, il s'adresse au compte que désigne le fichier d'instance, quel que soit le compte par défaut de la connexion   (SC-07c)
+- [x] Quand la connexion de la personne qui livre ne donne pas accès au compte du fichier d'instance, le geste échoue en le disant et rien n'est écrit, dans aucun compte   (SC-07d)
+- [x] Quand le fichier d'instance ne porte pas l'identifiant du compte, le geste échoue en nommant le champ manquant et aucune commande ne part vers la plateforme   (SC-07e)
