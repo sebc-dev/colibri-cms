@@ -5,15 +5,17 @@
   // configPath: './wrangler.astro.jsonc' })` — et non `wrangler.jsonc`
   // (racine). Les deux portent les mêmes liaisons de plateforme (ADR-0020), sauf
   // `destination_address`, gardée dans wrangler.jsonc pour les tests seuls ;
-  // la racine porte EN PLUS `main`/`assets`, dont
-  // `scripts/preparer-worker-de-test.mjs` explique le pourquoi. Si les deux
-  // fichiers portaient `main`, Astro bâtirait DEPUIS ce champ au lieu de son
-  // propre graphe de pages — mesuré, pas supposé.
+  // la racine porte EN PLUS `main`/`assets` (voir `scripts/preparer-worker-de-test.mjs`).
+  // Ici `main` désigne `src/entree-worker.ts` (ticket 10 de 020, ADR-0021) : il réexporte le
+  // `fetch` d'Astro (`@astrojs/cloudflare/handler`) et porte l'échéance hebdomadaire.
   "name": "colibri-cms",
+  "main": "./src/entree-worker.ts",
   "compatibility_date": "2026-08-01",
   // Journaux de la plateforme lisibles depuis le compte de la cliente (trace
   // d'un envoi de code échoué, ticket 02 de 007) ; aucun identifiant de compte.
   "observability": { "enabled": true },
+  // Échéance hebdomadaire (lundi 4 h 17 UTC) : maintien de la clé du dépôt (ADR-0021) ; identique partout.
+  "triggers": { "crons": ["17 4 * * 1"] },
   "d1_databases": [
     {
       "binding": "DB",
