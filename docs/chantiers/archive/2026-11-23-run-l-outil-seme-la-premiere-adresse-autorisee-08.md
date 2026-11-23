@@ -43,3 +43,10 @@ relancer `/scd-spec-dev:run 020-deploiement-instance-client 08`, qui repartait d
 ## Écarté
 - Reprise nue, sans jeton `rerun` — le cache aurait resservi le même échec à l'identique.
 - `eslint-disable` sur la ligne — c'est un escape-hatch, que le filet CI annote.
+
+## Issue
+Les trois cas `SC-08c` du test unitaire ont été fondus en un `it.each` avec l'accord de l'humain,
+sans changer ni les adresses ni l'assertion. La reprise `rerun: "2"` a mené le ticket jusqu'au commit
+`0efa04e` et à la PR #378. Les corrections de review error-handling-F-1 et coverage-F-1, rangées
+« appliquées », avaient livré le code sans leurs tests : ils ont été ajoutés à la main, à la demande
+de l'humain, par le commit `1f1c306`. Fermé le 2026-11-23.
