@@ -146,4 +146,26 @@ describe("livraison — geste base", () => {
     expect(resultat.message).toContain("compteCloudflare");
     expect(lancees).toEqual([]);
   });
+
+  it("une liste des bases qui n'est pas un tableau est dite illisible et aucune base n'est créée", async () => {
+    const enveloppee: Sortie = { code: 0, stdout: JSON.stringify({ result: [] }), stderr: "" };
+    const { executer, lancees } = executeurEnregistre({ liste: enveloppee });
+
+    const resultat = await creerLaBase("/depot", lireInstance(instance()), executer);
+
+    expect(resultat.code).not.toBe(0);
+    expect(resultat.message).toMatch(/illisible/);
+    expect(lancees.filter(estEcriture)).toEqual([]);
+  });
+
+  it("une liste des bases qui n'est pas du JSON est dite illisible et aucune base n'est créée", async () => {
+    const brouillee: Sortie = { code: 0, stdout: "pas du json", stderr: "" };
+    const { executer, lancees } = executeurEnregistre({ liste: brouillee });
+
+    const resultat = await creerLaBase("/depot", lireInstance(instance()), executer);
+
+    expect(resultat.code).not.toBe(0);
+    expect(resultat.message).toMatch(/illisible/);
+    expect(lancees.filter(estEcriture)).toEqual([]);
+  });
 });
