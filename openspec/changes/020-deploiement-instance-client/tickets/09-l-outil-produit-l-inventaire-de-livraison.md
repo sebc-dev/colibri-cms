@@ -61,10 +61,10 @@ de » autrement que par l'épreuve de livraison ; constater les listes après le
 
 ## Critères
 
-- [ ] L'inventaire produit porte une ligne pour chaque clé que le produit lit à l'exécution ou à la construction, et une ligne pour chaque liaison de la configuration de déploiement effective   (SC-09a)
-- [ ] Produit sur une instance dont les clés sont posées, l'inventaire ne porte la valeur d'aucune clé, ni aucune partie d'elle   (SC-09b)
-- [ ] Produit sur une instance dont le code de secours est en place, l'inventaire ne porte ni le code, ni son empreinte, ni aucune donnée qui aide à le reconstituer   (SC-09c)
-- [ ] Quand une clé que le produit ne lit pas est posée sur l'instance, l'inventaire la signale comme inconnue du produit   (SC-09d)
-- [ ] Quand une clé que le produit sait lire n'est pas posée sur l'instance, l'inventaire la signale comme absente, avec le geste que son absence refuse   (SC-09e)
-- [ ] Produit avant le retrait des accès, l'inventaire porte les membres du compte de la plateforme et les collaborateurs du dépôt, tels que relevés dans ces comptes, et désigne chacun de ceux qui ne sont pas le client comme à retirer   (SC-09f)
-- [ ] Quand les gestes de l'outil de livraison sont énumérés, aucun ne crée, ne lit ni ne remplace le code de secours   (SC-09g)
+- [x] L'inventaire produit porte une ligne pour chaque clé que le produit lit à l'exécution ou à la construction, et une ligne pour chaque liaison de la configuration de déploiement effective   (SC-09a)
+- [x] Produit sur une instance dont les clés sont posées, l'inventaire ne porte la valeur d'aucune clé, ni aucune partie d'elle   (SC-09b)
+- [x] Produit sur une instance dont le code de secours est en place, l'inventaire ne porte ni le code, ni son empreinte, ni aucune donnée qui aide à le reconstituer   (SC-09c)
+- [x] Quand une clé que le produit ne lit pas est posée sur l'instance, l'inventaire la signale comme inconnue du produit   (SC-09d)
+- [x] Quand une clé que le produit sait lire n'est pas posée sur l'instance, l'inventaire la signale comme absente, avec le geste que son absence refuse   (SC-09e)
+- [x] Produit avant le retrait des accès, l'inventaire porte les membres du compte de la plateforme et les collaborateurs du dépôt, tels que relevés dans ces comptes, et désigne chacun de ceux qui ne sont pas le client comme à retirer   (SC-09f)
+- [x] Quand les gestes de l'outil de livraison sont énumérés, aucun ne crée, ne lit ni ne remplace le code de secours   (SC-09g)
