@@ -14,7 +14,8 @@ const MESSAGE = '[maintien] clé du dépôt';
 type Issue = 'acceptee' | 'acces-refuse' | 'depot-introuvable' | 'depot-injoignable' | 'depot-non-configure';
 
 function consigner(issue: Issue): void {
-  console.info(MESSAGE, { issue });
+  if (issue === 'acceptee') console.info(MESSAGE, { issue });
+  else console.error(MESSAGE, { issue });
 }
 
 /** Lit `main` avec la clé ; consigne l'issue, ne lève jamais. */
