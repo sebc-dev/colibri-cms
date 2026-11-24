@@ -5,7 +5,7 @@
  * sorties enregistrées de wrangler : la frontière est mockée, pas la logique.
  */
 import { describe, it, expect } from "vitest";
-import { creerLaBase } from "../../src/platform/instance/plateforme-de-livraison.ts";
+import { creerLaBase, semerLaPremiereAdresse } from "../../src/platform/instance/plateforme-de-livraison.ts";
 
 const COMPTE = "fedcba9876543210fedcba9876543210";
 const COMPTE_PAR_DEFAUT = "11111111111111111111111111111111";
@@ -167,5 +167,104 @@ describe("livraison — geste base", () => {
     expect(resultat.code).not.toBe(0);
     expect(resultat.message).toMatch(/illisible/);
     expect(lancees.filter(estEcriture)).toEqual([]);
+  });
+});
+
+/** Exécuteur du geste `semer` : la lecture rend `lecture`, l'insertion réussit. */
+function executeurDuSemis(lecture: Sortie) {
+  const lancees: CommandeLancee[] = [];
+  const executer = (
+    commande: string,
+    args: string[],
+    env: Record<string, string | undefined>,
+  ): Promise<Sortie> => {
+    lancees.push({ commande, args, compte: env.CLOUDFLARE_ACCOUNT_ID });
+    const requete = args.at(-1) ?? "";
+    if (requete.startsWith("select")) return Promise.resolve(lecture);
+    if (requete.startsWith("insert")) return Promise.resolve({ code: 0, stdout: "[]", stderr: "" });
+    return Promise.reject(new Error(`commande inattendue : ${args.join(" ")}`));
+  };
+  return { executer, lancees };
+}
+
+const tableLue = (...adresses: string[]): Sortie => ({
+  code: 0,
+  stdout: JSON.stringify([{ results: adresses.map((adresse) => ({ adresse })), success: true }]),
+  stderr: "",
+});
+
+const estInsertion = (c: CommandeLancee): boolean => c.args.some((arg) => arg.includes("insert"));
+
+describe("livraison — geste semer", () => {
+  it("SC-08a — table vide : un seul insert part, avec l'adresse rognée, sur le compte du fichier d'instance", async () => {
+    const { executer, lancees } = executeurDuSemis(tableLue());
+
+    const resultat = await semerLaPremiereAdresse("/depot", "  Claire@example.com  ", lireInstance(instance()), executer);
+
+    expect(resultat.code).toBe(0);
+    expect(lancees).toHaveLength(2);
+    expect(lancees[1]?.args).toEqual([
+      "d1",
+      "execute",
+      "colibri",
+      "--remote",
+      "--json",
+      "--command",
+      "insert into adresses_autorisees (adresse) values ('Claire@example.com')",
+    ]);
+    expect(lancees.map((c) => c.compte)).toEqual([COMPTE, COMPTE]);
+  });
+
+  it("SC-08b — une autre adresse en place : aucun insert, le geste échoue en le disant", async () => {
+    const { executer, lancees } = executeurDuSemis(tableLue("autre@example.com"));
+
+    const resultat = await semerLaPremiereAdresse("/depot", "claire@example.com", lireInstance(instance()), executer);
+
+    expect(resultat.code).toBe(1);
+    expect(resultat.message).toMatch(/autre adresse est déjà autorisée/);
+    expect(lancees).toHaveLength(1);
+    expect(lancees.filter(estInsertion)).toEqual([]);
+  });
+
+  it("SC-08c — la même adresse sous une autre casse : aucun insert, le geste réussit en le disant", async () => {
+    const { executer, lancees } = executeurDuSemis(tableLue("claire@example.com"));
+
+    const resultat = await semerLaPremiereAdresse("/depot", "CLAIRE@example.com", lireInstance(instance()), executer);
+
+    expect(resultat.code).toBe(0);
+    expect(resultat.message).toMatch(/déjà/);
+    expect(lancees).toHaveLength(1);
+    expect(lancees.filter(estInsertion)).toEqual([]);
+  });
+
+  it.each([
+    ["vide", ""],
+    ["sans arobase", "sans-arobase"],
+  ])("SC-08d — adresse %s : aucune commande ne part vers la plateforme", async (_cas, saisie) => {
+    const { executer, lancees } = executeurDuSemis(tableLue());
+
+    const resultat = await semerLaPremiereAdresse("/depot", saisie, lireInstance(instance()), executer);
+
+    expect(resultat.code).toBe(1);
+    expect(resultat.message).toMatch(/pas bien formée/);
+    expect(lancees).toEqual([]);
+  });
+
+  it.each([
+    ["un objet nu", "{}"],
+    ["un tableau vide", "[]"],
+    ["un bloc en échec", '[{"success":false,"results":[]}]'],
+    ["un bloc sans résultats", "[{}]"],
+    ["une ligne sans adresse", '[{"results":[{}]}]'],
+    ["autre chose que du JSON", "pas du json"],
+  ])("une lecture qui rend %s est dite illisible et rien n'est inscrit", async (_cas, stdout) => {
+    const { executer, lancees } = executeurDuSemis({ code: 0, stdout, stderr: "" });
+
+    const resultat = await semerLaPremiereAdresse("/depot", "claire@example.com", lireInstance(instance()), executer);
+
+    expect(resultat.code).toBe(1);
+    expect(resultat.message).toMatch(/illisible/);
+    expect(lancees).toHaveLength(1);
+    expect(lancees.filter(estInsertion)).toEqual([]);
   });
 });

@@ -54,7 +54,7 @@ comme destination d'e-mail (geste de l'éditrice dans sa boîte, hors de l'outil
 
 ## Critères
 
-- [ ] Quand le semis est lancé avec une adresse bien formée sur une instance qui n'a aucune adresse autorisée, cette adresse devient l'adresse autorisée et l'écran de connexion lui envoie un code quand elle le demande   (SC-08a)
-- [ ] Quand le semis est lancé avec une autre adresse sur une instance qui a déjà une adresse autorisée, le semis est refusé en le disant et l'adresse autorisée est inchangée   (SC-08b)
-- [ ] Quand le semis est relancé avec l'adresse déjà autorisée, l'instance garde une seule adresse autorisée, la même   (SC-08c)
-- [ ] Quand le semis est lancé avec une adresse vide ou mal formée, le semis est refusé en le disant et rien n'est écrit dans la base   (SC-08d)
+- [x] Quand le semis est lancé avec une adresse bien formée sur une instance qui n'a aucune adresse autorisée, cette adresse devient l'adresse autorisée et l'écran de connexion lui envoie un code quand elle le demande   (SC-08a)
+- [x] Quand le semis est lancé avec une autre adresse sur une instance qui a déjà une adresse autorisée, le semis est refusé en le disant et l'adresse autorisée est inchangée   (SC-08b)
+- [x] Quand le semis est relancé avec l'adresse déjà autorisée, l'instance garde une seule adresse autorisée, la même   (SC-08c)
+- [x] Quand le semis est lancé avec une adresse vide ou mal formée, le semis est refusé en le disant et rien n'est écrit dans la base   (SC-08d)

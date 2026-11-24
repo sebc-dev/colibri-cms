@@ -7,7 +7,7 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { controlerLeDepot } from '../src/platform/instance/controle.ts';
-import { creerLaBase } from '../src/platform/instance/plateforme-de-livraison.ts';
+import { creerLaBase, semerLaPremiereAdresse } from '../src/platform/instance/plateforme-de-livraison.ts';
 
 /**
  * @param {string} depot chemin du dépôt contrôlé
@@ -40,15 +40,39 @@ export async function base(depot, acces, sortie) {
 }
 
 /**
- * Point d'entrée en ligne de commande : `controler <dépôt>` ou `base <dépôt>`.
+ * Geste `semer <dépôt> <adresse>` : inscrit la première adresse autorisée, une seule fois.
+ * @param {string} depot
+ * @param {string} adresse
+ * @param {{ lire: import('../src/platform/instance/plateforme-de-livraison.ts').Lecteur, executer?: import('../src/platform/instance/plateforme-de-livraison.ts').Executeur }} acces
+ * @param {{ log: (m: string) => void, error: (m: string) => void }} [sortie]
+ */
+export async function semer(depot, adresse, acces, sortie) {
+  const { lire, executer } = acces;
+  if (typeof lire !== 'function' || typeof executer !== 'function') {
+    throw new TypeError('accès : « lire » et « executer » requis');
+  }
+  const r = await semerLaPremiereAdresse(depot, adresse, lire, executer);
+  (r.code === 0 ? sortie?.log : sortie?.error)?.(r.message);
+  return r;
+}
+
+/**
+ * Point d'entrée en ligne de commande : `controler <dépôt>`, `base <dépôt>` ou `semer <dépôt> <adresse>`.
  * @param {string[]} argv
  * @param {Record<string, (...args: string[]) => unknown>} acces accès fichiers reçus en paramètre (seul « lire » est utilisé)
  * @param {{ log: (m: string) => void, error: (m: string) => void }} sortie
  */
 export async function principal(argv, acces, sortie) {
-  const [geste, depot] = argv;
+  const [geste, depot, adresse] = argv;
+  if (geste === 'semer') {
+    if (!depot || adresse === undefined) {
+      sortie.error('usage : livraison.mjs semer <dépôt> <adresse>');
+      return 2;
+    }
+    return (await semer(depot, adresse, acces, sortie)).code;
+  }
   if ((geste !== 'controler' && geste !== 'base') || !depot) {
-    sortie.error('usage : livraison.mjs controler|base <dépôt>');
+    sortie.error('usage : livraison.mjs controler|base|semer <dépôt> [adresse]');
     return 2;
   }
   if (geste === 'base') return (await base(depot, acces, sortie)).code;
