@@ -6,6 +6,7 @@
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import { EMAIL_FORME } from '../src/core/reglages/coordonnees.ts';
 import { controlerLeDepot } from '../src/platform/instance/controle.ts';
 import { ENTREES_DECLAREES, composerLInventaire } from '../src/platform/instance/inventaire.ts';
 import { lireLeFichierDInstance } from '../src/platform/instance/fichier-d-instance.ts';
@@ -89,15 +90,23 @@ function nomsDe(stdout, cles) {
 }
 
 /**
- * Geste `inventaire <dépôt>` : relève les noms (jamais les valeurs) et écrit un fichier daté.
+ * Geste `inventaire <dépôt> <adresse du client>` : relève les noms (jamais les valeurs) et écrit
+ * un fichier daté. L'adresse est celle du client sur le compte de la plateforme : elle seule
+ * permet de le reconnaître parmi les membres, que la plateforme rend par leur adresse.
  * @param {string} depot
+ * @param {string} adresseDuClient
  * @param {{ lire?: import('../src/platform/instance/plateforme-de-livraison.ts').Lecteur, executer?: import('../src/platform/instance/plateforme-de-livraison.ts').Executeur, ecrire?: (chemin: string, contenu: string) => Promise<void>, maintenant?: () => Date }} acces
  * @param {{ log: (m: string) => void, error: (m: string) => void }} [sortie]
  */
-export async function inventaire(depot, acces, sortie) {
+export async function inventaire(depot, adresseDuClient, acces, sortie) {
   const { lire, executer, ecrire } = acces;
   if (typeof lire !== 'function' || typeof executer !== 'function' || typeof ecrire !== 'function') {
     throw new TypeError('accès : « lire », « executer » et « ecrire » requis');
+  }
+  const clientDuCompte = String(adresseDuClient ?? '').trim();
+  if (!EMAIL_FORME.test(clientDuCompte)) {
+    sortie?.error("L'adresse du client n'est pas bien formée ; l'inventaire n'a pas été écrit.");
+    return { code: 1 };
   }
   const jour = (acces.maintenant?.() ?? new Date()).toISOString().slice(0, 10);
   let valeurs;
@@ -155,6 +164,7 @@ export async function inventaire(depot, acces, sortie) {
       declencheur: null,
       domaine: valeurs.domain,
       client,
+      clientDuCompte,
       membresDuCompte: nomsMembres,
       collaborateursDuDepot: nomsCollaborateurs,
       liaisons: ENTREES_DECLAREES.filter((e) => e.lieu.startsWith('liaison')).map((e) => e.nom),
@@ -168,7 +178,8 @@ export async function inventaire(depot, acces, sortie) {
 }
 
 /**
- * Point d'entrée en ligne de commande : `controler <dépôt>`, `base <dépôt>` ou `semer <dépôt> <adresse>`.
+ * Point d'entrée en ligne de commande : `controler <dépôt>`, `base <dépôt>`, `semer <dépôt> <adresse>`
+ * ou `inventaire <dépôt> <adresse du client>`.
  * @param {string[]} argv
  * @param {Record<string, (...args: string[]) => unknown>} acces accès fichiers reçus en paramètre (seul « lire » est utilisé)
  * @param {{ log: (m: string) => void, error: (m: string) => void }} sortie
@@ -182,7 +193,13 @@ export async function principal(argv, acces, sortie) {
     }
     return (await semer(depot, adresse, acces, sortie)).code;
   }
-  if (geste === 'inventaire' && depot) return (await inventaire(depot, acces, sortie)).code;
+  if (geste === 'inventaire') {
+    if (!depot || adresse === undefined) {
+      sortie.error('usage : livraison.mjs inventaire <dépôt> <adresse du client>');
+      return 2;
+    }
+    return (await inventaire(depot, adresse, acces, sortie)).code;
+  }
   if ((geste !== 'controler' && geste !== 'base') || !depot) {
     sortie.error('usage : livraison.mjs controler|base|semer|inventaire <dépôt> [adresse]');
     return 2;

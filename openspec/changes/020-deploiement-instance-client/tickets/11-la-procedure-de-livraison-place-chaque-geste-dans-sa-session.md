@@ -50,11 +50,14 @@ déploie. L'appel hebdomadaire est en place. `docs/livraison.md` n'existe pas.
   5. *Intégrateur* — `semer`. *Éditrice* — première connexion par l'adresse autorisée, création du
      code de secours sur l'écran « Code de secours », qu'elle note. Ni l'intégrateur ni l'outil ne
      créent, ne voient, ne transmettent ce code.
-  6. *Intégrateur* — `inventaire`, **avant** tout retrait ; puis l'épreuve, qui commence par le
+  6. *Intégrateur* — `inventaire <dépôt> <adresse du client>`, **avant** tout retrait : l'adresse
+     est celle du client sur son compte Cloudflare, par laquelle le geste le reconnaît parmi les
+     membres ; puis l'épreuve, qui commence par le
      retrait de chaque accès que l'inventaire marque « à retirer », des adresses de destination de
      test, et par `wrangler logout`.
 - La procédure signale : l'adresse autorisée entre dans l'historique de commandes du poste qui joue
-  `semer` ; les captures de l'épreuve ne montrent jamais un écran de création de clé.
+  `semer`, et l'adresse du client sur son compte Cloudflare dans celui du poste qui joue
+  `inventaire` ; les captures de l'épreuve ne montrent jamais un écran de création de clé.
 - `docs/cahier-de-test.md` gagne une section « Livraison », au format des sections existantes. Elle
   retire le membre Cloudflare, le collaborateur GitHub et la connexion `wrangler` du poste, puis
   joue : une page publique ; une connexion par code ; une correction publiée et vue en ligne, image

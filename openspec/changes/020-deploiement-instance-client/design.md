@@ -250,7 +250,7 @@ ils sont facultatifs : entre-temps, la publication se refuse en le disant (capac
 | `depot <dépôt> --version <étiquette> --instance <fichier>` | D2 | git local |
 | `base` | crée la base `colibri` si le compte n'en a pas | `wrangler`, membre |
 | `semer <adresse>` | D6 | `wrangler`, membre |
-| `inventaire` | D9 | `wrangler`, membre |
+| `inventaire <adresse du client>` | D9 | `wrangler`, membre |
 
 L'outil ne pose aucun secret : les clés se créent dans le navigateur, session du client, et se
 collent dans le tableau de bord du compte du client, même session. Leur valeur ne passe ni par un
@@ -350,7 +350,12 @@ aucun champ de valeur ; l'outil ne lit aucune valeur (la plateforme n'en rend pa
 
 L'inventaire porte aussi les personnes qui ont accès : les membres du compte Cloudflare et les
 collaborateurs du dépôt, relevés par l'API quand la connexion de qui livre le permet, sinon recopiés
-depuis la session du client, et il marque « à retirer » chacun de ceux qui ne sont pas le client. Il
+depuis la session du client, et il marque « à retirer » chacun de ceux qui ne sont pas le client.
+La plateforme rend les membres du compte par leur adresse, le dépôt rend ses collaborateurs par leur
+nom de compte : le client se reconnaît donc par deux identités. Son nom de compte du dépôt se lit
+dans `depotDePublication` ; son adresse sur le compte de la plateforme est donnée au geste par qui
+livre (`inventaire <adresse du client>`, comme `semer <adresse>`), et ne rejoint pas le fichier
+d'instance. Le geste refuse une adresse absente ou mal formée avant toute lecture. Il
 est produit **avant** le retrait des accès : après, plus aucune connexion de l'intégrateur ne peut le
 produire. Ce qui se constate après le retrait se constate dans une session du client.
 
