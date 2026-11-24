@@ -67,8 +67,10 @@ export interface Observations {
   base: string | null;
   declencheur: string | null;
   domaine: string | null;
-  /** Identifiant du client sur le dépôt. */
+  /** Nom du compte du client sur le dépôt (jamais comparé aux membres du compte de la plateforme). */
   client: string;
+  /** Adresse du client sur le compte de la plateforme, donnée par qui livre. */
+  clientDuCompte: string;
   membresDuCompte: string[];
   collaborateursDuDepot: string[];
   /** Liaisons de la configuration de déploiement effective. */
@@ -88,7 +90,10 @@ function personnes(
   noms: string[],
   client: string,
 ): string[] {
-  return noms.map((nom) => ligne(titre, nom, nom === client ? 'le client' : 'à retirer'));
+  const attendu = client.trim().toLowerCase();
+  return noms.map((nom) =>
+    ligne(titre, nom, nom.trim().toLowerCase() === attendu ? 'le client' : 'à retirer'),
+  );
 }
 
 export function composerLInventaire(
@@ -128,7 +133,7 @@ export function composerLInventaire(
     '',
     '## Personnes avec accès',
     '',
-    ...personnes('membre du compte', obs.membresDuCompte, obs.client),
+    ...personnes('membre du compte', obs.membresDuCompte, obs.clientDuCompte),
     ...personnes('collaborateur du dépôt', obs.collaborateursDuDepot, obs.client),
     '',
   );
