@@ -45,3 +45,12 @@ relancer `/scd-spec-dev:run 020-deploiement-instance-client 09`, qui repartait d
 ## Écarté
 - Reprise nue, sans jeton `rerun` — le cache aurait resservi le même échec à l'identique.
 - `eslint-disable` sur la ligne — c'est un escape-hatch, que le filet CI annote.
+
+## Issue
+Le tri de la fonction d'aide `nomsLus` a reçu sa fonction de comparaison (`localeCompare`), avec
+l'accord de l'humain, sans toucher à une assertion. La reprise `rerun: "2"` a mené le ticket
+jusqu'au commit `2653f8e` et à la PR #379, fusionnée le 2026-11-24. Trois réserves de la review
+sont parties dans `main` sans suite : le client comparé par son nom de compte GitHub aux e-mails des
+membres Cloudflare (SC-09f) ; les tests des corrections error-handling-F-1, error-handling-F-2,
+coverage-F-1 et coverage-F-2, rangées « appliquées », jamais écrits ; les liaisons dites « posées »
+sans lecture de la configuration effective. Fermé le 2026-11-24.
