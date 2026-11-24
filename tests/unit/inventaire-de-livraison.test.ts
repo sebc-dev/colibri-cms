@@ -21,6 +21,9 @@ const CONFIGURATION = import.meta.glob<string>("/wrangler.jsonc", {
 
 const CLIENT = "boulangerie-martin";
 const AUTRE = "integrateur-tiers";
+/** Le client sur le compte de la plateforme : une adresse, pas son nom de compte du dépôt. */
+const ADRESSE_DU_CLIENT = "martin@boulangerie-martin.example";
+const MEMBRE_TIERS = "tiers@exemple.fr";
 const SECRETS_ATTENDUS = ["EXPEDITEUR_CODE_CONNEXION", "JETON_DEPOT", "JETON_ADRESSES_EMAIL", "COLIBRI_CLE_LECTURE_DEPOT"];
 const JOUR = "2026-11-24";
 
@@ -31,7 +34,8 @@ function observations(surcharge: Partial<Observations> = {}): Observations {
     declencheur: "17 4 * * 1",
     domaine: "boulangerie-martin.fr",
     client: CLIENT,
-    membresDuCompte: [CLIENT],
+    clientDuCompte: ADRESSE_DU_CLIENT,
+    membresDuCompte: [ADRESSE_DU_CLIENT],
     collaborateursDuDepot: [CLIENT],
     ...surcharge,
   };
@@ -136,20 +140,27 @@ describe("la liste déclarée et sa composition", () => {
 
   it("SC-09f — un membre et un collaborateur qui ne sont pas le client sont à retirer ; le client ne l'est pas", () => {
     const texte = compose({
-      membresDuCompte: [CLIENT, "membre-tiers"],
+      membresDuCompte: [ADRESSE_DU_CLIENT, MEMBRE_TIERS],
       collaborateursDuDepot: [CLIENT, AUTRE],
     });
-    expect(ligneDe(texte, "membre-tiers")).toMatch(/à retirer/);
+    expect(ligneDe(texte, MEMBRE_TIERS)).toMatch(/à retirer/);
     expect(ligneDe(texte, AUTRE)).toMatch(/à retirer/);
-    for (const ligne of lignesDe(texte, CLIENT).filter((l) => !l.includes("boulangerie-martin.fr"))) {
-      expect(ligne).not.toMatch(/à retirer/);
-    }
-    expect(lignesDe(texte, CLIENT).length).toBeGreaterThanOrEqual(2);
+    expect(ligneDe(texte, ADRESSE_DU_CLIENT)).toMatch(/membre du compte.*le client/);
+    expect(ligneDe(texte, `| ${CLIENT} |`)).toMatch(/collaborateur du dépôt.*le client/);
+  });
+
+  it("SC-09f — le client est reconnu parmi les membres par son adresse, casse et espaces de bord ignorés, jamais par son nom de compte du dépôt", () => {
+    const texte = compose({
+      clientDuCompte: "  Martin@Boulangerie-Martin.example ",
+      membresDuCompte: [ADRESSE_DU_CLIENT, CLIENT],
+    });
+    expect(ligneDe(texte, ADRESSE_DU_CLIENT)).toMatch(/le client/);
+    expect(ligneDe(texte, `| membre du compte | ${CLIENT} |`)).toMatch(/à retirer/);
   });
 
   it("SC-09f — aucun autre que le client : rien n'est à retirer", () => {
     const texte = compose();
-    expect(texte).not.toMatch(/membre-tiers|integrateur-tiers/);
+    expect(texte).not.toMatch(/tiers@exemple\.fr|integrateur-tiers/);
     expect(texte.match(/à retirer/g) ?? []).toHaveLength(0);
   });
 });
@@ -165,59 +176,89 @@ const VALEURS_CONNUES = {
   CLE_ORPHELINE: "orph_Uy66TrEwQa44PoIu",
 };
 
-function executeurEnregistre() {
+type Lecture = "secrets" | "bases" | "membres" | "collaborateurs";
+interface Reponse {
+  code: number;
+  stdout: string;
+  stderr: string;
+}
+
+function lectureDe(commande: string, args: string[]): Lecture {
+  if (commande === "gh") return "collaborateurs";
+  if (commande === "sh") return "membres";
+  return args.includes("secret") ? "secrets" : "bases";
+}
+
+const REPONSES: Record<Lecture, string> = {
+  collaborateurs: JSON.stringify([{ login: CLIENT }, { login: AUTRE }]),
+  secrets: JSON.stringify(
+    Object.entries(VALEURS_CONNUES).map(([name, value]) => ({ name, type: "secret_text", value })),
+  ),
+  bases: JSON.stringify([{ name: "colibri", uuid: "0123456789abcdef0123456789abcdef" }]),
+  // Forme de l'API de la plateforme : les membres sont rendus par leur adresse.
+  membres: JSON.stringify({
+    success: true,
+    result: [{ user: { email: ADRESSE_DU_CLIENT } }, { user: { email: MEMBRE_TIERS } }],
+  }),
+};
+
+/** Sorties enregistrées ; `surcharge` remplace la réponse d'une seule lecture. */
+function executeurEnregistre(surcharge: Partial<Record<Lecture, Partial<Reponse>>> = {}) {
   const lancees: CommandeLancee[] = [];
-  const executer = (commande: string, args: string[]) => {
+  const executer = (commande: string, args: string[]): Promise<Reponse> => {
     lancees.push({ commande, args });
-    const reponse = (stdout: string) => Promise.resolve({ code: 0, stdout, stderr: "" });
-    if (commande === "gh") {
-      return reponse(JSON.stringify([{ login: CLIENT }, { login: AUTRE }]));
-    }
-    if (args.includes("secret") && args.includes("list")) {
-      return reponse(
-        JSON.stringify(
-          Object.entries(VALEURS_CONNUES).map(([name, value]) => ({ name, type: "secret_text", value })),
-        ),
-      );
-    }
-    if (args.includes("d1") && args.includes("list")) {
-      return reponse(JSON.stringify([{ name: "colibri", uuid: "0123456789abcdef0123456789abcdef" }]));
-    }
-    return reponse("[]");
+    const lecture = lectureDe(commande, args);
+    return Promise.resolve({ code: 0, stdout: REPONSES[lecture], stderr: "", ...surcharge[lecture] });
   };
   return { executer, lancees };
 }
 
+const INSTANCE = {
+  domain: "boulangerie-martin.fr",
+  senderAddress: "code@envoi.boulangerie-martin.fr",
+  depotDePublication: `${CLIENT}/site`,
+  compteCloudflare: "fedcba9876543210fedcba9876543210",
+};
+
+type Geste = (
+  depot: string,
+  adresseDuClient: string,
+  acces: Record<string, unknown>,
+  sortie?: { log: (m: string) => void; error: (m: string) => void },
+) => Promise<{ code: number; chemin?: string }>;
+
+/** Joue le geste sur des accès doublés et rend ce qu'il a écrit, dit et lancé. */
+async function jouer(
+  options: {
+    instance?: Record<string, unknown>;
+    adresse?: string;
+    surcharge?: Partial<Record<Lecture, Partial<Reponse>>>;
+  } = {},
+) {
+  const { inventaire } = (await import("../../scripts/livraison.mjs")) as { inventaire: Geste };
+  const { executer, lancees } = executeurEnregistre(options.surcharge);
+  const ecritures: { chemin: string; contenu: string }[] = [];
+  const erreurs: string[] = [];
+  const resultat = await inventaire(
+    "/depot",
+    options.adresse ?? ADRESSE_DU_CLIENT,
+    {
+      lire: () => Promise.resolve(JSON.stringify(options.instance ?? INSTANCE)),
+      executer,
+      ecrire: (chemin: string, contenu: string) => {
+        ecritures.push({ chemin, contenu });
+        return Promise.resolve();
+      },
+      maintenant: () => new Date("2026-11-24T10:00:00Z"),
+    },
+    { log: () => undefined, error: (m: string) => erreurs.push(m) },
+  );
+  return { resultat, ecritures, erreurs, lancees };
+}
+
 describe("le geste inventaire de l'outil de livraison", () => {
   it("SC-09b — le fichier écrit ne porte aucune valeur de clé posée, ni fragment, et ne touche pas au code de secours", async () => {
-    const { inventaire } = (await import("../../scripts/livraison.mjs")) as {
-      inventaire: (
-        depot: string,
-        acces: Record<string, unknown>,
-        sortie?: { log: (m: string) => void; error: (m: string) => void },
-      ) => Promise<{ code: number; chemin?: string }>;
-    };
-    const { executer, lancees } = executeurEnregistre();
-    const ecritures: { chemin: string; contenu: string }[] = [];
-    const instance = JSON.stringify({
-      domain: "boulangerie-martin.fr",
-      senderAddress: "code@envoi.boulangerie-martin.fr",
-      depotDePublication: `${CLIENT}/site`,
-      compteCloudflare: "fedcba9876543210fedcba9876543210",
-    });
-    const resultat = await inventaire(
-      "/depot",
-      {
-        lire: () => Promise.resolve(instance),
-        executer,
-        ecrire: (chemin: string, contenu: string) => {
-          ecritures.push({ chemin, contenu });
-          return Promise.resolve();
-        },
-        maintenant: () => new Date("2026-11-24T10:00:00Z"),
-      },
-      { log: () => undefined, error: () => undefined },
-    );
+    const { resultat, ecritures, lancees } = await jouer();
     expect(resultat.code).toBe(0);
     expect(ecritures).toHaveLength(1);
     expect(ecritures[0].chemin).toMatch(/\.md$/);
@@ -234,5 +275,83 @@ describe("le geste inventaire de l'outil de livraison", () => {
     for (const { args } of lancees) {
       expect(args.join(" ")).not.toMatch(/secours|secret (get|put|delete)|d1 (execute|create)/);
     }
+  });
+
+  it("SC-09f — le geste inventaire porte les membres du compte relevés et désigne à retirer un membre qui n'est pas le client", async () => {
+    const { resultat, ecritures } = await jouer();
+    expect(resultat.code).toBe(0);
+    const texte = ecritures[0].contenu;
+    expect(ligneDe(texte, MEMBRE_TIERS)).toMatch(/membre du compte.*à retirer/);
+    expect(ligneDe(texte, ADRESSE_DU_CLIENT)).toMatch(/membre du compte.*le client/);
+    expect(ligneDe(texte, `| ${CLIENT} |`)).toMatch(/collaborateur du dépôt.*le client/);
+  });
+
+  it.each<[string, Lecture, RegExp]>([
+    ["wrangler secret list", "secrets", /secrets posés/],
+    ["wrangler d1 list", "bases", /bases/],
+    ["le relevé des membres", "membres", /membres du compte/],
+    ["gh api collaborators", "collaborateurs", /collaborateurs du dépôt/],
+  ])("SC-09f — une lecture de la plateforme qui échoue (%s) : aucun inventaire écrit", async (_nom, lecture, motif) => {
+    const { resultat, ecritures, erreurs } = await jouer({ surcharge: { [lecture]: { code: 1, stdout: "" } } });
+    expect(resultat.code).toBe(1);
+    expect(ecritures).toHaveLength(0);
+    expect(erreurs.join("\n")).toMatch(motif);
+  });
+
+  it.each<[string, Lecture, string]>([
+    ["une sortie qui n'est pas du JSON", "secrets", "Erreur : connexion refusée"],
+    [
+      "une réponse d'erreur de la plateforme rendue avec un code 0",
+      "membres",
+      JSON.stringify({ success: false, errors: [{ code: 10000 }], result: null }),
+    ],
+    ["un membre sans adresse", "membres", JSON.stringify({ success: true, result: [{ user: {} }] })],
+  ])("SC-09f — %s : la lecture est illisible, aucun inventaire écrit", async (_nom, lecture, stdout) => {
+    const { resultat, ecritures, erreurs } = await jouer({ surcharge: { [lecture]: { stdout } } });
+    expect(resultat.code).toBe(1);
+    expect(ecritures).toHaveLength(0);
+    expect(erreurs.length).toBeGreaterThan(0);
+  });
+
+  it.each<[string, Record<string, unknown>, RegExp]>([
+    ["compteCloudflare", { ...INSTANCE, compteCloudflare: undefined }, /compteCloudflare/],
+    ["depotDePublication", { ...INSTANCE, depotDePublication: undefined }, /depotDePublication/],
+  ])("SC-09f — un fichier d'instance sans %s : aucune commande lancée, aucun inventaire écrit", async (_champ, instance, motif) => {
+    const { resultat, ecritures, erreurs, lancees } = await jouer({ instance });
+    expect(resultat.code).toBe(1);
+    expect(lancees).toHaveLength(0);
+    expect(ecritures).toHaveLength(0);
+    expect(erreurs.join("\n")).toMatch(motif);
+  });
+
+  it.each(["", "boulangerie-martin", "martin@"])(
+    "SC-09f — une adresse du client mal formée (« %s ») : aucune commande lancée, aucun inventaire écrit",
+    async (adresse) => {
+      const { resultat, ecritures, erreurs, lancees } = await jouer({ adresse });
+      expect(resultat.code).toBe(1);
+      expect(lancees).toHaveLength(0);
+      expect(ecritures).toHaveLength(0);
+      expect(erreurs.length).toBeGreaterThan(0);
+    },
+  );
+
+  it("SC-09f — le geste sans adresse du client, en ligne de commande, rend l'usage et ne lance rien", async () => {
+    const { principal } = (await import("../../scripts/livraison.mjs")) as {
+      principal: (
+        argv: string[],
+        acces: Record<string, unknown>,
+        sortie: { log: (m: string) => void; error: (m: string) => void },
+      ) => Promise<number>;
+    };
+    const { executer, lancees } = executeurEnregistre();
+    const erreurs: string[] = [];
+    const code = await principal(
+      ["inventaire", "/depot"],
+      { lire: () => Promise.resolve(JSON.stringify(INSTANCE)), executer, ecrire: () => Promise.resolve() },
+      { log: () => undefined, error: (m: string) => erreurs.push(m) },
+    );
+    expect(code).toBe(2);
+    expect(lancees).toHaveLength(0);
+    expect(erreurs.join("\n")).toMatch(/inventaire <dépôt> <adresse du client>/);
   });
 });
