@@ -117,3 +117,140 @@ describe("contrôle d’instance — valeurs à forme de clé", () => {
     expect(refus).toEqual([]);
   });
 });
+
+/**
+ * Le geste en ligne de commande (`scripts/livraison.mjs`) : lecture des fichiers versionnés par
+ * l'accès reçu, lecture de `--proscrire`. Accès en mémoire, aucune commande lancée.
+ */
+interface Sortie {
+  log: (m: string) => void;
+  error: (m: string) => void;
+}
+type Acces = Record<string, (...args: string[]) => unknown>;
+interface Livraison {
+  controler: (
+    depot: string,
+    acces: Acces,
+    sortie?: Sortie,
+    proscrits?: string[],
+  ) => Promise<{ code: number; refus: { champ: string; motif: string }[] }>;
+  principal: (argv: string[], acces: Acces, sortie: Sortie) => Promise<number>;
+}
+
+async function livraison(): Promise<Livraison> {
+  return (await import("../../scripts/livraison.mjs")) as Livraison;
+}
+
+function erreurDeLecture(code: string): Error {
+  return Object.assign(new Error("lecture impossible"), { code });
+}
+
+/** Dépôt en mémoire : `textes` par chemin relatif ; une valeur `Error` est levée à la lecture. */
+function depotEnMemoire(textes: Record<string, string | Error>) {
+  const lus: string[] = [];
+  const erreurs: string[] = [];
+  const journal: string[] = [];
+  const acces: Acces = {
+    lire: (chemin) => {
+      lus.push(chemin);
+      const contenu = textes[chemin.replace("/depot/", "")];
+      if (contenu === undefined) throw erreurDeLecture("ENOENT");
+      if (contenu instanceof Error) throw contenu;
+      return contenu;
+    },
+    lister: () => Object.keys(textes),
+  };
+  const sortie: Sortie = { log: (m) => journal.push(m), error: (m) => erreurs.push(m) };
+  return { acces, sortie, lus, erreurs, journal };
+}
+
+describe("contrôle d’instance — le geste controler <dépôt> --proscrire", () => {
+  it("SC-04b — le geste échoue (code 1) en nommant le fichier du contenu qui porte le domaine désigné", async () => {
+    const { principal } = await livraison();
+    const { acces, sortie, lus, erreurs } = depotEnMemoire({
+      "instance.json": instance,
+      "src/content/pages/accueil.md": `Réalisé par ${DOMAINE}\n`,
+    });
+
+    const code = await principal(["controler", "/depot", "--proscrire", `${DOMAINE},autre-fictif`], acces, sortie);
+
+    expect(code).toBe(1);
+    expect(erreurs.join("\n")).toContain("src/content/pages/accueil.md");
+    expect(lus).toContain("/depot/src/content/pages/accueil.md");
+  });
+
+  it("SC-04d — sans identifiant désigné présent, le geste rend 0", async () => {
+    const { principal } = await livraison();
+    const { acces, sortie, erreurs } = depotEnMemoire({
+      "instance.json": instance,
+      "src/content/pages/accueil.md": "Un site vitrine.\n",
+    });
+
+    const code = await principal(["controler", "/depot", "--proscrire", `${DOMAINE},autre-fictif`], acces, sortie);
+
+    expect(code).toBe(0);
+    expect(erreurs).toEqual([]);
+  });
+
+  it("le contrôle n’ouvre aucun fichier pour composer les proscrits : seuls les fichiers versionnés sont lus", async () => {
+    const { principal } = await livraison();
+    const { acces, sortie, lus, erreurs } = depotEnMemoire({
+      "instance.json": instance,
+      "README.md": `Contact : ${INTEGRATEUR}\n`,
+    });
+
+    const code = await principal(["controler", "/depot", "--proscrire", INTEGRATEUR], acces, sortie);
+
+    expect(code).toBe(1);
+    expect([...new Set(lus)].sort()).toEqual(["/depot/README.md", "/depot/instance.json"]);
+    expect(erreurs.join("\n")).toContain(INTEGRATEUR);
+  });
+
+  it.each<[string, string[]]>([
+    ["liste absente", ["controler", "/depot", "--proscrire"]],
+    ["forme --proscrire=a", ["controler", "/depot", "--proscrire=a"]],
+    ["liste réduite à une virgule", ["controler", "/depot", "--proscrire", ","]],
+    ["option avant le dépôt", ["controler", "--proscrire", "a", "/depot"]],
+    ["option inconnue", ["controler", "/depot", "--inconnue"]],
+  ])("arguments invalides (%s) : le geste rend 2 sans rien lire", async (_nom, argv) => {
+    const { principal } = await livraison();
+    const { acces, sortie, lus, erreurs } = depotEnMemoire({ "instance.json": instance });
+
+    const code = await principal(argv, acces, sortie);
+
+    expect(code).toBe(2);
+    expect(lus).toEqual([]);
+    expect(erreurs.length).toBeGreaterThan(0);
+  });
+
+  it("un fichier versionné illisible (EACCES) est un refus qui nomme le fichier : le geste rend 1", async () => {
+    const { controler } = await livraison();
+    const { acces, sortie } = depotEnMemoire({
+      "instance.json": instance,
+      "README.md": "Un site vitrine.\n",
+      "secret.txt": erreurDeLecture("EACCES"),
+    });
+
+    const verdict = await controler("/depot", acces, sortie, []);
+
+    expect(verdict.code).toBe(1);
+    expect(verdict.refus.map((r) => r.champ)).toEqual(["secret.txt"]);
+    expect(verdict.refus[0]?.motif).toContain("EACCES");
+    expect(verdict.refus[0]?.motif).not.toContain("lecture impossible");
+  });
+
+  it.each(["ENOENT", "EISDIR"])(
+    "un chemin listé sans contenu à contrôler (%s) ne produit aucun refus : le geste rend 0",
+    async (codeDErreur) => {
+      const { controler } = await livraison();
+      const { acces, sortie } = depotEnMemoire({
+        "instance.json": instance,
+        "disparu": erreurDeLecture(codeDErreur),
+      });
+
+      const verdict = await controler("/depot", acces, sortie, []);
+
+      expect(verdict).toEqual({ code: 0, refus: [] });
+    },
+  );
+});
