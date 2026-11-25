@@ -47,9 +47,9 @@ appartenant à Isometria dans le code ou la config » (`CLAUDE.md`).
 
 ## Critères
 
-- [ ] Quand le contrôle est lancé en désignant un identifiant de l'intégrateur et que le dépôt de publication du fichier d'instance le porte, le contrôle échoue en nommant le fichier d'instance et l'identifiant trouvé   (SC-04a)
-- [ ] Quand le contrôle est lancé en désignant un nom de domaine de l'intégrateur et qu'un fichier du contenu le porte, le contrôle échoue en nommant ce fichier   (SC-04b)
-- [ ] Quand l'identifiant désigné figure dans le dépôt avec une autre casse, le contrôle échoue de la même façon   (SC-04c)
-- [ ] Quand les identifiants désignés ne figurent nulle part dans le dépôt, aucun refus n'est émis à ce titre   (SC-04d)
-- [ ] Quand un fichier versionné porte une valeur de la forme d'une clé d'accès au dépôt, le contrôle échoue en nommant le fichier, et le message ne reproduit ni la valeur ni aucune partie d'elle   (SC-04e)
-- [ ] Quand aucun fichier versionné ne porte de valeur de cette forme, aucun refus n'est émis à ce titre   (SC-04f)
+- [x] Quand le contrôle est lancé en désignant un identifiant de l'intégrateur et que le dépôt de publication du fichier d'instance le porte, le contrôle échoue en nommant le fichier d'instance et l'identifiant trouvé   (SC-04a)
+- [x] Quand le contrôle est lancé en désignant un nom de domaine de l'intégrateur et qu'un fichier du contenu le porte, le contrôle échoue en nommant ce fichier   (SC-04b)
+- [x] Quand l'identifiant désigné figure dans le dépôt avec une autre casse, le contrôle échoue de la même façon   (SC-04c)
+- [x] Quand les identifiants désignés ne figurent nulle part dans le dépôt, aucun refus n'est émis à ce titre   (SC-04d)
+- [x] Quand un fichier versionné porte une valeur de la forme d'une clé d'accès au dépôt, le contrôle échoue en nommant le fichier, et le message ne reproduit ni la valeur ni aucune partie d'elle   (SC-04e)
+- [x] Quand aucun fichier versionné ne porte de valeur de cette forme, aucun refus n'est émis à ce titre   (SC-04f)
