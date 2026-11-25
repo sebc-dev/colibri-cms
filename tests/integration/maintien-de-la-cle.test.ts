@@ -93,7 +93,8 @@ function simulerGithub(reponse: Reponse): void {
       // Ne répond jamais de lui-même : seul le signal de la requête peut y mettre fin.
       return new Promise<Response>((_resolve, reject) => {
         requete.signal.addEventListener('abort', () => {
-          reject(requete.signal.reason ?? new DOMException('The operation was aborted due to timeout', 'TimeoutError'));
+          const raison: unknown = requete.signal.reason;
+          reject(raison instanceof Error ? raison : new DOMException('The operation was aborted due to timeout', 'TimeoutError'));
         });
       });
     }
