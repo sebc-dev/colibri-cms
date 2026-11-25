@@ -50,10 +50,11 @@ interface AppelGithub {
   autorisation: string | null;
 }
 
-type Reponse = { statut: number } | 'delai' | 'coupure';
+type Reponse = { statut: number } | 'delai' | 'coupure' | 'pendu';
 
 let appels: AppelGithub[];
 let journal: unknown[][];
+let niveaux: string[];
 let fetchOrigine: typeof globalThis.fetch;
 
 beforeEach(async () => {
@@ -61,10 +62,12 @@ beforeEach(async () => {
   await nettoyer();
   appels = [];
   journal = [];
+  niveaux = [];
   fetchOrigine = globalThis.fetch;
   for (const methode of ['log', 'info', 'warn', 'error', 'debug'] as const) {
     vi.spyOn(console, methode).mockImplementation((...args: unknown[]) => {
       journal.push(args);
+      niveaux.push(methode);
     });
   }
 });
@@ -86,6 +89,15 @@ function simulerGithub(reponse: Reponse): void {
     });
     if (reponse === 'delai') throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
     if (reponse === 'coupure') throw new TypeError('Network connection lost');
+    if (reponse === 'pendu') {
+      // Ne répond jamais de lui-même : seul le signal de la requête peut y mettre fin.
+      return new Promise<Response>((_resolve, reject) => {
+        requete.signal.addEventListener('abort', () => {
+          const raison: unknown = requete.signal.reason;
+          reject(raison instanceof Error ? raison : new DOMException('The operation was aborted due to timeout', 'TimeoutError'));
+        });
+      });
+    }
     if (reponse.statut !== 200) return new Response('{"message":"refus"}', { status: reponse.statut });
     return new Response(JSON.stringify({ ref: 'refs/heads/main', object: { sha: 'abc123' } }), {
       status: 200,
@@ -96,6 +108,10 @@ function simulerGithub(reponse: Reponse): void {
 
 function lignesDuMaintien(): unknown[][] {
   return journal.filter((appel) => appel[0] === MESSAGE);
+}
+
+function niveauxDuMaintien(): string[] {
+  return niveaux.filter((_niveau, rang) => journal[rang]?.[0] === MESSAGE);
 }
 
 function toutLeJournal(): string {
@@ -285,3 +301,61 @@ it('SC-10e — l’échéance sans clé configurée consigne dépôt non configu
   expect(lignes).toHaveLength(1);
   expect(JSON.stringify(lignes[0])).toContain('depot-non-configure');
 });
+
+it('SC-10a — la clé acceptée est consignée au niveau info, pas en erreur', async () => {
+  // Arrange
+  simulerGithub({ statut: 200 });
+
+  // Act
+  await maintenirLaCle(DEPOT, CLE);
+
+  // Assert
+  expect(niveauxDuMaintien()).toEqual(['info']);
+});
+
+it.each<[string, Reponse]>([
+  ['SC-10c — accès refusé (401)', { statut: 401 }],
+  ['SC-10c — accès refusé (403)', { statut: 403 }],
+  ['SC-10c — dépôt introuvable (404)', { statut: 404 }],
+  ['SC-10d — dépôt injoignable (503)', { statut: 503 }],
+  ['SC-10d — dépôt injoignable (coupure réseau)', 'coupure'],
+])('%s : la trace sort au niveau erreur', async (_nom, reponse) => {
+  // Arrange
+  simulerGithub(reponse);
+
+  // Act
+  await maintenirLaCle(DEPOT, CLE);
+
+  // Assert
+  expect(niveauxDuMaintien()).toEqual(['error']);
+});
+
+it('SC-10e — dépôt non configuré : la trace sort au niveau erreur', async () => {
+  // Arrange
+  simulerGithub({ statut: 200 });
+
+  // Act
+  await maintenirLaCle(DEPOT, undefined);
+
+  // Assert
+  expect(niveauxDuMaintien()).toEqual(['error']);
+});
+
+it(
+  'SC-10d — dépôt qui ne répond jamais : le passage est borné par un délai et consigne « dépôt injoignable »',
+  async () => {
+    // Arrange — l'horloge est réelle : le délai du maintien (10 s) doit couper l'appel de lui-même.
+    simulerGithub('pendu');
+
+    // Act
+    await expect(maintenirLaCle(DEPOT, CLE)).resolves.toBeUndefined();
+
+    // Assert
+    expect(appels).toHaveLength(1);
+    const lignes = lignesDuMaintien();
+    expect(lignes).toHaveLength(1);
+    expect(JSON.stringify(lignes[0])).toContain('depot-injoignable');
+    expect(toutLeJournal()).not.toContain(CLE);
+  },
+  15_000,
+);
