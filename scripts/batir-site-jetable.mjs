@@ -40,6 +40,12 @@
  *   `site-jetable-formulaire-sans-coordonnee/` (change 012, ticket 04) :
  *   attendues en ÉCHEC (formulaire introuvable, SC-04a ; formulaire sans
  *   e-mail ni téléphone obligatoire, SC-04b).
+ * Enfin, `depot-du-client/` (change 020, ticket 06) : le geste `depot` de
+ * `scripts/livraison.mjs` est joué pour de vrai, avec git, depuis un produit
+ * jetable (copie commitée et étiquetée de l'arbre courant) vers des clones
+ * vides ou déjà préparés ; une construction réelle suit chaque dépôt préparé.
+ * Tout est consigné dans `depot-du-client/resultat.json`, que le test juge.
+ *
  * Une construction attendue en échec ne fait jamais échouer le script : le
  * code, la sortie et les pages produites vont dans `resultat.json`, que le
  * test juge.
@@ -49,7 +55,7 @@
  * (même raison que `scripts/preparer-worker-de-test.mjs`).
  */
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 
@@ -200,3 +206,169 @@ for (const cas of ['formulaire-inconnu', 'formulaire-sans-coordonnee']) {
   batirEnEchec(preparerArbre(resolve(RACINE, `tests/static/fixtures/site-jetable-${cas}`), dossier), dossier);
   globalThis.console.log(`✔ construction « ${cas} » consignée dans ${resolve(dossier, 'resultat.json')}`);
 }
+
+// --- Change 020, ticket 06 : le geste `depot` de l'outil de livraison, joué pour de vrai. ---
+
+const DEPOT_DU_CLIENT = resolve(RACINE, '.wrangler/depot-du-client');
+const ETIQUETTE = 'v-jetable';
+
+function git(dossier, args, options = {}) {
+  const r = spawnSync('git', ['-C', dossier, ...args], { encoding: 'utf8', stdio: 'pipe', ...options });
+  if (options.tolerer !== true && r.status !== 0) echouer(`git ${args.join(' ')} a échoué dans ${dossier} : ${r.stderr}`);
+  return r;
+}
+
+const IDENTITE = ['-c', 'user.name=Jetable', '-c', 'user.email=jetable@colibri.invalid'];
+
+/** Le produit jetable : l'arbre courant (suivi ou non, hors ignoré), commité, étiqueté, avec sa branche `media`. */
+function composerLeProduitJetable(produit) {
+  mkdirSync(produit, { recursive: true });
+  git(produit, ['init', '--quiet', '--initial-branch=main']);
+  const listes = spawnSync('git', ['-C', RACINE, 'ls-files', '-co', '--exclude-standard', '-z'], { encoding: 'utf8' });
+  if (listes.status !== 0) echouer(`git ls-files a échoué : ${listes.stderr}`);
+  for (const chemin of listes.stdout.split('\0').filter(Boolean)) {
+    const source = resolve(RACINE, chemin);
+    if (!existsSync(source) || !statSync(source).isFile()) continue;
+    mkdirSync(dirname(resolve(produit, chemin)), { recursive: true });
+    cpSync(source, resolve(produit, chemin));
+  }
+  git(produit, ['add', '--all']);
+  git(produit, [...IDENTITE, 'commit', '--quiet', '-m', 'produit jetable']);
+  git(produit, ['tag', ETIQUETTE]);
+  // La branche `media` du produit : les octets des images publiées (`./medias`), hors variantes.
+  const octets = resolve(RACINE, 'medias');
+  const arbreMedia = resolve(produit, '..', 'produit-media');
+  git(produit, ['worktree', 'add', '--quiet', '--orphan', '-b', 'media', arbreMedia]);
+  if (existsSync(octets)) {
+    mkdirSync(resolve(arbreMedia, 'medias'));
+    for (const nom of readdirSync(octets)) {
+      if (statSync(resolve(octets, nom)).isFile()) cpSync(resolve(octets, nom), resolve(arbreMedia, 'medias', nom));
+    }
+  }
+  git(arbreMedia, ['add', '--all']);
+  git(arbreMedia, [...IDENTITE, 'commit', '--quiet', '--allow-empty', '-m', 'images du produit jetable']);
+  git(produit, ['worktree', 'remove', '--force', arbreMedia]);
+}
+
+function ecrireUneInstance(chemin, domaine, supplement = {}) {
+  const base = JSON.parse(readFileSync(resolve(RACINE, 'instance.json'), 'utf8'));
+  writeFileSync(
+    chemin,
+    JSON.stringify({ ...base, domain: domaine, senderAddress: `code@${domaine}`, ...supplement }, null, 2),
+  );
+}
+
+/** Joue `depot` depuis le produit jetable ; consigne code et sorties. */
+function jouerLeGeste(produit, cible, instance) {
+  const r = spawnSync(
+    globalThis.process.execPath,
+    [resolve(RACINE, 'scripts/livraison.mjs'), 'depot', cible, '--version', ETIQUETTE, '--instance', instance],
+    { cwd: produit, encoding: 'utf8', stdio: 'pipe' },
+  );
+  return { code: r.status, sortie: `${r.stdout ?? ''}${r.stderr ?? ''}` };
+}
+
+/** L'identité de chaque fichier d'une référence (`chemin -> blob`), ou `null` si la référence n'existe pas. */
+function empreintes(depot, reference) {
+  const r = git(depot, ['ls-tree', '-r', reference], { tolerer: true });
+  if (r.status !== 0) return null;
+  return Object.fromEntries(
+    r.stdout
+      .split('\n')
+      .filter(Boolean)
+      .map((ligne) => {
+        const [meta, chemin] = ligne.split('\t');
+        return [chemin, meta.split(' ')[2]];
+      }),
+  );
+}
+
+function etatDuDepot(depot) {
+  const sha = (reference) => {
+    const r = git(depot, ['rev-parse', '--verify', '--quiet', reference], { tolerer: true });
+    return r.status === 0 ? r.stdout.trim() : null;
+  };
+  return {
+    fichiers: empreintes(depot, 'HEAD'),
+    images: empreintes(depot, 'media'),
+    commitImages: sha('refs/heads/media'),
+    contenu: sha('HEAD:content'),
+    entreesALaRacine: readdirSync(depot).filter((nom) => nom !== '.git').sort(),
+  };
+}
+
+/** Construit une copie du dépôt préparé, avec les octets de sa branche `media` ; consigne l'issue. */
+function batirLeDepotPrepare(depot, dossier) {
+  const arbre = resolve(dossier, 'arbre');
+  rmSync(arbre, { recursive: true, force: true });
+  mkdirSync(arbre, { recursive: true });
+  for (const nom of readdirSync(depot)) {
+    if (nom !== '.git') cpSync(resolve(depot, nom), resolve(arbre, nom), { recursive: true });
+  }
+  const images = empreintes(depot, 'media') ?? {};
+  for (const chemin of Object.keys(images)) {
+    const octets = spawnSync('git', ['-C', depot, 'show', `media:${chemin}`], { encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
+    mkdirSync(dirname(resolve(arbre, chemin)), { recursive: true });
+    writeFileSync(resolve(arbre, chemin), octets.stdout);
+  }
+  batirEnEchec(arbre, dossier);
+  return JSON.parse(readFileSync(resolve(dossier, 'resultat.json'), 'utf8'));
+}
+
+function cloneVide(chemin) {
+  mkdirSync(chemin, { recursive: true });
+  git(chemin, ['init', '--quiet', '--initial-branch=main']);
+}
+
+rmSync(DEPOT_DU_CLIENT, { recursive: true, force: true });
+const PRODUIT_JETABLE = resolve(DEPOT_DU_CLIENT, 'produit');
+composerLeProduitJetable(PRODUIT_JETABLE);
+const INSTANCES = resolve(DEPOT_DU_CLIENT, 'instances');
+mkdirSync(INSTANCES, { recursive: true });
+ecrireUneInstance(resolve(INSTANCES, 'a.json'), 'client-a.colibri.test');
+ecrireUneInstance(resolve(INSTANCES, 'b.json'), 'client-b.colibri.test', { depotDePublication: 'client-b/site' });
+ecrireUneInstance(resolve(INSTANCES, 'refusee.json'), 'client-c.colibri.test', { champInconnu: 'x' });
+
+const consigne = { etiquette: ETIQUETTE, depots: {} };
+for (const [nom, instance] of [['a', 'a.json'], ['b', 'b.json']]) {
+  const dossier = resolve(DEPOT_DU_CLIENT, nom);
+  const clone = resolve(dossier, 'depot');
+  cloneVide(clone);
+  const geste = jouerLeGeste(PRODUIT_JETABLE, clone, resolve(INSTANCES, instance));
+  const etat = etatDuDepot(clone);
+  consigne.depots[nom] = { geste, ...etat, construction: batirLeDepotPrepare(clone, dossier) };
+}
+
+// Rejeu : le dépôt `a` a changé de contenu et de branche des images ; même version rejouée.
+{
+  const clone = resolve(DEPOT_DU_CLIENT, 'a/depot');
+  const page = resolve(clone, 'content/pages/accueil/page.json');
+  writeFileSync(page, readFileSync(page, 'utf8').replace('"Accueil"', '"Accueil modifié par la publication"'));
+  writeFileSync(resolve(clone, 'content/publication.json'), '{"marque":"publie"}\n');
+  git(clone, ['add', '--all']);
+  git(clone, [...IDENTITE, 'commit', '--quiet', '-m', 'publication']);
+  git(clone, ['worktree', 'add', '--quiet', resolve(DEPOT_DU_CLIENT, 'a/images'), 'media']);
+  mkdirSync(resolve(DEPOT_DU_CLIENT, 'a/images/medias'), { recursive: true });
+  writeFileSync(resolve(DEPOT_DU_CLIENT, 'a/images/medias/publiee.png'), 'octets');
+  git(resolve(DEPOT_DU_CLIENT, 'a/images'), ['add', '--all']);
+  git(resolve(DEPOT_DU_CLIENT, 'a/images'), [...IDENTITE, 'commit', '--quiet', '-m', 'publication des images']);
+  git(clone, ['worktree', 'remove', '--force', resolve(DEPOT_DU_CLIENT, 'a/images')]);
+  const avant = etatDuDepot(clone);
+  const geste = jouerLeGeste(PRODUIT_JETABLE, clone, resolve(INSTANCES, 'a.json'));
+  const apres = etatDuDepot(clone);
+  const propre = git(clone, ['status', '--porcelain']).stdout.trim() === '';
+  consigne.rejeu = { avant, geste, apres, propre };
+}
+
+// Refus : un fichier d'instance que la construction refuserait, sur un dépôt vide.
+{
+  const clone = resolve(DEPOT_DU_CLIENT, 'refuse/depot');
+  cloneVide(clone);
+  const geste = jouerLeGeste(PRODUIT_JETABLE, clone, resolve(INSTANCES, 'refusee.json'));
+  const aUnCommit = git(clone, ['rev-parse', '--verify', '--quiet', 'HEAD'], { tolerer: true }).status === 0;
+  const aUneBrancheMedia = git(clone, ['rev-parse', '--verify', '--quiet', 'refs/heads/media'], { tolerer: true }).status === 0;
+  consigne.refus = { geste, aUnCommit, aUneBrancheMedia, entreesALaRacine: readdirSync(clone).filter((n) => n !== '.git') };
+}
+
+writeFileSync(resolve(DEPOT_DU_CLIENT, 'resultat.json'), JSON.stringify(consigne));
+globalThis.console.log(`✔ dépôts du client préparés et consignés dans ${resolve(DEPOT_DU_CLIENT, 'resultat.json')}`);
