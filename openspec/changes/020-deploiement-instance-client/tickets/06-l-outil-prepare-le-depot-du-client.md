@@ -63,10 +63,10 @@ documentation que la reconstruction sans le CMS devra y trouver ; un dépôt pub
 
 ## Critères
 
-- [ ] Lancée sur un dépôt vide avec une version du produit et un fichier d'instance, la préparation dépose les fichiers de cette version, le fichier d'instance fourni et un contenu de départ   (SC-06a)
-- [ ] Lancée sur un dépôt vide, la préparation crée la branche des images avec chaque image que le contenu de départ désigne, et une construction du site depuis ce dépôt aboutit   (SC-06b)
-- [ ] Une fois la préparation terminée, le dépôt ne porte aucun fichier d'automatisation de la forge   (SC-06c)
-- [ ] Une fois la préparation terminée, le dépôt ne porte ni l'outillage de recette, ni les documents de travail de l'intégrateur   (SC-06d)
-- [ ] Rejouée avec la même version du produit sur un dépôt dont le contenu a déjà changé, la préparation laisse le contenu du site et la branche des images inchangés   (SC-06e)
-- [ ] Lancée avec un fichier d'instance que la construction refuserait, la préparation s'arrête en nommant le champ en cause et le dépôt n'est pas modifié   (SC-06f)
-- [ ] Quand le dépôt de deux clients est préparé depuis la même version du produit avec deux fichiers d'instance différents, les deux dépôts ne diffèrent que par le fichier d'instance et par le contenu du site   (SC-06g)
+- [x] Lancée sur un dépôt vide avec une version du produit et un fichier d'instance, la préparation dépose les fichiers de cette version, le fichier d'instance fourni et un contenu de départ   (SC-06a)
+- [x] Lancée sur un dépôt vide, la préparation crée la branche des images avec chaque image que le contenu de départ désigne, et une construction du site depuis ce dépôt aboutit   (SC-06b)
+- [x] Une fois la préparation terminée, le dépôt ne porte aucun fichier d'automatisation de la forge   (SC-06c)
+- [x] Une fois la préparation terminée, le dépôt ne porte ni l'outillage de recette, ni les documents de travail de l'intégrateur   (SC-06d)
+- [x] Rejouée avec la même version du produit sur un dépôt dont le contenu a déjà changé, la préparation laisse le contenu du site et la branche des images inchangés   (SC-06e)
+- [x] Lancée avec un fichier d'instance que la construction refuserait, la préparation s'arrête en nommant le champ en cause et le dépôt n'est pas modifié   (SC-06f)
+- [x] Quand le dépôt de deux clients est préparé depuis la même version du produit avec deux fichiers d'instance différents, les deux dépôts ne diffèrent que par le fichier d'instance et par le contenu du site   (SC-06g)

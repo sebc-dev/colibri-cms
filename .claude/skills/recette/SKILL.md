@@ -194,13 +194,15 @@ produit. Trois **gestes humains** :
    git -C ../colibri_recette push origin media
    ```
 
-   `depot` recopie le produit au HEAD et remplace `content/pages/` par le site factice. Il écrit
+   `depot` passe par le geste `depot` de `scripts/livraison.mjs` (le même que pour le dépôt d'un client) : il
+   recopie le produit au HEAD, sans `.github/`, `.claude/`, `openspec/`, `docs/`, `recette/` ni `CLAUDE.md`, et remplace
+   `content/pages/` par le site factice. Il écrit
    `instance.json` : `domain`, `senderAddress` et `depotDePublication` = `RECETTE_DEPOT` (sans ce
    champ, toute publication échoue avant le dépôt). Il ne réécrit plus `wrangler.jsonc` ni `wrangler.astro.jsonc` (ADR-0034) : Workers Builds déploie
    la configuration dérivée d'`instance.json` (`dist/server/wrangler.json`) : le domaine seul est
    servi, les aperçus et l'adresse par défaut sont fermés, sous le nom de Worker et de base du
-   produit. `depot` échoue si `RECETTE_WORKER` ou `RECETTE_BASE` diffèrent de ces noms. Il retire `.github/` : aucune action GitHub ne tourne
-   dans ce dépôt. Si le dépôt n'a pas de branche `media`, il la pose avec les images du produit,
+   produit. `depot` échoue si `RECETTE_WORKER` ou `RECETTE_BASE` diffèrent de ces noms. Aucune action GitHub ne tourne
+   dans ce dépôt. Si le dépôt n'a pas de branche `media`, il la pose avec les images que le contenu de départ désigne,
    sans quoi la reconstruction échoue sur l'image absente (SC-06f). Le site factice n'est posé
    qu'au premier remplissage. Rejoué sur un clone à jour (`git pull` d'abord), `depot` met à jour
    le produit et la configuration mais garde `content/` tel que la publication l'a écrit : il porte

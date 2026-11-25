@@ -37,9 +37,9 @@
  *                           texte ; imprime la durée écoulée (SC-004 : < 5 min).
  *   depot <clone>           compose le dépôt de recette (`RECETTE_DEPOT`) dans un clone
  *                           local : le produit au HEAD, le site factice (premier remplissage
- *                           seulement, ensuite `content/` publié est gardé), l'instance et la
- *                           configuration wrangler du compte de recette, la branche `media`
- *                           si le dépôt n'en a pas. Commite localement ; n'envoie rien.
+ *                           seulement, ensuite `content/` publié est gardé), l'instance de
+ *                           recette, la branche `media` si le dépôt n'en a pas. Passe par le
+ *                           geste `depot` de scripts/livraison.mjs. Commite localement ; n'envoie rien.
  *   apercus                 déploie le Worker des aperçus (`RECETTE_WORKER_APERCUS`) avec ses
  *                           adresses d'aperçu ouvertes et la base courante. À jouer une fois,
  *                           puis chaque fois que la base de recette change.
@@ -52,8 +52,10 @@
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import * as livraison from '../../../../scripts/livraison.mjs';
 
 const FICHIER_REGLAGES = '.env.recette';
 // `--racine <dossier>` : un build fait ailleurs que dans le dépôt (le skill
@@ -377,8 +379,6 @@ function git(args, { capturer = false } = {}) {
   return resultat.stdout ?? '';
 }
 
-const reussit = (args) => spawnSync('git', args, { stdio: 'ignore' }).status === 0;
-
 /**
  * Geste 1 du § Publication réelle : le dépôt de recette porte les sources du
  * produit, le site factice et, seul de tous les dépôts, les identifiants du
@@ -386,7 +386,7 @@ const reussit = (args) => spawnSync('git', args, { stdio: 'ignore' }).status ===
  * fichiers wrangler n'ont que des commentaires en ligne entière : ils se
  * relisent en JSON une fois ces lignes retirées.
  */
-function depot(reglages, dossier) {
+async function depot(reglages, dossier) {
   const nomDepot = reglages.RECETTE_DEPOT;
   if (!/^[\w.-]+\/[\w.-]+$/.test(nomDepot ?? '')) {
     echouer(`${FICHIER_REGLAGES} : RECETTE_DEPOT=<propriétaire>/<dépôt> manquant ou mal formé.`);
@@ -403,34 +403,15 @@ function depot(reglages, dossier) {
   const sale = git(['status', '--porcelain', '--', 'src', 'migrations', 'content', 'astro.config.ts', 'package.json'], { capturer: true }).trim();
   if (sale) console.warn(`⚠ du code non commité ne sera PAS dans le dépôt de recette (il part du HEAD) :\n${sale.replace(/^/gm, '    ')}`);
 
-  for (const entree of readdirSync(cible)) if (entree !== '.git') rmSync(`${cible}/${entree}`, { recursive: true, force: true });
-  const extraction = spawnSync('sh', ['-c', 'git archive --format=tar HEAD | tar -x -C "$1"', 'sh', cible], { stdio: 'inherit' });
-  if (extraction.status !== 0) echouer(`extraction du HEAD vers ${dossier} échouée (code ${extraction.status}).`);
-  // Aucune action GitHub ne tourne dans le dépôt de recette.
-  rmSync(`${cible}/.github`, { recursive: true, force: true });
-  // Le site factice n'est posé qu'au premier remplissage : ensuite, `content/` appartient à la
-  // publication (dont `content/publication.json`, sa marque) et revient tel que le dépôt le porte.
-  const dejaRempli = reussit(['-C', cible, 'rev-parse', '--verify', '--quiet', 'HEAD']);
-  if (dejaRempli) {
-    rmSync(`${cible}/content`, { recursive: true, force: true });
-    git(['-C', cible, 'restore', '--source=HEAD', '--staged', '--worktree', '--', 'content']);
-  } else {
-    rmSync(`${cible}/content/pages`, { recursive: true, force: true });
-    cpSync('recette/site-factice/pages', `${cible}/content/pages`, { recursive: true });
-  }
-  const contenu = dejaRempli ? 'contenu publié gardé' : 'site factice';
-
-  RACINE = cible;
-  ecrireInstance(reglages, nomDepot);
   // Les fichiers wrangler du produit restent tels quels (ADR-0034) : Workers Builds déploie la
   // configuration dérivée d'instance.json. Ici on vérifie seulement que le Worker et la base de
   // recette portent les noms du produit.
   let configProduit;
   try {
-    const brut = readFileSync(`${cible}/wrangler.jsonc`, 'utf-8').split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+    const brut = git(['show', 'HEAD:wrangler.jsonc'], { capturer: true }).split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
     configProduit = JSON.parse(brut);
   } catch (erreur) {
-    echouer(`${dossier}/wrangler.jsonc illisible : ${erreur.message}`);
+    echouer(`wrangler.jsonc du produit illisible : ${erreur.message}`);
   }
   const baseProduit = (configProduit.d1_databases ?? []).find((b) => b.binding === 'DB')?.database_name;
   const ecarts = [
@@ -444,35 +425,36 @@ function depot(reglages, dossier) {
       + 'dans le change 020 (design.md § D3, ticket 02).');
   }
 
-  const sha = git(['rev-parse', '--short', 'HEAD'], { capturer: true }).trim();
-  git(['-C', cible, 'add', '--all']);
-  if (reussit(['-C', cible, 'diff', '--cached', '--quiet'])) {
-    console.log(`✔ ${dossier} déjà composé depuis ${sha} : rien à commiter.`);
-  } else {
-    git(['-C', cible, 'commit', '--quiet', '-m', `recette : ColibriCMS ${sha}, ${contenu}`]);
-    console.log(`✔ ${dossier} : ColibriCMS ${sha}, ${contenu}, instance commitée.`);
+  // Le fichier d'instance de la recette : celui du produit au HEAD, avec les réglages de recette.
+  const instance = JSON.parse(git(['show', 'HEAD:instance.json'], { capturer: true }));
+  instance.domain = reglages.RECETTE_DOMAINE;
+  instance.senderAddress = reglages.RECETTE_EXPEDITEUR || `code@${reglages.RECETTE_DOMAINE}`;
+  // Change 017 : sans l'identifiant du compte, l'écran « Adresse e-mail » dit le remplacement impossible.
+  instance.compteCloudflare = reglages.RECETTE_COMPTE;
+  instance.depotDePublication = nomDepot;
+  const temporaire = mkdtempSync(`${tmpdir()}/recette-instance-`);
+  try {
+    const fichierInstance = `${temporaire}/instance.json`;
+    writeFileSync(fichierInstance, `${JSON.stringify(instance, null, 2)}\n`);
+    // Même chemin que la livraison au client (scripts/livraison.mjs, geste `depot`) : le HEAD du
+    // produit, le site factice au premier remplissage, le contenu publié gardé ensuite.
+    const resultat = await livraison.preparerLeDepot(
+      cible,
+      { version: 'HEAD', instance: fichierInstance, pagesDeDepart: resolve('recette/site-factice/pages') },
+      { executer: lancerCommande },
+      console,
+    );
+    if (resultat.code !== 0) echouer(`${dossier} : la préparation du dépôt de recette a échoué.`);
+  } finally {
+    rmSync(temporaire, { recursive: true, force: true });
   }
+  console.log(`  instance : domain ${instance.domain}, senderAddress ${instance.senderAddress}, depotDePublication ${nomDepot}`);
+}
 
-  // La branche des images n'est posée qu'une fois : ensuite, c'est la publication qui l'écrit.
-  const mediaPosee = reussit(['-C', cible, 'ls-remote', '--exit-code', '--heads', 'origin', 'media'])
-    || reussit(['-C', cible, 'rev-parse', '--verify', '--quiet', 'refs/heads/media']);
-  if (!mediaPosee) {
-    const source = ['refs/remotes/origin/media', 'refs/heads/media'].find((ref) => reussit(['rev-parse', '--verify', '--quiet', ref]));
-    if (!source) echouer('aucune branche media dans le dépôt produit : « git fetch origin media » d\'abord.');
-    // La copie locale de `media` est superficielle (`--depth=1`, scripts/recuperer-images-publiees.mjs) :
-    // git refuse d'en recopier l'historique, un commit neuf porte donc les mêmes images.
-    const arbreMedia = `${cible}.media`;
-    rmSync(arbreMedia, { recursive: true, force: true });
-    git(['-C', cible, 'worktree', 'add', '--quiet', '--orphan', '-b', 'media', arbreMedia]);
-    const images = spawnSync('sh', ['-c', 'git archive --format=tar "$2" medias | tar -x -C "$1"', 'sh', arbreMedia, source], { stdio: 'inherit' });
-    if (images.status !== 0) echouer(`extraction des images de ${source} échouée (code ${images.status}).`);
-    git(['-C', arbreMedia, 'add', '--all']);
-    git(['-C', arbreMedia, 'commit', '--quiet', '-m', 'recette : images de démonstration publiées']);
-    git(['-C', cible, 'worktree', 'remove', arbreMedia]);
-    console.log(`✔ branche media posée depuis ${source}.`);
-  }
-  console.log(`  envoyer : git -C ${dossier} push -u origin HEAD:main`);
-  if (!mediaPosee) console.log(`  puis    : git -C ${dossier} push origin media`);
+/** Exécute une commande (même forme que l'outil de livraison : code, stdout, stderr). */
+function lancerCommande(commande, args, env) {
+  const r = spawnSync(commande, args, { encoding: 'utf-8', env: { ...process.env, ...env } });
+  return { code: r.status ?? 1, stdout: r.stdout ?? '', stderr: r.stderr ?? String(r.error?.message ?? '') };
 }
 
 /**
@@ -586,7 +568,7 @@ switch (commande) {
     await chrono(args[0], args[1], Number(option('--bornes-min') ?? 30));
     break;
   case 'depot':
-    depot(reglages, args[0]);
+    await depot(reglages, args[0]);
     break;
   case 'apercus':
     apercus(reglages);

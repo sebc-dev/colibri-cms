@@ -64,10 +64,8 @@ model {
   }
   // trace : wrangler.astro.jsonc — triggers.crons ; src/entree-worker.ts:scheduled → src/platform/publication/maintien-de-la-cle.ts (ADR-0021)
   colibri-cms.worker.platform -[sync]-> github 'vérifie chaque semaine que la clé du dépôt est acceptée'
-  // trace attendue : scripts/livraison.mjs — depot ; accès de collaborateur, retiré à la livraison
-  integrateur -> github 'prépare le dépôt du client, en collaborateur retiré à la livraison' {
-    #planned
-  }
+  // trace : scripts/livraison.mjs — depot (src/platform/instance/depot-du-client.ts) ; accès de collaborateur, retiré à la livraison
+  integrateur -> github 'prépare le dépôt du client, en collaborateur retiré à la livraison'
   // trace : scripts/livraison.mjs — base (crée la base), semer (src/platform/auth/premier-semis.ts) ; accès de membre du compte, retiré à la livraison
   integrateur -> colibri-cms.d1 'crée la base et sème la première adresse autorisée, en membre retiré à la livraison'
 }

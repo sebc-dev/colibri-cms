@@ -4,10 +4,13 @@
  * sous src/platform/instance/ ; ici, seuls les accès fichiers, reçus en
  * paramètre. Le geste `controler <dépôt>` ne fait aucune écriture.
  */
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync as lireSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { EMAIL_FORME } from '../src/core/reglages/coordonnees.ts';
 import { controlerLeDepot, controlerLesFichiersVersionnes } from '../src/platform/instance/controle.ts';
+import { choisirLesImages, decider, identiteDeLaFiche, specificationsDExclusion } from '../src/platform/instance/depot-du-client.ts';
 import { ENTREES_DECLAREES, composerLInventaire } from '../src/platform/instance/inventaire.ts';
 import { lireLeFichierDInstance } from '../src/platform/instance/fichier-d-instance.ts';
 import { creerLaBase, semerLaPremiereAdresse } from '../src/platform/instance/plateforme-de-livraison.ts';
@@ -193,6 +196,197 @@ export async function inventaire(depot, adresseDuClient, acces, sortie) {
 }
 
 /**
+ * Geste `depot <dépôt> --version <étiquette> --instance <fichier>` : prépare, en local seulement
+ * (rien n'est poussé), le clone du dépôt du client depuis une version du produit. Lancé depuis un
+ * clone du produit (`produit`). Tout est composé dans des dossiers temporaires et vérifié AVANT
+ * la première écriture dans le dépôt : un refus le laisse intact. Sur un dépôt déjà préparé,
+ * le contenu du site et la branche des images ne sont pas touchés.
+ * @param {string} cible clone local du dépôt du client
+ * @param {{ version: string, instance: string, pagesDeDepart?: string, produit?: string }} options
+ *   `pagesDeDepart` : dossier de pages qui remplace `content/pages/` au premier remplissage (recette)
+ * @param {{ executer: import('../src/platform/instance/plateforme-de-livraison.ts').Executeur }} acces
+ * @param {{ log: (m: string) => void, error: (m: string) => void }} [sortie]
+ */
+export async function preparerLeDepot(cible, options, acces, sortie) {
+  const { executer } = acces;
+  if (typeof executer !== 'function') throw new TypeError('accès : « executer » requis');
+  const produit = resolve(options.produit ?? '.');
+  const refuser = (message) => {
+    sortie?.error(message);
+    return { code: 1 };
+  };
+  const git = (dossier, args) => executer('git', ['-C', dossier, ...args], {});
+  const succes = async (dossier, args) => (await git(dossier, args)).code === 0;
+
+  // 1. Le fichier d'instance, par la lecture de la construction, avant toute autre chose.
+  let texteInstance;
+  try {
+    texteInstance = lireSync(options.instance, 'utf8');
+  } catch {
+    return refuser(`${options.instance} : le fichier d'instance est illisible ; le dépôt n'a pas été modifié.`);
+  }
+  try {
+    lireLeFichierDInstance(texteInstance);
+  } catch (erreur) {
+    return refuser(`${erreur instanceof Error ? erreur.message : String(erreur)} Le dépôt n'a pas été modifié.`);
+  }
+
+  // 2. La version et le dépôt.
+  if (!(await succes(produit, ['rev-parse', '--verify', '--quiet', `${options.version}^{commit}`]))) {
+    return refuser(`La version « ${options.version} » est introuvable dans le produit ; le dépôt n'a pas été modifié.`);
+  }
+  if (!existsSync(join(cible, '.git')) || !(await succes(cible, ['rev-parse', '--git-dir']))) {
+    return refuser(`${cible} n'est pas un clone git ; le dépôt n'a pas été modifié.`);
+  }
+  const etat = await git(cible, ['status', '--porcelain', '--ignored=no']);
+  if (etat.code !== 0 || etat.stdout.trim() !== '') {
+    const chemins = etat.stdout.split('\n').filter(Boolean).map((l) => l.slice(3)).join(', ');
+    return refuser(`${cible} porte des modifications non enregistrées : ${chemins} ; le dépôt n'a pas été modifié.`);
+  }
+  const aDejaUnCommit = await succes(cible, ['rev-parse', '--verify', '--quiet', 'HEAD']);
+  let brancheDesImagesPosee =
+    (await succes(cible, ['rev-parse', '--verify', '--quiet', 'refs/heads/media'])) ||
+    (await succes(cible, ['rev-parse', '--verify', '--quiet', 'refs/remotes/origin/media']));
+  if (!brancheDesImagesPosee && (await succes(cible, ['remote', 'get-url', 'origin']))) {
+    const distante = await git(cible, ['ls-remote', '--exit-code', '--heads', 'origin', 'media']);
+    if (distante.code === 0) brancheDesImagesPosee = true;
+    else if (distante.code !== 2) {
+      return refuser(`La branche des images n'a pas pu être cherchée sur l'origine : ${distante.stderr.trim()} ; le dépôt n'a pas été modifié.`);
+    }
+  }
+  const decision = decider({ aDejaUnCommit, brancheDesImagesPosee });
+
+  // « node:os » n'existe pas dans workerd, où les tests chargent ce module : il n'est chargé qu'ici.
+  const { tmpdir } = await import('node:os');
+  const temporaire = mkdtempSync(join(tmpdir(), 'depot-du-client-'));
+  try {
+    // 3. La version, extraite à l'écart, sans les exclusions.
+    const arbre = join(temporaire, 'arbre');
+    mkdirSync(arbre);
+    const extraction = await executer(
+      'sh',
+      ['-c', 'p="$1"; v="$2"; d="$3"; shift 3; git -C "$p" archive --format=tar -o "$d.tar" "$v" -- . "$@" && tar -x -f "$d.tar" -C "$d"', 'sh', produit, options.version, arbre, ...specificationsDExclusion()],
+      {},
+    );
+    if (extraction.code !== 0) return refuser(`L'extraction de la version « ${options.version} » a échoué ; le dépôt n'a pas été modifié.`);
+
+    // 4. Le contenu : de départ sur un dépôt vide, sinon celui du dépôt, tel quel.
+    if (decision.contenu === 'garder') {
+      rmSync(join(arbre, 'content'), { recursive: true, force: true });
+      const reprise = await executer(
+        'sh',
+        ['-c', 'git -C "$1" archive --format=tar -o "$2.reprise.tar" HEAD content && tar -x -f "$2.reprise.tar" -C "$2"', 'sh', cible, arbre],
+        {},
+      );
+      if (reprise.code !== 0) return refuser('Le contenu du dépôt n’a pas pu être repris ; le dépôt n’a pas été modifié.');
+    } else if (options.pagesDeDepart) {
+      rmSync(join(arbre, 'content/pages'), { recursive: true, force: true });
+      cpSync(options.pagesDeDepart, join(arbre, 'content/pages'), { recursive: true });
+    }
+    writeFileSync(join(arbre, 'instance.json'), texteInstance);
+
+    // 5. Les images que le contenu de départ désigne, vérifiées avant d'écrire.
+    let images = null;
+    if (decision.images === 'amorcer') {
+      const dossierDesFiches = join(arbre, 'content/medias');
+      const identites = existsSync(dossierDesFiches)
+        ? readdirSync(dossierDesFiches)
+            .filter((nom) => nom.endsWith('.json'))
+            .map((nom) => identiteDeLaFiche(lireSync(join(dossierDesFiches, nom), 'utf8')))
+            .filter((id) => id !== null)
+        : [];
+      const source = [];
+      for (const reference of ['refs/remotes/origin/media', 'refs/heads/media']) {
+        if (await succes(produit, ['rev-parse', '--verify', '--quiet', reference])) {
+          source.push(reference);
+          break;
+        }
+      }
+      if (source.length === 0 && identites.length > 0) {
+        return refuser('Aucune branche media dans le produit pour reprendre les images de départ ; le dépôt n’a pas été modifié.');
+      }
+      let retenues = [];
+      if (source.length > 0) {
+        const liste = await git(produit, ['ls-tree', '-r', '--name-only', source[0], '--', 'medias/']);
+        const choix = choisirLesImages(identites, liste.stdout.split('\n').filter(Boolean));
+        if (choix.manquantes.length > 0) {
+          return refuser(`Images de départ introuvables dans le produit : ${choix.manquantes.join(', ')} ; le dépôt n'a pas été modifié.`);
+        }
+        retenues = choix.retenues;
+      }
+      const octets = join(temporaire, 'octets');
+      mkdirSync(octets);
+      if (retenues.length > 0) {
+        const tire = await executer(
+          'sh',
+          ['-c', 'p="$1"; r="$2"; d="$3"; shift 3; git -C "$p" archive --format=tar -o "$d.tar" "$r" -- "$@" && tar -x -f "$d.tar" -C "$d"', 'sh', produit, source[0], octets, ...retenues],
+          {},
+        );
+        if (tire.code !== 0) return refuser('Les images de départ n’ont pas pu être reprises ; le dépôt n’a pas été modifié.');
+      }
+      images = octets;
+    }
+
+    // 6. Écriture : tout est prêt, le dépôt reçoit l'arbre composé.
+    const identite = (await git(cible, ['config', 'user.name'])).stdout.trim() === ''
+      ? ['-c', 'user.name=Livraison ColibriCMS', '-c', 'user.email=livraison@colibri.invalid']
+      : [];
+    for (const entree of readdirSync(cible)) if (entree !== '.git') rmSync(join(cible, entree), { recursive: true, force: true });
+    for (const entree of readdirSync(arbre)) cpSync(join(arbre, entree), join(cible, entree), { recursive: true });
+    const ajout = await git(cible, ['add', '--all']);
+    if (ajout.code !== 0) return refuser(`git add a échoué dans ${cible}.`);
+    const commit = (dossier, message, ...en) => git(dossier, [...identite, 'commit', '--quiet', ...en, '-m', message]);
+    if (await succes(cible, ['diff', '--cached', '--quiet'])) {
+      sortie?.log(`${cible} est déjà préparé depuis ${options.version} : rien à enregistrer.`);
+    } else {
+      const fait = await commit(cible, `livraison : ColibriCMS ${options.version}, ${decision.contenu === 'depart' ? 'contenu de départ' : 'contenu du site gardé'}`);
+      if (fait.code !== 0) return refuser(`git commit a échoué dans ${cible} : ${fait.stderr.trim()}`);
+      sortie?.log(`${cible} : ColibriCMS ${options.version}, fichier d'instance posé.`);
+    }
+
+    // 7. La branche des images, amorcée une seule fois.
+    if (images !== null) {
+      const arbreDesImages = join(temporaire, 'branche-media');
+      const ajoutee = await git(cible, ['worktree', 'add', '--quiet', '--orphan', '-b', 'media', arbreDesImages]);
+      if (ajoutee.code !== 0) return refuser(`La branche des images n'a pas pu être créée : ${ajoutee.stderr.trim()}`);
+      const avecImages = existsSync(join(images, 'medias'));
+      if (avecImages) cpSync(join(images, 'medias'), join(arbreDesImages, 'medias'), { recursive: true });
+      const ajoutImages = await git(arbreDesImages, ['add', '--all']);
+      if (ajoutImages.code !== 0) {
+        await git(cible, ['worktree', 'remove', '--force', arbreDesImages]);
+        await git(cible, ['branch', '-D', 'media']);
+        return refuser(`Les images de départ n'ont pas pu être ajoutées à la branche des images : ${ajoutImages.stderr.trim()}. Le commit principal est fait ; rejouer la même commande amorcera la branche des images.`);
+      }
+      const posee = await commit(arbreDesImages, 'livraison : images de départ', ...(avecImages ? [] : ['--allow-empty']));
+      await git(cible, ['worktree', 'remove', '--force', arbreDesImages]);
+      if (posee.code !== 0) return refuser(`git commit a échoué sur la branche des images : ${posee.stderr.trim()}`);
+      sortie?.log('Branche des images posée avec les images du contenu de départ.');
+    }
+    sortie?.log(`À envoyer : git -C ${cible} push -u origin HEAD:main${images !== null ? ' puis git push origin media' : ''}`);
+    return { code: 0 };
+  } finally {
+    rmSync(temporaire, { recursive: true, force: true });
+  }
+}
+
+/** Lit `--version` et `--instance` du geste `depot` ; null (message écrit) si les arguments sont invalides. */
+function lireLesOptionsDuDepot(argv, sortie) {
+  const [, cible, ...reste] = argv;
+  const valeur = (nom) => {
+    const i = reste.indexOf(nom);
+    const v = i === -1 ? undefined : reste[i + 1];
+    return v === undefined || v.startsWith('--') ? undefined : v;
+  };
+  const version = valeur('--version');
+  const instance = valeur('--instance');
+  if (!cible || cible.startsWith('--') || !version || !instance) {
+    sortie.error('usage : livraison.mjs depot <dépôt> --version <étiquette> --instance <fichier>');
+    return null;
+  }
+  return { cible, version, instance };
+}
+
+/**
  * Lit `--proscrire a,b,…` du geste `controler` ; rend null (message écrit) si les arguments sont invalides.
  * @param {string[]} argv
  * @param {{ error: (m: string) => void }} sortie
@@ -239,8 +433,13 @@ export async function principal(argv, acces, sortie) {
     }
     return (await inventaire(depot, adresse, acces, sortie)).code;
   }
+  if (geste === 'depot') {
+    const options = lireLesOptionsDuDepot(argv, sortie);
+    if (options === null) return 2;
+    return (await preparerLeDepot(options.cible, options, acces, sortie)).code;
+  }
   if ((geste !== 'controler' && geste !== 'base') || !depot) {
-    sortie.error('usage : livraison.mjs controler|base|semer|inventaire <dépôt> [adresse | --proscrire a,b,…]');
+    sortie.error('usage : livraison.mjs controler|base|semer|inventaire|depot <dépôt> [adresse | --proscrire a,b,…]');
     return 2;
   }
   if (geste === 'base') return (await base(depot, acces, sortie)).code;
