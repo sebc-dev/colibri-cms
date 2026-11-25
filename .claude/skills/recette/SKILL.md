@@ -216,16 +216,16 @@ produit. Trois **gestes humains** :
 3. la reconstruction automatique (Workers Builds) branchée sur la **seule** branche principale :
    tableau de bord → Workers & Pages → `colibri-cms` → Settings → Builds → Connect, le dépôt
    de recette. Commande de construction `npm run build`, commande de déploiement
-   `npx wrangler deploy` (le défaut), répertoire racine vide. Dans Branch control : branche de
+   `npm run mise-en-ligne` (et non le défaut `npx wrangler deploy`, qui ne met pas la base à
+   niveau), répertoire racine vide. Dans Branch control : branche de
    production `main`, et **Enable Preview Builds décoché**, pour qu'un dépôt sur `media` ne
    déclenche rien (FR-089). Une reconstruction part à chaque dépôt sur `main` ; pour la première,
    pousser un commit vide (`git -C ../colibri_recette commit --allow-empty -m "recette : première
    reconstruction" && git -C ../colibri_recette push`).
 
-La clé que Workers Builds crée pour ses constructions n'a aucun droit sur D1 : la reconstruction
-n'applique pas les migrations. Avant de recetter une version du produit qui en ajoute une,
-l'appliquer par un aperçu (`$S deployer standard`, sans `--principal` : il migre la base partagée),
-puis rejouer `$R depot` et les envois de l'étape 1.
+La commande de déploiement de Workers Builds est `npm run mise-en-ligne` : la construction met la
+base au niveau de la version avec sa clé par défaut, puis déploie (le déploiement n'a pas lieu si la
+mise à niveau échoue). Une version qui ajoute une migration n'exige donc aucun geste préalable.
 
 Une fois la reconstruction automatique branchée, ne plus lancer `$R deployer` vers le serveur
 principal (depuis `main` ou avec `--principal`) : il remplacerait le Worker bâti depuis le dépôt de

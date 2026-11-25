@@ -57,11 +57,9 @@ model {
   colibri-cms.worker.platform -[sync]-> github 'dépose le contenu et les images publiés'
   github -[async]-> workers-builds 'déclenche la reconstruction (branche principale seule)'
   workers-builds -[async]-> colibri-cms.worker 'bâtit, récupère les images, en produit les variantes, déploie'
-  // ADR-0035, change 020 — marquées #planned jusqu'aux tickets qui les posent dans le produit.
-  // trace attendue : package.json — "mise-en-ligne" (mise à niveau de la base, puis déploiement)
-  workers-builds -[async]-> colibri-cms.d1 'met la base au niveau de la version, avant de déployer' {
-    #planned
-  }
+  // ADR-0035, change 020.
+  // trace : package.json — "mise-en-ligne" (mise à niveau de la base, puis déploiement)
+  workers-builds -[async]-> colibri-cms.d1 'met la base au niveau de la version, avant de déployer'
   // trace : wrangler.astro.jsonc — triggers.crons ; src/entree-worker.ts:scheduled → src/platform/publication/maintien-de-la-cle.ts (ADR-0021)
   colibri-cms.worker.platform -[sync]-> github 'vérifie chaque semaine que la clé du dépôt est acceptée'
   // trace : scripts/livraison.mjs — depot (src/platform/instance/depot-du-client.ts) ; accès de collaborateur, retiré à la livraison
