@@ -7,7 +7,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { EMAIL_FORME } from '../src/core/reglages/coordonnees.ts';
-import { controlerLeDepot } from '../src/platform/instance/controle.ts';
+import { controlerLeDepot, controlerLesFichiersVersionnes } from '../src/platform/instance/controle.ts';
 import { ENTREES_DECLAREES, composerLInventaire } from '../src/platform/instance/inventaire.ts';
 import { lireLeFichierDInstance } from '../src/platform/instance/fichier-d-instance.ts';
 import { creerLaBase, semerLaPremiereAdresse } from '../src/platform/instance/plateforme-de-livraison.ts';
@@ -17,10 +17,25 @@ import { creerLaBase, semerLaPremiereAdresse } from '../src/platform/instance/pl
  * @param {Record<string, (...args: string[]) => unknown>} acces accès fichiers reçus en paramètre (seul « lire » est utilisé)
  * @param {{ log: (m: string) => void, error: (m: string) => void }} [sortie]
  */
-export async function controler(depot, acces, sortie) {
+export async function controler(depot, acces, sortie, proscrits = []) {
   const lire = acces.lire;
   if (typeof lire !== 'function') throw new TypeError('accès fichiers : « lire » manquant');
   const refus = await controlerLeDepot(depot, lire);
+  // Fichiers versionnés : listés par l'accès « lister » (git ls-files), lus un à un ; aucune écriture.
+  if (typeof acces.lister === 'function') {
+    const fichiers = [];
+    for (const chemin of await acces.lister(depot)) {
+      try {
+        fichiers.push({ chemin, texte: String(await lire(`${depot}/${chemin}`, 'utf8')) });
+      } catch (e) {
+        // Seuls ENOENT (suivi mais supprimé) et EISDIR (sous-module, répertoire) n'ont rien à contrôler ;
+        // tout autre échec est un refus : un fichier non lu ne doit pas passer pour propre.
+        if (e?.code === 'ENOENT' || e?.code === 'EISDIR') continue;
+        refus.push({ champ: chemin, motif: `illisible : le fichier n’a pas pu être contrôlé (${e?.code ?? 'erreur inconnue'})` });
+      }
+    }
+    refus.push(...controlerLesFichiersVersionnes(fichiers, proscrits));
+  }
   for (const r of refus) sortie?.error(`${r.champ} : ${r.motif}`);
   if (refus.length === 0) sortie?.log('Le fichier d’instance est prêt.');
   return { code: refus.length === 0 ? 0 : 1, refus };
@@ -178,6 +193,30 @@ export async function inventaire(depot, adresseDuClient, acces, sortie) {
 }
 
 /**
+ * Lit `--proscrire a,b,…` du geste `controler` ; rend null (message écrit) si les arguments sont invalides.
+ * @param {string[]} argv
+ * @param {{ error: (m: string) => void }} sortie
+ * @returns {string[] | null}
+ */
+function lireLesProscrits(argv, sortie) {
+  const usage = 'usage : livraison.mjs controler <dépôt> [--proscrire a,b,…]';
+  const [, depot, ...reste] = argv;
+  if (depot.startsWith('--') || reste.some((j) => j.startsWith('--') && j !== '--proscrire')) {
+    sortie.error(usage);
+    return null;
+  }
+  const position = reste.indexOf('--proscrire');
+  if (position === -1) return [];
+  const valeur = reste[position + 1];
+  const liste = valeur === undefined || valeur.startsWith('--') ? [] : valeur.split(',').map((p) => p.trim()).filter((p) => p !== '');
+  if (liste.length === 0) {
+    sortie.error('--proscrire attend une liste non vide : --proscrire a,b,…');
+    return null;
+  }
+  return liste;
+}
+
+/**
  * Point d'entrée en ligne de commande : `controler <dépôt>`, `base <dépôt>`, `semer <dépôt> <adresse>`
  * ou `inventaire <dépôt> <adresse du client>`.
  * @param {string[]} argv
@@ -201,11 +240,20 @@ export async function principal(argv, acces, sortie) {
     return (await inventaire(depot, adresse, acces, sortie)).code;
   }
   if ((geste !== 'controler' && geste !== 'base') || !depot) {
-    sortie.error('usage : livraison.mjs controler|base|semer|inventaire <dépôt> [adresse]');
+    sortie.error('usage : livraison.mjs controler|base|semer|inventaire <dépôt> [adresse | --proscrire a,b,…]');
     return 2;
   }
   if (geste === 'base') return (await base(depot, acces, sortie)).code;
-  return (await controler(depot, acces, sortie)).code;
+  const proscrits = lireLesProscrits(argv, sortie);
+  if (proscrits === null) return 2;
+  return (await controler(depot, acces, sortie, proscrits)).code;
+}
+
+/** Fichiers versionnés du dépôt contrôlé (`git ls-files`), sans rien modifier. */
+async function listerLesVersionnes(depot) {
+  const r = await lancerCommande('git', ['-C', depot, 'ls-files', '-z'], {});
+  if (r.code !== 0) throw new Error('git ls-files a échoué dans le dépôt contrôlé');
+  return r.stdout.split('\0').filter((c) => c !== '');
 }
 
 /** Exécute une commande avec l'environnement courant surchargé par `env`. */
@@ -227,7 +275,7 @@ const lancement = globalThis.process.argv[1];
 if (lancement && import.meta.url === pathToFileURL(lancement).href) {
   globalThis.process.exitCode = await principal(
     globalThis.process.argv.slice(2),
-    { lire: (chemin, enc) => readFile(chemin, enc), executer: lancerCommande, ecrire: (c, t) => writeFile(c, t, 'utf8') },
+    { lire: (chemin, enc) => readFile(chemin, enc), lister: listerLesVersionnes, executer: lancerCommande, ecrire: (c, t) => writeFile(c, t, 'utf8') },
     globalThis.console,
   );
 }

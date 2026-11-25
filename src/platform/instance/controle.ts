@@ -90,3 +90,44 @@ export async function controlerLeDepot(
   const texte = await lire(`${depot}/instance.json`, 'utf8');
   return controlerLeFichierDInstance(String(texte));
 }
+
+export interface FichierVersionne {
+  chemin: string;
+  texte: string;
+}
+
+/** Formes de clé d'accès connues : dépôt de publication (github_pat_, ghp_ et voisins) et préfixes Cloudflare. */
+const FORMES_DE_CLE = [
+  /github_pat_\w{20,}/,
+  /\bgh[pousr]_[A-Za-z0-9]{30,}/,
+  /\bcf(?:ut|at|k)_[A-Za-z0-9_-]{20,}/,
+];
+
+/**
+ * Contrôle des fichiers versionnés (design D8, familles 2 et 3) : refuse tout
+ * identifiant désigné de l'intégrateur (insensible à la casse, y compris dans un
+ * mot plus long) et toute valeur à forme de clé. Pour une clé, le refus nomme le
+ * fichier et la ligne, jamais la valeur ni un fragment. Les proscrits viennent de
+ * la seule ligne de commande ; la fonction ne lit rien.
+ */
+export function controlerLesFichiersVersionnes(
+  fichiers: readonly FichierVersionne[],
+  proscrits: readonly string[],
+): Refus[] {
+  const refus: Refus[] = [];
+  const cherches = proscrits.map((p) => p.trim()).filter((p) => p !== '');
+  for (const { chemin, texte } of fichiers) {
+    const bas = texte.toLowerCase();
+    for (const proscrit of cherches) {
+      if (bas.includes(proscrit.toLowerCase())) {
+        refus.push({ champ: chemin, motif: `contient l'identifiant désigné « ${proscrit} »` });
+      }
+    }
+    texte.split(/\r?\n/).forEach((ligne, i) => {
+      if (FORMES_DE_CLE.some((forme) => forme.test(ligne))) {
+        refus.push({ champ: `${chemin} (ligne ${String(i + 1)})`, motif: "valeur à forme de clé d'accès" });
+      }
+    });
+  }
+  return refus;
+}
