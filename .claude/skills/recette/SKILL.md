@@ -217,9 +217,11 @@ produit. Trois **gestes humains** :
    tableau de bord → Workers & Pages → `colibri-cms` → Settings → Builds → Connect, le dépôt
    de recette. Commande de construction `npm run build`, commande de déploiement
    `npm run mise-en-ligne` (et non le défaut `npx wrangler deploy`, qui ne met pas la base à
-   niveau), répertoire racine vide. Dans Branch control : branche de
-   production `main`, et **Enable Preview Builds décoché**, pour qu'un dépôt sur `media` ne
-   déclenche rien (FR-089). Une reconstruction part à chaque dépôt sur `main` ; pour la première,
+   niveau), répertoire racine vide. Branche de production `main`. Dans Compilations → Base des
+   aperçus, **éteindre « Builds pour les branches d'aperçu »** (allumé par défaut sur un
+   raccordement neuf ; l'ancien tableau de bord disait « Enable Preview Builds »), pour qu'un dépôt
+   sur `media` ne déclenche rien (FR-089). Allumé, chaque dépôt d'images lance une construction qui
+   échoue aussitôt et laisse un contrôle en échec sur le commit. Une reconstruction part à chaque dépôt sur `main` ; pour la première,
    pousser un commit vide (`git -C ../colibri_recette commit --allow-empty -m "recette : première
    reconstruction" && git -C ../colibri_recette push`).
 
