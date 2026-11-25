@@ -138,7 +138,8 @@ interface Livraison {
 }
 
 async function livraison(): Promise<Livraison> {
-  return (await import("../../scripts/livraison.mjs")) as Livraison;
+  const module: Livraison = await import("../../scripts/livraison.mjs");
+  return module;
 }
 
 function erreurDeLecture(code: string): Error {
@@ -153,8 +154,9 @@ function depotEnMemoire(textes: Record<string, string | Error>) {
   const acces: Acces = {
     lire: (chemin) => {
       lus.push(chemin);
-      const contenu = textes[chemin.replace("/depot/", "")];
-      if (contenu === undefined) throw erreurDeLecture("ENOENT");
+      const relatif = chemin.replace("/depot/", "");
+      if (!Object.hasOwn(textes, relatif)) throw erreurDeLecture("ENOENT");
+      const contenu = textes[relatif];
       if (contenu instanceof Error) throw contenu;
       return contenu;
     },
@@ -202,7 +204,7 @@ describe("contrôle d’instance — le geste controler <dépôt> --proscrire", 
     const code = await principal(["controler", "/depot", "--proscrire", INTEGRATEUR], acces, sortie);
 
     expect(code).toBe(1);
-    expect([...new Set(lus)].sort()).toEqual(["/depot/README.md", "/depot/instance.json"]);
+    expect(new Set(lus)).toEqual(new Set(["/depot/README.md", "/depot/instance.json"]));
     expect(erreurs.join("\n")).toContain(INTEGRATEUR);
   });
 
