@@ -49,3 +49,6 @@ Après un `/clear`, cette reprise n'existe plus : commiter l'arbre, puis relance
 - Activer `nodejs_compat` dans la configuration de test pour faire passer `node:os` — hors du
   périmètre du ticket, qui interdit de modifier `vitest.config.ts`.
 - Retoucher les trois tests existants qui importent `livraison.mjs` — ils ne sont pas en cause.
+
+## Issue
+Fermé le 2026-11-25. L'import de `node:os` a été déplacé dans le geste `depot` (chargement dynamique), la reprise avec le jeton `rerun: "2"` a abouti et la PR #385 a été ouverte.
