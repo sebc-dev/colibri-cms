@@ -59,9 +59,9 @@ base (geste de l'outil de livraison) ; une clé de construction sur mesure ; tou
 ## Critères
 
 - [ ] Quand la mise en ligne s'exécute pour la première fois, sur une base vide, toutes les mises à niveau de la base sont appliquées dans l'ordre, puis la version est déployée   (SC-05a)
-- [ ] Quand la mise en ligne s'exécute sur une base déjà au niveau de la version, aucune mise à niveau n'est appliquée, et les brouillons, le contenu publié, les demandes et l'adresse autorisée sont inchangés   (SC-05b)
-- [ ] Quand une mise à niveau de la base échoue pendant la mise en ligne, la version n'est pas déployée, le site en ligne reste celui d'avant, et les mises à niveau déjà appliquées restent appliquées   (SC-05c)
-- [ ] Quand l'éditrice publie et que le dépôt du client reçoit le contenu publié, la même commande de mise en ligne s'exécute, sans geste de personne   (SC-05d)
-- [ ] Quand seule la branche des images change, aucune mise en ligne ne s'exécute   (SC-05e)
-- [ ] Quand le dépôt change et qu'une mise en ligne s'exécute, elle s'exécute dans le compte de la plateforme qui porte l'instance, sans poste ni service de l'intégrateur   (SC-05f)
-- [ ] Quand la construction récupère les images publiées d'un dépôt privé sans qu'aucune clé du dépôt lui soit confiée, elle les récupère et aboutit   (SC-05g)
+- [x] Quand la mise en ligne s'exécute sur une base déjà au niveau de la version, aucune mise à niveau n'est appliquée, et les brouillons, le contenu publié, les demandes et l'adresse autorisée sont inchangés   (SC-05b)
+- [x] Quand une mise à niveau de la base échoue pendant la mise en ligne, la version n'est pas déployée, le site en ligne reste celui d'avant, et les mises à niveau déjà appliquées restent appliquées   (SC-05c)
+- [x] Quand l'éditrice publie et que le dépôt du client reçoit le contenu publié, la même commande de mise en ligne s'exécute, sans geste de personne   (SC-05d)
+- [x] Quand seule la branche des images change, aucune mise en ligne ne s'exécute   (SC-05e)
+- [x] Quand le dépôt change et qu'une mise en ligne s'exécute, elle s'exécute dans le compte de la plateforme qui porte l'instance, sans poste ni service de l'intégrateur   (SC-05f)
+- [x] Quand la construction récupère les images publiées d'un dépôt privé sans qu'aucune clé du dépôt lui soit confiée, elle les récupère et aboutit   (SC-05g)

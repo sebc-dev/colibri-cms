@@ -26,6 +26,7 @@
     "mutation": "stryker run",
     "dev": "astro dev",
     "db:migrate": "wrangler d1 migrations apply DB --local",
+    "mise-en-ligne": "wrangler d1 migrations apply DB --remote && wrangler deploy",
     "parcours": "playwright test"
   },
   "dependencies": {

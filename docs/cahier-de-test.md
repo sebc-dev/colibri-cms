@@ -42,7 +42,7 @@ d'Isometria (SC-012, SC-013) ne se recette pas : le compte est celui de l'opéra
 ### 0.2 Mettre en route
 
 ```sh
-npm run db:migrate          # applique les 6 migrations sur la base locale
+npm run db:migrate          # applique les migrations sur la base locale
 npx wrangler d1 execute DB --local \
   --command "insert into adresses_autorisees (adresse) values ('editrice@example.com');"
 mkdir -p .wrangler/tmp/email
