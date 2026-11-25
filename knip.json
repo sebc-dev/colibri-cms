@@ -7,7 +7,7 @@
     "tests/parcours/preparer-passe.ts",
     ".claude/scripts/scd-arch-conformance.mjs"
   ],
-  "ignore": ["src/**/zone.ts", ".claude/skills/**"],
+  "ignore": ["src/**/zone.ts", ".claude/skills/**", ".wrangler/**"],
   "ignoreDependencies": ["cloudflare", "@stryker-mutator/command-runner"],
   "ignoreBinaries": ["likec4"],
   "ignoreExportsUsedInFile": true
