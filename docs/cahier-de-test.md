@@ -18,11 +18,10 @@ Ce cahier complète les tests automatiques (`docs/test.md`), il ne les remplace 
 qu'un test dans `workerd` ne voit pas — le rendu au navigateur, la CSP réellement appliquée (voir
 `docs/test.md`, la CSP est invisible aux tests), les textes lus par l'éditrice, les gestes.
 
-**Hors périmètre** (pas encore livré, ne pas tester) : le
-déploiement d'une instance au nom du
-client et de ses nouvelles versions, la reconstruction du site sans le CMS et le dossier
-d'instance. La rapidité du site public (SC-005) se recette au § 42. Sur le serveur de recette, la révocation des accès
-d'Isometria (SC-012, SC-013) ne se recette pas : le compte est celui de l'opérateur.
+**Hors périmètre** (pas encore livré, ne pas tester) : les nouvelles versions d'une instance, la
+reconstruction du site sans le CMS et le dossier d'instance. La rapidité du site public (SC-005) se
+recette au § 42. La révocation des accès d'Isometria (SC-012, SC-013) ne se joue pas sur
+`colibri.sebc.dev` : l'épreuve du § 51 exige des comptes qui ne sont pas ceux de l'opérateur.
 
 ---
 
@@ -55,8 +54,9 @@ sa barre d'outils — la CSP stricte de l'administration bloque les deux (aucun 
 Seul l'artefact bâti reproduit ce que le navigateur verra en production. Après toute modification
 des sources ou de `content/pages/`, rejouer `npm run build` puis relancer `wrangler dev`.
 
-L'adresse autorisée est `editrice@example.com` : c'est celle que déclare `wrangler.astro.jsonc`
-(`send_email.destination_address`), la seule vers laquelle la liaison locale accepte d'expédier.
+L'adresse autorisée est `editrice@example.com` : c'est celle que déclare `wrangler.jsonc`
+(`send_email.destination_address`, pour les tests et la liaison locale seulement), la seule vers
+laquelle la liaison locale accepte d'expédier ; `wrangler.astro.jsonc` n'en déclare plus.
 
 ### 0.3 Lire le code de connexion
 
@@ -1019,6 +1019,26 @@ Le correctif de l'issue #356 (PR #358) a été vérifié pendant CT-50.3 : la va
 bâtie sans la fiche `media-fixture-hero`, n'a rien inscrit dans la base partagée à l'ouverture de
 Médias puis de « Publier » (`select id from medias where id like 'media-fixture%'` : la seule
 `media-fixture-equipe`, avant comme après).
+
+## 51. Livraison — épreuve de révocation — change 020 · ticket 11
+
+Se joue à chaque livraison, sur les comptes du client (ou, en répétition, sur deux comptes témoins et
+un nom de domaine fournis), jamais sur `colibri.sebc.dev`. Procédure : `docs/livraison.md`. Les captures
+ne montrent jamais un écran de création de clé. Préalable : l'inventaire (`inventaire <dépôt> <adresse du
+client>`) a été joué avant tout retrait et sa sortie est gardée.
+
+| ID | Étapes | Attendu | Résultat |
+|---|---|---|---|
+| CT-51.1 | Retirer le membre Cloudflare de l'intégrateur et le collaborateur GitHub, ainsi que chaque accès marqué « à retirer » et les adresses de destination de test ; `npx wrangler logout` sur le poste | Plus aucun accès de l'intégrateur ne subsiste | À jouer |
+| CT-51.2 | Ouvrir une page publique du domaine du client | La page s'affiche | À jouer |
+| CT-51.3 | Se connecter par code à l'administration | Le code arrive, la session s'ouvre | À jouer |
+| CT-51.4 | Corriger un texte et une image, publier, regarder le site en ligne | La correction, image comprise, est visible en ligne | À jouer |
+| CT-51.5 | Envoyer une demande depuis le formulaire public | La demande arrive à l'adresse autorisée et figure dans la liste | À jouer |
+| CT-51.6 | Dans le compte du client, déclencher à la main un passage de l'appel hebdomadaire | Le journal porte `[maintien] clé du dépôt` avec `issue` = `acceptee` | À jouer |
+| CT-51.7 | Session du client : liste des membres Cloudflare et des collaborateurs GitHub | Aucun de ceux que l'inventaire marquait « à retirer » | À jouer |
+| CT-51.8 | Session du client : page de facturation Cloudflare | Aucun moyen de paiement | À jouer |
+| CT-51.9 | Session du client : le nom de domaine | Géré dans le compte, sans y avoir été acheté | À jouer |
+| CT-51.10 | Écran « Code de secours » | Il dit qu'un code est en place | À jouer |
 
 ## Bilan
 
