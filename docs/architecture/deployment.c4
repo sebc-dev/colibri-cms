@@ -1,6 +1,5 @@
 // Déploiement — où tourne quoi. Posé par /scd-spec-dev:archi-dossier (relevé).
-// Le poste local et la recette ont une trace. L'environnement « production » décrit la cible décidée par l'ADR-0035 (change 020) :
-// aucune instance de client n'est encore déployée.
+// Le poste local, la recette et les comptes du client (ADR-0035, change 020) ont une trace : la procédure est dans docs/livraison.md.
 
 specification {
   deploymentNode environment
