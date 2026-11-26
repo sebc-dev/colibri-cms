@@ -89,4 +89,4 @@ plusieurs instances dans un même compte ; tout écran nouveau.
 
 ## Critères
 
-- [ ] À la lecture de la procédure de livraison, la création de la clé du dépôt, de la clé des adresses e-mail, de la clé de construction et du raccordement du dépôt y est placée dans une session du client   (SC-11a)
+- [x] À la lecture de la procédure de livraison, la création de la clé du dépôt, de la clé des adresses e-mail, de la clé de construction et du raccordement du dépôt y est placée dans une session du client   (SC-11a)

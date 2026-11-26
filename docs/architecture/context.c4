@@ -2,7 +2,6 @@
 
 specification {
   tag external
-  tag planned
 }
 
 model {
